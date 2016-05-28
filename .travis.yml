@@ -1,5 +1,17 @@
 language: cpp
 sudo: required
+addons:
+  apt:
+    sources:
+      - llvm-toolchain-precise
+      - ubuntu-toolchain-r-test
+      - george-edison55-precise-backports # cmake 3.2.3 / doxygen 1.8.3
+    packages:
+      - clang-3.7
+      - g++-5
+      - gcc-5
+      - cmake
+      - cmake-data
 compiler:
   - clang
   - gcc
@@ -11,6 +23,8 @@ install:
   - sudo apt-get install -qq cmake doxygen python-pip cppcheck valgrind ggcov
   - sudo apt-get install -qq libcppunit-dev libcppunit-1.12-1
   - sudo pip install cpplint
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
+  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
 script:
   - make
   - make test
