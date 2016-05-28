@@ -1,0 +1,16 @@
+include/solace/byteBuffer.hpp
+include/solace/iformattable.hpp
+include/solace/libsolace_config.h
+include/solace/path.hpp
+include/solace/string.hpp
+include/solace/stringBuilder.hpp
+include/solace/types.hpp
+include/solace/uuid.hpp
+include/solace/version.hpp
+src/stringBuilder.cpp
+src/version.cpp
+test/main.cpp
+test/test_path.cpp
+test/test_string.cpp
+test/test_stringBuilder.cpp
+test/test_version.cpp

@@ -1,0 +1,5 @@
+Every include file must start with '#pragma once'
+- Rational: all taget compilers support this pragma so no need to rely on define guards
+
+Include gruards, when user, must follow the pattern: {PROJECT_NAME}_{NAMESPACE}_{FILE_BASENAME -without suffix}_{FILE_SUFFIX}
+Each #endif must be followed by a comment which 'condition' it closures

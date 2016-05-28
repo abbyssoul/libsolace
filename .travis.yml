@@ -1,0 +1,17 @@
+language: cpp
+sudo: required
+compiler:
+  - clang
+  - gcc
+os:
+  - linux
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq cmake doxygen python-pip cppcheck valgrind ggcov
+  - sudo apt-get install -qq libcppunit-dev libcppunit-1.12-1
+  - sudo pip install cpplint
+install:
+script:
+  - make
+  - make test
+  - make verify
