@@ -3,7 +3,7 @@ libSolace
 [![Build Status](https://travis-ci.org/abbyssoul/libsolace.png?branch=master)](https://travis-ci.org/abbyssoul/libsolace)
 
 libSolace is a simple library for mission critical application.
-Idea of the library is inspired by [http://spinroot.com/gerard/pdf/P10.pdf NASA's Rules for Developing Safety Critical Code].
+Idea of the library is inspired by [http://spinroot.com/gerard/pdf/P10.pdf](NASA's Rules for Developing Safety Critical Code).
 The library aims to provide building blocks for fast and reliable applications using Modern C++.
 The implementation attempts to respect P10 rules to practically possible extent, but it is an ongoing effort.
 Please fill free to contribute.
