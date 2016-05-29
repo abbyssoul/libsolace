@@ -19,8 +19,8 @@ compiler:
 os:
   - linux
 before_install:
-  - sudo apt-get update -qq
 install:
+  - #sudo apt-get update -qq
   - sudo apt-get install -qq cmake doxygen libcppformat1-dev python-pip cppcheck valgrind ggcov
   - sudo apt-get install -qq libcppunit-dev libcppunit-1.12-1
   - sudo pip install cpplint
