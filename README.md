@@ -39,23 +39,23 @@ $ make
 ### Using make
 For convenience hand crafted makefile is provided to automake project management: 
 To build a shared library:
-```
+```shell
 ./configure.sh
 make
 ```
 
 To build and run test suit:
-```
+```shell
 make test
 ```
 
 To build API documentation:
-```
+```shell
 make doc
 ```
 
 To install locally for testing (TBD):
-```
+```shell
 make install --prefix=/user/<username>/test/lib
 ```
 
@@ -108,8 +108,7 @@ Given the language choice library is designed with the idea tha exceptions can b
 * [bzip2](http://www.bzip.org/) - a high-quality data compressor.
 * [libsigc++](http://libsigc.sourceforge.net/) - typesafe callback system for standard C++
 * [utf8cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweight generic library for handling UTF-8 encoded strings.
-* [cppformat](https://github.com/cppformat/cppformat) - C++ Format is an open-source formatting library for C++
-[More info](http://cppformat.github.io/latest/index.html)
+* [fmt](https://github.com/fmtlib/fmt) - C++ Format is an open-source formatting library for C++ [More info](http://fmtlib.net/latest/index.html)
 * [spdlog](https://github.com/gabime/spdlog) - Very fast, header only, C++ logging library.
 
 
@@ -121,7 +120,7 @@ Test source code located is in:
 ```
 
 Test can be run via:
-```
+```shell
 make test
 ```
 
