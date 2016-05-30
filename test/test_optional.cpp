@@ -256,8 +256,8 @@ public:
         CPPUNIT_ASSERT_EQUAL(SomeTestType(test.x * 18, test.f, test.somethingElse), v1.get());
 
         const auto v2 = Optional<SomeTestType>::none()
-                                        .map<int>([](const SomeTestType& f) {
-                                            return f.x;
+                                        .map<int>([](const SomeTestType& value) {
+                                            return value.x;
                                         });
 
         CPPUNIT_ASSERT(v2.isNone());

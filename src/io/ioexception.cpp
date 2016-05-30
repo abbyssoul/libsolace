@@ -31,11 +31,11 @@ using Solace::IO::NotOpen;
 const char* ExceptionType = "IOException";
 
 
-IOException::IOException(): Exception(ExceptionType) {
+IOException::IOException(): Exception(ExceptionType), _errorCode(-1) {
 
 }
 
-IOException::IOException(const std::string& msg): Exception(msg) {
+IOException::IOException(const std::string& msg): Exception(msg), _errorCode(-1) {
 }
 
 
@@ -44,7 +44,8 @@ IOException::IOException(int errorCode):
         fmt::format("{0}: {1}: {2}",
                     ExceptionType,
                     errorCode,
-                    strerror(errorCode)))
+                    strerror(errorCode))), 
+    _errorCode(errorCode)
 {
 }
 
@@ -55,7 +56,8 @@ IOException::IOException(int errorCode, const std::string& msg):
                     ExceptionType,
                     errorCode,
                     msg,
-                    strerror(errorCode)))
+                    strerror(errorCode))),
+    _errorCode(errorCode)
 {
 }
 

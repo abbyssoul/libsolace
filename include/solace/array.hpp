@@ -71,7 +71,7 @@ public:
     }
 
     /** Construct an array of a given fixed size */
-    explicit Array(size_type size): _storage(size) {
+    explicit Array(size_type initialSize): _storage(initialSize) {
     }
 
     /** Construct a new array to be a copy of a given */
@@ -79,7 +79,7 @@ public:
     }
 
     /** Construct a new array from a C-style array */
-    Array(size_type size, const T* carray): _storage(carray, carray + size) {
+    Array(size_type len, const T* carray): _storage(carray, carray + len) {
     }
 
     //------------------------------------------------------------------------------------------------------------------

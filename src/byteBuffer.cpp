@@ -105,12 +105,12 @@ byte ByteBuffer::get() {
     return _storage[_position++];
 }
 
-byte ByteBuffer::get(size_type position) const {
-    if ( !(position < _limit) ) {
-        raise<IllegalArgumentException>("Position");
+byte ByteBuffer::get(size_type pos) const {
+    if ( !(pos < _limit) ) {
+        raise<IllegalArgumentException>("pos");
     }
 
-    return _storage[position];
+    return _storage[pos];
 }
 
 

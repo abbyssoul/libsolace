@@ -47,7 +47,7 @@ public:
     virtual ~IOException() noexcept = default;
 
 private:
-	int errorCode;
+	int _errorCode;
 };
 
 

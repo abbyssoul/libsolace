@@ -125,12 +125,13 @@ bool Path::startsWith(const Path& other) const {
     if (other.length() > length())
         return false;
 
-    for (size_type i = 0, end = other.getComponentsCount(); i < end; ++i) {
+    const auto nbComponents = other.getComponentsCount();
+    for (size_type i = 0; i < nbComponents; ++i) {
         const auto& otherComponent = other._components[i];
         const auto& thisComponent = _components[i];
 
         if (!thisComponent.equals(otherComponent)) {
-            return thisComponent.startsWith(otherComponent) && (i + 1 == end);
+            return thisComponent.startsWith(otherComponent) && (i + 1 == nbComponents);
         }
     }
 
@@ -148,12 +149,13 @@ bool Path::endsWith(const Path& other) const {
         return false;
 
     const auto thisEnd = _components.size();
-    for (size_type i = 0, end = other.getComponentsCount(); i < end; ++i) {
+    const auto nbComponents = other.getComponentsCount();
+    for (size_type i = 0; i < nbComponents; ++i) {
         const auto& thisComponent = _components[thisEnd - 1 - i];
-        const auto& otherComponent = other._components[end - 1 - i];
+        const auto& otherComponent = other._components[nbComponents - 1 - i];
 
         if (!thisComponent.equals(otherComponent)) {
-            return thisComponent.endsWith(otherComponent) && (i + 1 == end);
+            return thisComponent.endsWith(otherComponent) && (i + 1 == nbComponents);
         }
     }
 
@@ -169,8 +171,8 @@ bool Path::contains(const Path& path) const {
         return false;
     }
 
-    for (size_type firstMatch = 0, end = nbThisComponents - nbOtherComponents + 1;
-         firstMatch < end;
+    for (size_type firstMatch = 0, nbComponents = nbThisComponents - nbOtherComponents + 1;
+         firstMatch < nbComponents;
          ++firstMatch) {
 
         const auto& a = _components[firstMatch];

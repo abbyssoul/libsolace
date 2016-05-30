@@ -220,18 +220,19 @@ public:
     }
 
     void testGetParent() {
-        const Path root("");
-        CPPUNIT_ASSERT_EQUAL(root, root.getParent());
+        {
+            const Path root("");
+            CPPUNIT_ASSERT_EQUAL(root, root.getParent());
 
-        const Path p1({"1", "2", "3", "4", "file"});
-        const Path p2({"1", "2", "3", "4"});
-        const Path p3("file");
-        const Path p4({"", "file"});
+            const Path p1({"1", "2", "3", "4", "file"});
+            const Path p2({"1", "2", "3", "4"});
+            const Path p3("file");
+            const Path p4({"", "file"});
 
-        CPPUNIT_ASSERT_EQUAL(p2, p1.getParent());
-        CPPUNIT_ASSERT_EQUAL(p3, p3.getParent());
-        CPPUNIT_ASSERT_EQUAL(root, p4.getParent());
-
+            CPPUNIT_ASSERT_EQUAL(p2, p1.getParent());
+            CPPUNIT_ASSERT_EQUAL(p3, p3.getParent());
+            CPPUNIT_ASSERT_EQUAL(root, p4.getParent());
+        }
         {
             Path root;
             CPPUNIT_ASSERT(root.empty());
