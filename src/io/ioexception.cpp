@@ -20,7 +20,7 @@
 *******************************************************************************/
 #include <solace/io/ioexception.hpp>
 
-#include <cppformat/format.h>
+#include <fmt/format.h>
 #include <cstring>
 
 

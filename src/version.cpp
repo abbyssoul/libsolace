@@ -25,7 +25,7 @@
 #include "solace/libsolace_config.h"		// Defines compile time version
 
 
-#include <cppformat/format.h>
+#include <fmt/format.h>
 #include <regex>
 
 
@@ -65,7 +65,7 @@ bool Version::operator > (const Version& rhv) const {
 
 String Version::toString() const {
     // FIXME(abbyssoul): Using format is an overkill in this case - a simple String concat should do!
-    auto s1 = fmt::format("{1}{0}{2}{0}{3}", ComponentSeparator, majorNumber, minorNumber, patchNumber);
+    auto s1 = fmt::format("{1}{0}{2}{0}{3}", ComponentSeparator.to_str(), majorNumber, minorNumber, patchNumber);
 
     auto s2 = (preRelease.empty())
               ? String::Empty

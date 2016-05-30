@@ -21,9 +21,10 @@
  * Created on: 22 Apr 2015
 *******************************************************************************/
 #include <solace/version.hpp>			// Class being tested
+#include <solace/exception.hpp>
+
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <solace/exception.hpp>
 #include <vector>   // FIXME: We should test with Solace::Array
 
 using namespace Solace;

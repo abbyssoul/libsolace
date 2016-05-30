@@ -22,12 +22,13 @@ before_install:
 install:
   - #sudo apt-get update -qq
   - sudo apt-get install -qq cmake doxygen g++-4.8 clang-3.5 python-pip cppcheck valgrind ggcov
-  - sudo apt-get install -qq libcppformat1-dev libcppunit-dev libcppunit-1.12-1
+  - sudo apt-get install -qq libcppunit-dev
   - sudo pip install cpplint
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.8 80
   - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
   - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
+  - cd libs && git clone https://github.com/fmtlib/fmt.git
 script:
   - make
   - make test

@@ -35,6 +35,7 @@
 
 #include <signal.h>
 #include <cstdlib>
+#include <memory>
 
 
 #include "ci/teamcity_cppunit.h"

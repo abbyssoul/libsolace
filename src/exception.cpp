@@ -23,7 +23,7 @@
 #include "solace/exception.hpp"
 #include "solace/string.hpp"
 
-#include <cppformat/format.h>
+#include <fmt/format.h>
 
 
 

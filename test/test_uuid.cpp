@@ -24,7 +24,7 @@
 #include <solace/array.hpp>
 
 #include <cppunit/extensions/HelperMacros.h>
-#include <cppformat/format.h>
+#include <fmt/format.h>
 
 
 using namespace Solace;

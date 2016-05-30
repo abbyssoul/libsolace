@@ -21,7 +21,7 @@
  * Created on: 21 Jan 2016
 *******************************************************************************/
 #include <solace/path.hpp>			// Class being tested
-#include "solace/exception.hpp"     // Checked expcetions
+#include <solace/exception.hpp>     // Checked expcetions
 
 #include <cppunit/extensions/HelperMacros.h>
 #include <cstring>

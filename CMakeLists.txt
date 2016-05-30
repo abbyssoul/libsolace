@@ -5,8 +5,11 @@ set(CMAKE_CXX_FLAGS_DEBUG "-ggdb3 -O0 -D _DEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "-O2 -D NDEBUG -combine -fwhole-program")
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -pedantic -Wextra -pedantic-errors")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -Wextra -pedantic-errors")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-include-dirs -Wswitch-enum -Wfloat-equal -Wcast-align -Wpacked -Wredundant-decls")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -Wall -pedantic -Wextra -pedantic-errors")
+
+# FIXME(abbyssoul): fmt produces too much noise with '-Wswitch-enum'
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow -Wmissing-include-dirs -Wfloat-equal -Wcast-align -Wpacked -Wredundant-decls")
+
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
@@ -47,11 +50,13 @@ set(TEST_SOURCE_FILES
 
 set(EXAMPLE_SERIAL_SOURCE_FILES examples/serial.cpp)
 
+set(FMT_USE_CPP11 OFF)
+add_subdirectory(libs/fmt)
+
 add_library(solace ${SOURCE_FILES})
 add_executable(test_solace ${TEST_SOURCE_FILES})
 add_executable(serial ${EXAMPLE_SERIAL_SOURCE_FILES})
 
-target_link_libraries(solace cppformat)
-target_link_libraries(test_solace cppunit solace)
+target_link_libraries(solace fmt)
+target_link_libraries(test_solace cppunit solace fmt)
 target_link_libraries(serial solace)
-
