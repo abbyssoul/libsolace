@@ -26,8 +26,8 @@ install:
   - sudo pip install cpplint
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.8 80
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
-  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
+  - #if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
+  - #if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.7" CC="clang-3.7"; fi
   - git clone https://github.com/fmtlib/fmt.git libs/fmt
 script:
   - make
