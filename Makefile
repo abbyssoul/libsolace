@@ -7,7 +7,7 @@ PROJECT = solace
 MODULE_HEADERS = include/*
 MODULE_SRC = src/*
 BUILD_DIR = build
-TARGE_MAKE = $(BUILD_DIR)/Makefile
+GENERATED_MAKE = $(BUILD_DIR)/Makefile
 
 LIBNAME = libsolace.a
 LIB_TAGRET = $(BUILD_DIR)/$(LIBNAME)
@@ -31,9 +31,8 @@ all: lib
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(TARGE_MAKE): $(BUILD_DIR)
+$(GENERATED_MAKE): $(BUILD_DIR)
 	cd $(BUILD_DIR) && cmake ..
-	ls -la $(TARGE_MAKE)
 
 
 #-------------------------------------------------------------------------------
@@ -42,7 +41,7 @@ $(TARGE_MAKE): $(BUILD_DIR)
 lib: $(LIB_TAGRET)
 
 
-$(LIB_TAGRET): $(TARGE_MAKE)
+$(LIB_TAGRET): $(GENERATED_MAKE)
 	$(MAKE) -C $(BUILD_DIR) solace
 
 
@@ -53,7 +52,7 @@ test: $(LIB_TAGRET) $(TEST_TAGRET)
 	cd $(BUILD_DIR) && ./$(TESTNAME)
 
 
-$(TEST_TAGRET): $(TARGE_MAKE)
+$(TEST_TAGRET): $(GENERATED_MAKE)
 	$(MAKE) -C $(BUILD_DIR) $(TESTNAME)
 
 
