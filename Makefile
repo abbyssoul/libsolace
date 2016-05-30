@@ -7,10 +7,10 @@ PROJECT = solace
 MODULE_HEADERS = include/*
 MODULE_SRC = src/*
 BUILD_DIR = build
-GENERATED_MAKE = $(BUILD_DIR)/Makefile
+GENERATED_MAKE = ${BUILD_DIR}/Makefile
 
 LIBNAME = libsolace.a
-LIB_TAGRET = $(BUILD_DIR)/$(LIBNAME)
+LIB_TAGRET = ${BUILD_DIR}/${LIBNAME}
 
 TESTNAME = test_solace
 TEST_TAGRET = $(BUILD_DIR)/$(TESTNAME)
@@ -20,7 +20,7 @@ DOC_TARGET = $(DOC_DIR)/html
 
 
 # First tagret that starts not with '.'' - is a default target to run
-.PHONY: verify clean
+.PHONY: verify clean ${GENERATED_MAKE}
 
 all: lib
 
@@ -28,11 +28,11 @@ all: lib
 #-------------------------------------------------------------------------------
 # CMake wrapper
 #-------------------------------------------------------------------------------
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+${BUILD_DIR}:
+	mkdir -p ${BUILD_DIR}
 
-$(GENERATED_MAKE): $(BUILD_DIR)
-	cd $(BUILD_DIR) && cmake ..
+${GENERATED_MAKE}: ${BUILD_DIR}
+	cd ${BUILD_DIR} && cmake ..
 
 
 #-------------------------------------------------------------------------------
@@ -41,19 +41,19 @@ $(GENERATED_MAKE): $(BUILD_DIR)
 lib: $(LIB_TAGRET)
 
 
-$(LIB_TAGRET): $(GENERATED_MAKE)
-	$(MAKE) -C $(BUILD_DIR) solace
+$(LIB_TAGRET): ${GENERATED_MAKE}
+	$(MAKE) -C ${BUILD_DIR} solace
 
 
 #-------------------------------------------------------------------------------
 # Build unit tests
 #-------------------------------------------------------------------------------
 test: $(LIB_TAGRET) $(TEST_TAGRET)
-	cd $(BUILD_DIR) && ./$(TESTNAME)
+	cd ${BUILD_DIR} && ./$(TESTNAME)
 
 
-$(TEST_TAGRET): $(GENERATED_MAKE)
-	$(MAKE) -C $(BUILD_DIR) $(TESTNAME)
+$(TEST_TAGRET): ${GENERATED_MAKE}
+	$(MAKE) -C ${BUILD_DIR} $(TESTNAME)
 
 
 #-------------------------------------------------------------------------------
