@@ -38,23 +38,19 @@ ${GENERATED_MAKE}: ${BUILD_DIR}
 #-------------------------------------------------------------------------------
 # Build lib
 #-------------------------------------------------------------------------------
-lib: $(LIB_TAGRET)
-
-
 $(LIB_TAGRET): ${GENERATED_MAKE}
 	$(MAKE) -C ${BUILD_DIR} solace
 
+lib: $(LIB_TAGRET)
 
 #-------------------------------------------------------------------------------
 # Build unit tests
 #-------------------------------------------------------------------------------
-test: $(LIB_TAGRET) $(TEST_TAGRET)
-	cd ${BUILD_DIR} && ./$(TESTNAME)
-
-
 $(TEST_TAGRET): ${GENERATED_MAKE}
 	$(MAKE) -C ${BUILD_DIR} $(TESTNAME)
 
+test: $(LIB_TAGRET) $(TEST_TAGRET)
+	cd ${BUILD_DIR} && ./$(TESTNAME)
 
 #-------------------------------------------------------------------------------
 # Build docxygen documentation

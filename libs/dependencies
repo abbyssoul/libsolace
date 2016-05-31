@@ -1,1 +1,5 @@
-git clone https://github.com/fmtlib/fmt.git
+#!/bin/bash
+# Get external dependencies as part of the build process
+
+# FMT:
+git clone https://github.com/fmtlib/fmt.git libs/fmt
