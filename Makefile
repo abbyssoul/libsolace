@@ -20,7 +20,7 @@ DOC_TARGET = $(DOC_DIR)/html
 
 
 # First tagret that starts not with '.'' - is a default target to run
-.PHONY: verify clean ${GENERATED_MAKE}
+.PHONY: codecheck verify clean
 
 all: lib
 
@@ -89,8 +89,9 @@ codecheck: cpplint cppcheck
 #-------------------------------------------------------------------------------
 
 verify: $(TEST_TAGRET)
-	cd ${BUILD_DIR} && valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --expensive-definedness-checks=yes \
-	./$(TESTNAME)
+	# > 3.7 (not availiable on raspberry pi) --show-leak-kinds=all
+	# > 3.10 (not avaliable on trusty) --expensive-definedness-checks=yes
+	cd ${BUILD_DIR} && valgrind --tool=memcheck --leak-check=full ./$(TESTNAME)
 
 
 #-------------------------------------------------------------------------------
