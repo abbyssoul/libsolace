@@ -2,32 +2,42 @@ libSolace
 ===============
 [![Build Status](https://travis-ci.org/abbyssoul/libsolace.png?branch=master)](https://travis-ci.org/abbyssoul/libsolace)
 
-libSolace is a simple library for mission critical application.
-Idea of the library is inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).
-The library aims to provide building blocks for fast and reliable applications using Modern C++.
+libSolace is a simple library for building mission critical application.
+Idea of this library is inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).
+The library aims to provide building blocks for fast and reliable applications using Modern C++ dialect.
 The implementation attempts to respect P10 rules to practically possible extent, but it is an ongoing effort.
 Please fill free to contribute.
 
 
 ## Building
-### Build dependencies
-* cmake
+### Build tool dependencies
+* cmake (version 3.0 and above)
 * cppunit
 * doxygen (for documentation)
 * cppcheck (for static code analysis)
 * cpplint (for static code analysis)
-* valgrind
+* valgrind (for code verification step only)
 
-To install it all on linux:
+Library make extensive use of C++ features from C++14 standard, so the minimal support version of gcc is gcc-4.9
+
+
+To install build tools on linux:
 ```shell
+sudo apt-get update -qq
 sudo apt-get install cmake doxygen python-pip cppcheck valgrind ggcov
-sudo apt-get install libcppunit-dev libcppunit-1.12-1
+sudo apt-get install libcppunit-dev
 sudo pip install cpplint
 ```
 
+Library also requires a few extranal dependencies:
+```shell
+git clone https://github.com/fmtlib/fmt.git libs/fmt
+```
+
+
 ## Building using CMake
 Current build system used for the project is cmake. You can build the library and test using familiar cmake steps:
-Please make sure that the system has cmake installed. Minimal confirmed version is 3.2
+Please make sure that the system has cmake installed. Minimal confirmed version is 3.0
     $ cmake --version
 
 To build the project:
@@ -36,11 +46,11 @@ $ mkdir build && cd build
 $ cmake ..
 $ make
 ```
+
 ### Using make
 For convenience hand crafted makefile is provided to automake project management: 
 To build a shared library:
 ```shell
-./configure.sh
 make
 ```
 
@@ -64,7 +74,8 @@ To install system wide (as root)(TBD):
 make install
 ```
 
-=== Target Systems ===
+
+### Target Platforms
 The library is designed with the following systems in mind:
  * [Raspberry Pi](https://www.raspberrypi.org/)
  * [BeagleBone](http://beagleboard.org/)
@@ -82,9 +93,9 @@ Library design is significantly inspired by [https://github.com/3rdparty/stout](
 			- int{8,16,32}
 			- uint{8,16,32}
 			- float{32,64}
-	- Immutable String (for thouse who are from java land)
+	- Immutable String (for thouse who are from Java land)
 	- Optional<>
-	- Result<>
+	- Result<> (like in Rust, can't be ignored)
 	- Collections (WIP):
 		- Array: Fixed-size array (dynamically allocated on the heap)
 		- (TBD):List/Vector: variable-length collection
@@ -113,16 +124,28 @@ Given the language choice library is designed with the idea tha exceptions can b
 
 
 ## Testing
-The library is equited with test suit which is based on [cppunit](https://sourceforge.net/projects/cppunit/)
+The library is equiped with the [cppunit](https://sourceforge.net/projects/cppunit/) test suit
 Test source code located is in:
 ```
 ./test 
 ```
 
-Test can be run via:
+Test can (and should) be run via:
 ```shell
 make test
 ```
+
+### Developers/Contributing
+Please make sure that static code check step returns no error before raising a pull request
+```shell
+make codecheck
+```
+
+It is also a good idea to run valgrind on the test suit to make sure that the memory is safe
+```shell
+make verify
+```
+
 
 ## Similar projects
 * [Poco](http://pocoproject.org/)

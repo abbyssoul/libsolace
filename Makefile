@@ -82,7 +82,15 @@ cppcheck: $(MODULE_HEADERS) $(MODULE_SRC)
 	-I include -i test/ci src test examples
 
 
-verify: cpplint cppcheck
+codecheck: cpplint cppcheck
+
+#-------------------------------------------------------------------------------
+# Code quality assurance
+#-------------------------------------------------------------------------------
+
+verify: $(TEST_TAGRET)
+	cd ${BUILD_DIR} && valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --expensive-definedness-checks=yes \
+	./$(TESTNAME)
 
 
 #-------------------------------------------------------------------------------

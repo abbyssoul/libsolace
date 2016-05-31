@@ -53,7 +53,7 @@ String::String(String&& s) noexcept {
 String::String(const char* data) : _str(data) {
 }
 
-String::String(const char* data, size_type length): _str(data, length) {
+String::String(const char* data, size_type dataLength): _str(data, dataLength) {
 }
 
 String::String(const Buffer& buffer):

@@ -104,7 +104,7 @@ File::size_type File::read(ByteBuffer& buffer) {
 }
 
 
-File::size_type File::read(ByteBuffer& buffer, size_type bytesToRead) {
+File::size_type File::read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead) {
     if (buffer.remaining() < bytesToRead) {
         raise<IllegalArgumentException>("bytesToRead");
     }
@@ -127,7 +127,7 @@ File::size_type File::write(ByteBuffer& buffer) {
 }
 
 
-File::size_type File::write(ByteBuffer& buffer, size_type bytesToWrite) {
+File::size_type File::write(ByteBuffer& buffer, ByteBuffer::size_type bytesToWrite) {
     if (buffer.remaining() < bytesToWrite) {
         raise<IllegalArgumentException>("bytesToWrite");
     }

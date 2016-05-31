@@ -147,14 +147,14 @@ public:
      *
      * @throws IOException if close system call failed
      */
-    virtual size_type read(ByteBuffer& buffer, size_type bytesToRead);
+    virtual size_type read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead);
 
 
     /** Write data from the given byte buffer into this file object.
      *
      * @param data Bytes to write into this file object.
 
-     * @return Number of bytes actually writtem
+     * @return Number of bytes actually writen
      * @see File::write()
      *
      * @throws IOException if underlaying system call failed
@@ -171,7 +171,7 @@ public:
      *
      * @throws IOException if underlaying system call failed
      */
-    virtual size_type write(ByteBuffer& buffer, size_type bytesToWrite);
+    virtual size_type write(ByteBuffer& buffer, ByteBuffer::size_type bytesToWrite);
 
 
 	/*

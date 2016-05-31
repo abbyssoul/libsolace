@@ -161,15 +161,15 @@ Buffer::Buffer(const Buffer& rhs):
 }
 
 
-Buffer::Buffer(size_type size, void* data, bool copyData):
+Buffer::Buffer(size_type size, void* bytes, bool copyData):
     _size(size),
     _ownsData(copyData),
-    _data(reinterpret_cast<value_type*>(data))
+    _data(reinterpret_cast<value_type*>(bytes))
 {
   if (copyData) {
     _data = new value_type[_size];
 
-    memcpy(_data, data, _size * sizeof(value_type));
+    memcpy(_data, bytes, _size * sizeof(value_type));
   }
 }
 

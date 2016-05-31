@@ -4,7 +4,7 @@ project(solace)
 include(CheckCXXCompilerFlag)
 
 # libsolace requires c++14
-check_cxx_compiler_flag(-std=c++14 HAVE_STD_CPP11_FLAG)
+check_cxx_compiler_flag(-std=c++14 HAVE_STD_CPP14_FLAG)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pedantic -pedantic-errors")
 
 # Enable stack-protector if compiler supports it (it should)
@@ -19,7 +19,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused -Wpointer-arith -Wwrite-strings
 
 # FIXME(abbyssoul): fmt produces too much noise with '-Wswitch-enum'
 # add -Wconversion ?
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wmissing-format-attribute")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wmissing-format-attribute")
 
 # with -fPIC
 check_cxx_compiler_flag("-fPIC" WITH_FPIC)
@@ -32,7 +32,6 @@ check_cxx_compiler_flag("-D_FORTIFY_SOURCE=2" WITH_FORTIFY_SOURCE)
 if (WITH_FORTIFY_SOURCE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORTIFY_SOURCE=2")
 endif (WITH_FORTIFY_SOURCE)
-
 
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb3 -O0 -D _DEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O2 -D NDEBUG -combine -fwhole-program")

@@ -37,8 +37,10 @@
 
 using Solace::uint32;
 using Solace::Path;
+using Solace::ByteBuffer;
 using Solace::IO::Serial;
 using Solace::IO::IOException;
+
 
 
 timespec timespec_from_ms(const uint32 millis) {
@@ -574,7 +576,7 @@ Serial::size_type Serial::available() const {
 }
 
 
-Serial::size_type Serial::read(ByteBuffer& buffer, size_type bytesToRead) {
+Serial::size_type Serial::read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead) {
     if (buffer.remaining() < bytesToRead) {
         raise<IllegalArgumentException>("bytesToRead");
     }
@@ -592,7 +594,7 @@ Serial::size_type Serial::read(ByteBuffer& buffer, size_type bytesToRead) {
 }
 
 
-Serial::size_type Serial::write(ByteBuffer& buffer, size_type bytesToWrite) {
+Serial::size_type Serial::write(ByteBuffer& buffer, ByteBuffer::size_type bytesToWrite) {
     if (buffer.remaining() < bytesToWrite) {
         raise<IllegalArgumentException>("bytesToWrite");
     }

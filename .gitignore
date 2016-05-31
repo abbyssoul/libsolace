@@ -1,7 +1,8 @@
 # Git ignores the following files
 bin/
-build/html
+build/
 doc/html
+libs/*/
 
 ### C++/C ###
 # Compiled Object files
@@ -90,7 +91,6 @@ local.properties
 
 ### NetBeans ###
 nbproject/private/
-build/
 nbbuild/
 dist/
 nbdist/

@@ -244,7 +244,7 @@ public:
     *
     * \throw serial::SerialException
     */
-    size_type read(ByteBuffer& buffer, size_type bytesToRead) override;
+    size_type read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead) override;
 
 
     /*! Write given number of bytes into the serial port.
@@ -257,7 +257,7 @@ public:
     * \throw serial::SerialException
     * \throw serial::IOException
     */
-    size_type write(ByteBuffer& data, size_type bytesToWrite) override;
+    size_type write(ByteBuffer& data, ByteBuffer::size_type bytesToWrite) override;
 
     /**
      * \see File:flush
