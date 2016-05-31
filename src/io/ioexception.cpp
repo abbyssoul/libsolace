@@ -44,7 +44,7 @@ IOException::IOException(int errorCode):
         fmt::format("{0}: {1}: {2}",
                     ExceptionType,
                     errorCode,
-                    strerror(errorCode))), 
+                    strerror(errorCode))),
     _errorCode(errorCode)
 {
 }

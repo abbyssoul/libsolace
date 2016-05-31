@@ -31,6 +31,7 @@ using namespace Solace;
 
 
 class TestArray : public CppUnit::TestFixture  {
+
     CPPUNIT_TEST_SUITE(TestArray);
         CPPUNIT_TEST(testEmpty);
         CPPUNIT_TEST(testCopy);

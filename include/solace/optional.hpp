@@ -125,7 +125,7 @@ public:
 
     bool equals(const Optional<T>& other) const noexcept override {
 
-        if ( &other == this) {
+        if (&other == this) {
             return true;
         }
 

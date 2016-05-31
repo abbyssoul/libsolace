@@ -76,9 +76,10 @@ cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
 #	--enable=style,unusedFunctions,exceptNew,exceptRealloc,possibleError 
 #	cppcheck --std=c++11 --enable=all -v -I $(MODULE_HEADERS) $(MODULE_SRC) 
 cppcheck: $(MODULE_HEADERS) $(MODULE_SRC)
-	cppcheck -I include/ --std=c++11 \
+	#--inconclusive
+	cppcheck --std=c++11 --std=posix -D __linux__  -q --error-exitcode=2 \
 	--enable=warning,performance,portability,information,unusedFunction,missingInclude \
-	-D __linux__ -i test/ci  --inconclusive -q --error-exitcode=2 src test examples
+	-I include -i test/ci src test examples
 
 
 verify: cpplint cppcheck

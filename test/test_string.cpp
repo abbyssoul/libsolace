@@ -358,7 +358,8 @@ public:
             const String toTrim("Hello, world!");
             testString = toTrim.trim();
             CPPUNIT_ASSERT(testString == toTrim);
-            CPPUNIT_ASSERT_EQUAL_MESSAGE(fmt::format("The string '{}' doesn't match '{}'", testString.to_str(), trimmed.to_str()),
+            CPPUNIT_ASSERT_EQUAL_MESSAGE(fmt::format("The string '{}' doesn't match '{}'",
+            							 testString.to_str(), trimmed.to_str()),
                                          trimmed, testString);
         }
 
@@ -368,7 +369,8 @@ public:
             const String toTrim(" Hello, world!");
             testString = toTrim.trim();
             CPPUNIT_ASSERT(testString != toTrim);
-            CPPUNIT_ASSERT_EQUAL_MESSAGE(fmt::format("The string '{}' doesn't match '{}'", testString.to_str(), trimmed.to_str()),
+            CPPUNIT_ASSERT_EQUAL_MESSAGE(fmt::format("The string '{}' doesn't match '{}'",
+    									testString.to_str(), trimmed.to_str()),
                                          trimmed, testString);
         }
 
@@ -378,7 +380,8 @@ public:
             const String toTrim("  Hello, world!  ");
             testString = toTrim.trim();
             CPPUNIT_ASSERT(testString != toTrim);
-            CPPUNIT_ASSERT_EQUAL_MESSAGE(fmt::format("The string '{}' doesn't match '{}'", testString.to_str(), trimmed.to_str()),
+            CPPUNIT_ASSERT_EQUAL_MESSAGE(fmt::format("The string '{}' doesn't match '{}'",
+            							 testString.to_str(), trimmed.to_str()),
                                          trimmed, testString);
         }
 
@@ -388,7 +391,8 @@ public:
             const String toTrim("Hello, world !  ");
             testString = toTrim.trim();
             CPPUNIT_ASSERT(testString != toTrim);
-            CPPUNIT_ASSERT_EQUAL_MESSAGE(fmt::format("The string '{}' doesn't match '{}'", testString.to_str(), trimmed.to_str()),
+            CPPUNIT_ASSERT_EQUAL_MESSAGE(fmt::format("The string '{}' doesn't match '{}'",
+            							 testString.to_str(), trimmed.to_str()),
                                          trimmed, testString);
         }
 	}

@@ -2,6 +2,7 @@
 #include <solace/char.hpp>
 #include <solace/io/serial.hpp>
 #include <solace/stringBuilder.hpp>
+#include <solace/version.hpp>
 
 
 #include <iostream>
@@ -20,6 +21,7 @@ void enumeratePorts() {
 
 
 int main(int argc, char **argv) {
+    std::cout << "libsolace: " << Solace::getBuildVersion() << std::endl;
 
 	if (argc == 1) { // No-arg call: list ports and exit
 		enumeratePorts();
@@ -35,7 +37,9 @@ int main(int argc, char **argv) {
         : 120;
 
 	const auto file = Solace::Path::parse(argv[1]);
-    printf("Opening port: '%s', boudrate: %d\n", file.toString().c_str(), boudRate);
+    std::cout << "Opening port: " << file
+              << "boudrate: " << boudRate 
+              << std::endl;
 
 	Solace::IO::Serial serial(file, boudRate);
     Solace::ByteBuffer readBuffer(bufferSize);
@@ -59,27 +63,5 @@ int main(int argc, char **argv) {
 
             readBuffer.rewind();
         }
-
-//        if (!readBuffer.hasRemaining()) {
-//            for (Solace::WriteBuffer::size_type i = 0; i < readBuffer.position(); ++i) {
-//                const auto c = readBuffer.get(i);
-
-//                if (Solace::Char::isPrintable(c)) {
-//                    formatBuffer << c;
-//                } else if (c == '\r') {
-//                    formatBuffer << c;
-//                    std::cout.write((const char*)formatBuffer.data(), formatBuffer.position());
-//                    std::cout.flush();
-//                    formatBuffer.rewind();
-//                }
-
-//                if (!formatBuffer.hasRemaining()) {
-//                    std::cout.write((const char*)formatBuffer.data(), formatBuffer.position());
-//                    std::cout.flush();
-//                    formatBuffer.rewind();
-//                }
-//            }
-//            readBuffer.rewind();
-//        }
     }
 }

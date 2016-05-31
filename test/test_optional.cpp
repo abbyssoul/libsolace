@@ -176,9 +176,11 @@ public:
             auto v1 = Optional<SomeTestType>::none();
             auto v2 = Optional<SomeTestType>::of(SomeTestType(3, 2.718f, "Test value"));
 
+            CPPUNIT_ASSERT(v1.isNone());
             CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
             v1 = v2;
             CPPUNIT_ASSERT_EQUAL(2, SomeTestType::InstanceCount);
+            CPPUNIT_ASSERT(v1.isSome());
             v2 = Optional<SomeTestType>::none();
             CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
             v1 = v2;
@@ -190,6 +192,7 @@ public:
             auto v2 = Optional<SomeTestType>::of(moveSomeTestType(3, 2.718f, "Test value"));
             Optional<SomeTestType> v1 = None();
 
+            CPPUNIT_ASSERT(v1.isNone());
             CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
             v1 = v2;
             CPPUNIT_ASSERT_EQUAL(2, SomeTestType::InstanceCount);
