@@ -57,8 +57,6 @@ class TestPath : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testToString);
         CPPUNIT_TEST(testParsing);
         CPPUNIT_TEST(testParsing_and_ToString_are_consistent);
-        CPPUNIT_TEST(valgrindRetest);
-
     CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -143,10 +141,6 @@ public:
         CPPUNIT_ASSERT(Path({"a", "b", "c", "d"}).compareTo({"a", "b", "c"}) > 0);
         CPPUNIT_ASSERT(Path({"a", "b", "c", "d", "e"}).compareTo({"a", "b", "c"}) > 0);
         CPPUNIT_ASSERT(Path({"a", "c", "c", "d", "e"}).compareTo({"a", "a", "c"}) > 0);
-    }
-
-    void valgrindRetest() {
-        CPPUNIT_ASSERT(Path({"a", "a"}).compareTo({"a", "c"}) < 0);
     }
 
     void testStartsWith() {

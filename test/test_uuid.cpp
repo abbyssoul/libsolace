@@ -49,8 +49,8 @@ class TestUUID : public CppUnit::TestFixture  {
 protected:
 
 
-    UUID moveMe(Buffer&& buffer) {
-        return std::move(buffer);
+    UUID moveMe(const Buffer& b) {
+        return std::move(b);
     }
 
 public:
