@@ -57,7 +57,9 @@ class TestPath : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testToString);
         CPPUNIT_TEST(testParsing);
         CPPUNIT_TEST(testParsing_and_ToString_are_consistent);
-	CPPUNIT_TEST_SUITE_END();
+        CPPUNIT_TEST(valgrindRetest);
+
+    CPPUNIT_TEST_SUITE_END();
 
 private:
 
@@ -128,19 +130,23 @@ public:
         CPPUNIT_ASSERT_EQUAL(false, p_different.equals(p2));
 
         // Verify compareTo
-        CPPUNIT_ASSERT_EQUAL(-1, Path("aa").compareTo(Path("ab")));
-        CPPUNIT_ASSERT_EQUAL(-1, Path({"a", "a"}).compareTo({"a", "b"}));
-        CPPUNIT_ASSERT_EQUAL(-2, Path({"a", "a"}).compareTo({"a", "c"}));
-        CPPUNIT_ASSERT_EQUAL(-1, Path({"a", "b", "c"}).compareTo({"a", "b", "c", "d"}));
-        CPPUNIT_ASSERT_EQUAL(-2, Path({"a", "b", "c"}).compareTo({"a", "b", "c", "d", "e"}));
-        CPPUNIT_ASSERT_EQUAL(-4, Path({"a", "a", "c"}).compareTo({"a", "c", "c", "d", "e"}));
+        CPPUNIT_ASSERT(Path("aa").compareTo(Path("ab")) < 0);
+        CPPUNIT_ASSERT(Path({"a", "a"}).compareTo({"a", "b"}) < 0);
+        CPPUNIT_ASSERT(Path({"a", "a"}).compareTo({"a", "c"}) < 0);
+        CPPUNIT_ASSERT(Path({"a", "b", "c"}).compareTo({"a", "b", "c", "d"}) < 0);
+        CPPUNIT_ASSERT(Path({"a", "b", "c"}).compareTo({"a", "b", "c", "d", "e"}) < 0);
+        CPPUNIT_ASSERT(Path({"a", "a", "c"}).compareTo({"a", "c", "c", "d", "e"}) < 0);
 
-        CPPUNIT_ASSERT_EQUAL(+1, Path("ab").compareTo(Path("aa")));
-        CPPUNIT_ASSERT_EQUAL(+1, Path({"a", "b"}).compareTo({"a", "a"}));
-        CPPUNIT_ASSERT_EQUAL(+2, Path({"a", "c"}).compareTo({"a", "a"}));
-        CPPUNIT_ASSERT_EQUAL(+1, Path({"a", "b", "c", "d"}).compareTo({"a", "b", "c"}));
-        CPPUNIT_ASSERT_EQUAL(+2, Path({"a", "b", "c", "d", "e"}).compareTo({"a", "b", "c"}));
-        CPPUNIT_ASSERT_EQUAL(+4, Path({"a", "c", "c", "d", "e"}).compareTo({"a", "a", "c"}));
+        CPPUNIT_ASSERT(Path("ab").compareTo(Path("aa")) > 0);
+        CPPUNIT_ASSERT(Path({"a", "b"}).compareTo({"a", "a"}) > 0);
+        CPPUNIT_ASSERT(Path({"a", "c"}).compareTo({"a", "a"}) > 0);
+        CPPUNIT_ASSERT(Path({"a", "b", "c", "d"}).compareTo({"a", "b", "c"}) > 0);
+        CPPUNIT_ASSERT(Path({"a", "b", "c", "d", "e"}).compareTo({"a", "b", "c"}) > 0);
+        CPPUNIT_ASSERT(Path({"a", "c", "c", "d", "e"}).compareTo({"a", "a", "c"}) > 0);
+    }
+
+    void valgrindRetest() {
+        CPPUNIT_ASSERT(Path({"a", "a"}).compareTo({"a", "c"}) < 0);
     }
 
     void testStartsWith() {

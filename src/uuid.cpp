@@ -40,6 +40,7 @@ using Solace::IllegalArgumentException;
 
 // GCC Being dickheaded and requires it here, but not Char::max_bytes, WTF?
 constexpr UUID::size_type UUID::StaticSize;
+constexpr UUID::size_type UUID::StringSize;
 
 
 UUID UUID::random() {
@@ -48,14 +49,19 @@ UUID UUID::random() {
 
 
 UUID::UUID() noexcept {
-    // TODO(abbysoul): Randomly generate bytes
-
-    words._lower = rand();
-    words._higher = rand();
-
     for (size_type i = 0; i < StaticSize; ++i) {
         _bytes[i] = rand() % 255;
     }
+}
+
+
+UUID::UUID(UUID&& rhs) noexcept {
+    memcpy(_bytes, rhs.data(), size());
+}
+
+
+UUID::UUID(const UUID& rhs) noexcept {
+    memcpy(_bytes, rhs.data(), size());
 }
 
 
@@ -93,8 +99,23 @@ UUID::UUID(std::initializer_list<byte> bytes) {
     }
 }
 
+
+UUID& UUID::swap(UUID& rhs) noexcept {
+    std::swap(_bytes, rhs._bytes);
+
+    return (*this);
+}
+
 bool UUID::isNull() const noexcept {
-    return ((words._higher == 0) && (words._higher == 0));
+    int summ = 0;
+    for (auto v : _bytes)
+        summ += v;
+
+    return (summ == 0);
+}
+
+bool UUID::equals(const UUID& rhs) const noexcept {
+    return memcmp(data(), rhs.data(), size()) == 0;
 }
 
 
@@ -144,12 +165,11 @@ void nibbleData(char* buffer, const byte* data, size_t len) {
 }
 
 String UUID::toString() const {
-    char buffer[36 + 1];
+    char buffer[StringSize];
     buffer[8] = '-';
     buffer[13] = '-';
     buffer[18] = '-';
     buffer[23] = '-';
-    buffer[36] = 0;
 
     // 123e4567-e89b-12d3-a456-426655440000
     // 8-4-4-4-12
@@ -159,31 +179,43 @@ String UUID::toString() const {
     nibbleData(buffer + 19, _bytes + 8, 2);
     nibbleData(buffer + 24, _bytes + 10, 6);
 
-    return String(buffer);
+    return String(buffer, StringSize);
 }
 
 
 int char2int(char input) {
-  if (input >= '0' && input <= '9')
-    return input - '0';
-  if (input >= 'A' && input <= 'F')
-    return input - 'A' + 10;
-  if (input >= 'a' && input <= 'f')
-    return input - 'a' + 10;
+    if (input >= '0' && input <= '9')
+        return input - '0';
+    if (input >= 'A' && input <= 'F')
+        return input - 'A' + 10;
+    if (input >= 'a' && input <= 'f')
+        return input - 'a' + 10;
 
-  // FIXME(abbyssoul): We should just return an error!
-  throw IllegalArgumentException("Invalid input string");
+/*
+ Alternative down is unsafe as we don't controll input string and bytes def can be > 128
+    static const char hex_to_bin[128] = {
+             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,  //
+             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,  //
+             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,  //
+              0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,-1,-1,-1,-1,-1,  // 0..9
+             -1,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,  // A..F
+             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,  //
+             -1,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,  // a..f
+             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1 };  //
+*/
+//    return hex_to_bin[input];
+
+    // FIXME(abbyssoul): We should just return an error!
+    throw IllegalArgumentException("Invalid input string");
 }
 
 // This function assumes src to be a zero terminated sanitized string with
 // an even number of [0-9a-f] characters, and target to be sufficiently large
-void hex2bin(byte* dest, const char* src) {
-    while (*src && src[1]) {
-        if (*src == '-') {
-            src += 1;
-        } else {
-            *(dest++) = char2int(*src)*16 + char2int(src[1]);
-            src += 2;
+void hex2bin(byte* dest, const char* src, size_t srcSize) {
+    for (size_t i = 0; i < srcSize; ++i) {
+        if (src[i] != '-') {
+            *(dest++) = char2int(src[i])*16 + char2int(src[i + 1]);
+            i += 1;
         }
     }
 }
@@ -191,12 +223,12 @@ void hex2bin(byte* dest, const char* src) {
 
 
 UUID UUID::parse(const String& str) {
-    if (str.size() != 36) {
+    if (str.size() != StringSize) {
         raise<IllegalArgumentException>("string");
     }
 
     byte data[StaticSize];
-    hex2bin(data, str.c_str());
+    hex2bin(data, str.c_str(), StringSize);
 
     return UUID(Buffer(sizeof(data), data, false));
 }

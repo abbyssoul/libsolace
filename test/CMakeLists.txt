@@ -12,7 +12,7 @@ set(TEST_SOURCE_FILES
         test_stringBuilder.cpp
         test_path.cpp
         test_version.cpp
-         )
+    )
 
 add_executable(test_${PROJECT_NAME} ${TEST_SOURCE_FILES})
 target_link_libraries(test_solace cppunit solace fmt)

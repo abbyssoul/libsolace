@@ -91,8 +91,8 @@ codecheck: cpplint cppcheck
 verify: $(TEST_TAGRET)
 	# > 3.7 (not availiable on raspberry pi) --show-leak-kinds=all
 	# > 3.10 (not avaliable on trusty) --expensive-definedness-checks=yes
-	cd ${BUILD_DIR} && valgrind --tool=memcheck --leak-check=full ./${TEST_DIR}/$(TESTNAME)
-	cd ${BUILD_DIR} && valgrind --tool=exp-sgcheck ./${TEST_DIR}/$(TESTNAME)
+	cd ${BUILD_DIR} && valgrind --tool=memcheck --leak-check=full $(TEST_TAGRET)
+	cd ${BUILD_DIR} && valgrind --tool=exp-sgcheck $(TEST_TAGRET)
 
 
 #-------------------------------------------------------------------------------

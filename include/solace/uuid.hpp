@@ -54,7 +54,13 @@ public:
 
 public:
 
+    /** Size of a uuid data in bytes */
     static constexpr size_type StaticSize = 16;
+
+    /** Size of string representation of the UUID
+     * e.g. strlen("123e4567-e89b-12d3-a456-426655440000"); */
+    static constexpr size_type StringSize = 36;
+
 
     /** Create random UUID
      * This method uses system's random number generator
@@ -82,22 +88,10 @@ public:
     UUID() noexcept;
 
     /** Move-Construct the UUID */
-    UUID(UUID&& rhs) noexcept {
-        words._higher = rhs.words._higher;
-        words._lower = rhs.words._lower;
-    }
+    UUID(UUID&& rhs) noexcept;
 
     /** Copy Construct the UUID */
-    UUID(const UUID& rhs) noexcept {
-        words._higher = rhs.words._higher;
-        words._lower = rhs.words._lower;
-    }
-
-    /** Construct the UUID from integer components */
-    UUID(uint64 lower, uint64 higher) noexcept {
-        words._higher = higher;
-        words._lower = lower;
-    }
+    UUID(const UUID& rhs) noexcept;
 
     /**
      * Try to construct the UUID from individual bytes
@@ -119,12 +113,7 @@ public:
 
 public:
 
-    UUID& swap(UUID& rhs) noexcept {
-        std::swap(words._lower, rhs.words._lower);
-        std::swap(words._higher, rhs.words._higher);
-
-        return (*this);
-    }
+    UUID& swap(UUID& rhs) noexcept;
 
     UUID& operator= (UUID&& rhs) noexcept {
         return swap(rhs);
@@ -136,10 +125,7 @@ public:
         return *this;
     }
 
-    bool equals(const UUID& other) const noexcept override {
-        return ((words._lower == other.words._lower) &&
-                (words._higher == other.words._higher));
-    }
+    bool equals(const UUID& rhs) const noexcept override;
 
     /**
      * Test if this is a 'special' case of a nil UUID
@@ -199,14 +185,7 @@ public:
 
 private:
 
-    union {
-        struct {
-            uint64 _higher;
-            uint64 _lower;
-        } words;
-
-        byte _bytes[StaticSize];
-    };
+    byte _bytes[StaticSize];
 
 };
 

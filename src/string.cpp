@@ -98,8 +98,7 @@ bool String::equals(const char* v) const {
 }
 
 int String::compareTo(const String& other) const {
-    return strcmp(_str.c_str(), other.c_str());
-//    return _str.compare(other);
+    return _str.compare(other._str);
 }
 
 int String::compareTo(const char* other) const {

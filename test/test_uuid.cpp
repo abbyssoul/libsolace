@@ -49,14 +49,15 @@ class TestUUID : public CppUnit::TestFixture  {
 protected:
 
 
-    UUID moveMe(uint64 l, uint64 h) {
-        return UUID(l, h);
+    UUID moveMe(Buffer&& buffer) {
+        return std::move(buffer);
     }
 
 public:
 
     void testStaticConstraints() {
         CPPUNIT_ASSERT_EQUAL(static_cast<UUID::size_type>(16), UUID::StaticSize);
+        CPPUNIT_ASSERT_EQUAL(static_cast<UUID::size_type>(36), UUID::StringSize);
         CPPUNIT_ASSERT_EQUAL(UUID::StaticSize, UUID::static_size());
     }
 
@@ -67,18 +68,18 @@ public:
         CPPUNIT_ASSERT_EQUAL(UUID::StaticSize, uid.size());
         CPPUNIT_ASSERT_EQUAL(false, uid.isNull());
 
-        // UUID using two int64
-        UUID uid2(0, 312);
-        CPPUNIT_ASSERT_EQUAL(false, uid2.isNull());
-
         // Copy construction
-        UUID uid3(uid2);
-        CPPUNIT_ASSERT_EQUAL(uid2, uid3);
+        UUID uid3(uid);
+        CPPUNIT_ASSERT_EQUAL(uid, uid3);
 
         // Move construction
         {
-            UUID uid4(moveMe(321, 543));
-            CPPUNIT_ASSERT_EQUAL(UUID(321, 543), uid4);
+            byte buff[] = {7, 5, 3, 4, 8, 6, 7, 8, 3, 7, 3, 4, 5, 6, 7, 8};
+
+            UUID uid4(moveMe(Buffer::wrap(buff, sizeof(buff))));
+            for (UUID::size_type i = 0; i < sizeof(buff); ++i) {
+                CPPUNIT_ASSERT_EQUAL(buff[i], uid4[i]);
+            }
         }
 
         byte bytes[] = {1, 0, 3, 4, 5, 6, 7, 8, 1, 0, 3, 4, 5, 6, 7, 8};
@@ -144,25 +145,23 @@ public:
                              .toString());
 
         CPPUNIT_ASSERT_EQUAL(String("00000000-0000-0000-0000-000000000000"),
-                             UUID(0, 0)
+                             UUID({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
                              .toString());
 
     }
 
     void testParsable() {
+        CPPUNIT_ASSERT(UUID::parse("00000000-0000-0000-0000-000000000000").isNull());
+
         CPPUNIT_ASSERT_EQUAL(UUID({0x12, 0x3e, 0x45, 0x67, 0xe8, 0x9b, 0x12, 0xd3,
                                    0xa4, 0x56, 0x42, 0x66, 0x55, 0x44, 0x0, 0x0}),
                              UUID::parse(String("123e4567-e89b-12d3-a456-426655440000")));
-
-        CPPUNIT_ASSERT_EQUAL(UUID(0, 0), UUID::parse(String("00000000-0000-0000-0000-000000000000")));
 
         CPPUNIT_ASSERT_THROW(UUID::parse("SOMEHTING"), IllegalArgumentException);
         CPPUNIT_ASSERT_THROW(UUID::parse("1203045e-X054-Y000-3e3d-000000000000"), IllegalArgumentException);
     }
 
     void testParsing_and_ToString_are_consistent() {
-        CPPUNIT_ASSERT_EQUAL(UUID(0, 0), UUID::parse(UUID(0, 0).toString()));
-
         {
             UUID r0 = UUID::random();
             CPPUNIT_ASSERT_EQUAL(r0, UUID::parse(r0.toString()));
@@ -187,7 +186,7 @@ public:
         {
             Array<UUID> uids{
                 UUID({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}),
-                UUID(0, 0),
+                UUID({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}),
                 UUID({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}),
                 UUID({15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0})
             };
