@@ -166,11 +166,15 @@ Buffer::Buffer(size_type size, void* bytes, bool copyData):
     _ownsData(copyData),
     _data(reinterpret_cast<value_type*>(bytes))
 {
-  if (copyData) {
-    _data = new value_type[_size];
+    if (!bytes) {
+        raise<IllegalArgumentException>("bytes");
+    }
 
-    memcpy(_data, bytes, _size * sizeof(value_type));
-  }
+    if (copyData) {
+        _data = new value_type[_size];
+
+        memcpy(_data, bytes, _size * sizeof(value_type));
+    }
 }
 
 

@@ -21,6 +21,8 @@
  * Created on: 1 Jan 2015
 *******************************************************************************/
 #include <solace/stringBuilder.hpp>	 // Class being tested
+
+#include <solace/exception.hpp>
 #include <cppunit/extensions/HelperMacros.h>
 #include <cstring>
 
@@ -32,7 +34,7 @@ class TestStringBuilder: public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(TestStringBuilder);
         CPPUNIT_TEST(testConstruction);
-// TODO(abbyssoul): re-enable        CPPUNIT_TEST(testNullString);
+        CPPUNIT_TEST(testNullString);
         CPPUNIT_TEST(testToString);
 	CPPUNIT_TEST_SUITE_END();
 
@@ -57,11 +59,8 @@ public:
 	void testNullString() {
 		ByteBuffer buffer(25);
 
-		{// Null string tests
-			const StringBuilder nullString(buffer, static_cast<const char*>(nullptr));
-
-            CPPUNIT_ASSERT(nullString.empty());
-            CPPUNIT_ASSERT(nullString.toString().empty());
+        {   // Null Pointer exception test
+            CPPUNIT_ASSERT_THROW(const StringBuilder nullString(buffer, NULL), IllegalArgumentException);
 		}
 
 	}
@@ -70,6 +69,14 @@ public:
 	 */
 	void testConstruction() {
         const String constStr { someConstString };
+
+        {   // empty buffer usage
+            ByteBuffer buffer(0);
+            const StringBuilder empty(buffer);  // No throw?
+
+            CPPUNIT_ASSERT(empty.empty());
+            CPPUNIT_ASSERT(empty.toString().empty());
+        }
 
         {   // Empty string post-conditions
             ByteBuffer buffer(2 * constStr.size());
@@ -95,10 +102,10 @@ public:
             CPPUNIT_ASSERT_EQUAL(constStr, sb.toString());
 		}
 
-		{// Test move construction
-			const StringBuilder sb = moveMe();
+        {  // Test move construction
+            const StringBuilder sb = moveMe();
 
-			CPPUNIT_ASSERT(!sb.empty());
+            CPPUNIT_ASSERT(!sb.empty());
             CPPUNIT_ASSERT_EQUAL(constStr, sb.toString());
 		}
 	}

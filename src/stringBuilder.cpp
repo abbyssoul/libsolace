@@ -22,30 +22,37 @@
  *	ID:			$Id$
  ******************************************************************************/
 #include "solace/stringBuilder.hpp"
+#include "solace/exception.hpp"
 
 
 using Solace::StringBuilder;
 using Solace::String;
+using Solace::IllegalArgumentException;
 using Solace::Optional;
 using Solace::ByteBuffer;
 
 
-StringBuilder::StringBuilder(ByteBuffer& buffer): _buffer(buffer) {
-// TODO(abbyssoul):
+StringBuilder::StringBuilder(const ByteBuffer& buffer): _buffer(buffer) {
 }
 
-StringBuilder::StringBuilder(ByteBuffer& buffer, const char* cstr): _buffer(buffer) {
-	_buffer.write(cstr, std::char_traits<char>::length(cstr));
+StringBuilder::StringBuilder(const ByteBuffer& buffer, const char* cstr): _buffer(buffer) {
+    if (!cstr) {
+        raise<IllegalArgumentException>("cstr");
+    }
+
+    _buffer.write(cstr, std::char_traits<char>::length(cstr));
 }
 
 
-StringBuilder::StringBuilder(ByteBuffer& buffer, const String& str): _buffer(buffer) {
+StringBuilder::StringBuilder(const ByteBuffer& buffer, const String& str): _buffer(buffer) {
 	_buffer.write(str.c_str(), str.length());
 }
 
 
-StringBuilder::StringBuilder(ByteBuffer& buffer, std::initializer_list<String>): _buffer(buffer) {
-    // TODO(abbyssoul):
+StringBuilder::StringBuilder(const ByteBuffer& buffer, std::initializer_list<String> content): _buffer(buffer) {
+    for (const auto& str : content) {
+        _buffer.write(str.c_str(), str.length());
+    }
 }
 
 

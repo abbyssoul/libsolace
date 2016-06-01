@@ -3,17 +3,21 @@
 # this file is just a convenience wrapper for common tasks.
 PROJECT = solace
 
-
-MODULE_HEADERS = include/*
-MODULE_SRC = src/*
 BUILD_DIR = build
+INCLUDE_DIR = include
+SRC_DIR = src
+TEST_DIR = test
+
+MODULE_HEADERS = ${INCLUDE_DIR}/*
+MODULE_SRC = ${SRC_DIR}/*
+
 GENERATED_MAKE = ${BUILD_DIR}/Makefile
 
 LIBNAME = libsolace.a
 LIB_TAGRET = ${BUILD_DIR}/${LIBNAME}
 
 TESTNAME = test_solace
-TEST_TAGRET = $(BUILD_DIR)/$(TESTNAME)
+TEST_TAGRET = $(BUILD_DIR)/$(TEST_DIR)/$(TESTNAME)
 
 DOC_DIR = doc
 DOC_TARGET = $(DOC_DIR)/html
@@ -50,7 +54,7 @@ $(TEST_TAGRET): ${GENERATED_MAKE}
 	$(MAKE) -C ${BUILD_DIR} $(TESTNAME)
 
 test: $(LIB_TAGRET) $(TEST_TAGRET)
-	cd ${BUILD_DIR} && ./$(TESTNAME)
+	cd ${BUILD_DIR} && ./${TEST_DIR}/$(TESTNAME)
 
 #-------------------------------------------------------------------------------
 # Build docxygen documentation
@@ -87,7 +91,8 @@ codecheck: cpplint cppcheck
 verify: $(TEST_TAGRET)
 	# > 3.7 (not availiable on raspberry pi) --show-leak-kinds=all
 	# > 3.10 (not avaliable on trusty) --expensive-definedness-checks=yes
-	cd ${BUILD_DIR} && valgrind --tool=memcheck --leak-check=full ./$(TESTNAME)
+	cd ${BUILD_DIR} && valgrind --tool=memcheck --leak-check=full ./${TEST_DIR}/$(TESTNAME)
+	cd ${BUILD_DIR} && valgrind --tool=exp-sgcheck ./${TEST_DIR}/$(TESTNAME)
 
 
 #-------------------------------------------------------------------------------

@@ -58,31 +58,16 @@ set(SOURCE_FILES
         src/io/serial_list_ports.cpp
 	)
 
-set(TEST_SOURCE_FILES
-        test/main.cpp
-        test/ci/teamcity_messages.cpp
-        test/ci/teamcity_cppunit.cpp
-        test/test_byteBuffer.cpp
-        test/test_optional.cpp
-        test/test_uuid.cpp
-        test/test_char.cpp
-        test/test_array.cpp
-        test/test_string.cpp
-        test/test_stringBuilder.cpp
-        test/test_path.cpp
-        test/test_version.cpp
-         )
 
 set(EXAMPLE_SERIAL_SOURCE_FILES examples/serial.cpp)
 
 set(FMT_USE_CPP11 OFF CACHE BOOL "Don't add std by fmt" FORCE)
 add_subdirectory(libs/fmt)
+add_subdirectory(test)
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
-add_executable(test_${PROJECT_NAME} ${TEST_SOURCE_FILES})
 
 add_executable(serial ${EXAMPLE_SERIAL_SOURCE_FILES})
 
 target_link_libraries(solace fmt)
-target_link_libraries(test_solace cppunit solace fmt)
 target_link_libraries(serial solace)

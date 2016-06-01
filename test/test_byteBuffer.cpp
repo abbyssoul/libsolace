@@ -21,6 +21,8 @@
  * Created on: 28 Apr 2016
 *******************************************************************************/
 #include <solace/byteBuffer.hpp>  // Class being tested
+
+#include <solace/exception.hpp>
 #include <cppunit/extensions/HelperMacros.h>
 
 
@@ -41,6 +43,9 @@ class TestByteBuffer: public CppUnit::TestFixture  {
 public:
 
 	void testConstruction() {
+        {   // NullPointer smoke test
+            CPPUNIT_ASSERT_THROW(Buffer nullbuffer(321, NULL), IllegalArgumentException);
+        }
 
         {   // Fixed size constructor
 			Buffer test(3102);

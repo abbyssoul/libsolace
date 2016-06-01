@@ -41,17 +41,20 @@ public:
 
 public:
 
-	/**
-	* Initialize a new instance of StringBuilder with a given storage
-	*/
-	StringBuilder(ByteBuffer& buffer);
-	StringBuilder(ByteBuffer& buffer, const char* str);
-	StringBuilder(ByteBuffer& buffer, const String& str);
-// StringBuilder(WriteBuffer& buffer, const StringBuilder& str);
+    /** Initialize a new instance of StringBuilder with a given storage */
+    StringBuilder(const ByteBuffer& buffer);
 
-	// C++0x Special:
-	StringBuilder(ByteBuffer& buffer, std::initializer_list<String> s);
-	StringBuilder(StringBuilder&& s);
+    /** New StringBuilder with the given storage and initial content */
+    StringBuilder(const ByteBuffer& buffer, const char* str);
+
+    /** New StringBuilder with the given storage and initial content */
+    StringBuilder(const ByteBuffer& buffer, const String& str);
+
+    /** New StringBuilder with the given storage and initial content */
+    StringBuilder(const ByteBuffer& buffer, std::initializer_list<String> s);
+
+    //!< Move construct string builder
+    StringBuilder(StringBuilder&& s);
 
 	virtual ~StringBuilder() = default;
 
@@ -133,8 +136,7 @@ public:
 
 private:
 
-    // FIXME(abbyssoul): WTF?! We can't have a refernce here.
-	ByteBuffer& _buffer;
+    ByteBuffer  _buffer;
 };
 
 }  // namespace Solace
