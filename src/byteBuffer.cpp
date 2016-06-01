@@ -153,7 +153,7 @@ Buffer::Buffer(const Buffer& rhs):
             _ownsData(rhs._ownsData),
             _data(rhs._data)
 {
-  if (rhs._ownsData) {
+  if (rhs._data && rhs._ownsData) {
     _data = new value_type[_size];
 
     memcpy(_data, rhs._data, _size * sizeof(value_type));
@@ -167,10 +167,11 @@ Buffer::Buffer(size_type size, void* bytes, bool copyData):
     _data(reinterpret_cast<value_type*>(bytes))
 {
     if (!bytes) {
-        raise<IllegalArgumentException>("bytes");
+//        raise<IllegalArgumentException>("bytes");
+        _size = 0;
     }
 
-    if (copyData) {
+    if (bytes && copyData) {
         _data = new value_type[_size];
 
         memcpy(_data, bytes, _size * sizeof(value_type));
@@ -179,7 +180,7 @@ Buffer::Buffer(size_type size, void* bytes, bool copyData):
 
 
 Buffer::~Buffer() {
-  if (_ownsData) {
+  if (_ownsData && _data) {
     _ownsData = false;
 
     delete [] _data;

@@ -55,7 +55,7 @@ class TestString : public CppUnit::TestFixture  {
 
 // TODO(abbyssoul):    CPPUNIT_TEST(testJoin);
 // TODO(abbyssoul): Implement null safety first:
-//        CPPUNIT_TEST(testConstruction_null);
+        CPPUNIT_TEST(testConstruction_null);
 	CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -77,10 +77,15 @@ public:
 	}
 
 	void testConstruction_null() {
-        const char* nullCString = nullptr;
-		const String nullString(nullCString);
+        {   // NullPointer smoke test
+            const char* nullCString = nullptr;
+
+            CPPUNIT_ASSERT_THROW(String nullString(nullCString), std::logic_error);
+        }
+
 
         // Null string is null, cap
+        /*
         CPPUNIT_ASSERT(nullString.empty());
         CPPUNIT_ASSERT(nullString.equals(String::Null));
 
@@ -103,7 +108,7 @@ public:
             CPPUNIT_ASSERT_EQUAL(false, v.contains(nullCString));
             CPPUNIT_ASSERT_EQUAL(v, v.concat(nullCString));
             CPPUNIT_ASSERT_EQUAL(v, nullString.concat(v));
-        }
+        }*/
 	}
 
 	/**
@@ -163,7 +168,7 @@ public:
 		const String str4 = str3;
 
         // Test if It is reflexive
-        CPPUNIT_ASSERT(String::Null.equals(String::Null));
+        CPPUNIT_ASSERT(String::Empty.equals(String::Empty));
         CPPUNIT_ASSERT(str1.equals(str1));
         CPPUNIT_ASSERT(str1.equals(source1));
         CPPUNIT_ASSERT(str1 == source1);

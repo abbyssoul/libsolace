@@ -77,7 +77,7 @@ cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
 #	cppcheck --std=c++11 --enable=all -v -I $(MODULE_HEADERS) $(MODULE_SRC) 
 cppcheck: $(MODULE_HEADERS) $(MODULE_SRC)
 	#--inconclusive
-	cppcheck --std=c++11 --std=posix -D __linux__  -q --error-exitcode=2 \
+	cppcheck --std=c++11 --std=posix -D __linux__ --inline-suppr -q --error-exitcode=2 \
 	--enable=warning,performance,portability,information,unusedFunction,missingInclude \
 	-I include -i test/ci src test examples
 
@@ -91,8 +91,8 @@ codecheck: cpplint cppcheck
 verify: $(TEST_TAGRET)
 	# > 3.7 (not availiable on raspberry pi) --show-leak-kinds=all
 	# > 3.10 (not avaliable on trusty) --expensive-definedness-checks=yes
-	cd ${BUILD_DIR} && valgrind --tool=memcheck --leak-check=full $(TEST_TAGRET)
-	cd ${BUILD_DIR} && valgrind --tool=exp-sgcheck $(TEST_TAGRET)
+	valgrind --tool=memcheck --leak-check=full $(TEST_TAGRET)
+	valgrind --tool=exp-sgcheck $(TEST_TAGRET)
 
 
 #-------------------------------------------------------------------------------

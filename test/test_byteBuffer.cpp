@@ -44,7 +44,9 @@ public:
 
 	void testConstruction() {
         {   // NullPointer smoke test
-            CPPUNIT_ASSERT_THROW(Buffer nullbuffer(321, NULL), IllegalArgumentException);
+            // CPPUNIT_ASSERT_THROW(Buffer nullbuffer(321, NULL), IllegalArgumentException);
+            Buffer nullbuffer(321, NULL);
+            CPPUNIT_ASSERT_EQUAL(static_cast<Solace::Buffer::size_type>(0), nullbuffer.size());
         }
 
         {   // Fixed size constructor
