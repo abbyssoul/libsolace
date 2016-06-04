@@ -15,7 +15,9 @@ endif (WITH_STACK_PROTECTOR)
 
 # Enable all worning one can wish for
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wmissing-include-dirs -Wfloat-equal -Wcast-align -Wpacked -Wredundant-decls")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused -Wpointer-arith -Wwrite-strings -Wformat-security")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpointer-arith -Wwrite-strings -Wformat-security")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused -Wunused-function -Wunused-label -Wunused-value -Wunused-variable")
+
 
 # FIXME(abbyssoul): fmt produces too much noise with '-Wswitch-enum'
 # add -Wconversion ?
@@ -56,7 +58,8 @@ set(SOURCE_FILES
         src/io/file.cpp 
         src/io/serial.cpp
         src/io/serial_list_ports.cpp
-	)
+        src/io/signalDispatcher.cpp
+    )
 
 
 set(EXAMPLE_SERIAL_SOURCE_FILES examples/serial.cpp)

@@ -29,6 +29,7 @@
 #include "solace/exception.hpp"
 
 #include <functional>   // std::function
+#include <ostream>
 
 
 namespace Solace {
@@ -59,10 +60,6 @@ public:
 
     Optional() {
         _state = ::new (_stateBuffer.noneSpace) NoneState();
-    }
-
-    Optional(const T& t) {
-        _state = ::new (_stateBuffer.someSpace) SomeState(t);
     }
 
     Optional(T&& t) {
@@ -158,6 +155,12 @@ public:
     template <typename U>
     Optional<U> flatMap(const std::function<Optional<U> (const T&)>& f) const {
         return (isSome()) ? f(_state->ref()) : Optional<U>::none();
+    }
+
+protected:
+
+    Optional(const T& t) {
+        _state = ::new (_stateBuffer.someSpace) SomeState(t);
     }
 
 private:
@@ -285,7 +288,7 @@ template <typename T>
 std::ostream& operator<< (std::ostream& ostr, const Solace::Optional<T>& anOptional) {
     return (anOptional.isNone())
             ? ostr.write("None", 4)
-            : ostr << anOptional.get();
+            : ostr << (const T&)anOptional.get();
 }
 
 #endif  // SOLACE_OPTIONAL_HPP

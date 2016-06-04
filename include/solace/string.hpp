@@ -380,10 +380,15 @@ inline bool operator< (const String& lhs, const String& rhs) {
 	return lhs.compareTo(rhs) < 0;
 }
 
-}  // namespace Solace
 
 // FIXME: std dependence, used for Unit Testing only
-std::ostream& operator<< (std::ostream& ostr, const Solace::IFormattable& formattable);
-std::ostream& operator<< (std::ostream& ostr, const Solace::String& str);
+inline std::ostream& operator<<(std::ostream& ostr, const String& str) {
+    return ostr << str.c_str();
+}
 
+inline std::ostream& operator<<(std::ostream& ostr, const IFormattable& form) {
+    return ostr << form.toString();
+}
+
+}  // namespace Solace
 #endif  // SOLACE_STRING_HPP

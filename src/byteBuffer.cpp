@@ -167,6 +167,7 @@ Buffer::Buffer(size_type size, void* bytes, bool copyData):
     _data(reinterpret_cast<value_type*>(bytes))
 {
     if (!bytes) {
+        // FIXME(abbyssoul): Review nullptr handling policy
 //        raise<IllegalArgumentException>("bytes");
         _size = 0;
     }

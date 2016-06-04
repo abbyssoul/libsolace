@@ -37,15 +37,11 @@ int main(int argc, char **argv) {
         : 120;
 
 	const auto file = Solace::Path::parse(argv[1]);
-    std::cout << "Opening port: " << file
-              << "boudrate: " << boudRate 
-              << std::endl;
+    std::cout << "Opening port: " << file << std::endl
+              << "boudrate: " << boudRate << std::endl;
 
 	Solace::IO::Serial serial(file, boudRate);
     Solace::ByteBuffer readBuffer(bufferSize);
-    Solace::ByteBuffer formatBuffer(bufferSize);
-
-    const Solace::StringBuilder sb(formatBuffer);
 
     while (true) {
         const auto bytesRead = serial.read(readBuffer);

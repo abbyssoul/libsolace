@@ -12,6 +12,7 @@ set(TEST_SOURCE_FILES
         test_stringBuilder.cpp
         test_path.cpp
         test_version.cpp
+        io/test_signalDispatcher.cpp
     )
 
 add_executable(test_${PROJECT_NAME} ${TEST_SOURCE_FILES})

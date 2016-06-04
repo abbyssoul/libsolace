@@ -36,7 +36,7 @@ namespace Solace { namespace IO {
 class IOException: public Exception {
 public:
 
-    IOException();
+//    IOException();
 
     IOException(int errorCode);
 
@@ -45,6 +45,10 @@ public:
     IOException(const std::string& msg);
 
     virtual ~IOException() noexcept = default;
+
+    int getErrorCode() const noexcept {
+        return _errorCode;
+    }
 
 private:
 	int _errorCode;

@@ -390,11 +390,3 @@ Buffer String::getBytes() const {
                 _str.length(), false);
 }
 
-
-std::ostream& operator<<(std::ostream& ostr, const IFormattable& form) {
-    return ostr << form.toString();
-}
-
-std::ostream& operator<<(std::ostream& ostr, const String& str) {
-    return ostr << str.c_str();
-}

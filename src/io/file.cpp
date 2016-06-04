@@ -149,12 +149,12 @@ File::size_type File::seek(size_type offset, Seek type) {
 
     off_t result;
     switch (type) {
-        case Seek::Set:     result = lseek(fd, offset, SEEK_SET);
-        case Seek::Current: result = lseek(fd, offset, SEEK_CUR);
-        case Seek::End:     result = lseek(fd, offset, SEEK_END);
+        case Seek::Set:     result = lseek(fd, offset, SEEK_SET); break;
+        case Seek::Current: result = lseek(fd, offset, SEEK_CUR); break;
+        case Seek::End:     result = lseek(fd, offset, SEEK_END); break;
     }
 
-    if (result == -1) {
+    if (-1 == result) {
         raise<IOException>(errno);
     }
 
@@ -166,7 +166,7 @@ void File::close() {
     const auto fd = validateFd();
     const auto result = ::close(fd);
 
-    if (result != 0) {
+    if (result) {
         raise<IOException>(errno);
     }
 
@@ -178,7 +178,7 @@ void File::flush() {
     const auto fd = validateFd();
     const auto result = ::fsync(fd);
 
-    if (result != 0) {
+    if (result) {
         raise<IOException>(errno);
     }
 }

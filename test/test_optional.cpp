@@ -20,8 +20,8 @@
  *
  * Created on: 29 Feb 2016
 *******************************************************************************/
-#include <solace/optional.hpp>			// Class being tested
 #include <solace/string.hpp>
+#include <solace/optional.hpp>			// Class being tested
 
 #include <cppunit/extensions/HelperMacros.h>
 
