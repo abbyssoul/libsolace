@@ -31,10 +31,6 @@ using Solace::IO::NotOpen;
 const char* ExceptionType = "IOException";
 
 
-//IOException::IOException(): Exception(ExceptionType), _errorCode(-1) {
-//}
-
-
 IOException::IOException(const std::string& msg): Exception(msg), _errorCode(-1) {
 }
 

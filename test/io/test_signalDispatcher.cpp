@@ -56,14 +56,14 @@ public:
         signaled = false;
         int count = 0;
 
-        SignalDispatcher::getInstance().attachHandler(SIGALRM, [&count](int) {
-            count++;
+        SignalDispatcher::getInstance().attachHandler(SIGALRM, [&count](int signalId) {
+            count += (signalId == SIGALRM) ? 1 : 0;
         });
-        SignalDispatcher::getInstance().attachHandler(SIGALRM, [&count](int) {
-            count++;
+        SignalDispatcher::getInstance().attachHandler(SIGALRM, [&count](int signalId) {
+            count += (signalId == SIGALRM) ? 1 : 0;
         });
-        SignalDispatcher::getInstance().attachHandler(SIGALRM, [&count](int) {
-            count++;
+        SignalDispatcher::getInstance().attachHandler(SIGALRM, [&count](int signalId) {
+            count += (signalId == SIGALRM) ? 1 : 0;
         });
 
         alarm(1);
