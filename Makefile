@@ -77,8 +77,9 @@ cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
 #	cppcheck --std=c++11 --enable=all -v -I $(MODULE_HEADERS) $(MODULE_SRC) 
 cppcheck: $(MODULE_HEADERS) $(MODULE_SRC)
 	#--inconclusive
+	#--enable=warning,performance,portability,information,unusedFunction,missingInclude \
 	cppcheck --std=c++11 --std=posix -D __linux__ --inline-suppr -q --error-exitcode=2 \
-	--enable=warning,performance,portability,information,unusedFunction,missingInclude \
+	--enable=warning,performance,portability,missingInclude \
 	-I include -i test/ci src test examples
 
 
