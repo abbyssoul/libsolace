@@ -74,7 +74,7 @@ libs/cppcheck:
 	git clone --depth 3 https://github.com/danmar/cppcheck.git libs/cppcheck
 
 libs/cppcheck/cppcheck: libs/cppcheck
-	$(MAKE) -C libs/cppcheck
+	$(MAKE) -C libs/cppcheck cppcheck
 
 
 cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
@@ -84,9 +84,8 @@ cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
 #	cppcheck --std=c++11 --enable=all -v -I $(MODULE_HEADERS) $(MODULE_SRC) 
 cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) libs/cppcheck/cppcheck
 	#--inconclusive
-	#--enable=warning,performance,portability,information,unusedFunction,missingInclude \
 	./libs/cppcheck/cppcheck --std=c++11 --std=posix -D __linux__ --inline-suppr -q --error-exitcode=2 \
-	--enable=warning,performance,portability,missingInclude \
+	--enable=warning,performance,portability,missingInclude,information,unusedFunction \
 	-I include -i test/ci src test examples
 
 
