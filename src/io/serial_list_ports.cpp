@@ -38,6 +38,8 @@ using Solace::Path;
 
 const Path SYS_TTY_PATH = Path::parse("/sys/class/tty/");
 
+
+// TODO(abbyssoul): move to Filesystem when its ready
 std::vector<Path> glob(std::initializer_list<const char*> patterns) {
     std::vector<Path> paths_found;
 
@@ -61,6 +63,7 @@ std::vector<Path> glob(std::initializer_list<const char*> patterns) {
     return paths_found;
 }
 
+// TODO(abbyssoul): move to Filesystem when its ready
 bool path_exists(const Path& path) {
     struct stat sb;
 
@@ -156,14 +159,14 @@ std::tuple<String, String> get_sysfs_info(const Path& devicePath) {
 
 Solace::Array<Solace::IO::SerialPortInfo>
 Solace::IO::Serial::enumeratePorts() {
-    const auto devices_found = glob({
-                                            "/dev/ttyACM*",
-                                            "/dev/ttyS*",
-                                            "/dev/ttyUSB*",
-                                            "/dev/tty.*",
-                                            "/dev/cu.*"
+    const auto devices_found = glob({   "/dev/ttyACM*",
+                                        "/dev/ttyS*",
+                                        "/dev/ttyUSB*",
+                                        "/dev/tty.*",
+                                        "/dev/cu.*"
                                         });
 
+    // NOTE: The vector is used here even thou the size is know already because we don't want to initialize structs yet
     std::vector<Solace::IO::SerialPortInfo> results;
     results.reserve(devices_found.size());
 
