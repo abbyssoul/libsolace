@@ -353,48 +353,67 @@ public:
      */
     static String join(const String& by, const Array<String>& list);
 
-    /** Return String representation of boolen value **/
-    static String valueOf(bool);
+    /**
+     * Return String representation of value.
+     * @param val Value to convert into the string
+     *
+     * @return The string representation of the given value
+     **/
+    static String valueOf(bool val);
 
     /**
      * Return String representation of value.
      * @param val Value to convert into the string
+     *
+     * @return The string representation of the given value
      **/
     static String valueOf(String val);
 
     /**
      * Return String representation of value.
      * @param val Value to convert into the string
+     *
+     * @return The string representation of the given value
      **/
     static String valueOf(int32 val);
 
     /**
      * Return String representation of value.
      * @param val Value to convert into the string
+     *
+     * @return The string representation of the given value
      **/
     static String valueOf(int64 val);
 
     /**
      * Return String representation of value.
      * @param val Value to convert into the string
+     *
+     * @return The string representation of the given value
      **/
     static String valueOf(uint32 val);
 
     /**
      * Return String representation of value.
      * @param val Value to convert into the string
+     *
+     * @return The string representation of the given value
      **/
     static String valueOf(uint64 val);
 
     /**
      * Return String representation of value.
      * @param val Value to convert into the string
+     *
+     * @return The string representation of the given value
      **/
     static String valueOf(float32 val);
 
     /**
      * Return String representation of value.
      * @param val Value to convert into the string
+     *
+     * @return The string representation of the given value
      **/
     static String valueOf(float64 val);
 

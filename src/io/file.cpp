@@ -150,7 +150,7 @@ File::size_type File::write(ByteBuffer& buffer, ByteBuffer::size_type bytesToWri
 File::size_type File::seek(size_type offset, Seek type) {
     const auto fd = validateFd();
 
-    off_t result;
+    off_t result = 0;
     switch (type) {
         case Seek::Set:     result = lseek(fd, offset, SEEK_SET); break;
         case Seek::Current: result = lseek(fd, offset, SEEK_CUR); break;

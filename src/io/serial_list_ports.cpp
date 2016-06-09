@@ -114,8 +114,8 @@ String usb_sysfs_hw_string(const Path& sysfs_path) {
     return String("USB VID:PID=")
             .concat(String::join(":", {vid, pid}))
             .concat(serial_number.empty()
-                    ? String(" SNR=").concat(serial_number)
-                    : serial_number);
+                    ? serial_number
+                    : String(" SNR=").concat(serial_number));
 }
 
 

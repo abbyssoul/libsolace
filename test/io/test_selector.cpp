@@ -45,7 +45,8 @@ public:
 
     void testSubscription() {
         int pipe_fds[2];
-        pipe(pipe_fds);
+        const int pipeResult = pipe(pipe_fds);
+        CPPUNIT_ASSERT_EQUAL(0, pipeResult);
 
         File read = File::fromFd(pipe_fds[0]);
         File write = File::fromFd(pipe_fds[1]);
@@ -73,7 +74,8 @@ public:
 
     void testRemoval() {
         int pipe_fds[2];
-        pipe(pipe_fds);
+        const int pipeResult = pipe(pipe_fds);
+        CPPUNIT_ASSERT_EQUAL(0, pipeResult);
 
         File read = File::fromFd(pipe_fds[0]);
         File write = File::fromFd(pipe_fds[1]);
