@@ -136,6 +136,7 @@ string usb_sysfs_friendly_name(const string& sys_usb_path) {
     if (manufacturer.empty() && product.empty() && serial.empty())
         return "";
 
+    // FIXME(abbyssoul): Should be String.join(" ", ...);
     return fmt::format("{} {} {}", manufacturer, product, serial);
 }
 

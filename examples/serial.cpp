@@ -1,8 +1,9 @@
 
 #include <solace/char.hpp>
-#include <solace/io/serial.hpp>
 #include <solace/stringBuilder.hpp>
 #include <solace/version.hpp>
+#include <solace/io/serial.hpp>
+#include <solace/io/selector.hpp>
 
 
 #include <iostream>
@@ -11,11 +12,9 @@ using Solace::uint32;
 
 void enumeratePorts() {
 	for (const auto& descriptor : Solace::IO::Serial::enumeratePorts()) {
-		printf("%s:\n\t-%s\n\t-(%s)\n",
-			descriptor.file.toString().c_str(),
-			descriptor.description.toString().c_str(),
-            descriptor.hardwareId.toString().c_str()
-			);
+        std::cout << descriptor.file << ":" << std::endl;
+        std::cout << "\t - " << descriptor.description << std::endl;
+        std::cout << "\t - " << descriptor.hardwareId << std::endl;
 	}
 }
 
@@ -38,26 +37,34 @@ int main(int argc, char **argv) {
 
 	const auto file = Solace::Path::parse(argv[1]);
     std::cout << "Opening port: " << file << std::endl
-              << "boudrate: " << boudRate << std::endl;
+              << "boudrate: " << boudRate << std::endl
+              << "press ^C to quit" << std::endl;
 
-	Solace::IO::Serial serial(file, boudRate);
     Solace::ByteBuffer readBuffer(bufferSize);
+	Solace::IO::Serial serial(file, boudRate);
+    auto selector = Solace::IO::Selector::epoll(2);
+    selector.add(&serial,   Solace::IO::Selector::Events::Read ||
+                            Solace::IO::Selector::Events::Error);
 
-    while (true) {
-        const auto bytesRead = serial.read(readBuffer);
+    bool keepOnRunning = true;
+    while (keepOnRunning) {
+        for (auto event : selector.poll()) {
 
-        if (bytesRead < 0) {
-            break;
-        } else if (bytesRead == 0) {
-            if (!serial.waitReadable(10000)) {
-                printf("Wait failed!\n");
-                break;
+            if (event.events & Solace::IO::Selector::Events::Read) {
+                const auto bytesRead = serial.read(readBuffer);
+                if (bytesRead > 0) {
+                    std::cout.write((const char*)readBuffer.data(), readBuffer.position());
+                    std::cout.flush();
+
+                    readBuffer.rewind();
+                } else {
+                    std::cout << "Serial was ready but no bytes read '" << bytesRead << "'. Aborting." << std::endl;
+                    keepOnRunning = false;
+                }
+            } else {
+                std::cout << "Serial fid reported odd events: '" << event.events << "'. Aborting." << std::endl;
+                keepOnRunning = false;
             }
-        } else {
-            std::cout.write((const char*)readBuffer.data(), readBuffer.position());
-            std::cout.flush();
-
-            readBuffer.rewind();
         }
     }
 }
