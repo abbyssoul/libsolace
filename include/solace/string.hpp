@@ -332,19 +332,71 @@ public:  // Basic collection operations:
 
 public:
 
-	/** The <b>null</b> string. */
-	static const String Null;
-
 	/** The <b>empty</b> string. */
 	static const String Empty;
 
 	/**
 	 * Return jointed string from this given initializer_list
-	 */
+     * @param by - A string joining values
+     * @param list - A list of strings to join with the give separator
+     *
+     * @return The resulting string
+     */
 	static String join(const String& by, std::initializer_list<String> list);
 
-	/** Return jointed string from the given collection */
-	static String join(const String& by, const Array<String>& list);
+    /**
+     * Return jointed string from this given initializer_list
+     * @param by - A string joining values
+     * @param list - An array of strings to join with the give separator
+     *
+     * @return The resulting string
+     */
+    static String join(const String& by, const Array<String>& list);
+
+    /** Return String representation of boolen value **/
+    static String valueOf(bool);
+
+    /**
+     * Return String representation of value.
+     * @param val Value to convert into the string
+     **/
+    static String valueOf(String val);
+
+    /**
+     * Return String representation of value.
+     * @param val Value to convert into the string
+     **/
+    static String valueOf(int32 val);
+
+    /**
+     * Return String representation of value.
+     * @param val Value to convert into the string
+     **/
+    static String valueOf(int64 val);
+
+    /**
+     * Return String representation of value.
+     * @param val Value to convert into the string
+     **/
+    static String valueOf(uint32 val);
+
+    /**
+     * Return String representation of value.
+     * @param val Value to convert into the string
+     **/
+    static String valueOf(uint64 val);
+
+    /**
+     * Return String representation of value.
+     * @param val Value to convert into the string
+     **/
+    static String valueOf(float32 val);
+
+    /**
+     * Return String representation of value.
+     * @param val Value to convert into the string
+     **/
+    static String valueOf(float64 val);
 
 protected:
 public:

@@ -65,7 +65,10 @@ bool Version::operator > (const Version& rhv) const {
 
 String Version::toString() const {
     // FIXME(abbyssoul): Using format is an overkill in this case - a simple String concat should do!
-    auto s1 = fmt::format("{1}{0}{2}{0}{3}", ComponentSeparator.to_str(), majorNumber, minorNumber, patchNumber);
+    auto s1 = String::join(ComponentSeparator, {
+                               String::valueOf(majorNumber),
+                               String::valueOf(minorNumber),
+                               String::valueOf(patchNumber)});
 
     auto s2 = (preRelease.empty())
               ? String::Empty

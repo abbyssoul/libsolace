@@ -19,11 +19,12 @@
  *  Created by soultaker on 27/04/16.
 *******************************************************************************/
 #include <solace/io/ioexception.hpp>
+#include <solace/string.hpp>
 
-#include <fmt/format.h>
 #include <cstring>
 
 
+using Solace::String;
 using Solace::IO::IOException;
 using Solace::IO::NotOpen;
 
@@ -31,28 +32,26 @@ using Solace::IO::NotOpen;
 const char* ExceptionType = "IOException";
 
 
+std::string formatErrono(int errorCode) {
+    return String::join(":", { ExceptionType, String::valueOf(errorCode), strerror(errorCode)}).c_str();
+}
+
+std::string formatErrono(int errorCode, const std::string& msg) {
+    return String::join(":", { ExceptionType, String::valueOf(errorCode), msg, strerror(errorCode)}).c_str();
+}
+
+
 IOException::IOException(const std::string& msg): Exception(msg), _errorCode(-1) {
 }
 
 
-IOException::IOException(int errorCode):
-	Exception(
-        fmt::format("{0}: {1}: {2}",
-                    ExceptionType,
-                    errorCode,
-                    strerror(errorCode))),
+IOException::IOException(int errorCode): Exception(formatErrono(errorCode)),
     _errorCode(errorCode)
 {
 }
 
 
-IOException::IOException(int errorCode, const std::string& msg):
-    Exception(
-        fmt::format("{0}:{2}:{1}: {3}",
-                    ExceptionType,
-                    errorCode,
-                    msg,
-                    strerror(errorCode))),
+IOException::IOException(int errorCode, const std::string& msg): Exception(formatErrono(errorCode, msg)),
     _errorCode(errorCode)
 {
 }

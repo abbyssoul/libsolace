@@ -30,14 +30,21 @@ using Solace::String;
 using Solace::Optional;
 using Solace::Buffer;
 using Solace::Array;
-using Solace::int64;
 using Solace::IFormattable;
 using Solace::ByteBuffer;
 
+using Solace::int32;
+using Solace::int64;
+using Solace::uint32;
+using Solace::uint64;
+using Solace::float32;
+using Solace::float64;
 
 
-const String String::Null(std::string(""));
+
 const String String::Empty(std::string(""));
+const String TRUE_STRING("true");
+const String FALSE_STRING("false");
 
 
 String::String() noexcept: _str() {
@@ -390,3 +397,38 @@ Buffer String::getBytes() const {
                 _str.length(), false);
 }
 
+/** Return String representation of boolen value **/
+String String::valueOf(bool value) {
+    return (value)
+            ? TRUE_STRING
+            : FALSE_STRING;
+}
+
+
+String String::valueOf(String value) {
+    return std::move(value);
+}
+
+String String::valueOf(int32 val) {
+    return std::to_string(val);
+}
+
+String String::valueOf(int64 val) {
+    return std::to_string(val);
+}
+
+String String::valueOf(uint32 val) {
+    return std::to_string(val);
+}
+
+String String::valueOf(uint64 val) {
+    return std::to_string(val);
+}
+
+String String::valueOf(float32 val) {
+    return std::to_string(val);
+}
+
+String String::valueOf(float64 val) {
+    return std::to_string(val);
+}
