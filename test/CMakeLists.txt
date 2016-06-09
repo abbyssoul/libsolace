@@ -2,6 +2,9 @@
 find_package(PkgConfig REQUIRED)
 pkg_search_module(CPPUNIT REQUIRED cppunit)
 
+# Main lib project may disable rtti by default but cppunit requires it
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frtti")
+
 set(TEST_SOURCE_FILES
         main.cpp
         ci/teamcity_messages.cpp
