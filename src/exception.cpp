@@ -123,8 +123,8 @@ IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue
 }
 
 
-IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue,
-                                                   const char* indexName,
+IndexOutOfRangeException::IndexOutOfRangeException(const char* indexName,
+                                                   size_t index, size_t minValue, size_t maxValue,
                                                    const char* file, const int line) noexcept :
     Exception(fmt::format("Index '{}'={} out of range [{}, {})",
                           indexName, index, minValue, maxValue),

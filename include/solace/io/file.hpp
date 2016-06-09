@@ -55,18 +55,24 @@ public:
 
 	typedef ssize_t size_type;
 	using ISelectable::poll_id;
-
 public:
 
-	/**
-	 * Create a file object using file id
-	 * This doesn't call 'open' on the file id provided 
-	 * as it is assumed that file already has been opened
-	 *
-	 * @param fd - Id of the opened file.
-	 */
-	File(const poll_id fd) noexcept: _fd(fd) {
-	}
+    /**
+     * Wrap existing file descriptor into a file object
+     * @note The file descriptor is not dup'd so the passed fid will be closed when file object is destroyd.
+     * @param fid File descriptor to wrap into a file object
+     * @return File object wrapping given file descriptor
+     */
+    static File fromFd(poll_id fid);
+
+    /**
+     *
+     * @param templ
+     * @return
+     */
+    static File mktemp(const String& templ, int flags = 0);
+
+public:
 
 
 	/**
@@ -214,6 +220,17 @@ public:
     virtual void flush();
 
 protected:
+
+    /**
+     * Create a file object using file id
+     * This doesn't call 'open' on the file id provided
+     * as it is assumed that file already has been opened
+     *
+     * @param fd - Id of the opened file.
+     */
+    File(const poll_id fd) noexcept: _fd(fd) {
+    }
+
 
     /**
      * Validate that file descriptor was opened and return it if it valid

@@ -48,15 +48,18 @@ class Array:
         public Iterable<Array<T>, T>
 {
 public:
-    typedef T               value_type;
+    typedef T                                   value_type;
     typedef std::vector<T> Storage;
-    typedef typename Storage::size_type size_type;
+    typedef typename Storage::size_type         size_type;
 
-    typedef typename Storage::iterator Iterator;
-    typedef typename Storage::const_iterator const_iterator;
+    typedef typename Storage::iterator          Iterator;
+    typedef typename Storage::const_iterator    const_iterator;
 
-    typedef typename Storage::const_reference const_reference;
-    typedef typename Storage::reference reference;
+    typedef typename Storage::const_reference   const_reference;
+    typedef typename Storage::reference         reference;
+
+    typedef typename Storage::pointer           pointer_type;
+    typedef typename Storage::const_pointer     const_pointer_type;
 
 public:
 
@@ -114,7 +117,7 @@ public:
         return swap(rhs);
     }
 
-    bool equals(const Array<T> &other) const noexcept override {
+    bool equals(const Array<T>& other) const noexcept override {
         return ((&other == this) ||
                 (_storage == other._storage));
     }
@@ -185,6 +188,14 @@ public:
 //    Array<T> slice(size_type from, size_type to) const {
 //        return { _storage };
 //    }
+
+    pointer_type data() noexcept {
+        return _storage.data();
+    }
+
+    const_pointer_type data() const noexcept {
+        return _storage.data();
+    }
 
     /*
      *--------------------------------------------------------------------------

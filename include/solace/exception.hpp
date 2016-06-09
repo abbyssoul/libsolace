@@ -109,8 +109,7 @@ public:
                              const char* file = 0, int line = 0) noexcept;
 
     //! Construct exception giving expected values and w. custom message
-    IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue,
-                             const char* indexName,
+    IndexOutOfRangeException(const char* indexName, size_t index, size_t minValue, size_t maxValue,
                              const char* file = 0, int line = 0) noexcept;
 
     virtual ~IndexOutOfRangeException() noexcept = default;

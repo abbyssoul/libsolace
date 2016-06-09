@@ -1,4 +1,7 @@
 
+find_package(PkgConfig REQUIRED)
+pkg_search_module(CPPUNIT REQUIRED cppunit)
+
 set(TEST_SOURCE_FILES
         main.cpp
         ci/teamcity_messages.cpp
@@ -13,7 +16,8 @@ set(TEST_SOURCE_FILES
         test_path.cpp
         test_version.cpp
         io/test_signalDispatcher.cpp
+        io/test_selector.cpp
     )
 
 add_executable(test_${PROJECT_NAME} ${TEST_SOURCE_FILES})
-target_link_libraries(test_solace cppunit solace fmt)
+target_link_libraries(test_solace ${PROJECT_NAME} ${CPPUNIT_LIBRARIES} fmt)

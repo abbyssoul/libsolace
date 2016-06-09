@@ -11,27 +11,33 @@ Please fill free to contribute.
 
 ## Building
 ### Build tool dependencies
+In order to build this project following tools must be present in the system:
 * cmake (version 3.0 and above)
-* cppunit
+* cppunit (Unit testing framework for C++)
 * doxygen (for documentation)
-* cppcheck (for static code analysis)
-* cpplint (for static code analysis)
-* valgrind (for code verification step only)
+* cppcheck (for static code analysis, latest version from git is used as part of the 'codecheck' step)
+* cpplint (for static code analysis in addition to cppcheck)
+* valgrind (for runtime code verification)
 
-Library make extensive use of C++ features from C++14 standard, so the minimal support version of gcc is gcc-4.9
+The project extensively uses C++ features from C++14 standard, so the minimal required version of gcc is gcc-4.9
 
 
-To install build tools on linux:
+To install build tools on Debian based Linux distribution:
 ```shell
 sudo apt-get update -qq
-sudo apt-get install cmake doxygen python-pip cppcheck valgrind ggcov
-sudo apt-get install libcppunit-dev
+sudo apt-get install cmake doxygen python-pip valgrind ggcov libcppunit-dev
 sudo pip install cpplint
 ```
 
-Library also requires a few extranal dependencies:
+Library also requires a few extranal dependencies that should be present in list directory:
 ```shell
-git clone https://github.com/fmtlib/fmt.git libs/fmt
+git clone --depth 3 https://github.com/fmtlib/fmt.git libs/fmt
+git clone --depth 3 https://github.com/danmar/cppcheck.git libs/cppcheck
+```
+
+It is also possible to use the script provided to download all external dependecies:
+```shell
+./libs/dependencies
 ```
 
 
@@ -48,13 +54,13 @@ $ make
 ```
 
 ### Using make
-For convenience hand crafted makefile is provided to automake project management: 
-To build a shared library:
+Makefile automating some of the common tasks is provided:
 ```shell
+# To build the library:
 make
 ```
 
-To build and run test suit:
+To build and run unit tests:
 ```shell
 make test
 ```
@@ -64,7 +70,7 @@ To build API documentation:
 make doc
 ```
 
-To install locally for testing (TBD):
+To install locally for testing (TBD, currently broken):
 ```shell
 make install --prefix=/user/<username>/test/lib
 ```
@@ -74,18 +80,21 @@ To install system wide (as root)(TBD):
 make install
 ```
 
+```shell
+# Verify code quality before submission
+make codecheck
+```
+
 
 ### Target Platforms
-The library is designed with the following systems in mind:
+The library is designed with the following platforms in mind:
+ * [Parallella](https://www.parallella.org/)
  * [Raspberry Pi](https://www.raspberrypi.org/)
  * [BeagleBone](http://beagleboard.org/)
- * [Parallella](https://www.parallella.org/)
-
-With this platform in mind - GUI components are not included.
 
 
 ## Design
-Library design is significantly inspired by [https://github.com/3rdparty/stout](Stout) but with the focus on performance including compile time.
+Design of the libraty is significantly inspired by [https://github.com/3rdparty/stout](Stout), but with the focus on performance including compile time.
 
  - Primitives:
 	- Fixed size integral types: 
@@ -124,8 +133,8 @@ Given the language choice library is designed with the idea tha exceptions can b
 
 
 ## Testing
-The library is equiped with the [cppunit](https://sourceforge.net/projects/cppunit/) test suit
-Test source code located is in:
+The library is equiped with the [cppunit](https://sourceforge.net/projects/cppunit/) test suit.
+The source code for unit test located is in:
 ```
 ./test 
 ```
@@ -148,6 +157,7 @@ make verify
 
 
 ## Similar projects
+Here are some other projects and library that can be very usefull in the development:
 * [Poco](http://pocoproject.org/)
 * [NSPR](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSPR)
 * [ARP](http://apr.apache.org/)
@@ -164,3 +174,4 @@ Please see LICENSE file for details
 
 ## Authors
 Please see AUTHORS file for the list of contributors
+
