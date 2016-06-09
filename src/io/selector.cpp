@@ -149,9 +149,9 @@ private:
 
 
 const Selector::Iterator& Selector::Iterator::operator++ () {
-    if (_index < _size)
+    if (_index < _size) {
         ++_index;
-    else {
+    } else {
         // Actually we are better off raising an exception:
         Solace::raise<IndexOutOfRangeException>(static_cast<size_t>(_index),
                                                 static_cast<size_t>(0),
