@@ -60,6 +60,7 @@ set(SOURCE_FILES
         src/io/serial_list_ports.cpp
         src/io/signalDispatcher.cpp
         src/io/selector.cpp
+        src/io/platformFilesystem.cpp
     )
 
 

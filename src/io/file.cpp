@@ -187,22 +187,6 @@ void File::flush() {
 }
 
 
-File File::mktemp(const String& templ, int flags) {
-    std::unique_ptr<char[]> templ_Cstr(new char[templ.size() + 1]);
-
-    memcpy(templ_Cstr.get(), templ.c_str(), templ.size());
-    templ_Cstr[templ.size()] = 0;
-
-
-    const auto fid = mkostemp(templ_Cstr.get(), flags);
-//    const auto fid = mkstemp(templ_Cstr.get(), );
-    if (-1 == fid) {
-        raise<IOException>(errno);
-    }
-
-    return { fid };
-}
-
 File File::fromFd(poll_id fid) {
     return { fid };
 }

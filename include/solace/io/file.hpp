@@ -65,13 +65,6 @@ public:
      */
     static File fromFd(poll_id fid);
 
-    /**
-     *
-     * @param templ
-     * @return
-     */
-    static File mktemp(const String& templ, int flags = 0);
-
 public:
 
 
@@ -239,7 +232,7 @@ protected:
      * @return Valid file id
      * @throws NotOpened exception
      */
-    poll_id validateFd() const;
+    virtual poll_id validateFd() const;
 
     /** Default constructor is to be called by derived classes only */
     File() = default;
