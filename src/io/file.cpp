@@ -29,8 +29,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+
 using Solace::String;
 using Solace::Path;
+using Solace::MemoryView;
 using Solace::ByteBuffer;
 using Solace::IO::ISelectable;
 using Solace::IO::File;
@@ -41,6 +43,11 @@ using Solace::IO::IOException;
 
 static const ISelectable::poll_id InvalidFd = -1;
 
+
+File::File(const poll_id fd) noexcept : _fd(fd)
+{
+
+}
 
 File::File(const Path& path, int flags) {
 
@@ -69,7 +76,7 @@ File::File(const Path& path, int flags) {
 
 
 File::File(File&& other): _fd(other._fd) {
-    other._fd = InvalidFd;
+    other.invalidateFd();
 
     // Note: It's ok if we have moved content from a closed file to have this->_fd == InvalidFd
 }
@@ -102,26 +109,41 @@ bool File::isClosed() const {
 }
 
 
+File::size_type File::read(MemoryView& buffer) {
+    return read(buffer, buffer.size());
+}
+
 File::size_type File::read(ByteBuffer& buffer) {
     return read(buffer, buffer.remaining());
 }
 
-
-File::size_type File::read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead) {
-    if (buffer.remaining() < bytesToRead) {
+File::size_type File::read(MemoryView& buffer, ByteBuffer::size_type bytesToRead) {
+    if (buffer.size() < bytesToRead) {
         raise<IllegalArgumentException>("bytesToRead");
     }
 
     const auto fd = validateFd();
-    const auto bytesRead = ::read(fd, buffer.dataPositiong(), bytesToRead);
+    const auto bytesRead = ::read(fd, buffer.data(), bytesToRead);
 
     if (bytesRead < 0) {
         raise<IOException>(errno);
     }
 
+    return bytesRead;
+}
+
+File::size_type File::read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead) {
+    auto bufferView = buffer.dataView();
+    const auto bytesRead = read(bufferView, bytesToRead);
+
     buffer.position(buffer.position() + bytesRead);
 
     return bytesRead;
+}
+
+
+File::size_type File::write(const MemoryView& buffer) {
+    return write(buffer, buffer.size());
 }
 
 
@@ -130,16 +152,23 @@ File::size_type File::write(ByteBuffer& buffer) {
 }
 
 
-File::size_type File::write(ByteBuffer& buffer, ByteBuffer::size_type bytesToWrite) {
-    if (buffer.remaining() < bytesToWrite) {
+File::size_type File::write(const MemoryView& buffer, MemoryView::size_type bytesToWrite) {
+    if (buffer.size() < bytesToWrite) {
         raise<IllegalArgumentException>("bytesToWrite");
     }
 
     const auto fd = validateFd();
-    const auto bytesWritten = ::write(fd, buffer.dataPositiong(), bytesToWrite);
+    const auto bytesWritten = ::write(fd, buffer.data(), bytesToWrite);
     if (bytesWritten < 0) {
         raise<IOException>(errno);
     }
+
+    return bytesWritten;
+}
+
+
+File::size_type File::write(ByteBuffer& buffer, ByteBuffer::size_type bytesToWrite) {
+    const auto bytesWritten = write(buffer.dataView(), bytesToWrite);
 
     buffer.position(buffer.position() + bytesWritten);
 
@@ -173,7 +202,7 @@ void File::close() {
         raise<IOException>(errno);
     }
 
-    _fd = InvalidFd;
+    invalidateFd();
 }
 
 
@@ -184,6 +213,15 @@ void File::flush() {
     if (result) {
         raise<IOException>(errno);
     }
+}
+
+
+File::poll_id File::invalidateFd() {
+    auto oldFd = _fd;
+
+    _fd = InvalidFd;
+
+    return oldFd;
 }
 
 

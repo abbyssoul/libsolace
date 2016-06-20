@@ -27,16 +27,26 @@
 namespace Solace { namespace IO {
 
 /**
- * A base interface for an object that can be polled by select/poll/epoll funcs
+ * A base interface for an object that can be polled by select/poll/epoll
+ * family of functions
  */
 class ISelectable {
 public:
+    //!< File Id is defined as int by POSIX
 	typedef int poll_id;
 
 public:
+
+    /**
+     * Default virtual destructor is fine for a base virtual class.
+     */
 	virtual ~ISelectable() = default;
 
-	virtual poll_id getSelectId() const = 0;
+    /**
+     * Get a 'native' file id of this object to be used by poll/select functions.
+     * @return
+     */
+    virtual poll_id getSelectId() const = 0;
 };
 
 

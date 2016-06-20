@@ -45,7 +45,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 include_directories(include)
 
 set(SOURCE_FILES
-        src/byteBuffer.cpp 
+        src/memoryView.cpp
+        src/byteBuffer.cpp
         src/char.cpp
         src/uuid.cpp
         src/string.cpp

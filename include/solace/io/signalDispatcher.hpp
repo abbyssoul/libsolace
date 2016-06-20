@@ -43,12 +43,13 @@ public:
      */
     static SignalDispatcher& getInstance();
 
-
     /**
       * Attach given handler to the give posix signal.
       *
       * @param signalNumber POSIX signal number
       * @param signalHandler Function to be called when the signal received
+      *
+      * TODO(abbyssoul): Return some kind of a descriptor to be used for 'removeHandler'.
      */
     void attachHandler(int signalNumber, const std::function<void(int)>& signalHandler);
 
@@ -61,6 +62,7 @@ protected:
     SignalDispatcher();
 
     /**
+     * Nothing here, really
      */
     ~SignalDispatcher();
 
@@ -68,6 +70,8 @@ protected:
       * Copy is not allowed. It makes no sense.
      */
     SignalDispatcher(const SignalDispatcher&) = delete;
+
+    //!< Delete copy assignment as well - makes no sense.
     const SignalDispatcher& operator= (const SignalDispatcher&) = delete;
 
 };

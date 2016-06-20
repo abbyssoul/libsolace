@@ -27,7 +27,7 @@
 #include <cstring>  // memcpy
 
 
-using Solace::Buffer;
+using Solace::MemoryView;
 using Solace::byte;
 using Solace::ByteBuffer;
 
@@ -138,60 +138,4 @@ ByteBuffer& ByteBuffer::write(const char* bytes, size_type count) {
     _position += count;
 
     return (*this);
-}
-
-
-
-
-Buffer::Buffer(size_type newSize): _size(newSize), _ownsData(true), _data(new value_type[newSize]) {
-
-}
-
-
-Buffer::Buffer(const Buffer& rhs):
-            _size(rhs._size),
-            _ownsData(rhs._ownsData),
-            _data(rhs._data)
-{
-  if (rhs._data && rhs._ownsData) {
-    _data = new value_type[_size];
-
-    memcpy(_data, rhs._data, _size * sizeof(value_type));
-  }
-}
-
-
-Buffer::Buffer(size_type newSize, void* bytes, bool copyData):
-    _size(newSize),
-    _ownsData(copyData),
-    _data(reinterpret_cast<value_type*>(bytes))
-{
-    if (!bytes) {
-        // FIXME(abbyssoul): Review nullptr handling policy
-//        raise<IllegalArgumentException>("bytes");
-        _size = 0;
-    }
-
-    if (bytes && copyData) {
-        _data = new value_type[_size];
-
-        memcpy(_data, bytes, _size * sizeof(value_type));
-    }
-}
-
-
-Buffer::~Buffer() {
-  if (_ownsData && _data) {
-    _ownsData = false;
-
-    delete [] _data;
-
-    _data = 0;
-    _size = 0;
-  }
-}
-
-
-Buffer Buffer::slice(size_type from, size_type to, bool copyData) const {
-  return Buffer {to - from, _data + from, copyData};
 }

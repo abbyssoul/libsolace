@@ -28,7 +28,7 @@
 
 using Solace::String;
 using Solace::Optional;
-using Solace::Buffer;
+using Solace::MemoryView;
 using Solace::Array;
 using Solace::IFormattable;
 using Solace::ByteBuffer;
@@ -63,7 +63,7 @@ String::String(const char* data) : _str(data) {
 String::String(const char* data, size_type dataLength): _str(data, dataLength) {
 }
 
-String::String(const Buffer& buffer):
+String::String(const MemoryView& buffer):
     _str(reinterpret_cast<const char*>(buffer.data()), buffer.size()) {
 
 }
@@ -391,9 +391,9 @@ String String::join(const String& by, const Array<String>& list) {
 }
 
 
-Buffer String::getBytes() const {
+MemoryView String::getBytes() const {
     // FIXME: How about buffer for CONST data!
-    return Buffer::wrap(const_cast<char*>(_str.data()),
+    return MemoryView::wrap(const_cast<char*>(_str.data()),
                 _str.length(), false);
 }
 

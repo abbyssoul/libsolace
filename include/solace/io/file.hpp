@@ -53,8 +53,10 @@ public:
 		End
 	};
 
+
 	typedef ssize_t size_type;
 	using ISelectable::poll_id;
+
 public:
 
     /**
@@ -77,10 +79,17 @@ public:
 	File(const Path& path, int flags = 0);
 
 
+    /**
+     * Move construct this file object
+     * @param other A file object to move from
+     */
     File(File&& other);
 
-
+    /**
+     * Default virtual distructor of file types.
+     */
 	virtual ~File();
+
 
     /**
      * Swap content of this file with an other
@@ -130,6 +139,27 @@ public:
 
     /** Read data from this file object into the given buffer.
      * The read attempts to read as much data as availiable space in the buffer.
+     *
+     * @param buffer Byte buffer to read data into
+     * @return Number of bytes actually read.
+     * @see File::read()
+     */
+    size_type read(MemoryView& buffer);
+
+    /** Read data from this file object into the given buffer.
+     *
+     * @param buffer Byte buffer to read data into
+     * @param bytesToRead Number of bytes to be read into the buffer
+     *
+     * @return Number of bytes actually read.
+     * @see File::read()
+     *
+     * @throws IOException if the system call has failed
+     */
+    virtual size_type read(MemoryView& buffer, ByteBuffer::size_type bytesToRead);
+
+    /** Read data from this file object into the given buffer.
+     *
      * @param buffer Byte buffer to read data into
      * @return Number of bytes actually read.
      * @see File::read()
@@ -144,10 +174,9 @@ public:
      * @return Number of bytes actually read.
      * @see File::read()
      *
-     * @throws IOException if close system call failed
+     * @throws IOException if the system call has failed
      */
-    virtual size_type read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead);
-
+    size_type read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead);
 
     /** Write data from the given byte buffer into this file object.
      *
@@ -158,7 +187,30 @@ public:
      *
      * @throws IOException if underlaying system call failed
      */
-    size_type write(ByteBuffer& buffer);
+    size_type write(const MemoryView& data);
+
+    /** Write data from the given byte buffer into this file object.
+     *
+     * @param data Bytes to be written into this file object.
+     * @param bytesToWrite Number of bytes to write
+
+     * @return Number of bytes actually writen
+     * @see File::write()
+     *
+     * @throws IOException if underlaying system call failed
+     */
+    virtual size_type write(const MemoryView& buffer, MemoryView::size_type bytesToWrite);
+
+    /** Write data from the given byte buffer into this file object.
+     *
+     * @param data Bytes to write into this file object.
+
+     * @return Number of bytes actually writen
+     * @see File::write()
+     *
+     * @throws IOException if underlaying system call failed
+     */
+    size_type write(ByteBuffer& data);
 
     /** Write data from the given byte buffer into this file object.
      *
@@ -170,7 +222,7 @@ public:
      *
      * @throws IOException if underlaying system call failed
      */
-    virtual size_type write(ByteBuffer& buffer, ByteBuffer::size_type bytesToWrite);
+    size_type write(ByteBuffer& data, ByteBuffer::size_type bytesToWrite);
 
 
 	/*
@@ -221,9 +273,7 @@ protected:
      *
      * @param fd - Id of the opened file.
      */
-    File(const poll_id fd) noexcept: _fd(fd) {
-    }
-
+    File(const poll_id fd) noexcept;
 
     /**
      * Validate that file descriptor was opened and return it if it valid
@@ -234,8 +284,14 @@ protected:
      */
     virtual poll_id validateFd() const;
 
+    /**
+     * Set poll fd to an invalid value.
+     * @return Old value of fileno.
+     */
+    poll_id invalidateFd();
+
     /** Default constructor is to be called by derived classes only */
-    File() = default;
+//    File() = default;
 
 private:
 

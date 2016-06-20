@@ -35,6 +35,7 @@ class TestUUID : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE(TestUUID);
         CPPUNIT_TEST(testStaticConstraints);
         CPPUNIT_TEST(testConstruction);
+        CPPUNIT_TEST(testRandom);
 
         CPPUNIT_TEST(testComparable);
         CPPUNIT_TEST(testIterable);
@@ -47,9 +48,10 @@ class TestUUID : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE_END();
 
 protected:
+    static constexpr size_t RandomSampleSize = 1000;
 
 
-    UUID moveMe(const Buffer& b) {
+    UUID moveMe(const MemoryView& b) {
         return std::move(b);
     }
 
@@ -59,6 +61,21 @@ public:
         CPPUNIT_ASSERT_EQUAL(static_cast<UUID::size_type>(16), UUID::StaticSize);
         CPPUNIT_ASSERT_EQUAL(static_cast<UUID::size_type>(36), UUID::StringSize);
         CPPUNIT_ASSERT_EQUAL(UUID::StaticSize, UUID::static_size());
+    }
+
+    void testRandom() {
+
+        UUID ids[RandomSampleSize];
+
+        for (uint i = 0; i < RandomSampleSize; ++i) {
+            ids[i] = UUID::random();
+        }
+
+        for (uint i = 0; i < RandomSampleSize; ++i) {
+            for (uint j = i + 1; j < RandomSampleSize; ++j) {
+                CPPUNIT_ASSERT(ids[i] != ids[j]);
+            }
+        }
     }
 
     void testConstruction() {
@@ -76,7 +93,7 @@ public:
         {
             byte buff[] = {7, 5, 3, 4, 8, 6, 7, 8, 3, 7, 3, 4, 5, 6, 7, 8};
 
-            UUID uid4(moveMe(Buffer::wrap(buff, sizeof(buff))));
+            UUID uid4(moveMe(MemoryView::wrap(buff, sizeof(buff))));
             for (UUID::size_type i = 0; i < sizeof(buff); ++i) {
                 CPPUNIT_ASSERT_EQUAL(buff[i], uid4[i]);
             }
@@ -92,12 +109,12 @@ public:
         CPPUNIT_ASSERT_THROW(auto x = UUID({1, 0, 3, 4, 5, 6, 7, 8}), IllegalArgumentException);
 
 
-        UUID uid5(Buffer::wrap(bytes, sizeof(bytes), false));
+        UUID uid5(MemoryView::wrap(bytes, sizeof(bytes), false));
         for (UUID::size_type i = 0; i < sizeof(bytes); ++i) {
             CPPUNIT_ASSERT_EQUAL(bytes[i], uid5[i]);
         }
 
-        CPPUNIT_ASSERT_THROW(auto x = UUID(Buffer::wrap(bytes, 7, false)), IllegalArgumentException);
+        CPPUNIT_ASSERT_THROW(auto x = UUID(MemoryView::wrap(bytes, 7, false)), IllegalArgumentException);
 
         auto byteBuffer = ByteBuffer(16);
         byteBuffer.write(bytes, sizeof(bytes));

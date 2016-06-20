@@ -103,7 +103,7 @@ public:
      * Try to construct the UUID from individual bytes
      * @note This can throw if number of byte given is less then expected
      */
-    UUID(const Buffer& s);
+    UUID(const MemoryView& s);
 
     /** Create the UUID from a byte buffer
      * Try to construct the UUID from individual bytes
@@ -174,7 +174,7 @@ public:
     const byte* data() const noexcept { return _bytes; }
     byte* data() noexcept { return _bytes; }
 
-    Buffer toBytes() const;
+    MemoryView toBytes() const;
 
     /** @see Iterable::forEach */
     const UUID& forEach(const std::function<void(const_reference)> &f) const override;

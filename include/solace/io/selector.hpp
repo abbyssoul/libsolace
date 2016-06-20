@@ -164,4 +164,3 @@ private:
 }  // End of namespace IO
 }  // End of namespace Solace
 #endif  // SOLACE_IO_SELECTOR_HPP
-

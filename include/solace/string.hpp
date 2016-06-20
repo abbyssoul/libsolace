@@ -68,7 +68,7 @@ public:
     String(const char* data, size_type length);
 
     //!< Construct a string from a nicely managed buffer
-    String(const Buffer& buffer);
+    String(const MemoryView& buffer);
 
     //!< Construct a string from a byte buffer
     String(ByteBuffer& buffer);
@@ -298,7 +298,7 @@ public:  // Basic collection operations:
 	/**
      * Get bytes of the encoded representation of the string.
 	 */
-    Buffer getBytes() const;
+    MemoryView getBytes() const;
 
     /** Array index operator. Obtain a copy of the character at the given
 	 * offset in the string.

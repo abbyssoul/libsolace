@@ -35,8 +35,8 @@ using namespace Solace::IO;
 
 
 
-File::size_type PlatformFilesystem::BufferedFile::read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead) {
-    if (buffer.remaining() < bytesToRead) {
+File::size_type PlatformFilesystem::BufferedFile::read(MemoryView& buffer, MemoryView::size_type bytesToRead) {
+    if (buffer.size() < bytesToRead) {
         raise<IllegalArgumentException>("bytesToRead");
     }
 
@@ -44,14 +44,16 @@ File::size_type PlatformFilesystem::BufferedFile::read(ByteBuffer& buffer, ByteB
         raise<NotOpen>();
     }
 
-    const auto bytesRead = ::fread(buffer.dataPositiong(), 1, bytesToRead, _fp);
-    buffer.position(buffer.position() + bytesRead);
+    const auto bytesRead = ::fread(buffer.data(), 1, bytesToRead, _fp);
+    // NOTE: Number of bytes read can be less then 'bytesToRead' if there are no more data in the file or end of file
+    // has been reached.
 
     return bytesRead;
 }
 
-File::size_type PlatformFilesystem::BufferedFile::write(ByteBuffer& buffer, ByteBuffer::size_type bytesToWrite) {
-    if (buffer.remaining() < bytesToWrite) {
+
+File::size_type PlatformFilesystem::BufferedFile::write(const MemoryView& buffer, MemoryView::size_type bytesToWrite) {
+    if (buffer.size() < bytesToWrite) {
         raise<IllegalArgumentException>("bytesToWrite");
     }
 
@@ -59,14 +61,20 @@ File::size_type PlatformFilesystem::BufferedFile::write(ByteBuffer& buffer, Byte
         raise<NotOpen>();
     }
 
-    const auto bytesWritten = ::fwrite(buffer.dataPositiong(), 1, bytesToWrite, _fp);
-    buffer.position(buffer.position() + bytesWritten);
+    const auto bytesWritten = ::fwrite(buffer.data(), 1, bytesToWrite, _fp);
+    if (bytesWritten != bytesToWrite) {
+        raise<IOException>(errno);
+    }
 
     return bytesWritten;
 }
 
 
 File::size_type PlatformFilesystem::BufferedFile::seek(size_type offset, File::Seek type) {
+    if (!_fp) {
+        raise<NotOpen>();
+    }
+
     int result = 0;
     switch (type) {
         case Seek::Set:     result = fseeko(_fp, offset, SEEK_SET); break;
@@ -87,15 +95,14 @@ void PlatformFilesystem::BufferedFile::close() {
         fclose(_fp);
         _fp = nullptr;
     }
+
+    invalidateFd();
 }
 
-PlatformFilesystem::BufferedFile::BufferedFile(FILE* fp) : _fp(fp) {
 
-}
-
-
-File::poll_id PlatformFilesystem::BufferedFile::validateFd() const {
-    return fileno(_fp);
+PlatformFilesystem::BufferedFile::BufferedFile(FILE* fp) : File(fileno(fp)),
+    _fp(fp)
+{
 }
 
 
@@ -105,14 +112,24 @@ PlatformFilesystem::PlatformFilesystem() {
 
 
 std::shared_ptr<File> PlatformFilesystem::create(const Path& path) {
-    auto fp = fopen(path.toString().c_str(), "w+x");
+    const auto& pathString = path.toString();
+    auto fp = fopen(pathString.c_str(), "w+x");
+
+    if (!fp) {
+        raise<IOException>(errno);
+    }
 
     return std::make_shared<PlatformFilesystem::BufferedFile>(fp);
 }
 
 
 std::shared_ptr<File> PlatformFilesystem::open(const Path& path) {
-    auto fp = fopen(path.toString().c_str(), "r+");
+    const auto& pathString = path.toString();
+    auto fp = fopen(pathString.c_str(), "r+");
+
+    if (!fp) {
+        raise<IOException>(errno);
+    }
 
     return std::make_shared<PlatformFilesystem::BufferedFile>(fp);
 }
@@ -162,7 +179,7 @@ bool PlatformFilesystem::isDirectory(const Path& path) const {
 }
 
 
-uint64 PlatformFilesystem::getTimestamp(const Path& path) const {
+timespec PlatformFilesystem::getTimestamp(const Path& path) const {
     const auto& pathString = path.toString();
 
     struct stat sb;
@@ -170,12 +187,11 @@ uint64 PlatformFilesystem::getTimestamp(const Path& path) const {
         raise<IOException>(errno);
     }
 
-    // NOTE: This gives only milli sec resolution. Should be reviewed if it is good enough
-    return sb.st_mtim.tv_sec + sb.st_mtim.tv_nsec * 1000;;
+    return sb.st_mtim;
 }
 
 
-size_t PlatformFilesystem::getFileSize(const Path& path) const {
+PlatformFilesystem::size_type PlatformFilesystem::getFileSize(const Path& path) const {
     struct stat sb;
 
     const auto& pathString = path.toString();
@@ -233,6 +249,7 @@ Array<Path> PlatformFilesystem::glob(const String& pattern) const {
     return pathsFound;
 }
 
+
 Array<Path> PlatformFilesystem::glob(std::initializer_list<const char*> patterns) const {
     std::vector<Path> pathsFound;
 
@@ -257,6 +274,7 @@ Array<Path> PlatformFilesystem::glob(std::initializer_list<const char*> patterns
     return pathsFound;
 }
 
+
 Path PlatformFilesystem::getExecPath() const {
     char execPath[1024];
     const size_t buffSize = sizeof(execPath);
@@ -271,6 +289,7 @@ Path PlatformFilesystem::getExecPath() const {
     return Path::parse(execPath);
 }
 
+
 Path PlatformFilesystem::getWorkingDirectory() const {
     char buf[1024];  // FIXME(abbyssoul) Shouldn't it be max_path or something?
 
@@ -281,6 +300,7 @@ Path PlatformFilesystem::getWorkingDirectory() const {
 
     return Path::parse(buffer);
 }
+
 
 void PlatformFilesystem::setWorkingDirectory(const Path& path) {
     const auto& pathString = path.toString();

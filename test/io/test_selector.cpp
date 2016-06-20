@@ -15,10 +15,10 @@
 */
 /*******************************************************************************
  * libSolace Unit Test Suit
- * @file: test/test_writeBuffer.cpp
+ * @file: test/test_selector.cpp
  * @author: soultaker
  *
- * Created on: 28 Apr 2016
+ * Created on: 10/06/2016
 *******************************************************************************/
 #include <solace/io/selector.hpp>  // Class being tested
 
@@ -105,4 +105,3 @@ public:
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestIOSelector);
-

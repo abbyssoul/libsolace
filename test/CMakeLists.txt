@@ -13,6 +13,7 @@ set(TEST_SOURCE_FILES
         main.cpp
         ci/teamcity_messages.cpp
         ci/teamcity_cppunit.cpp
+        test_memoryView.cpp
         test_byteBuffer.cpp
         test_optional.cpp
         test_uuid.cpp
@@ -24,6 +25,7 @@ set(TEST_SOURCE_FILES
         test_version.cpp
         io/test_signalDispatcher.cpp
         io/test_selector.cpp
+        io/test_platformfilesystem.cpp
     )
 
 add_executable(test_${PROJECT_NAME} ${TEST_SOURCE_FILES})

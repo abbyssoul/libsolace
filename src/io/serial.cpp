@@ -573,38 +573,3 @@ Serial::size_type Serial::available() const {
     return static_cast<size_type>(count);
 }
 
-
-Serial::size_type Serial::read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead) {
-    if (buffer.remaining() < bytesToRead) {
-        raise<IllegalArgumentException>("bytesToRead");
-    }
-
-    const auto fd = validateFd();
-    const auto bytesRead = ::read(fd, buffer.dataPositiong(), bytesToRead);
-
-    if (bytesRead < 0) {
-        raise<IOException>(errno, "read");
-    }
-
-    buffer.position(buffer.position() + bytesRead);
-
-    return bytesRead;
-}
-
-
-Serial::size_type Serial::write(ByteBuffer& buffer, ByteBuffer::size_type bytesToWrite) {
-    if (buffer.remaining() < bytesToWrite) {
-        raise<IllegalArgumentException>("bytesToWrite");
-    }
-
-    const auto fd = validateFd();
-    const auto bytesWritten = ::write(fd, buffer.dataPositiong(), bytesToWrite);
-    if (bytesWritten < 0) {
-        raise<IOException>(errno, "write");
-    }
-
-    buffer.position(buffer.position() + bytesWritten);
-
-    return bytesWritten;
-}
-

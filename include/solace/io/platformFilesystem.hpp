@@ -30,7 +30,7 @@
 namespace Solace { namespace IO {
 
 /** Filesystem interface.
- * Filesystem is a hierarchical directory of objects.
+ * Filesystem is a hierarchical dictionary of objects.
  * One can think of it as a dictionary with string keys. Objects returned by filesyste are called 'file'
  * Note: virtual filesystem does not represents real platform filesystem but only defines a notion of
  * files and hierarchy on names. For plarform specific filesystem implementation @see PlatformFilesystem
@@ -40,29 +40,31 @@ namespace Solace { namespace IO {
 class PlatformFilesystem: public Filesystem {
 public:
 
+    //! Type used to represent file sizes
+    typedef ByteBuffer::size_type size_type;
+
+
     class BufferedFile: public File {
     public:
 
-        size_type read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead) override;
-        size_type write(ByteBuffer& buffer, ByteBuffer::size_type bytesToWrite) override;
+        size_type read(MemoryView& buffer, MemoryView::size_type bytesToRead) override;
+        size_type write(const MemoryView& buffer, MemoryView::size_type bytesToWrite) override;
         size_type seek(size_type offset, File::Seek type) override;
         void close() override;
 
     public:
         BufferedFile(FILE* fp);
-
-    protected:
-        poll_id validateFd() const override;
+        ~BufferedFile() = default;
 
     private:
         FILE* _fp;
     };
 
-
-    typedef size_t uint64;
-
 public:
 
+    /**
+     * PlatformFilesystem default constructor. Nothing to see here.
+     */
     PlatformFilesystem();
 
     ~PlatformFilesystem() = default;
@@ -121,20 +123,18 @@ public:
 
     /**
      * Get timestamp of the file pointed by the path
+     *
      * @param path A path to the file to get timestamp of
      * @return Timestamp of the file
-     *
-     * @note This method returns modification time with only milli sec resolution.
-     * In the next version we might review if it is sufficient.
      */
-    uint64 getTimestamp(const Path& path) const;
+    timespec getTimestamp(const Path& path) const;
 
     /**
      * Get the size of the file pointed to by the path
      * @param path A path to the file to get the size of
      * @return Size of the file
      */
-    size_t getFileSize(const Path& path) const;
+    size_type getFileSize(const Path& path) const;
 
     /**
      * Expand all symbolic links and resolves references to /./, /../ and extra '/' characters in the path
@@ -183,6 +183,7 @@ public:
      * Set current working directory of the calling procces.
      */
     void setWorkingDirectory(const Path& value);
+
 };
 
 }  // End of namespace IO

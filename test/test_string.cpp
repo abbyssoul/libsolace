@@ -122,8 +122,8 @@ public:
         const String cstrFromTo(source + 5, 4);
         CPPUNIT_ASSERT(cstrFromTo.equals("cstr"));
 
-        CPPUNIT_ASSERT(String(Buffer::wrap(const_cast<char*>(source), 4)).equals("some"));
-        CPPUNIT_ASSERT(String(Buffer::wrap(const_cast<char*>(source) + 10, 6)).equals("source"));
+        CPPUNIT_ASSERT(String(MemoryView::wrap(const_cast<char*>(source), 4)).equals("some"));
+        CPPUNIT_ASSERT(String(MemoryView::wrap(const_cast<char*>(source) + 10, 6)).equals("source"));
 
 
 		const String strCopy(cstr);

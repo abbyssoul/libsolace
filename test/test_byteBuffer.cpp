@@ -43,54 +43,6 @@ class TestByteBuffer: public CppUnit::TestFixture  {
 public:
 
 	void testConstruction() {
-        {   // NullPointer smoke test
-            // CPPUNIT_ASSERT_THROW(Buffer nullbuffer(321, NULL), IllegalArgumentException);
-            Buffer nullbuffer(321, NULL);
-            CPPUNIT_ASSERT_EQUAL(static_cast<Solace::Buffer::size_type>(0), nullbuffer.size());
-        }
-
-        {   // Fixed size constructor
-			Buffer test(3102);
-
-            CPPUNIT_ASSERT(!test.empty());
-			CPPUNIT_ASSERT_EQUAL(static_cast<Solace::Buffer::size_type>(3102), test.size());
-			test[0] = 19;
-			test[2] = 17;
-			test[1] = 4;
-			test[test.size() - 1] = 255;
-			CPPUNIT_ASSERT_EQUAL(static_cast<byte>(19), test.data()[0]);
-			CPPUNIT_ASSERT_EQUAL(static_cast<byte>(4), test.data()[1]);
-			CPPUNIT_ASSERT_EQUAL(static_cast<byte>(17), test.data()[2]);
-			CPPUNIT_ASSERT_EQUAL(static_cast<byte>(255), test.data()[test.size() - 1]);
-		}
-
-        {   // Wrapping constructor
-            byte example[] = {0, 1, 0, 3, 2, 1};  // size = 6
-			Buffer test(sizeof(example), example);
-
-            CPPUNIT_ASSERT(!test.empty());
-			CPPUNIT_ASSERT_EQUAL(static_cast<Solace::Buffer::size_type>(6), test.size());
-
-			for (size_t i = 0; i < test.size(); ++i)
-				CPPUNIT_ASSERT_EQUAL(example[i], test.data()[i]);
-		}
-
-        {   // Copy-constructor
-            byte example[] = {7, 5, 0, 2, 21, 15, 178};  // size = 7
-            Buffer::size_type exampleSize = sizeof(example);
-            Buffer b1(exampleSize, example);
-			Buffer b2(b1);
-
-            CPPUNIT_ASSERT_EQUAL(exampleSize, b1.size());
-            CPPUNIT_ASSERT_EQUAL(exampleSize, b2.size());
-
-			for (size_t i = 0; i < b1.size(); ++i) {
-				CPPUNIT_ASSERT_EQUAL(example[i], b1.data()[i]);
-				CPPUNIT_ASSERT_EQUAL(example[i], b2.data()[i]);
-			}
-
-			CPPUNIT_ASSERT_EQUAL(false, b2.isOwner());
-		}
 	}
 
     void testPositioning() {

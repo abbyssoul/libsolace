@@ -31,7 +31,7 @@
 
 using Solace::byte;
 using Solace::UUID;
-using Solace::Buffer;
+using Solace::MemoryView;
 using Solace::String;
 using Solace::IndexOutOfRangeException;
 using Solace::IllegalArgumentException;
@@ -65,7 +65,7 @@ UUID::UUID(const UUID& rhs) noexcept {
 }
 
 
-UUID::UUID(const Buffer& s) {
+UUID::UUID(const MemoryView& s) {
     if (s.size() < size()) {
         raise<IllegalArgumentException>("bytes");
     }
@@ -140,8 +140,8 @@ bool operator < (const UUID& lhs, const UUID& rhs) noexcept {
     return memcmp(lhs.data(), rhs.data(), lhs.size()) < 0;
 }
 
-Buffer UUID::toBytes() const {
-    return Buffer::wrap(const_cast<byte*>(_bytes), size(), true);
+MemoryView UUID::toBytes() const {
+    return MemoryView::wrap(const_cast<byte*>(_bytes), size(), true);
 }
 
 
@@ -230,5 +230,5 @@ UUID UUID::parse(const String& str) {
     byte data[StaticSize];
     hex2bin(data, str.c_str(), StringSize);
 
-    return UUID(Buffer(sizeof(data), data, false));
+    return UUID(MemoryView::wrap(data, sizeof(data)));
 }

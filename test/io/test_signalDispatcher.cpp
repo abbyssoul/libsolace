@@ -15,10 +15,10 @@
 */
 /*******************************************************************************
  * libSolace Unit Test Suit
- * @file: test/test_writeBuffer.cpp
+ * @file: test/test_signalDispatcher.cpp
  * @author: soultaker
  *
- * Created on: 28 Apr 2016
+ * Created on: 12 Jun 2016
 *******************************************************************************/
 #include <solace/io/signalDispatcher.hpp>  // Class being tested
 
@@ -75,4 +75,3 @@ public:
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestIOSignalDispatcher);
-
