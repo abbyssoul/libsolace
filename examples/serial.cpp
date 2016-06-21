@@ -53,7 +53,8 @@ int main(int argc, char **argv) {
             if (event.events & Solace::IO::Selector::Events::Read) {
                 const auto bytesRead = serial.read(readBuffer);
                 if (bytesRead > 0) {
-                    std::cout.write((const char*)readBuffer.data(), readBuffer.position());
+                    auto dataView = readBuffer.viewWritten();
+                    std::cout.write((const char*)dataView.dataAddress(), dataView.size());
                     std::cout.flush();
 
                     readBuffer.rewind();

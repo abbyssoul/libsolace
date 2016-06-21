@@ -77,17 +77,17 @@ public:
     MemoryView(MemoryView&& rhs):
                 _size(rhs._size),
                 _ownsData(rhs._ownsData),
-                _data(rhs._data)
+                _dataAddress(rhs._dataAddress)
     {
         // Stuff up rhs so it won't be destructed
         rhs._size = 0;
         rhs._ownsData = false;
-        rhs._data = 0;
+        rhs._dataAddress = 0;
     }
 
     MemoryView(const MemoryView& rhs);
 
-    MemoryView(size_type size, void* data, bool copyData = false);
+    MemoryView(size_type size, void* dataAddress, bool copyData = false);
 
     /** Deallocate memory */
     ~MemoryView();
@@ -95,7 +95,7 @@ public:
     MemoryView& swap(MemoryView& rhs) noexcept {
         std::swap(_size, rhs._size);
         std::swap(_ownsData, rhs._ownsData);
-        std::swap(_data, rhs._data);
+        std::swap(_dataAddress, rhs._dataAddress);
 
         return (*this);
     }
@@ -112,7 +112,7 @@ public:
 
     bool equals(const MemoryView& other) const noexcept {
         if ((&other == this) ||
-            ((_size == other._size) && (_data == other._data))) {
+            ((_size == other._size) && (_dataAddress == other._dataAddress))) {
             return true;
         }
 
@@ -120,7 +120,7 @@ public:
             return false;
 
         for (size_type i = 0; i < _size; ++i) {
-            if (_data[i] != other._data[i])
+            if (_dataAddress[i] != other._dataAddress[i])
                 return false;
         }
 
@@ -136,7 +136,7 @@ public:
     }
 
     bool empty() const noexcept {
-        return ((!_data) || (_size == 0));
+        return ((!_dataAddress) || (_size == 0));
     }
 
     /**
@@ -149,11 +149,11 @@ public:
      * @return iterator to beginning of the collection
      */
     const_iterator begin() const {
-        return _data;
+        return _dataAddress;
     }
 
     iterator begin() {
-        return _data;
+        return _dataAddress;
     }
 
     /**
@@ -161,20 +161,20 @@ public:
      * @return iterator to end of the collection
      */
     const_iterator end() const {
-        return _data + _size;
+        return _dataAddress + _size;
     }
 
     iterator end() {
-        return _data + _size;
+        return _dataAddress + _size;
     }
 
-    value_type first() const noexcept { return _data[0]; }
-    value_type last()  const noexcept { return _data[_size - 1]; }
+    value_type first() const noexcept { return _dataAddress[0]; }
+    value_type last()  const noexcept { return _dataAddress[_size - 1]; }
 
-    reference  operator[] (size_type index) { return _data[index]; }
-    value_type operator[] (size_type index) const { return _data[index]; }
+    reference  operator[] (size_type index) { return _dataAddress[index]; }
+    value_type operator[] (size_type index) const { return _dataAddress[index]; }
 
-    byte* data() const noexcept { return _data; }
+    byte* dataAddress() const noexcept { return _dataAddress; }
     bool isOwner() const noexcept { return _ownsData; }
 
     MemoryView slice(size_type from, size_type to, bool copyData) const;
@@ -182,7 +182,7 @@ public:
 private:
     size_type   _size;
     bool        _ownsData;
-    byte*       _data;
+    byte*       _dataAddress;
 };
 
 }  // End of namespace Solace

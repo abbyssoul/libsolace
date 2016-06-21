@@ -123,7 +123,7 @@ File::size_type File::read(MemoryView& buffer, ByteBuffer::size_type bytesToRead
     }
 
     const auto fd = validateFd();
-    const auto bytesRead = ::read(fd, buffer.data(), bytesToRead);
+    const auto bytesRead = ::read(fd, buffer.dataAddress(), bytesToRead);
 
     if (bytesRead < 0) {
         raise<IOException>(errno);
@@ -133,10 +133,10 @@ File::size_type File::read(MemoryView& buffer, ByteBuffer::size_type bytesToRead
 }
 
 File::size_type File::read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead) {
-    auto bufferView = buffer.dataView();
+    auto bufferView = buffer.viewRemaining();
     const auto bytesRead = read(bufferView, bytesToRead);
 
-    buffer.position(buffer.position() + bytesRead);
+    buffer.advance(bytesRead);
 
     return bytesRead;
 }
@@ -158,7 +158,7 @@ File::size_type File::write(const MemoryView& buffer, MemoryView::size_type byte
     }
 
     const auto fd = validateFd();
-    const auto bytesWritten = ::write(fd, buffer.data(), bytesToWrite);
+    const auto bytesWritten = ::write(fd, buffer.dataAddress(), bytesToWrite);
     if (bytesWritten < 0) {
         raise<IOException>(errno);
     }
@@ -168,9 +168,10 @@ File::size_type File::write(const MemoryView& buffer, MemoryView::size_type byte
 
 
 File::size_type File::write(ByteBuffer& buffer, ByteBuffer::size_type bytesToWrite) {
-    const auto bytesWritten = write(buffer.dataView(), bytesToWrite);
+    auto bufferView = buffer.viewRemaining();
+    const auto bytesWritten = write(bufferView, bytesToWrite);
 
-    buffer.position(buffer.position() + bytesWritten);
+    buffer.advance(bytesWritten);
 
     return bytesWritten;
 }

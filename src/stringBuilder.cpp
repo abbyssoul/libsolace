@@ -85,9 +85,7 @@ StringBuilder& StringBuilder::append(const String& str) {
 }
 
 String StringBuilder::toString() const {
-	return String(std::string(
-			reinterpret_cast<const char*>(_buffer.data()),
-			_buffer.position()));
+    return String(_buffer.viewWritten());
 }
 
 bool StringBuilder::empty() const {
@@ -98,9 +96,10 @@ bool StringBuilder::empty() const {
 String StringBuilder::substring(size_type from, size_type to) const {
     // TODO(abbyssoul): Check for index out of range
 
+    auto data = _buffer.viewWritten();
     return String(std::string(
-            reinterpret_cast<const char*>(_buffer.data() + from),
-            to));
+            reinterpret_cast<const char*>(data.dataAddress() + from),
+            to - from));
 }
 
 Optional<StringBuilder::size_type> StringBuilder::indexOf(const Char& ch, size_type fromIndex) const {

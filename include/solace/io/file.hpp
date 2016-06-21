@@ -70,15 +70,6 @@ public:
 public:
 
 
-	/**
-	 * Open a file in the file system
-	 * open sys called is called on to open the file identified by the give path
-	 *
-	 * @param path - Path to the file to open
-	 */
-	File(const Path& path, int flags = 0);
-
-
     /**
      * Move construct this file object
      * @param other A file object to move from
@@ -274,6 +265,16 @@ protected:
      * @param fd - Id of the opened file.
      */
     File(const poll_id fd) noexcept;
+
+
+    /**
+     * Open a file in the file system
+     * open sys called is called on to open the file identified by the give path
+     *
+     * @param path - Path to the file to open
+     */
+    File(const Path& path, int flags = 0);
+
 
     /**
      * Validate that file descriptor was opened and return it if it valid

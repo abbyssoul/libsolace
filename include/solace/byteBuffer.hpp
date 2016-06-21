@@ -201,6 +201,8 @@ public:
 
     ByteBuffer& position(size_type newPosition);
 
+    ByteBuffer& advance(size_type newPosition);
+
     size_type remaining() const noexcept { return limit() - position(); }
 
     bool hasRemaining() const noexcept { return remaining() > 0; }
@@ -220,16 +222,20 @@ public:
     ByteBuffer& write(byte* bytes, size_type count);
     ByteBuffer& write(const char* bytes, size_type count);
 
-    byte* data() const noexcept {
-        return _storage.data();
-    }
+//    byte* data() const noexcept {
+//        return _storage.dataAddress();
+//    }
 
-    byte* dataPositiong() const noexcept {
-        return _storage.data() + position();
-    }
+//    byte* dataPositiong() const noexcept {
+//        return _storage.dataAddress() + position();
+//    }
 
-    MemoryView dataView() const noexcept {
+    MemoryView viewRemaining() const noexcept {
         return _storage.slice(position(), limit(), false);
+    }
+
+    MemoryView viewWritten() const noexcept {
+        return _storage.slice(0, position(), false);
     }
 
 private:

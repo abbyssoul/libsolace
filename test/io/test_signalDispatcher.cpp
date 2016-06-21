@@ -26,6 +26,7 @@
 
 #include <unistd.h>
 #include <signal.h>
+#include <sys/time.h>
 
 
 using namespace Solace;
@@ -48,8 +49,14 @@ public:
         });
 
         // Generate ALARM signal, in 1 sec
-        alarm(1);
-        sleep(2);
+        itimerval timeToSleep;
+        timeToSleep.it_interval.tv_sec = 0;
+        timeToSleep.it_interval.tv_usec = 0;
+        timeToSleep.it_value.tv_sec = 0;
+        timeToSleep.it_value.tv_usec = 250 * 1000;
+        CPPUNIT_ASSERT_EQUAL(0, setitimer(ITIMER_REAL, &timeToSleep, NULL));
+
+        usleep(400 * 1000);
         CPPUNIT_ASSERT(signaled);
 
         // Reset
@@ -66,8 +73,11 @@ public:
             count += (signalId == SIGALRM) ? 1 : 0;
         });
 
-        alarm(1);
-        sleep(2);
+        timeToSleep.it_value.tv_usec = 500 * 1000;
+        CPPUNIT_ASSERT_EQUAL(0, setitimer(ITIMER_REAL, &timeToSleep, NULL));
+
+        usleep(800 * 1000);
+
         CPPUNIT_ASSERT(signaled);
         CPPUNIT_ASSERT_EQUAL(3, count);
     }

@@ -31,6 +31,9 @@
 #include <cppunit/BriefTestProgressListener.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
+
+#include <cppunit/ui/text/TestRunner.h>
+
 #include <cppunit/CompilerOutputter.h>
 
 #include <signal.h>
@@ -65,6 +68,10 @@ int main(int argc, char* argv[]) {
     // FIXME(abbyssoul): Add signal handling in test ::signal(SIGSEGV, _sighandler);
     const std::string testPath = (argc > 1) ? std::string(argv[1]) : "";
 
+    // Add a listener that print dots as test run.
+    std::unique_ptr<CppUnit::TestListener> progressListener;
+//    std::unique_ptr<CppUnit::TestListener> extraProgressListener;
+
     // Create the event manager and test controller
     CppUnit::TestResult controller;
 
@@ -72,8 +79,6 @@ int main(int argc, char* argv[]) {
     CppUnit::TestResultCollector result;
     controller.addListener(&result);
 
-    // Add a listener that print dots as test run.
-    std::unique_ptr<CppUnit::TestListener> progressListener;
     if (jetbrains::teamcity::underTeamcity()) {
         // Add unique flowId parameter if you want to run test processes in parallel
         // See http://confluence.jetbrains.net/display/TCD6/Build+Script+Interaction+with+TeamCity#BuildScriptInteractionwithTeamCity-MessageFlowId
@@ -85,8 +90,10 @@ int main(int argc, char* argv[]) {
     controller.addListener(progressListener.get());
 
     // Add the top suite to the test runner
-    CppUnit::TestRunner runner;
-    runner.addTest(CppUnit::TestFactoryRegistry::getRegistry().makeTest());
+    CppUnit::TextUi::TestRunner runner;
+    auto& registry = CppUnit::TestFactoryRegistry::getRegistry();
+
+    runner.addTest(registry.makeTest());
     try {
         runner.run(controller, testPath);
 

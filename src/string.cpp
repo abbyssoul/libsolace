@@ -64,13 +64,14 @@ String::String(const char* data, size_type dataLength): _str(data, dataLength) {
 }
 
 String::String(const MemoryView& buffer):
-    _str(reinterpret_cast<const char*>(buffer.data()), buffer.size()) {
+    _str(reinterpret_cast<const char*>(buffer.dataAddress()), buffer.size()) {
 
 }
 
 String::String(ByteBuffer& buffer) {
     // Consume ramaining buffer
-    _str.assign(reinterpret_cast<const char*>(buffer.dataPositiong()), buffer.remaining());
+    auto memView = buffer.viewWritten();
+    _str.assign(reinterpret_cast<const char*>(memView.dataAddress()), memView.size());
 
     // Update position accordingly
     buffer.position(buffer.limit());

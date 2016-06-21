@@ -44,17 +44,35 @@ public:
     typedef ByteBuffer::size_type size_type;
 
 
-    class BufferedFile: public File {
+    class BufferedFile : public File {
     public:
+
+        using File::read;
+        using File::write;
 
         size_type read(MemoryView& buffer, MemoryView::size_type bytesToRead) override;
         size_type write(const MemoryView& buffer, MemoryView::size_type bytesToWrite) override;
         size_type seek(size_type offset, File::Seek type) override;
         void close() override;
 
+        size_type tell();
+
     public:
         BufferedFile(FILE* fp);
         ~BufferedFile() = default;
+
+        BufferedFile(BufferedFile&& that);
+
+        BufferedFile& operator= (BufferedFile&& rhs) noexcept {
+            return swap(rhs);
+        }
+
+        BufferedFile& swap(BufferedFile& rhs) noexcept {
+            std::swap(_fp, rhs._fp);
+            File::swap(rhs);
+
+            return *this;
+        }
 
     private:
         FILE* _fp;
@@ -151,7 +169,7 @@ public:
      *
      * @return An opened temporary file
      */
-    std::shared_ptr<File> createTemp();
+    std::shared_ptr<BufferedFile> createTemp();
 
     /** Find pathnames matching a pattern
      *

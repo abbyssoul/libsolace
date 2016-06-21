@@ -53,6 +53,16 @@ ByteBuffer& ByteBuffer::position(size_type newPosition) {
     return *this;
 }
 
+ByteBuffer& ByteBuffer::advance(size_type positionIncrement) {
+    if (!(position() + positionIncrement <= limit())) {
+        raise<IllegalArgumentException>("positionIncrement");
+    }
+
+    _position += positionIncrement;
+
+    return *this;
+}
+
 
 ByteBuffer& ByteBuffer::reset() {
     if (!_mark.isSome()) {
@@ -81,7 +91,7 @@ ByteBuffer::size_type ByteBuffer::read(byte* bytes, size_type count) {
         raise<OverflowException>(_position + count, _position, _limit);
     }
 
-    memcpy(bytes, _storage.data() + _position, count);
+    memcpy(bytes, _storage.dataAddress() + _position, count);
     _position += count;
 
     return count;
@@ -92,7 +102,7 @@ ByteBuffer::size_type ByteBuffer::read(size_type offset, byte* bytes, size_type 
         raise<OverflowException>(offset + count, 0, _limit);
     }
 
-    memcpy(bytes, _storage.data() + offset, count);
+    memcpy(bytes, _storage.dataAddress() + offset, count);
     return count;
 }
 
@@ -119,7 +129,7 @@ ByteBuffer& ByteBuffer::write(byte* bytes, size_type count) {
          raise<OverflowException>(_position + count, _position, remaining());
     }
 
-    memcpy(_storage.data() + _position, bytes, count);
+    memcpy(_storage.dataAddress() + _position, bytes, count);
     _position += count;
 //    for (size_type i = 0; i < count; ++i) {
 //      _storage[_position++] = bytes[i];
@@ -134,7 +144,7 @@ ByteBuffer& ByteBuffer::write(const char* bytes, size_type count) {
         raise<OverflowException>(_position + count, _position, remaining());
     }
 
-    memcpy(_storage.data() + _position, bytes, count);
+    memcpy(_storage.dataAddress() + _position, bytes, count);
     _position += count;
 
     return (*this);

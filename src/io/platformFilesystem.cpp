@@ -44,7 +44,7 @@ File::size_type PlatformFilesystem::BufferedFile::read(MemoryView& buffer, Memor
         raise<NotOpen>();
     }
 
-    const auto bytesRead = ::fread(buffer.data(), 1, bytesToRead, _fp);
+    const auto bytesRead = ::fread(buffer.dataAddress(), 1, bytesToRead, _fp);
     // NOTE: Number of bytes read can be less then 'bytesToRead' if there are no more data in the file or end of file
     // has been reached.
 
@@ -61,7 +61,7 @@ File::size_type PlatformFilesystem::BufferedFile::write(const MemoryView& buffer
         raise<NotOpen>();
     }
 
-    const auto bytesWritten = ::fwrite(buffer.data(), 1, bytesToWrite, _fp);
+    const auto bytesWritten = ::fwrite(buffer.dataAddress(), 1, bytesToWrite, _fp);
     if (bytesWritten != bytesToWrite) {
         raise<IOException>(errno);
     }
@@ -97,6 +97,15 @@ void PlatformFilesystem::BufferedFile::close() {
     }
 
     invalidateFd();
+}
+
+
+PlatformFilesystem::BufferedFile::size_type PlatformFilesystem::BufferedFile::tell() {
+    if (!_fp) {
+        raise<NotOpen>();
+    }
+
+    return ftell(_fp);
 }
 
 
@@ -205,7 +214,7 @@ PlatformFilesystem::size_type PlatformFilesystem::getFileSize(const Path& path) 
 
 Path PlatformFilesystem::realPath(const Path& path) const {
     const auto& pathString = path.toString();
-    std::unique_ptr<char, decltype(std::free)*> real_path{realpath(pathString.c_str(), NULL), std::free };
+    std::unique_ptr<char, decltype(std::free)*> real_path{realpath(pathString.c_str(), NULL), std::free};
 
     return (real_path)
             ? Path::parse(String(real_path.get()))
@@ -213,8 +222,12 @@ Path PlatformFilesystem::realPath(const Path& path) const {
 }
 
 
-std::shared_ptr<File> PlatformFilesystem::createTemp() {
+std::shared_ptr<PlatformFilesystem::BufferedFile> PlatformFilesystem::createTemp() {
     auto fp = tmpfile();
+
+    if (!fp) {
+        raise<IOException>(errno);
+    }
 
     return std::make_shared<PlatformFilesystem::BufferedFile>(fp);
 }

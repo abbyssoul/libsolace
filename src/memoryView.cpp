@@ -29,7 +29,7 @@ using Solace::MemoryView;
 
 
 MemoryView::MemoryView(size_type newSize):
-    _size(newSize), _ownsData(true), _data(new value_type[newSize])
+    _size(newSize), _ownsData(true), _dataAddress(new value_type[newSize])
 {
 }
 
@@ -37,12 +37,12 @@ MemoryView::MemoryView(size_type newSize):
 MemoryView::MemoryView(const MemoryView& rhs):
             _size(rhs._size),
             _ownsData(rhs._ownsData),
-            _data(rhs._data)
+            _dataAddress(rhs._dataAddress)
 {
-    if (rhs._data && rhs._ownsData) {
-        _data = new value_type[_size];
+    if (rhs._dataAddress && rhs._ownsData) {
+        _dataAddress = new value_type[_size];
 
-        memcpy(_data, rhs._data, _size * sizeof(value_type));
+        memcpy(_dataAddress, rhs._dataAddress, _size * sizeof(value_type));
     }
 }
 
@@ -50,7 +50,7 @@ MemoryView::MemoryView(const MemoryView& rhs):
 MemoryView::MemoryView(size_type newSize, void* bytes, bool copyData):
     _size(newSize),
     _ownsData(copyData),
-    _data(reinterpret_cast<value_type*>(bytes))
+    _dataAddress(reinterpret_cast<value_type*>(bytes))
 {
     if (!bytes) {
         // FIXME(abbyssoul): Review nullptr handling policy
@@ -59,25 +59,25 @@ MemoryView::MemoryView(size_type newSize, void* bytes, bool copyData):
     }
 
     if (bytes && copyData) {
-        _data = new value_type[_size];
+        _dataAddress = new value_type[_size];
 
-        memcpy(_data, bytes, _size * sizeof(value_type));
+        memcpy(_dataAddress, bytes, _size * sizeof(value_type));
     }
 }
 
 
 MemoryView::~MemoryView() {
-    if (_ownsData && _data) {
+    if (_ownsData && _dataAddress) {
         _ownsData = false;
 
-        delete [] _data;
+        delete [] _dataAddress;
 
-        _data = 0;
+        _dataAddress = 0;
         _size = 0;
     }
 }
 
 
 MemoryView MemoryView::slice(size_type from, size_type to, bool copyData) const {
-    return MemoryView {to - from, _data + from, copyData};
+    return MemoryView {to - from, _dataAddress + from, copyData};
 }

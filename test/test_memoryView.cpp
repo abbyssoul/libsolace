@@ -54,10 +54,10 @@ public:
             test[2] = 17;
             test[1] = 4;
             test[test.size() - 1] = 255;
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(19), test.data()[0]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(4), test.data()[1]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(17), test.data()[2]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(255), test.data()[test.size() - 1]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(19), test.dataAddress()[0]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(4), test.dataAddress()[1]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(17), test.dataAddress()[2]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(255), test.dataAddress()[test.size() - 1]);
         }
 
         {   // Wrapping constructor
@@ -68,7 +68,7 @@ public:
             CPPUNIT_ASSERT_EQUAL(static_cast<Solace::MemoryView::size_type>(6), test.size());
 
             for (size_t i = 0; i < test.size(); ++i)
-                CPPUNIT_ASSERT_EQUAL(example[i], test.data()[i]);
+                CPPUNIT_ASSERT_EQUAL(example[i], test.dataAddress()[i]);
         }
 
         {   // Copy-constructor
@@ -81,8 +81,8 @@ public:
             CPPUNIT_ASSERT_EQUAL(exampleSize, b2.size());
 
             for (size_t i = 0; i < b1.size(); ++i) {
-                CPPUNIT_ASSERT_EQUAL(example[i], b1.data()[i]);
-                CPPUNIT_ASSERT_EQUAL(example[i], b2.data()[i]);
+                CPPUNIT_ASSERT_EQUAL(example[i], b1.dataAddress()[i]);
+                CPPUNIT_ASSERT_EQUAL(example[i], b2.dataAddress()[i]);
             }
 
             CPPUNIT_ASSERT_EQUAL(false, b2.isOwner());
