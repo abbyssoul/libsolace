@@ -55,6 +55,8 @@ public:
 
         CPPUNIT_ASSERT_NO_THROW(buffer.position(buffer.position() + 12));
         CPPUNIT_ASSERT_NO_THROW(buffer.position(0));
+        CPPUNIT_ASSERT_NO_THROW(buffer.advance(12));
+        CPPUNIT_ASSERT_NO_THROW(buffer.position(0));
 
         for (ByteBuffer::size_type i = 0; i < testSize; ++i) {
             buffer << 'a';
@@ -63,6 +65,9 @@ public:
         CPPUNIT_ASSERT_EQUAL(buffer.limit(), buffer.position());
 
         CPPUNIT_ASSERT_THROW(buffer.position(buffer.limit() + 1), IllegalArgumentException);
+
+        CPPUNIT_ASSERT_NO_THROW(buffer.position(buffer.limit()));
+        CPPUNIT_ASSERT_THROW(buffer.advance(1), IllegalArgumentException);
     }
 
     void testWrite() {

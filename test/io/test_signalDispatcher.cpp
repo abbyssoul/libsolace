@@ -73,10 +73,10 @@ public:
             count += (signalId == SIGALRM) ? 1 : 0;
         });
 
-        timeToSleep.it_value.tv_usec = 500 * 1000;
+        timeToSleep.it_value.tv_usec = 300 * 1000;
         CPPUNIT_ASSERT_EQUAL(0, setitimer(ITIMER_REAL, &timeToSleep, NULL));
 
-        usleep(800 * 1000);
+        usleep(600 * 1000);
 
         CPPUNIT_ASSERT(signaled);
         CPPUNIT_ASSERT_EQUAL(3, count);
