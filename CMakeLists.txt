@@ -62,6 +62,8 @@ set(SOURCE_FILES
         src/io/signalDispatcher.cpp
         src/io/selector.cpp
         src/io/platformFilesystem.cpp
+
+        src/process/env.cpp
     )
 
 

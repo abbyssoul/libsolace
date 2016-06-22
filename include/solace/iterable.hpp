@@ -28,6 +28,7 @@
 #include <functional>
 #include <algorithm>
 
+
 namespace Solace {
 
 /**

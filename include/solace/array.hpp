@@ -32,9 +32,9 @@
 #include "solace/exception.hpp"
 
 // TODO(abbyssoul): Remove std dependencies!
-#include <algorithm>  // std::swap
-#include <vector>
-#include <ostream>  // TODO(abbyssoul): Remove! Used once only for Unit testing
+#include <algorithm>    // std::swap
+#include <vector>       // TODO(abbyssoul): Remove! No dynamic reallocation is needed!
+#include <ostream>      // TODO(abbyssoul): Remove! Used once only for Unit testing
 
 
 namespace Solace {

@@ -132,7 +132,7 @@ public:
         timeval timeOfDay;
         gettimeofday(&timeOfDay, NULL);
         auto t = fs.getTimestamp(filename);
-        CPPUNIT_ASSERT(timeOfDay.tv_sec - t.tv_sec < 1);
+        CPPUNIT_ASSERT(timeOfDay.tv_sec - t.tv_sec < 2);
 
         CPPUNIT_ASSERT(fs.remove(filename));
         CPPUNIT_ASSERT(!fs.exists(filename));

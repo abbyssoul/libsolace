@@ -85,11 +85,11 @@ public:
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    ByteBuffer(const MemoryView& data) :
+    ByteBuffer(const MemoryView& memView) :
             _position(0),
-            _limit(data.size()),
+            _limit(memView.size()),
             _mark(),
-            _storage(data)
+            _storage(memView)
     {
     }
 
@@ -97,11 +97,11 @@ public:
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    ByteBuffer(MemoryView&& data) :
+    ByteBuffer(MemoryView&& memView) :
             _position(0),
-            _limit(data.size()),
+            _limit(memView.size()),
             _mark(),
-            _storage(std::move(data))
+            _storage(std::move(memView))
     {
     }
 
@@ -130,6 +130,10 @@ public:
         return swap(rhs);
     }
 
+    /**
+     * Check if the bute buffer is empty, that is no data has been written
+     * @return True if position is zero and buffer has no data.
+     */
     bool empty() const noexcept {
         return _position == 0;
     }
@@ -214,21 +218,24 @@ public:
     size_type read(byte* bytes, size_type count);
     size_type read(size_type offset, byte* bytes, size_type count) const;
 
+    /**
+     * Read a single byte from the buffer
+     * @return One byte read from the buffer
+     */
     byte get();
+
+    /**
+     * Get a single byte from the buffer in the given position
+     * @return One byte read from the buffer
+     * @note This operation does not advance current position
+     */
     byte get(size_type position) const;
 
     ByteBuffer& operator<< (char c);
 
-    ByteBuffer& write(byte* bytes, size_type count);
+    ByteBuffer& write(const MemoryView& memView);
+    ByteBuffer& write(const byte* bytes, size_type count);
     ByteBuffer& write(const char* bytes, size_type count);
-
-//    byte* data() const noexcept {
-//        return _storage.dataAddress();
-//    }
-
-//    byte* dataPositiong() const noexcept {
-//        return _storage.dataAddress() + position();
-//    }
 
     MemoryView viewRemaining() const noexcept {
         return _storage.slice(position(), limit(), false);

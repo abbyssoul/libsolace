@@ -124,28 +124,23 @@ byte ByteBuffer::get(size_type pos) const {
 }
 
 
-ByteBuffer& ByteBuffer::write(byte* bytes, size_type count) {
+ByteBuffer& ByteBuffer::write(const MemoryView& memView) {
+    return write(memView.dataAddress(), memView.size());
+}
+
+
+ByteBuffer& ByteBuffer::write(const byte* bytes, size_type count) {
     if ( !(count <= remaining()) ) {
          raise<OverflowException>(_position + count, _position, remaining());
     }
 
     memcpy(_storage.dataAddress() + _position, bytes, count);
     _position += count;
-//    for (size_type i = 0; i < count; ++i) {
-//      _storage[_position++] = bytes[i];
-//    }
 
     return (*this);
 }
 
 
 ByteBuffer& ByteBuffer::write(const char* bytes, size_type count) {
-    if ( !(count <= remaining()) ) {
-        raise<OverflowException>(_position + count, _position, remaining());
-    }
-
-    memcpy(_storage.dataAddress() + _position, bytes, count);
-    _position += count;
-
-    return (*this);
+    return write(reinterpret_cast<const byte*>(bytes), count);
 }
