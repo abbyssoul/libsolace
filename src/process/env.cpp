@@ -80,6 +80,7 @@ Env::Env() {
 
 }
 
+
 Optional<String> Env::get(const String& name) const {
     auto value = secure_getenv(name.c_str());
 
@@ -118,6 +119,7 @@ void Env::clear() {
 Env::size_type Env::size() const noexcept {
     size_type environSize = 0;
 
+    // TODO(abbyssoul): Unbounded loop OMG!
     while (environ && environ[environSize]) {
         ++environSize;
     }
