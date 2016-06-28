@@ -25,6 +25,7 @@
 #include "solace/exception.hpp"
 
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 using namespace Solace;
@@ -52,7 +53,7 @@ Env::Iterator& Env::Iterator::operator++ () {
 }
 
 
-String Env::Iterator::operator-> () const {
+Env::Var Env::Iterator::operator-> () const {
     if (!(_index < _size)) {
         raise<IndexOutOfRangeException>(static_cast<size_t>(_index),
                                                 static_cast<size_t>(0),
@@ -60,9 +61,24 @@ String Env::Iterator::operator-> () const {
                                                 "iterator");
     }
 
-    return { environ[_index] };
+    const auto env = environ[_index];
+    auto c = strchr(env, '=');
+
+    if (!c) {
+        raise<IndexOutOfRangeException>(static_cast<size_t>(_index),
+                                                static_cast<size_t>(0),
+                                                static_cast<size_t>(_size),
+                                                "iterator: Env");
+    }
+
+    const String::size_type varNameSize = std::distance(env, c);
+
+    return { {env,  varNameSize}, c };
 }
 
+Env::Env() {
+
+}
 
 Optional<String> Env::get(const String& name) const {
     auto value = secure_getenv(name.c_str());
@@ -91,6 +107,7 @@ void Env::unset(const String& name) {
 }
 
 
+// cppcheck-suppress unusedFunction
 void Env::clear() {
     if (clearenv()) {
         raise<Exception>("clearenv has failed. No idea how that even possible.");
@@ -99,13 +116,13 @@ void Env::clear() {
 
 
 Env::size_type Env::size() const noexcept {
-    Env::size_type size = 0;
+    size_type environSize = 0;
 
-    while (environ && environ[size]) {
-        ++size;
+    while (environ && environ[environSize]) {
+        ++environSize;
     }
 
-    return size;
+    return environSize;
 }
 
 

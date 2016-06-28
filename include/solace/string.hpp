@@ -47,8 +47,8 @@ class String:   public IFormattable,
         // TODO(abbyssoul): public Iterable<Char>
 {
 public:
-    typedef uint32  size_type;
-    typedef Char    value_type;
+    typedef MemoryView::size_type   size_type;
+    typedef Char                    value_type;
 
 public:
 

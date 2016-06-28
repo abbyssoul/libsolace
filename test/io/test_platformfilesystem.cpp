@@ -175,13 +175,14 @@ public:
         {
             auto f = fs.createTemp();
 
-            MemoryView::size_type bytesWriten = f->write(fileUIDBytes);
+            const MemoryView::size_type  bytesWriten = f->write(fileUIDBytes);
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesWriten);
+            CPPUNIT_ASSERT_EQUAL(bytesWriten, static_cast<decltype(bytesWriten)>(f->tell()));
 
             f->seek(0, File::Seek::Set);
 
             ByteBuffer readBuffer(fileUIDBytes.size());
-            MemoryView::size_type bytesRead = f->read(readBuffer);
+            const MemoryView::size_type bytesRead = f->read(readBuffer);
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
             readBuffer.flip();

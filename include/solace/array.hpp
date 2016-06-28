@@ -185,6 +185,7 @@ public:
 
     const_reference last() const { return _storage.back(); }
 
+    // TODO(abbyssoul): Implement once we got read of stl::vector
 //    Array<T> slice(size_type from, size_type to) const {
 //        return { _storage };
 //    }
@@ -211,14 +212,36 @@ public:
         return *this;
     }
 
+    const Array<T>& forEach(const std::function<void(size_type, const_reference)> &f) const {
+        const auto thisSize = size();
+        for (size_type i = 0; i < thisSize; ++i) {
+            f(i, _storage[i]);
+        }
+
+        return *this;
+    }
+
     template <typename O>
     Array<O> map(const std::function<O(const_reference)>& f) const {
-        const size_type thisSize = size();
+        const auto thisSize = size();
         typename Array<O>::Storage mappedStorage;
         mappedStorage.reserve(thisSize);
 
         for (const auto& x : _storage) {
             mappedStorage.push_back(f(x));
+        }
+
+        return mappedStorage;
+    }
+
+    template <typename O>
+    Array<O> map(const std::function<O(size_type, const_reference)>& f) const {
+        const size_type thisSize = size();
+        typename Array<O>::Storage mappedStorage;
+        mappedStorage.reserve(thisSize);
+
+        for (size_type i = 0; i < thisSize; ++i) {
+            mappedStorage.push_back(f(i, _storage[i]));
         }
 
         return mappedStorage;

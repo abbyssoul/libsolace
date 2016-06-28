@@ -610,6 +610,15 @@ public:
 
             CPPUNIT_ASSERT_EQUAL(String("Hello world!"), acc);
         }
+        {
+            const Array<int> array = {1, 2, 3, 4, 5, 6};
+            bool allEq = true;
+            array.forEach([&allEq](Array<int>::size_type i, Array<int>::size_type x) {
+                allEq &= (i + 1 == x);
+            });
+
+            CPPUNIT_ASSERT_EQUAL(true, allEq);
+        }
     }
 
     void testMap() {

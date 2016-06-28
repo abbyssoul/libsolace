@@ -39,6 +39,28 @@ public:
 
     typedef size_t size_type;
 
+    struct Var {
+        String name;
+        String value;
+
+        Var(const String& inName, const String& inValue): name(inName), value(inValue)
+        {}
+
+        Var(Var&& other): name(std::move(other.name)), value(std::move(other.value))
+        {}
+
+        Var& swap(Var& other) noexcept {
+            std::swap(name, other.name);
+            std::swap(value, other.value);
+
+            return *this;
+        }
+
+        Var& operator= (Var&& rhs) noexcept {
+            return swap(rhs);
+        }
+    };
+
     /**
      * Environment variables iterator
      */
@@ -54,11 +76,11 @@ public:
 
         Iterator& operator++ ();
 
-        String operator* () const {
+        Var operator* () const {
             return this->operator ->();
         }
 
-        String operator-> () const;
+        Var operator-> () const;
 
         Iterator& swap(Iterator& rhs) noexcept {
             std::swap(_index, rhs._index);
@@ -67,7 +89,12 @@ public:
             return *this;
         }
 
-        Iterator(size_t size, size_t position);
+        Iterator(size_type size, size_type position);
+
+        Iterator(const Iterator& rhs):
+            _index(rhs._index),
+            _size(rhs._size)
+        {}
 
         Iterator(Iterator&& rhs):
             _index(rhs._index),
@@ -79,8 +106,8 @@ public:
         }
 
     private:
-        size_t _index;
-        size_t _size;
+        size_type _index;
+        size_type _size;
     };
 
     typedef const Iterator const_iterator;
@@ -109,7 +136,7 @@ public:
      *
      * FIXME(abbyssoul): This operation can fail according to specs. Use Result<>
      */
-    void set(const String& name, const String& value, bool replace=true);
+    void set(const String& name, const String& value, bool replace = true);
 
     /**
      * Set a value of the environment variable.
@@ -147,8 +174,6 @@ public:
     size_type size() const noexcept;
 
     String operator[] (const String& name) const;
-
-    String& operator[] (const String& name);
 
     const_iterator begin() const;
 
