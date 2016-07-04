@@ -217,8 +217,8 @@ SharedMemory::map(SharedMemory::MappingAccess mapping, int access, size_type map
 }
 
 
-SharedMemory::MappedMemoryView::MappedMemoryView(size_type newSize, void* dataAddress):
-    MemoryView(newSize, dataAddress)
+SharedMemory::MappedMemoryView::MappedMemoryView(size_type newSize, void* data):
+    MemoryView(newSize, data)
 {
 
 }
