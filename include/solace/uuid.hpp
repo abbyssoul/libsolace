@@ -171,6 +171,7 @@ public:
     reference  operator[] (size_type index);
     value_type operator[] (size_type index) const;
 
+    // FIXME(abbyssoul): Unneccesserely with MemoryView
     const byte* data() const noexcept { return _bytes; }
     byte* data() noexcept { return _bytes; }
 

@@ -15,7 +15,7 @@
 */
 /*******************************************************************************
  * libSolace Unit Test Suit
- * @file: test/test_selector.cpp
+ * @file: test/io/test_selector.cpp
  * @author: soultaker
  *
  * Created on: 10/06/2016

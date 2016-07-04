@@ -144,7 +144,7 @@ std::shared_ptr<File> PlatformFilesystem::open(const Path& path) {
 }
 
 
-bool PlatformFilesystem::remove(const Path& path) {
+bool PlatformFilesystem::unlink(const Path& path) {
     const auto& pathString = path.toString();
     auto err = ::remove(pathString.c_str());
 

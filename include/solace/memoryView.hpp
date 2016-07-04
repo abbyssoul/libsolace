@@ -27,6 +27,8 @@
 
 #include "solace/types.hpp"
 
+#include <functional>
+
 
 namespace Solace {
 
@@ -37,7 +39,8 @@ namespace Solace {
  * Buffer has value semantic and gives users random access to the undelying memory.
  * For the stream semantic please @see ByteBuffer
  */
-struct MemoryView {
+class MemoryView {
+public:
     typedef uint32  size_type;
     typedef byte    value_type;
 
@@ -175,6 +178,8 @@ public:
     value_type operator[] (size_type index) const { return _dataAddress[index]; }
 
     byte* dataAddress() const noexcept { return _dataAddress; }
+    // TODO(abbyssoul): Range check should be done here
+    byte* dataAddress(size_type offset) const noexcept { return _dataAddress + offset; }
     bool isOwner() const noexcept { return _ownsData; }
 
     MemoryView slice(size_type from, size_type to, bool copyData) const;

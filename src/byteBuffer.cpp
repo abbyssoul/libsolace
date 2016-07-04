@@ -75,38 +75,6 @@ ByteBuffer& ByteBuffer::reset() {
 }
 
 
-ByteBuffer& ByteBuffer::operator<< (char c) {
-    if ( !(_position + 1 <= _limit) ) {
-        raise<OverflowException>(_position + 1, _position, _limit);
-    }
-
-    _storage[_position++] = c;
-
-    return (*this);
-}
-
-
-ByteBuffer::size_type ByteBuffer::read(byte* bytes, size_type count) {
-    if ( !(_position + count <= _limit) ) {
-        raise<OverflowException>(_position + count, _position, _limit);
-    }
-
-    memcpy(bytes, _storage.dataAddress() + _position, count);
-    _position += count;
-
-    return count;
-}
-
-ByteBuffer::size_type ByteBuffer::read(size_type offset, byte* bytes, size_type count) const {
-    if ( !(offset + count <= _limit) ) {
-        raise<OverflowException>(offset + count, 0, _limit);
-    }
-
-    memcpy(bytes, _storage.dataAddress() + offset, count);
-    return count;
-}
-
-
 byte ByteBuffer::get() {
     if ( !(_position + 1 <= _limit) ) {
         raise<OverflowException>(_position + 1, _position, _limit);
@@ -124,8 +92,63 @@ byte ByteBuffer::get(size_type pos) const {
 }
 
 
-ByteBuffer& ByteBuffer::write(const MemoryView& memView) {
-    return write(memView.dataAddress(), memView.size());
+ByteBuffer& ByteBuffer::read(MemoryView& buffer, ByteBuffer::size_type bytesToRead) {
+    if (buffer.size() < bytesToRead) {
+        raise<IllegalArgumentException>("bytesToRead");
+    }
+
+    if ( !(_position + bytesToRead <= _limit) ) {
+        raise<OverflowException>(_position + bytesToRead, _position, _limit);
+    }
+
+    memcpy(buffer.dataAddress(), _storage.dataAddress(_position), bytesToRead);
+    _position += bytesToRead;
+
+    return (*this);
+}
+
+
+ByteBuffer& ByteBuffer::read(byte* bytes, size_type count) {
+    if ( !(_position + count <= _limit) ) {
+        raise<OverflowException>(_position + count, _position, _limit);
+    }
+
+    memcpy(bytes, _storage.dataAddress(_position), count);
+    _position += count;
+
+    return (*this);
+}
+
+ByteBuffer& ByteBuffer::read(void* bytes, size_type count) {
+    if ( !(_position + count <= _limit) ) {
+        raise<OverflowException>(_position + count, _position, _limit);
+    }
+
+    memcpy(bytes, _storage.dataAddress(_position), count);
+    _position += count;
+
+    return (*this);
+}
+
+
+const ByteBuffer& ByteBuffer::read(size_type offset, byte* bytes, size_type count) const {
+    if ( !(offset + count <= _limit) ) {
+        raise<OverflowException>(offset + count, 0, _limit);
+    }
+
+    memcpy(bytes, _storage.dataAddress(offset), count);
+
+    return (*this);
+}
+
+
+ByteBuffer& ByteBuffer::write(const MemoryView& buffer, size_type bytesToWrite) {
+    if ( !(bytesToWrite <= remaining()) ) {
+         raise<OverflowException>(_position + bytesToWrite, _position, remaining());
+    }
+
+    memcpy(_storage.dataAddress(_position), buffer.dataAddress(), bytesToWrite);
+    return advance(bytesToWrite);
 }
 
 
@@ -134,13 +157,17 @@ ByteBuffer& ByteBuffer::write(const byte* bytes, size_type count) {
          raise<OverflowException>(_position + count, _position, remaining());
     }
 
-    memcpy(_storage.dataAddress() + _position, bytes, count);
-    _position += count;
+    memcpy(_storage.dataAddress(_position), bytes, count);
 
-    return (*this);
+    return advance(count);
 }
 
+ByteBuffer& ByteBuffer::write(const void* bytes, size_type count) {
+    if ( !(count <= remaining()) ) {
+         raise<OverflowException>(_position + count, _position, remaining());
+    }
 
-ByteBuffer& ByteBuffer::write(const char* bytes, size_type count) {
-    return write(reinterpret_cast<const byte*>(bytes), count);
+    memcpy(_storage.dataAddress(_position), bytes, count);
+
+    return advance(count);
 }

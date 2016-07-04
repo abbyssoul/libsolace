@@ -57,7 +57,7 @@ public:
 
         auto fs = PlatformFilesystem();
         if (fs.exists(filename)) {
-            fs.remove(filename);
+            fs.unlink(filename);
         }
 
         CPPUNIT_ASSERT(!fs.exists(filename));
@@ -81,7 +81,7 @@ public:
             }
         }
 
-        CPPUNIT_ASSERT(fs.remove(filename));
+        CPPUNIT_ASSERT(fs.unlink(filename));
         CPPUNIT_ASSERT(!fs.exists(filename));
     }
 
@@ -92,7 +92,7 @@ public:
 
         auto fs = PlatformFilesystem();
         if (fs.exists(filename)) {
-            fs.remove(filename);
+            fs.unlink(filename);
         }
         CPPUNIT_ASSERT(!fs.exists(filename));
 
@@ -134,7 +134,7 @@ public:
         auto t = fs.getTimestamp(filename);
         CPPUNIT_ASSERT(timeOfDay.tv_sec - t.tv_sec < 2);
 
-        CPPUNIT_ASSERT(fs.remove(filename));
+        CPPUNIT_ASSERT(fs.unlink(filename));
         CPPUNIT_ASSERT(!fs.exists(filename));
     }
 

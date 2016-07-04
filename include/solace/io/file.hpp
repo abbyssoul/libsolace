@@ -47,6 +47,52 @@ namespace Solace { namespace IO {
 class File: public ISelectable {
 public:
 
+    /**
+     * File access modes
+     * These request opening the file read-only, write-only, or read/write, respectively.
+     */
+    enum class AccessMode {
+        ReadOnly,   //!< Open a file in read-only mode.
+        WriteOnly,  //!< Open a file in write-only mode.
+        ReadWrite   //!< Open a file in read/write mode.
+    };
+
+
+    /** File creation mode
+     *
+     * Specifies the file mode bits for a newly created file
+     */
+    struct Mode {
+        static const int IRWXU;  //!< 00700 user (file owner) has read, write, and execute permission
+        static const int IRUSR;  //!< 00400 user has read permission
+        static const int IWUSR;  //!< 00200 user has write permission
+        static const int IXUSR;  //!< 00100 user has execute permission
+
+        static const int IRWXG;  //!< 00070 group has read, write, and execute permission
+        static const int IRGRP;  //!< 00040 group has read permission
+        static const int IWGRP;  //!< 00020 group has write permission
+        static const int IXGRP;  //!< 00010 group has execute permission
+
+        static const int IRWXO;  //!< 00007 others have read, write, and execute permission
+        static const int IROTH;  //!< 00004 others have read permission
+        static const int IWOTH;  //!< 00002 others have write permission
+        static const int IXOTH;  //!< 00001 others have execute permission
+    };
+
+    struct Flags {
+        static const int Append;
+        static const int Async;
+        static const int CloseExec;
+        static const int Direct;
+        static const int Directory;
+        static const int DSync;
+        static const int Exlusive;
+        static const int NoCTTY;
+        static const int NonBlock;
+        static const int Sync;
+        static const int Trunc;
+    };
+
 	enum class Seek {
 		Set,
 		Current,
@@ -56,6 +102,8 @@ public:
 
 	typedef ssize_t size_type;
 	using ISelectable::poll_id;
+
+    static const poll_id InvalidFd;
 
 public:
 
@@ -137,6 +185,7 @@ public:
      */
     size_type read(MemoryView& buffer);
 
+
     /** Read data from this file object into the given buffer.
      *
      * @param buffer Byte buffer to read data into
@@ -178,7 +227,10 @@ public:
      *
      * @throws IOException if underlaying system call failed
      */
-    size_type write(const MemoryView& data);
+    size_type write(const MemoryView& buffer) {
+        return write(buffer, buffer.size());
+    }
+
 
     /** Write data from the given byte buffer into this file object.
      *
@@ -217,11 +269,6 @@ public:
 
 
 	/*
-	 * Returns current 'position' in the file is applicable
-     */
-	// size_type tell() const;
-
-	/*
 	 * Attempt to move current position in the file stream
 	*/
     virtual size_type seek(size_type offset, Seek type = Seek::Set);
@@ -255,6 +302,7 @@ public:
      */
     virtual void flush();
 
+
 protected:
 
     /**
@@ -285,14 +333,12 @@ protected:
      */
     virtual poll_id validateFd() const;
 
+
     /**
      * Set poll fd to an invalid value.
      * @return Old value of fileno.
      */
     poll_id invalidateFd();
-
-    /** Default constructor is to be called by derived classes only */
-//    File() = default;
 
 private:
 

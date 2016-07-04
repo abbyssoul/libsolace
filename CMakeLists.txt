@@ -5,7 +5,7 @@ include(CheckCXXCompilerFlag)
 
 # libsolace requires c++14
 check_cxx_compiler_flag(-std=c++14 HAVE_STD_CPP14_FLAG)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pedantic -pedantic-errors -fno-rtti")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pedantic -pedantic-errors") #  -fno-rtti
 
 # Enable stack-protector if compiler supports it (it should)
 check_cxx_compiler_flag("-fstack-protector" WITH_STACK_PROTECTOR)
@@ -62,6 +62,7 @@ set(SOURCE_FILES
         src/io/signalDispatcher.cpp
         src/io/selector.cpp
         src/io/platformFilesystem.cpp
+        src/io/sharedMemory.cpp
 
         src/process/env.cpp
     )

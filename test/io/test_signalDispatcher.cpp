@@ -15,7 +15,7 @@
 */
 /*******************************************************************************
  * libSolace Unit Test Suit
- * @file: test/test_signalDispatcher.cpp
+ * @file: test/io/test_signalDispatcher.cpp
  * @author: soultaker
  *
  * Created on: 12 Jun 2016

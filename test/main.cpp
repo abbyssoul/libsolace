@@ -68,6 +68,8 @@ int main(int argc, char* argv[]) {
     // FIXME(abbyssoul): Add signal handling in test ::signal(SIGSEGV, _sighandler);
     const std::string testPath = (argc > 1) ? std::string(argv[1]) : "";
 
+    srandom(time(NULL));
+
     // Add a listener that print dots as test run.
     std::unique_ptr<CppUnit::TestListener> progressListener;
 //    std::unique_ptr<CppUnit::TestListener> extraProgressListener;

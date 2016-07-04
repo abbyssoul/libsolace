@@ -112,7 +112,7 @@ public:
      *
      * TODO(abbyssoul): should return Result<>
      */
-    bool remove(const Path& path) override;
+    bool unlink(const Path& path) override;
 
     /**
      * Check if a file identified by the path actually exists

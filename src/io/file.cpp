@@ -41,7 +41,36 @@ using Solace::IllegalArgumentException;
 using Solace::IO::IOException;
 
 
-static const ISelectable::poll_id InvalidFd = -1;
+const ISelectable::poll_id File::InvalidFd = -1;
+
+
+const int File::Flags::Append = O_APPEND;
+const int File::Flags::Async = O_ASYNC;
+const int File::Flags::CloseExec = O_CLOEXEC;
+const int File::Flags::Direct = O_DIRECT;
+const int File::Flags::Directory = O_DIRECTORY;
+const int File::Flags::DSync = O_DSYNC;
+const int File::Flags::Exlusive = O_EXCL;
+const int File::Flags::NoCTTY = O_NOCTTY;
+const int File::Flags::NonBlock = O_NONBLOCK;
+const int File::Flags::Sync = O_SYNC;
+const int File::Flags::Trunc = O_TRUNC;
+
+
+const int File::Mode::IRWXU = S_IRWXU;
+const int File::Mode::IRUSR = S_IRUSR;
+const int File::Mode::IWUSR = S_IWUSR;
+const int File::Mode::IXUSR = S_IXUSR;
+
+const int File::Mode::IRWXG = S_IRWXG;
+const int File::Mode::IRGRP = S_IRGRP;
+const int File::Mode::IWGRP = S_IWGRP;
+const int File::Mode::IXGRP = S_IXGRP;
+
+const int File::Mode::IRWXO = S_IRWXO;
+const int File::Mode::IROTH = S_IROTH;
+const int File::Mode::IWOTH = S_IWOTH;
+const int File::Mode::IXOTH = S_IXOTH;
 
 
 File::File(const poll_id fd) noexcept : _fd(fd)
@@ -139,11 +168,6 @@ File::size_type File::read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead
     buffer.advance(bytesRead);
 
     return bytesRead;
-}
-
-
-File::size_type File::write(const MemoryView& buffer) {
-    return write(buffer, buffer.size());
 }
 
 

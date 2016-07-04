@@ -33,11 +33,15 @@ const char* ExceptionType = "IOException";
 
 
 std::string formatErrono(int errorCode) {
-    return String::join(":", {ExceptionType, String::valueOf(errorCode), strerror(errorCode)}).c_str();
+    const auto s = String::join(":", {ExceptionType, String::valueOf(errorCode), strerror(errorCode)});
+
+    return s.to_str();
 }
 
 std::string formatErrono(int errorCode, const std::string& msg) {
-    return String::join(":", {ExceptionType, String::valueOf(errorCode), msg, strerror(errorCode)}).c_str();
+    const auto s = String::join(":", {ExceptionType, String::valueOf(errorCode), msg, strerror(errorCode)});
+
+    return s.to_str();
 }
 
 

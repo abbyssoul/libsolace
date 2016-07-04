@@ -44,31 +44,37 @@ namespace Solace { namespace IO {
  */
 class Filesystem {
 public:
+
     virtual ~Filesystem() = default;
 
     /**
-     * Create a new file
+     * Create a new file.
+     *
      * @param path a path to the file to be created
      * @return A newly created file
      */
     virtual std::shared_ptr<File> create(const Path& path) = 0;
 
     /**
-     * Open already existing file
+     * Open already existing file.
+     *
      * @param path A path to the file to be opened
      * @return Opened file
      */
     virtual std::shared_ptr<File> open(const Path& path) = 0;
 
     /**
-     * Remove file by path
+     * Unlink file by path.
+     * Once no refernces to the file left the file is removed from filesystem.
+     *
      * @param path A path to the file to be removed
      * @return True if file was removed
      */
-    virtual bool remove(const Path& path) = 0;
+    virtual bool unlink(const Path& path) = 0;
 
     /**
-     * Check if a file identified by the path actually exists
+     * Check if a file identified by the path actually exists.
+     *
      * @param path A path to the file to be checked
      * @return True if file exists
      */

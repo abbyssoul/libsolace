@@ -26,7 +26,6 @@
 #define SOLACE_ITERABLE_HPP
 
 #include <functional>
-#include <algorithm>
 
 
 namespace Solace {

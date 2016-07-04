@@ -26,8 +26,9 @@ set(TEST_SOURCE_FILES
         io/test_signalDispatcher.cpp
         io/test_selector.cpp
         io/test_platformfilesystem.cpp
+        io/test_sharedMemory.cpp
         process/test_env.cpp
     )
 
 add_executable(test_${PROJECT_NAME} ${TEST_SOURCE_FILES})
-target_link_libraries(test_solace ${PROJECT_NAME} ${CPPUNIT_LIBRARIES} fmt)
+target_link_libraries(test_solace ${PROJECT_NAME} ${CPPUNIT_LIBRARIES} fmt rt)

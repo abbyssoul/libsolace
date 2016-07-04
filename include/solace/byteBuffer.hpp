@@ -213,11 +213,6 @@ public:
 
     ByteBuffer& reset();
 
-
-    // Read content back
-    size_type read(byte* bytes, size_type count);
-    size_type read(size_type offset, byte* bytes, size_type count) const;
-
     /**
      * Read a single byte from the buffer
      * @return One byte read from the buffer
@@ -231,11 +226,32 @@ public:
      */
     byte get(size_type position) const;
 
-    ByteBuffer& operator<< (char c);
+    // Read content back
+    ByteBuffer& read(MemoryView& buffer)  {
+        return read(buffer, buffer.size());
+    }
 
-    ByteBuffer& write(const MemoryView& memView);
+    ByteBuffer& read(MemoryView& buffer, ByteBuffer::size_type bytesToRead);
+
+    ByteBuffer& read(void* bytes, size_type count);
+    ByteBuffer& read(byte* bytes, size_type count);
+    ByteBuffer& read(char* bytes, size_type count) {
+        return read(reinterpret_cast<byte*>(bytes), count);
+    }
+    const ByteBuffer& read(size_type offset, byte* bytes, size_type count) const;
+
+
+    ByteBuffer& write(const MemoryView& memView) {
+        return write(memView.dataAddress(), memView.size());
+    }
+
+    ByteBuffer& write(const MemoryView& buffer, size_type bytesToWrite);
+
+    ByteBuffer& write(const void* bytes, size_type count);
     ByteBuffer& write(const byte* bytes, size_type count);
-    ByteBuffer& write(const char* bytes, size_type count);
+    ByteBuffer& write(const char* bytes, size_type count) {
+        return write(reinterpret_cast<const byte*>(bytes), count);
+    }
 
     MemoryView viewRemaining() const noexcept {
         return _storage.slice(position(), limit(), false);
@@ -244,6 +260,24 @@ public:
     MemoryView viewWritten() const noexcept {
         return _storage.slice(0, position(), false);
     }
+
+    ByteBuffer& operator<< (char c)     { return write(&c, sizeof(char)); }
+    ByteBuffer& operator<< (byte c)     { return write(&c, sizeof(byte)); }
+    ByteBuffer& operator<< (int8 c)     { return write(&c, sizeof(int8)); }
+    ByteBuffer& operator<< (int16 c)    { return write(&c, sizeof(int16)); }
+    ByteBuffer& operator<< (int32 c)    { return write(&c, sizeof(int32)); }
+    ByteBuffer& operator<< (int64 c)    { return write(&c, sizeof(int64)); }
+    ByteBuffer& operator<< (float32 c)  { return write(&c, sizeof(float32)); }
+    ByteBuffer& operator<< (float64 c)  { return write(&c, sizeof(float64)); }
+
+    ByteBuffer& operator>> (char& c)     { return read(&c, sizeof(char)); }
+    ByteBuffer& operator>> (int8& c)     { return read(&c, sizeof(int8)); }
+    ByteBuffer& operator>> (int16& c)    { return read(&c, sizeof(int16)); }
+    ByteBuffer& operator>> (int32& c)    { return read(&c, sizeof(int32)); }
+    ByteBuffer& operator>> (int64& c)    { return read(&c, sizeof(int64)); }
+    ByteBuffer& operator>> (float32& c)  { return read(&c, sizeof(float32)); }
+    ByteBuffer& operator>> (float64& c)  { return read(&c, sizeof(float64)); }
+
 
 private:
 

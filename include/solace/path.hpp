@@ -344,6 +344,7 @@ public:  // Operation
     }
 
 private:
+
     Array<String> _components;
 };
 
