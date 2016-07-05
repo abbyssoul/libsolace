@@ -25,10 +25,10 @@
 #define SOLACE_IO_SHAREDMEMORY_HPP
 
 
-#include "solace/byteBuffer.hpp"
 #include "solace/path.hpp"
 #include "solace/io/selectable.hpp"
 #include "solace/io/file.hpp"  // File::Mode
+#include "solace/io/anonSharedMemory.hpp"
 
 
 namespace Solace { namespace IO {
@@ -44,60 +44,6 @@ public:
 
     typedef MemoryView::size_type size_type;
 
-    /** Desired protection of the mapping
-     * It is either None for no protection
-     * or the bitwise OR of one or more of the flags
-     */
-    struct Protection {
-        static const int None;   //!< Pages may not be accessed.
-        static const int Exec;   //!< Pages may be executed.
-        static const int Read;   //!< Pages may be read.
-        static const int Write;  //!< Pages may be written.
-    };
-
-
-    /** Sharing access mode
-     * Determines whether updates to the mapping are visible to other processes mapping the same region,
-     * and whether updates are carried through to the underlying file (if any)
-     */
-    enum class MappingAccess {
-
-        /** Share this mapping.
-         * Updates to the mapping are visible to other processes that map this file,
-         * and are carried through to the underlying file.
-         */
-        Shared,
-
-        /** Create a private copy-on-write mapping.
-         * Updates to the mapping are not visible to other processes mapping the same file,
-         * and are not carried through to the underlying file.
-         */
-        Private
-    };
-
-    class MappedMemoryView: public MemoryView {
-    public:
-
-        using MemoryView::size_type;
-
-        MappedMemoryView(size_type newSize, void* dataAddress);
-        MappedMemoryView(MappedMemoryView&& rhs): MemoryView(std::move(rhs))
-        {
-        }
-
-        ~MappedMemoryView();
-
-        MappedMemoryView& swap(MappedMemoryView& rhs) noexcept {
-            MemoryView::swap(rhs);
-
-            return (*this);
-        }
-
-        MappedMemoryView& operator= (MappedMemoryView&& rhs) noexcept {
-            return swap(rhs);
-        }
-    };
-
 public:
 
     /**
@@ -110,31 +56,33 @@ public:
     static SharedMemory fromFd(poll_id fid);
 
     /**
-     * Create named shared memory segment of the given size
+     * Create a new named shared memory segment of the given size
      *
-     * @param pathname Name of the shared memory segment
-     * @param size Size in byted of the shared memory sergment
+     * @param pathname Name of the shared memory segment to create.
+     * @param size Size in bytes of the shared memory sergment to create.
      * @param mode Access mode to the shared memory segment. @see File::AccessMode
      * @param permissionsMode File access permissions. @see File::Mode
 
-     * @return Shared memory segment.
+     * @return A newly create shared memory segment.
+     * FIXME(abbyssoul): should return Result<SharedMemory, IOError>
      */
     static SharedMemory create(const Path& pathname, size_type size,
                                File::AccessMode mode = File::AccessMode::ReadWrite,
                                int permissionsMode = (File::Mode::IRUSR | File::Mode::IWUSR));
 
-    /**
-     * Open already existing shared memory segment that was created by another process.
+
+    /** Open already existing named shared memory segment.
+     *
      * @param pathname The name of the shared memory segment to attach.
      * @param mode Access mode to open shared memory in.
      *
      * @return Shared memory segment.
+     * FIXME(abbyssoul): should return Result<SharedMemory, IOError>
      */
     static SharedMemory open(const Path& pathname, File::AccessMode mode = File::AccessMode::ReadWrite);
 
-    /**
-     * Remove named shared memory segment.
-     * The segment will be delited only after all processes that hold reference to it will exit.
+    /** Remove named shared memory segment.
+     * The segment will be deleted only after all processes that hold a reference to it have unlinked from the name.
      *
      * @param pathname Nam of the shared memory segment.
      */
@@ -185,8 +133,8 @@ public:
      *
      * @return Memory view of the mapped shared memory region.
      */
-    MappedMemoryView map(MappingAccess mapping = MappingAccess::Private,
-                   int access = Protection::Read | Protection::Write,
+    MappedMemoryView map(MappedMemoryView::Access mapping = MappedMemoryView::Access::Private,
+                   int access = MappedMemoryView::Protection::Read | MappedMemoryView::Protection::Write,
                    size_type mapSize = 0);
 
 

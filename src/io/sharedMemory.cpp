@@ -28,22 +28,14 @@
 #include <unistd.h>
 
 
-using Solace::String;
 using Solace::Path;
-using Solace::MemoryView;
-using Solace::ByteBuffer;
+using Solace::IO::MappedMemoryView;
 using Solace::IO::ISelectable;
 using Solace::IO::File;
 using Solace::IO::SharedMemory;
 
 using Solace::IllegalArgumentException;
 using Solace::IO::IOException;
-
-
-const int SharedMemory::Protection::None = PROT_NONE;
-const int SharedMemory::Protection::Read = PROT_READ;
-const int SharedMemory::Protection::Write = PROT_WRITE;
-const int SharedMemory::Protection::Exec = PROT_EXEC;
 
 
 
@@ -196,12 +188,13 @@ void SharedMemory::unlink(const Path& pathname) {
     }
 }
 
-SharedMemory::MappedMemoryView
-SharedMemory::map(SharedMemory::MappingAccess mapping, int access, size_type mapSize) {
+
+MappedMemoryView
+SharedMemory::map(MappedMemoryView::Access mapping, int access, size_type mapSize) {
 
     const auto fd = validateFd();
 
-    const int flags = (mapping == MappingAccess::Private)
+    const int flags = (mapping == MappedMemoryView::Access::Private)
             ? MAP_PRIVATE
             : MAP_SHARED;
 
@@ -216,14 +209,3 @@ SharedMemory::map(SharedMemory::MappingAccess mapping, int access, size_type map
     return MappedMemoryView(mapSize, addr);
 }
 
-
-SharedMemory::MappedMemoryView::MappedMemoryView(size_type newSize, void* data):
-    MemoryView(newSize, data)
-{
-
-}
-
-SharedMemory::MappedMemoryView::~MappedMemoryView() {
-    munmap(dataAddress(), size());
-// raise<IOException>(errno, "mmap");
-}

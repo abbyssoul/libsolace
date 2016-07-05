@@ -27,6 +27,7 @@ set(TEST_SOURCE_FILES
         io/test_selector.cpp
         io/test_platformfilesystem.cpp
         io/test_sharedMemory.cpp
+        io/test_anonSharedMemory.cpp
         process/test_env.cpp
     )
 

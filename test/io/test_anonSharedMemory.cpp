@@ -20,11 +20,10 @@
  *
  * Created on: 03/07/2016
 *******************************************************************************/
-#include <solace/io/sharedMemory.hpp>  // Class being tested
+#include <solace/io/anonSharedMemory.hpp>  // Class being tested
 
-#include <solace/uuid.hpp>
-#include <solace/io/file.hpp>
 #include <solace/io/ioexception.hpp>
+#include <solace/string.hpp>
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <unistd.h>
@@ -38,49 +37,30 @@ using namespace Solace;
 using namespace Solace::IO;
 
 
-class TestSharedMemory: public CppUnit::TestFixture  {
+class TestAnonSharedMemory: public CppUnit::TestFixture  {
 
-    CPPUNIT_TEST_SUITE(TestSharedMemory);
-        CPPUNIT_TEST(testCreate_InvalidFilename);
+    CPPUNIT_TEST_SUITE(TestAnonSharedMemory);
         CPPUNIT_TEST(testCreate_InvalidSize);
 
-        CPPUNIT_TEST(testOpen_NonExisting);
         CPPUNIT_TEST(testOpen_Exclusive);
 
-        CPPUNIT_TEST(testCreateAndMap);
+        CPPUNIT_TEST(testShareAndMap);
     CPPUNIT_TEST_SUITE_END();
 
 public:
 
-    void testCreate_InvalidFilename() {
-        CPPUNIT_ASSERT_THROW(auto mem = SharedMemory::create(Path("/somewhere/XXX"), 128), IOException);
-    }
 
     void testCreate_InvalidSize() {
-        CPPUNIT_ASSERT_THROW(auto mem = SharedMemory::create(Path("/validname"), 0), IOException);
+        CPPUNIT_ASSERT_THROW(auto mem = MappedMemoryView::create(0), IllegalArgumentException);
     }
 
-    void testOpen_NonExisting() {
-        const auto uuid = UUID::random();
-        const auto name = Path::Root.join(uuid.toString());
-        CPPUNIT_ASSERT_THROW(auto mem = SharedMemory::open(name), IOException);
-    }
 
     void testOpen_Exclusive() {
-        const auto uuid = UUID::random();
-        const auto name = Path::Root.join(uuid.toString());
-        auto mem1 = SharedMemory::create(name, 128, File::AccessMode::ReadWrite,
-                                         File::Flags::Exlusive);
-
-        CPPUNIT_ASSERT_THROW(auto mem = SharedMemory::open(name), IOException);
     }
 
-    void testCreateAndMap() {
-        const SharedMemory::size_type memSize = 24;
-        auto mem = SharedMemory::create(Path("/somename"), memSize);
-
-        auto view = mem.map(MappedMemoryView::Access::Shared);
-        CPPUNIT_ASSERT_EQUAL(memSize, mem.size());
+    void testShareAndMap() {
+        const MappedMemoryView::size_type memSize = 24;
+        auto view = MappedMemoryView::create(memSize, MappedMemoryView::Access::Shared);
         CPPUNIT_ASSERT_EQUAL(memSize, view.size());
 
         const auto childPid = fork();
@@ -119,4 +99,4 @@ public:
 
 };
 
-CPPUNIT_TEST_SUITE_REGISTRATION(TestSharedMemory);
+CPPUNIT_TEST_SUITE_REGISTRATION(TestAnonSharedMemory);

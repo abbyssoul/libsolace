@@ -63,6 +63,7 @@ set(SOURCE_FILES
         src/io/selector.cpp
         src/io/platformFilesystem.cpp
         src/io/sharedMemory.cpp
+        src/io/anonSharedMemory.cpp
 
         src/process/env.cpp
     )
