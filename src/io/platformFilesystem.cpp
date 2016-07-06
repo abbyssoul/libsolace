@@ -35,6 +35,16 @@ using namespace Solace::IO;
 
 
 
+PlatformFilesystem::BufferedFile::BufferedFile(FILE* fp) : File(fileno(fp)),
+    _fp(fp)
+{
+}
+
+
+PlatformFilesystem::BufferedFile::~BufferedFile() {
+    close();
+}
+
 File::size_type PlatformFilesystem::BufferedFile::read(MemoryView& buffer, MemoryView::size_type bytesToRead) {
     if (buffer.size() < bytesToRead) {
         raise<IllegalArgumentException>("bytesToRead");
@@ -106,12 +116,6 @@ PlatformFilesystem::BufferedFile::size_type PlatformFilesystem::BufferedFile::te
     }
 
     return ftell(_fp);
-}
-
-
-PlatformFilesystem::BufferedFile::BufferedFile(FILE* fp) : File(fileno(fp)),
-    _fp(fp)
-{
 }
 
 

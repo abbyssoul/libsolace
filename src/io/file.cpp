@@ -220,6 +220,9 @@ File::size_type File::seek(size_type offset, Seek type) {
 
 
 void File::close() {
+    if (isClosed())
+        return;
+
     const auto fd = validateFd();
     const auto result = ::close(fd);
 

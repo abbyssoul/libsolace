@@ -59,7 +59,7 @@ public:
 
     public:
         BufferedFile(FILE* fp);
-        ~BufferedFile() = default;
+        ~BufferedFile();
 
         BufferedFile(BufferedFile&& that);
 

@@ -26,6 +26,7 @@
 #include <solace/string.hpp>
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <cstring>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/types.h>
@@ -60,40 +61,48 @@ public:
 
     void testShareAndMap() {
         const MappedMemoryView::size_type memSize = 24;
-        auto view = MappedMemoryView::create(memSize, MappedMemoryView::Access::Shared);
-        CPPUNIT_ASSERT_EQUAL(memSize, view.size());
+        bool isChild = false;
+        {
+            auto view = MappedMemoryView::create(memSize, MappedMemoryView::Access::Shared);
+            CPPUNIT_ASSERT_EQUAL(memSize, view.size());
 
-        const auto childPid = fork();
-        switch (childPid) {           /* Parent and child share mapping */
-        case -1:
-            CPPUNIT_FAIL("fork");
-            return;
+            const auto childPid = fork();
+            switch (childPid) {           /* Parent and child share mapping */
+            case -1:
+                CPPUNIT_FAIL("fork");
+                return;
 
-        case 0: {                     /* Child: increment shared integer and exit */
-            ByteBuffer sb(view);
-            sb << getpid();
-            sb.write("child", 5);
+            case 0: {                     /* Child: increment shared integer and exit */
+                isChild = true;
+                ByteBuffer sb(view);
+                sb << getpid();
+                sb.write("child", 5);
 
+            } break;
+
+            default: {  /* Parent: wait for child to terminate */
+                if (wait(NULL) == -1) {
+                    const auto msg = String::join(": ", {"wait", strerror(errno)});
+                    CPPUNIT_FAIL(msg.c_str());
+                }
+
+
+                int viewedPid;
+                char message[10];
+
+                ByteBuffer sb(view);
+                sb >> viewedPid;
+                CPPUNIT_ASSERT_EQUAL(childPid, viewedPid);
+
+                sb.read(message, 5);
+                message[5] = 0;
+                CPPUNIT_ASSERT_EQUAL(String("child"), String(message));
+            }
+
+            }
+        }
+        if (isChild) {
             exit(EXIT_SUCCESS);
-        }
-
-        default: {  /* Parent: wait for child to terminate */
-            if (wait(NULL) == -1)
-                CPPUNIT_FAIL("wait");
-
-            ByteBuffer sb(view);
-
-            int viewedPid;
-            char message[10];
-
-            sb >> viewedPid;
-            CPPUNIT_ASSERT_EQUAL(childPid, viewedPid);
-
-            sb.read(message, 5);
-            message[5] = 0;
-            CPPUNIT_ASSERT_EQUAL(String("child"), String(message));
-        }
-
         }
     }
 

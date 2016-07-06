@@ -98,9 +98,10 @@ codecheck: cpplint cppcheck
 verify: $(TEST_TAGRET)
 	# > 3.7 (not availiable on raspberry pi) --show-leak-kinds=all
 	# > 3.10 (not avaliable on trusty) --expensive-definedness-checks=yes
-	valgrind --tool=memcheck --leak-check=full $(TEST_TAGRET)
+	# valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --expensive-definedness-checks=yes --trace-children=yes --vgdb=full --track-fds=yes --redzone-size=128 --read-inline-info=yes --read-var-info=yes build/test/test_solace
+	# valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes --vgdb=full --track-fds=yes --redzone-size=128 --read-inline-info=yes --read-var-info=yes build/test/test_solace
 	valgrind --tool=exp-sgcheck $(TEST_TAGRET)
-
+	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes --vgdb=full --track-fds=yes --redzone-size=128 --read-inline-info=yes --read-var-info=yes $(TEST_TAGRET)
 
 #-------------------------------------------------------------------------------
 # Insatall

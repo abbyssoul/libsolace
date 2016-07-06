@@ -63,51 +63,92 @@
 //   }
 // }
 
+class TestRunner {
+public:
 
-int main(int argc, char* argv[]) {
-    // FIXME(abbyssoul): Add signal handling in test ::signal(SIGSEGV, _sighandler);
-    const std::string testPath = (argc > 1) ? std::string(argv[1]) : "";
+    static std::unique_ptr<CppUnit::TestListener> createProgressListener() {
 
-    srandom(time(NULL));
+        if (jetbrains::teamcity::underTeamcity()) {
+            // Add unique flowId parameter if you want to run test processes in parallel
+            // See http://confluence.jetbrains.net/display/TCD6/Build+Script+Interaction+with+TeamCity#BuildScriptInteractionwithTeamCity-MessageFlowId
+            return std::make_unique<jetbrains::teamcity::TeamcityProgressListener>();
+        } else {
+//            return std::make_unique<CppUnit::BriefTestProgressListener>();
+            return std::make_unique<CppUnit::TextTestProgressListener>();
+        }
+    }
+
+    TestRunner(): progressListener(createProgressListener()) {
+        // Wire it all up
+        controller.addListener(&result);
+
+        if (progressListener) {
+            controller.addListener(progressListener.get());
+        }
+    }
+
+    ~TestRunner() {
+        if (testSuit) {
+            testSuit->deleteContents();
+            testSuit = nullptr;
+        }
+    }
+
+    TestRunner& scanTests() {
+        auto& registry = CppUnit::TestFactoryRegistry::getRegistry();
+        testSuit = static_cast<CppUnit::TestSuite*>(registry.makeTest());
+        runner.addTest(testSuit);
+//
+//        testSuit.reset(registry.makeTest());
+//        runner.addTest(testSuit.get());
+
+        return *this;
+    }
+
+    int run(const char* path) {
+
+        testPath = path;
+        try {
+            runner.run(controller, testPath);
+
+            // Print test in a compiler compatible format.
+            CppUnit::CompilerOutputter outputter(&result, std::cerr, "%f:%l: ");
+            outputter.write();
+        } catch (std::invalid_argument &e) {  // Test path not resolved
+            std::cerr << std::endl << "ERROR: Test path not resolved: " << e.what() << std::endl;
+
+            return 2;
+        }
+
+        return result.wasSuccessful() ? 0 : 1;
+    }
+
+private:
+    std::string testPath;
 
     // Add a listener that print dots as test run.
     std::unique_ptr<CppUnit::TestListener> progressListener;
-//    std::unique_ptr<CppUnit::TestListener> extraProgressListener;
 
     // Create the event manager and test controller
     CppUnit::TestResult controller;
 
     // Add a listener that collects test result
     CppUnit::TestResultCollector result;
-    controller.addListener(&result);
-
-    if (jetbrains::teamcity::underTeamcity()) {
-        // Add unique flowId parameter if you want to run test processes in parallel
-        // See http://confluence.jetbrains.net/display/TCD6/Build+Script+Interaction+with+TeamCity#BuildScriptInteractionwithTeamCity-MessageFlowId
-        progressListener = std::make_unique<jetbrains::teamcity::TeamcityProgressListener>();
-    } else {
-//        progressListener = std::make_unique<CppUnit::BriefTestProgressListener>();
-        progressListener = std::make_unique<CppUnit::TextTestProgressListener>();
-    }
-    controller.addListener(progressListener.get());
 
     // Add the top suite to the test runner
     CppUnit::TextUi::TestRunner runner;
-    auto& registry = CppUnit::TestFactoryRegistry::getRegistry();
 
-    runner.addTest(registry.makeTest());
-    try {
-        runner.run(controller, testPath);
+//    std::unique_ptr<CppUnit::Test> testSuit;
+    CppUnit::TestSuite* testSuit;
+};
 
-        // Print test in a compiler compatible format.
-        CppUnit::CompilerOutputter outputter(&result, std::cerr);
-        outputter.setLocationFormat("%f:%l: ");
-        outputter.write();
-    } catch (std::invalid_argument &e) {  // Test path not resolved
-        std::cerr << std::endl << "ERROR: Test path not resolved: " << e.what() << std::endl;
 
-        return 1;
-    }
+// Note: Test runner made global in order to invoke it's destructor when fork'd version of it does exit()
+TestRunner GlobalTestRunner;
 
-    return result.wasSuccessful() ? 0 : 1;
+int main(int argc, char* argv[]) {
+    // FIXME(abbyssoul): Add signal handling in test ::signal(SIGSEGV, _sighandler);
+    srandom(time(NULL));
+
+    return GlobalTestRunner.scanTests().run((argc > 1) ? argv[1] : "");
 }
