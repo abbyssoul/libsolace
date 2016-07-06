@@ -33,6 +33,7 @@
 #include <sys/wait.h>
 #include <sys/mman.h>
 
+#include "../interruptexception.hpp"
 
 using namespace Solace;
 using namespace Solace::IO;
@@ -102,7 +103,7 @@ public:
             }
         }
         if (isChild) {
-            exit(EXIT_SUCCESS);
+            raise<InterruptTest>();
         }
     }
 

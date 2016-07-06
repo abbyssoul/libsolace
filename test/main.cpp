@@ -29,41 +29,61 @@
 #include <cppunit/TestResultCollector.h>
 #include <cppunit/TextTestProgressListener.h>
 #include <cppunit/BriefTestProgressListener.h>
+#include <cppunit/Protector.h>
 #include <cppunit/extensions/HelperMacros.h>
 #include <cppunit/extensions/TestFactoryRegistry.h>
-
 #include <cppunit/ui/text/TestRunner.h>
-
 #include <cppunit/CompilerOutputter.h>
 
-#include <signal.h>
-#include <cstdlib>
 #include <memory>
 
 
 #include "ci/teamcity_cppunit.h"
+#include "interruptexception.hpp"
 
 
-// void _sighandler(int sig) {
-//   switch (sig) {
-//   case SIGSEGV: { // Segmentation fault - for debug.
+class IntrruptableTestRunner {
+public:
 
-//     // print out all the frames to stderr
-//     fprintf(stderr, "\nError - signal %d:\n", sig);
+    virtual ~IntrruptableTestRunner() = default;
 
-//     April::System::Debug::stacktrace_print(stderr, 40, 0);
+    virtual void stop() {
+        _isStopped = true;
+    }
 
-//     // exit(System::Processes::Process::ExitStatus::SigSegmentationFault);
-//     // FIXME: Create Core Dump.
-//     abort();
-//   } break;
-// //  case SIGINT:    // Program correct end request via keyboard int (Ctrl+C)
-// //  case SIGTERM:   // Program correct end request.
-// //    break;
-//   }
-// }
+    bool isStopped() const {
+        return _isStopped;
+    }
 
-class TestRunner {
+private:
+    bool _isStopped = false;
+};
+
+class TestStopper: public CppUnit::Protector {
+public:
+
+    TestStopper(IntrruptableTestRunner& testRunner): _testRunner(testRunner) {
+    }
+
+    // cppcheck-suppress unusedFunction
+    bool protect(const CppUnit::Functor &functor, const CppUnit::ProtectorContext&) override {
+
+        try {
+            return functor();
+        } catch (InterruptTest& allCool) {  // Note: This is normal test case interruption possibly by a child process
+            _testRunner.stop();
+            return true;
+        }
+
+        return false;
+    }
+
+private:
+    IntrruptableTestRunner& _testRunner;
+};
+
+
+class TestRunner: public IntrruptableTestRunner {
 public:
 
     static std::unique_ptr<CppUnit::TestListener> createProgressListener() {
@@ -85,22 +105,20 @@ public:
         if (progressListener) {
             controller.addListener(progressListener.get());
         }
+
+        controller.pushProtector(new TestStopper(*this));
     }
 
-    ~TestRunner() {
-        if (testSuit) {
-            testSuit->deleteContents();
-            testSuit = nullptr;
-        }
+    ~TestRunner() = default;
+
+    void stop() override {
+        IntrruptableTestRunner::stop();
+        controller.stop();
     }
 
     TestRunner& scanTests() {
         auto& registry = CppUnit::TestFactoryRegistry::getRegistry();
-        testSuit = static_cast<CppUnit::TestSuite*>(registry.makeTest());
-        runner.addTest(testSuit);
-//
-//        testSuit.reset(registry.makeTest());
-//        runner.addTest(testSuit.get());
+        runner.addTest(registry.makeTest());
 
         return *this;
     }
@@ -111,9 +129,12 @@ public:
         try {
             runner.run(controller, testPath);
 
-            // Print test in a compiler compatible format.
-            CppUnit::CompilerOutputter outputter(&result, std::cerr, "%f:%l: ");
-            outputter.write();
+            if (!isStopped()) {
+                // Print test in a compiler compatible format.
+                CppUnit::CompilerOutputter outputter(&result, std::cerr, "%f:%l: ");
+                outputter.write();
+            }
+
         } catch (std::invalid_argument &e) {  // Test path not resolved
             std::cerr << std::endl << "ERROR: Test path not resolved: " << e.what() << std::endl;
 
@@ -137,9 +158,6 @@ private:
 
     // Add the top suite to the test runner
     CppUnit::TextUi::TestRunner runner;
-
-//    std::unique_ptr<CppUnit::Test> testSuit;
-    CppUnit::TestSuite* testSuit;
 };
 
 

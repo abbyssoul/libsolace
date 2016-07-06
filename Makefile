@@ -84,7 +84,7 @@ cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
 #	cppcheck --std=c++11 --enable=all -v -I $(MODULE_HEADERS) $(MODULE_SRC) 
 cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) libs/cppcheck/cppcheck
 	#--inconclusive
-	./libs/cppcheck/cppcheck --std=c++11 --std=posix -D __linux__ --inline-suppr -q --error-exitcode=2 \
+	libs/cppcheck/cppcheck --std=c++11 --std=posix -D __linux__ --inline-suppr -q --error-exitcode=2 \
 	--enable=warning,performance,portability,missingInclude,information,unusedFunction \
 	-I include -i test/ci src test examples
 
@@ -96,12 +96,13 @@ codecheck: cpplint cppcheck
 #-------------------------------------------------------------------------------
 
 verify: $(TEST_TAGRET)
-	# > 3.7 (not availiable on raspberry pi) --show-leak-kinds=all
 	# > 3.10 (not avaliable on trusty) --expensive-definedness-checks=yes
-	# valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --expensive-definedness-checks=yes --trace-children=yes --vgdb=full --track-fds=yes --redzone-size=128 --read-inline-info=yes --read-var-info=yes build/test/test_solace
-	# valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes --vgdb=full --track-fds=yes --redzone-size=128 --read-inline-info=yes --read-var-info=yes build/test/test_solace
-	valgrind --tool=exp-sgcheck $(TEST_TAGRET)
-	valgrind --tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --trace-children=yes --vgdb=full --track-fds=yes --redzone-size=128 --read-inline-info=yes --read-var-info=yes $(TEST_TAGRET)
+	valgrind --trace-children=yes --track-fds=yes --read-var-info=yes --redzone-size=128 --error-exitcode=4 \
+	--tool=exp-sgcheck $(TEST_TAGRET)
+
+	valgrind --trace-children=yes --track-fds=yes --read-var-info=yes --redzone-size=128 --error-exitcode=3 \
+	--tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --partial-loads-ok=no \
+	$(TEST_TAGRET)
 
 #-------------------------------------------------------------------------------
 # Insatall
