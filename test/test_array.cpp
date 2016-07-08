@@ -50,7 +50,9 @@ class TestArray : public CppUnit::TestFixture  {
 
         CPPUNIT_TEST(testForEach);
         CPPUNIT_TEST(testMap);
-	CPPUNIT_TEST_SUITE_END();
+
+        CPPUNIT_TEST(testDeallocationWhenElementConstructorThrows);
+    CPPUNIT_TEST_SUITE_END();
 
 protected:
 
@@ -652,6 +654,45 @@ public:
         }
     }
 
+    struct SometimesConstructable {
+        static int InstanceCount;
+        static int BlowUpEveryInstance;
+
+        int someValue;
+
+        SometimesConstructable(): someValue(3) {
+            if ((InstanceCount + 1) % BlowUpEveryInstance) {
+                throw Exception("Blowing up");
+            }
+
+            ++InstanceCount;
+        }
+
+        ~SometimesConstructable() {
+            --InstanceCount;
+        }
+
+        SometimesConstructable(SometimesConstructable&& rhs): someValue(rhs.someValue)
+        {}
+
+        SometimesConstructable& operator = (SometimesConstructable&& rhs) {
+            someValue = rhs.someValue;
+            return *this;
+        }
+
+        bool operator == (const SometimesConstructable& rhs) const {
+            return someValue == rhs.someValue;
+        }
+    };
+
+    void testDeallocationWhenElementConstructorThrows() {
+
+        SometimesConstructable::BlowUpEveryInstance = 9;
+
+        CPPUNIT_ASSERT_THROW(const Array<SometimesConstructable> sholdFail(10), Exception);
+        CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
+    }
+
 };
 
 const Array<int>::size_type TestArray::ZERO = 0;
@@ -661,7 +702,9 @@ const Array<int>::size_type TestArray::TEST_SIZE_1 = 35;
 const int 		TestArray::NonPodStruct::IVALUE_DEFAULT = -123;
 const String 	TestArray::NonPodStruct::STR_DEFAULT = "test_value";
 
-
 Array<int>::size_type TestArray::NonPodStruct::TotalCount = 0;
+
+int TestArray::SometimesConstructable::InstanceCount = 0;
+int TestArray::SometimesConstructable::BlowUpEveryInstance = 4;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestArray);
