@@ -47,6 +47,7 @@ bool operator== (const epoll_event& a, const epoll_event& b) {
     return ((a.events == b.events) && (a.data == b.data));
 }
 
+
 class Solace::IO::Selector::IPollerImpl {
 public:
 
@@ -119,7 +120,7 @@ public:
     }
 
     Selector::Event getEvent(uint i) override {
-        const epoll_event& ev = _evlist[i];
+        const auto& ev = _evlist[i];
 
         Selector::Event event;
         event.pollable = static_cast<ISelectable*>(ev.data.ptr);
@@ -140,11 +141,9 @@ public:
 private:
     EPoll_PollerImpl(const EPoll_PollerImpl&) = delete;
     EPoll_PollerImpl& operator= (const EPoll_PollerImpl&) = delete;
-    bool operator== (const EPoll_PollerImpl&) = delete;
 
     Solace::Array<epoll_event> _evlist;
     int _epfd;
-
 };
 
 
@@ -153,10 +152,10 @@ const Selector::Iterator& Selector::Iterator::operator++ () {
         ++_index;
     } else {
         // Actually we are better off raising an exception:
-        Solace::raise<IndexOutOfRangeException>(static_cast<size_t>(_index),
+        Solace::raise<IndexOutOfRangeException>("iterator",
+                                                static_cast<size_t>(_index),
                                                 static_cast<size_t>(0),
-                                                static_cast<size_t>(_size),
-                                                "iterator");
+                                                static_cast<size_t>(_size));
         _index = _size;
     }
 

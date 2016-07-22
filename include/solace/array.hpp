@@ -29,7 +29,6 @@
 #include "solace/icomparable.hpp"
 #include "solace/iterable.hpp"
 
-#include "solace/exception.hpp"
 
 // TODO(abbyssoul): Remove std dependencies!
 #include <algorithm>    // std::swap
@@ -39,11 +38,24 @@
 
 namespace Solace {
 
+//class ArrayBase {
+//public:
+//    ArrayBase() = default;
+//    ~ArrayBase() = default;
+
+//protected:
+
+
+//};
+
+size_t validateIndex(size_t index, size_t from, size_t to);
+
 /** Fixed-size indexed collection of elements aka array.
  * Array is a collection template that has a fixed size specified at the time of its creation
  */
 template<typename T>
 class Array:
+//        public ArrayBase,
         public IComparable<Array<T>>,
         public Iterable<Array<T>, T>
 {
@@ -142,17 +154,13 @@ public:
     }
 
     const_reference operator[] (size_type index) const {
-        if (index >= size()) {
-            raise<IndexOutOfRangeException>(index, 0, size());
-        }
+        index = validateIndex(index, 0, size());
 
         return _storage[index];
     }
 
     reference operator[] (size_type index) {
-        if (index >= size()) {
-            raise<IndexOutOfRangeException>(index, 0, size());
-        }
+        index = validateIndex(index, 0, size());
 
         return _storage[index];
     }

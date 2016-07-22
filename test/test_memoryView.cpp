@@ -21,6 +21,8 @@
  * Created on: 20 Jun 2016
 *******************************************************************************/
 #include <solace/memoryView.hpp>  // Class being tested
+#include <solace/memoryManager.hpp>
+
 
 #include <solace/exception.hpp>
 #include <cppunit/extensions/HelperMacros.h>
@@ -34,22 +36,79 @@ class TestMemoryView: public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(TestMemoryView);
         CPPUNIT_TEST(testConstruction);
+        CPPUNIT_TEST(testFill);
+        CPPUNIT_TEST(testWrapping);
     CPPUNIT_TEST_SUITE_END();
+
+protected:
+
+    MemoryManager manager;
 
 public:
 
-    void testConstruction() {
-        {   // NullPointer smoke test
-            // CPPUNIT_ASSERT_THROW(Buffer nullbuffer(321, NULL), IllegalArgumentException);
-            MemoryView nullbuffer(321, NULL);
-            CPPUNIT_ASSERT_EQUAL(static_cast<Solace::MemoryView::size_type>(0), nullbuffer.size());
+    TestMemoryView(): manager(4096) {
+    }
+
+    void testFill() {
+        MemoryView buffer = manager.create(48);
+
+        buffer.fill(0);
+        for (const auto& v : buffer) {
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0), v);
         }
 
+        MemoryView::size_type r = 0;
+        buffer.fill(1);
+        for (const auto& v : buffer) {
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(1), v);
+            r += v;
+        }
+        CPPUNIT_ASSERT_EQUAL(r, buffer.size());
+
+        buffer.fill(64);
+        for (const auto& v : buffer) {
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(64), v);
+        }
+
+        buffer.fill(36, 20, 40);
+        for (MemoryView::size_type i = 0; i < buffer.size(); ++i) {
+            if (i >= 20 && i < 40) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(36), buffer[i]);
+            } else {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(64), buffer[i]);
+            }
+        }
+
+        // 'To' index is out of range
+        CPPUNIT_ASSERT_THROW(buffer.fill(3, 3, 130), IndexOutOfRangeException);
+        // 'From' index is out of range
+        CPPUNIT_ASSERT_THROW(buffer.fill(3, 100, 30), IndexOutOfRangeException);
+        // 'To' index is out of range - less then from
+        CPPUNIT_ASSERT_THROW(buffer.fill(3, 30, 3), IndexOutOfRangeException);
+        // 'From' and 'To' index is out of range
+        CPPUNIT_ASSERT_THROW(buffer.fill(3, 100, 130), IndexOutOfRangeException);
+    }
+
+    void testWrapping() {
+        const auto nullB = static_cast<void*>(nullptr);
+        CPPUNIT_ASSERT_NO_THROW(auto buffer = MemoryView::wrap(nullB, 0));
+
+        {   // Can't wrap nullptr with non-zero size
+            CPPUNIT_ASSERT_THROW(auto b = MemoryView::wrap(nullB, 321), IllegalArgumentException);
+        }
+    }
+
+    void testConstruction() {
+        {   // NullPointer smoke test
+             CPPUNIT_ASSERT_THROW(auto a = MemoryView(321, NULL, 0), IllegalArgumentException);
+//            MemoryView nullbuffer(321, NULL, false, false);
+//            CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(0), nullbuffer.size());
+        }
         {   // Fixed size constructor
-            MemoryView test(3102);
+            MemoryView test = manager.create(3102);
 
             CPPUNIT_ASSERT(!test.empty());
-            CPPUNIT_ASSERT_EQUAL(static_cast<Solace::MemoryView::size_type>(3102), test.size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(3102), test.size());
             test[0] = 19;
             test[2] = 17;
             test[1] = 4;
@@ -62,10 +121,10 @@ public:
 
         {   // Wrapping constructor
             byte example[] = {0, 1, 0, 3, 2, 1};  // size = 6
-            MemoryView test(sizeof(example), example);
+            MemoryView test(sizeof(example), example, 0);
 
             CPPUNIT_ASSERT(!test.empty());
-            CPPUNIT_ASSERT_EQUAL(static_cast<Solace::MemoryView::size_type>(6), test.size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(6), test.size());
 
             for (size_t i = 0; i < test.size(); ++i)
                 CPPUNIT_ASSERT_EQUAL(example[i], test.dataAddress()[i]);
@@ -74,7 +133,7 @@ public:
         {   // Copy-constructor
             byte example[] = {7, 5, 0, 2, 21, 15, 178};  // size = 7
             MemoryView::size_type exampleSize = sizeof(example);
-            MemoryView b1(exampleSize, example);
+            MemoryView b1(exampleSize, example, 0);
             MemoryView b2(b1);
 
             CPPUNIT_ASSERT_EQUAL(exampleSize, b1.size());
@@ -85,7 +144,7 @@ public:
                 CPPUNIT_ASSERT_EQUAL(example[i], b2.dataAddress()[i]);
             }
 
-            CPPUNIT_ASSERT_EQUAL(false, b2.isOwner());
+//            CPPUNIT_ASSERT_EQUAL(false, b2.isOwner());
         }
     }
 

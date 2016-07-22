@@ -21,6 +21,7 @@
  * Created on: 28 Apr 2016
 *******************************************************************************/
 #include <solace/byteBuffer.hpp>  // Class being tested
+#include <solace/memoryManager.hpp>
 
 #include <solace/exception.hpp>
 #include <cppunit/extensions/HelperMacros.h>
@@ -40,14 +41,23 @@ class TestByteBuffer: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testGetByte);
     CPPUNIT_TEST_SUITE_END();
 
+protected:
+    MemoryManager _memoryManager;
+
 public:
+
+    TestByteBuffer(): _memoryManager(4096)
+    {
+    }
 
 	void testConstruction() {
 	}
 
     void testPositioning() {
         constexpr ByteBuffer::size_type testSize = 12;
-        ByteBuffer buffer(testSize);
+        auto mem = _memoryManager.create(testSize);
+
+        ByteBuffer buffer(mem);
 
         CPPUNIT_ASSERT_EQUAL(testSize, buffer.capacity());
         CPPUNIT_ASSERT_EQUAL(testSize, buffer.limit());
@@ -74,7 +84,8 @@ public:
         byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
 
         constexpr ByteBuffer::size_type testSize = sizeof(bytes);
-        ByteBuffer buffer(testSize);
+        auto mem = _memoryManager.create(testSize);
+        ByteBuffer buffer(mem);
 
         CPPUNIT_ASSERT_NO_THROW(buffer.write(bytes, sizeof(bytes)));
         CPPUNIT_ASSERT_EQUAL(buffer.limit(), buffer.position());
@@ -84,7 +95,8 @@ public:
         byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
 
         constexpr ByteBuffer::size_type testSize = sizeof(bytes);
-        ByteBuffer buffer(testSize);
+        auto mem = _memoryManager.create(testSize);
+        ByteBuffer buffer(mem);
 
         CPPUNIT_ASSERT_NO_THROW(buffer.write(bytes, sizeof(bytes)));
 
@@ -109,7 +121,8 @@ public:
 
 
         constexpr ByteBuffer::size_type testSize = sizeof(bytes);
-        ByteBuffer buffer(testSize);
+        auto mem = _memoryManager.create(testSize);
+        ByteBuffer buffer(mem);
 
         CPPUNIT_ASSERT_NO_THROW(buffer.write(bytes, sizeof(bytes)));
 

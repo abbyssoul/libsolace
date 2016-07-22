@@ -21,8 +21,9 @@
  * Created on: 1 Jan 2015
 *******************************************************************************/
 #include <solace/stringBuilder.hpp>	 // Class being tested
-
+#include <solace/memoryManager.hpp>
 #include <solace/exception.hpp>
+
 #include <cppunit/extensions/HelperMacros.h>
 #include <cstring>
 
@@ -36,19 +37,26 @@ class TestStringBuilder: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testConstruction);
         CPPUNIT_TEST(testNullString);
         CPPUNIT_TEST(testToString);
-	CPPUNIT_TEST_SUITE_END();
+    CPPUNIT_TEST_SUITE_END();
 
 private:
-	static const char* someConstString;
+    static const char* someConstString;
+    MemoryManager _memoryManager;
 
 protected:
 
-	static StringBuilder moveMe() {
-        ByteBuffer buffer(strlen(someConstString));
-		return { buffer, someConstString };
+    StringBuilder moveMe() {
+//        auto mem = ;
+        ByteBuffer buffer(_memoryManager.create(strlen(someConstString)));
+
+        return { buffer, someConstString };
 	}
 
 public:
+
+    TestStringBuilder(): _memoryManager(4096)
+    {
+    }
 
     void setUp() override {
 	}
@@ -57,7 +65,8 @@ public:
 	}
 
 	void testNullString() {
-		ByteBuffer buffer(25);
+        auto mem = _memoryManager.create(25);
+        ByteBuffer buffer(mem);
 
         {   // Null Pointer exception test
             CPPUNIT_ASSERT_THROW(const StringBuilder nullString(buffer, NULL), IllegalArgumentException);
@@ -71,7 +80,8 @@ public:
         const String constStr { someConstString };
 
         {   // empty buffer usage
-            ByteBuffer buffer(0);
+            auto mem = _memoryManager.create(0);
+            ByteBuffer buffer(mem);
             const StringBuilder empty(buffer);  // No throw?
 
             CPPUNIT_ASSERT(empty.empty());
@@ -79,7 +89,8 @@ public:
         }
 
         {   // Empty string post-conditions
-            ByteBuffer buffer(2 * constStr.size());
+            auto mem = _memoryManager.create(2 * constStr.size());
+            ByteBuffer buffer(mem);
             const StringBuilder empty(buffer);  // No throw?
 
             CPPUNIT_ASSERT(empty.empty());
@@ -87,7 +98,8 @@ public:
 		}
 
 		{
-            ByteBuffer buffer(strlen(someConstString));
+            auto mem = _memoryManager.create(strlen(someConstString));
+            ByteBuffer buffer(mem);
 			const StringBuilder sb(buffer, someConstString);
 
 			CPPUNIT_ASSERT(!sb.empty());
@@ -95,7 +107,8 @@ public:
 		}
 
 		{
-            ByteBuffer buffer(2 * constStr.size());
+            auto mem = _memoryManager.create(2 * constStr.size());
+            ByteBuffer buffer(mem);
 			const StringBuilder sb(buffer, constStr);
 
 			CPPUNIT_ASSERT(!sb.empty());
@@ -114,7 +127,9 @@ public:
 	 * Test toString conversion
 	 */
 	void testToString() {
-        ByteBuffer buffer(strlen(someConstString));
+        auto mem = _memoryManager.create(strlen(someConstString));
+
+        ByteBuffer buffer(mem);
         const StringBuilder ident(buffer, someConstString);
 
 		const auto str = ident.toString();

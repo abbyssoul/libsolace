@@ -27,8 +27,8 @@
 
 #include "solace/path.hpp"
 #include "solace/io/selectable.hpp"
-#include "solace/io/file.hpp"  // File::Mode
-#include "solace/io/anonSharedMemory.hpp"
+#include "solace/io/file.hpp"           // File::Mode
+#include "solace/io/mappedMemory.hpp"
 
 
 namespace Solace { namespace IO {

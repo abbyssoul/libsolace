@@ -34,6 +34,8 @@
 
 namespace Solace {
 
+void raiseInvalidStateError();
+
 /** Optional monad
  * Optional is a monad that represent a optionality of value returned by a function.
     Parameterized type: Optional<T>
@@ -202,8 +204,8 @@ private:
 
         const T& orElse(const T& t) const override { return t; }
 
-        const T& ref() const override   { raise<NoSuchElementException>(); return *reinterpret_cast<T*>(NULL); }
-        T& ref() override               { raise<NoSuchElementException>(); return *reinterpret_cast<T*>(NULL); }
+        const T& ref() const override   { raiseInvalidStateError(); return *reinterpret_cast<T*>(NULL); }
+        T& ref() override               { raiseInvalidStateError(); return *reinterpret_cast<T*>(NULL); }
     };
 
     class SomeState: public IState {

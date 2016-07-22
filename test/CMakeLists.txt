@@ -14,6 +14,7 @@ set(TEST_SOURCE_FILES
         ci/teamcity_messages.cpp
         ci/teamcity_cppunit.cpp
         test_memoryView.cpp
+        test_memoryManager.cpp
         test_byteBuffer.cpp
         test_optional.cpp
         test_uuid.cpp
@@ -27,7 +28,7 @@ set(TEST_SOURCE_FILES
         io/test_selector.cpp
         io/test_platformfilesystem.cpp
         io/test_sharedMemory.cpp
-        io/test_anonSharedMemory.cpp
+        io/test_mappedMemory.cpp
         process/test_env.cpp
     )
 

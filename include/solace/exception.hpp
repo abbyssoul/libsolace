@@ -36,7 +36,7 @@
 
 #include <exception>
 #include <string>       // std::string (duh!)
-#include <ostream>
+//#include <ostream>
 
 namespace Solace {
 
@@ -49,8 +49,7 @@ public:
 
     //! Construct exception w. message
     Exception(const std::string& message,
-              const char* file = 0,
-              int line = 0) noexcept;
+              const char* file = 0, int line = 0) noexcept;
 
     Exception(const Exception& other) noexcept;
 
@@ -121,8 +120,7 @@ public:
 class OverflowException : public Exception {
 public:
 
-    OverflowException(size_t index, size_t minValue, size_t maxValue,
-                      const char* indexName,
+    OverflowException(const char* indexName, size_t index, size_t minValue, size_t maxValue,
                       const char* file = 0, int line = 0) noexcept;
 
     OverflowException(size_t index, size_t minValue, size_t maxValue,
@@ -152,7 +150,7 @@ public:
  */
 class InvalidMarkException: public Exception {
 public:
-    InvalidMarkException();
+    InvalidMarkException(const char* file = 0, int line = 0);
 
     virtual ~InvalidMarkException() noexcept = default;
 };
@@ -160,12 +158,13 @@ public:
 
 template <typename ExceptionType, typename... Args>
 void raise(Args&&... args) {
-    throw ExceptionType(std::forward<Args>(args)...);
+    //, int line = __LINE__
+    throw ExceptionType(std::forward<Args>(args)..., "place", -1);
 }
 
 }  // End of namespace Solace
 
-#define THROW(msg) { throw Solace::Exception(msg, __FILE__, __LINE__); }
+//#define THROW(msg) { throw Solace::Exception(msg, __FILE__, __LINE__); }
 #define checkAssert(condition, msg) { if ((!condition)) { THROW(msg); } }
 #define assertException(condition, _ex) do { if ( !(condition) ) { throw _ex; } } while (false)
 

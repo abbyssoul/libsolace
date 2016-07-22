@@ -27,10 +27,7 @@
 
 #include "solace/libsolace_config.h"
 
-#include <cstddef>
-#include <cstdlib>
 #include <cstdint>
-#include <utility>	    // std::move, tuple, forward, pair, etc
 
 namespace Solace {
 
@@ -72,9 +69,6 @@ static_assert(8 == sizeof(uint64), "size of uint64 is not 8 bytes!");
 static_assert(4 == sizeof(float32), "size of float32 is not 4 bytes!");
 static_assert(8 == sizeof(float64), "size of float64 is not 8 bytes!");
 
-// FIXME(abbyssoul): Is it really a blocker?
-static_assert(sizeof(uint) == sizeof(uint32),
-		"Size of uint is not equal to the size of uint32!");
 
 template <typename T, ::std::size_t N>
 ::std::size_t arrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }

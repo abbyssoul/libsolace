@@ -124,7 +124,7 @@ public:
         }
 
         if (isChild) {
-            raise<InterruptTest>();
+            throw InterruptTest();
 //            exit(EXIT_SUCCESS);
         }
     }

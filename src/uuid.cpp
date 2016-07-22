@@ -206,7 +206,8 @@ int char2int(char input) {
 //    return hex_to_bin[input];
 
     // FIXME(abbyssoul): We should just return an error!
-    throw IllegalArgumentException("Invalid input string");
+    Solace::raise<IllegalArgumentException>("Invalid input string");
+    return 0;
 }
 
 // This function assumes src to be a zero terminated sanitized string with

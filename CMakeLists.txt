@@ -5,7 +5,7 @@ include(CheckCXXCompilerFlag)
 
 # libsolace requires c++14
 check_cxx_compiler_flag(-std=c++14 HAVE_STD_CPP14_FLAG)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pedantic -pedantic-errors") #  -fno-rtti
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pipe -pedantic -pedantic-errors") #  -fno-rtti
 
 # Enable stack-protector if compiler supports it (it should)
 check_cxx_compiler_flag("-fstack-protector" WITH_STACK_PROTECTOR)
@@ -35,8 +35,10 @@ if (WITH_FORTIFY_SOURCE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORTIFY_SOURCE=2")
 endif (WITH_FORTIFY_SOURCE)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -ggdb3 -O0 -D _DEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -D NDEBUG") # -fwhole-program")
+# Optimization flags
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -O0 -D _DEBUG -ggdb3")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG") # -fwhole-program")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
@@ -44,40 +46,15 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 
 include_directories(include)
 
-set(SOURCE_FILES
-        src/memoryView.cpp
-        src/byteBuffer.cpp
-        src/char.cpp
-        src/uuid.cpp
-        src/string.cpp
-        src/stringBuilder.cpp
-        src/exception.cpp
-        src/version.cpp
-        src/path.cpp 
-        
-        src/io/ioexception.cpp 
-        src/io/file.cpp 
-        src/io/serial.cpp
-        src/io/serial_list_ports.cpp
-        src/io/signalDispatcher.cpp
-        src/io/selector.cpp
-        src/io/platformFilesystem.cpp
-        src/io/sharedMemory.cpp
-        src/io/anonSharedMemory.cpp
-
-        src/process/env.cpp
-    )
 
 
 set(EXAMPLE_SERIAL_SOURCE_FILES examples/serial.cpp)
 
 set(FMT_USE_CPP11 OFF CACHE BOOL "Don't add std by fmt" FORCE)
 add_subdirectory(libs/fmt)
+add_subdirectory(src)
 add_subdirectory(test)
-
-add_library(${PROJECT_NAME} ${SOURCE_FILES})
 
 add_executable(serial ${EXAMPLE_SERIAL_SOURCE_FILES})
 
-target_link_libraries(solace fmt)
 target_link_libraries(serial solace)

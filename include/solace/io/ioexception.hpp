@@ -38,11 +38,14 @@ public:
 
 //    IOException();
 
-    IOException(int errorCode);
+    IOException(int errorCode,
+                const char* file = 0, int line = 0);
 
-    IOException(int errorCode, const std::string& msg);
+    IOException(int errorCode, const std::string& msg,
+                const char* file = 0, int line = 0);
 
-    IOException(const std::string& msg);
+    IOException(const std::string& msg,
+                const char* file = 0, int line = 0);
 
     virtual ~IOException() noexcept = default;
 
@@ -60,7 +63,7 @@ private:
  */
 class NotOpen: public IOException {
 public:
-    NotOpen();
+    NotOpen(const char* file = 0, int line = 0);
 };
 
 

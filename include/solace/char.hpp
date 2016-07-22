@@ -69,8 +69,7 @@ public:
     }
 
     /** Move-Construct character. */
-    Char(Char&& c) noexcept : _value(std::move(c._value)) {
-    }
+    Char(Char&& c) noexcept;
 
     /** Returns the code-point value of the character. */
     value_type getValue() const noexcept {
@@ -167,11 +166,7 @@ public:
 public:	 // The only acceptable mutations:
 
     /** Value swap */
-    Char& swap(Char& rhs) noexcept {
-        std::swap(_value, rhs._value);
-
-        return *this;
-    }
+    Char& swap(Char& rhs) noexcept;
 
     /** Copy assignment */
     Char& operator= (const Char& rhs) noexcept {

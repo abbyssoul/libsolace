@@ -22,6 +22,7 @@
 *******************************************************************************/
 #include <solace/io/platformFilesystem.hpp>  // Class being tested
 
+#include <solace/memoryManager.hpp>
 #include <solace/io/ioexception.hpp>
 #include <solace/uuid.hpp>
 
@@ -47,7 +48,14 @@ class TestPlatformFs : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testTemp);
     CPPUNIT_TEST_SUITE_END();
 
+protected:
+    MemoryManager _memoryManager;
+
 public:
+
+    TestPlatformFs(): _memoryManager(4096)
+    {
+    }
 
     void testCreation() {
         const auto fileUID = UUID::random();
@@ -70,7 +78,8 @@ public:
 
             f->seek(0, File::Seek::Set);
 
-            ByteBuffer readBuffer(fileUIDBytes.size());
+            auto mem = _memoryManager.create(fileUIDBytes.size());
+            ByteBuffer readBuffer(mem);
             MemoryView::size_type bytesRead = f->read(readBuffer);
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
@@ -103,7 +112,8 @@ public:
 
             f->close();
 
-            ByteBuffer readBuffer(fileUIDBytes.size());
+            auto mem = _memoryManager.create(fileUIDBytes.size());
+            ByteBuffer readBuffer(mem);
             CPPUNIT_ASSERT_THROW(auto x = f->seek(0, File::Seek::Set), NotOpen);
             CPPUNIT_ASSERT_THROW(auto x = f->read(readBuffer), NotOpen);
         }
@@ -117,7 +127,8 @@ public:
         {
             auto f = fs.open(filename);
 
-            ByteBuffer readBuffer(fileUIDBytes.size());
+            auto mem = _memoryManager.create(fileUIDBytes.size());
+            ByteBuffer readBuffer(mem);
             MemoryView::size_type bytesRead = f->read(readBuffer);
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
@@ -181,7 +192,8 @@ public:
 
             f->seek(0, File::Seek::Set);
 
-            ByteBuffer readBuffer(fileUIDBytes.size());
+            auto mem = _memoryManager.create(fileUIDBytes.size());
+            ByteBuffer readBuffer(mem);
             const MemoryView::size_type bytesRead = f->read(readBuffer);
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());

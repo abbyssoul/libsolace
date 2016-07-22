@@ -49,13 +49,13 @@ public:
      * Construct a byte buffer of the given size
      * @param initialSize Fixed size of the byte buffer
      */
-    explicit ByteBuffer(size_type initialSize) :
-            _position(0),
-            _limit(initialSize),
-            _mark(),
-            _storage(initialSize)
-    {
-    }
+//    explicit ByteBuffer(size_type initialSize) :
+//            _position(0),
+//            _limit(initialSize),
+//            _mark(),
+//            _storage(initialSize)
+//    {
+//    }
 
     /**
      * Construct the byte buffer by copeing content of the given buffer
@@ -76,7 +76,7 @@ public:
     ByteBuffer(ByteBuffer&& other) :
             _position(other._position),
             _limit(other._limit),
-            _mark(other._mark),
+            _mark(std::move(other._mark)),
             _storage(std::move(other._storage))
     {
     }
@@ -254,11 +254,11 @@ public:
     }
 
     MemoryView viewRemaining() const noexcept {
-        return _storage.slice(position(), limit(), false);
+        return _storage.slice(position(), limit());
     }
 
     MemoryView viewWritten() const noexcept {
-        return _storage.slice(0, position(), false);
+        return _storage.slice(0, position());
     }
 
     ByteBuffer& operator<< (char c)     { return write(&c, sizeof(char)); }

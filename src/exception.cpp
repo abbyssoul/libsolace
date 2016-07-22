@@ -38,10 +38,14 @@ using Solace::InvalidMarkException;
 
 
 Exception::Exception(const std::string& message, const char* file, int line) noexcept :
-        _message(message)
       #if defined(SOLACE_DEBUG)
+        _message(file
+                 ? fmt::format("{}, File: '{}':{}", message, file, line)
+                 : message)
           , _file(file)
           , _line(line)
+      #else
+        _message(message)
       #endif
 {
     // Nothing else to do here
@@ -116,7 +120,7 @@ IndexOutOfRangeException::IndexOutOfRangeException():
 
 IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue,
                                                    const char* file, const int line) noexcept :
-    Exception(fmt::format("Value '{}' out of range [{}, {})", index, minValue, maxValue),
+    Exception(fmt::format("Value '{}' is out of range [{}, {})", index, minValue, maxValue),
               file, line)
 {
     // No-op
@@ -126,7 +130,7 @@ IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue
 IndexOutOfRangeException::IndexOutOfRangeException(const char* indexName,
                                                    size_t index, size_t minValue, size_t maxValue,
                                                    const char* file, const int line) noexcept :
-    Exception(fmt::format("Index '{}'={} out of range [{}, {})",
+    Exception(fmt::format("Index '{}'={} is out of range [{}, {})",
                           indexName, index, minValue, maxValue),
               file, line)
 {
@@ -134,8 +138,8 @@ IndexOutOfRangeException::IndexOutOfRangeException(const char* indexName,
 }
 
 
-OverflowException::OverflowException(size_t index, size_t minValue, size_t maxValue,
-                                     const char* indexName,
+OverflowException::OverflowException(const char* indexName,
+                                     size_t index, size_t minValue, size_t maxValue,
                                      const char* file, const int line) noexcept :
     Exception(fmt::format("Value '{}'={} overflows range [{}, {})",
                           indexName, index, minValue, maxValue),
@@ -166,8 +170,22 @@ NoSuchElementException::NoSuchElementException(const char* elementName,
     // Nothing else to do here
 }
 
-InvalidMarkException::InvalidMarkException() :
-    Exception("InvalidMarkException")
+InvalidMarkException::InvalidMarkException(const char* file, int line) :
+    Exception("InvalidMarkException", file, line)
 {
     // Nothing else to do here
+}
+
+
+size_t Solace::validateIndex(size_t index, size_t from, size_t to) {
+    if (index >= to) {
+        Solace::raise<Solace::IndexOutOfRangeException>(index, from, to);
+    }
+
+    return index;
+}
+
+// From optional:
+void Solace::raiseInvalidStateError() {
+    Solace::raise<NoSuchElementException>("None");
 }

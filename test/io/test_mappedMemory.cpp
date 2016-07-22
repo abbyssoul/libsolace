@@ -20,7 +20,7 @@
  *
  * Created on: 03/07/2016
 *******************************************************************************/
-#include <solace/io/anonSharedMemory.hpp>  // Class being tested
+#include <solace/io/mappedMemory.hpp>  // Class being tested
 
 #include <solace/io/ioexception.hpp>
 #include <solace/string.hpp>
@@ -59,6 +59,29 @@ public:
 
     void testOpen_Exclusive() {
     }
+
+    void testFill() {
+        auto buffer = MappedMemoryView::create(47);
+
+        buffer.fill(0);
+        for (const auto& v : buffer) {
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0), v);
+        }
+
+        MemoryView::size_type r = 0;
+        buffer.fill(1);
+        for (const auto& v : buffer) {
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(1), v);
+            r += v;
+        }
+        CPPUNIT_ASSERT_EQUAL(r, buffer.size());
+
+        buffer.fill(211);
+        for (const auto& v : buffer) {
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(211), v);
+        }
+    }
+
 
     void testShareAndMap() {
         const MappedMemoryView::size_type memSize = 24;
@@ -103,7 +126,7 @@ public:
             }
         }
         if (isChild) {
-            raise<InterruptTest>();
+            throw InterruptTest();
         }
     }
 

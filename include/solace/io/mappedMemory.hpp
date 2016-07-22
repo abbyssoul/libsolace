@@ -21,8 +21,8 @@
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_IO_ANONSHAREDMEMORY_HPP
-#define SOLACE_IO_ANONSHAREDMEMORY_HPP
+#ifndef SOLACE_IO_MAPPEDMEMORY_HPP
+#define SOLACE_IO_MAPPEDMEMORY_HPP
 
 
 #include "solace/byteBuffer.hpp"
@@ -84,9 +84,11 @@ public:
                                 Access mapping = Access::Private,
                                 int protection = Protection::Read | Protection::Write);
 
-public:
+    static MappedMemoryView map(int fd, size_type memSize,
+                                Access mapping = Access::Private,
+                                int protection = Protection::Read | Protection::Write);
 
-    MappedMemoryView(size_type newSize, void* dataAddress);
+public:
 
     MappedMemoryView(MappedMemoryView&& rhs): MemoryView(std::move(rhs))
     {
@@ -104,9 +106,12 @@ public:
         return swap(rhs);
     }
 
+private:
+    MappedMemoryView(size_type newSize, void* dataAddress);
+
 };
 
 
 }  // End of namespace IO
 }  // End of namespace Solace
-#endif  // SOLACE_IO_ANONSHAREDMEMORY_HPP
+#endif  // SOLACE_IO_MAPPEDMEMORY_HPP

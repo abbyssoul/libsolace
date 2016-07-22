@@ -42,10 +42,10 @@ Env::Iterator& Env::Iterator::operator++ () {
         ++_index;
     } else {
         // Actually we are better off raising an exception:
-        raise<IndexOutOfRangeException>(static_cast<size_t>(_index),
-                                                static_cast<size_t>(0),
-                                                static_cast<size_t>(_size),
-                                                "iterator");
+        raise<IndexOutOfRangeException>("iterator",
+                                        static_cast<size_t>(_index),
+                                        static_cast<size_t>(0),
+                                        static_cast<size_t>(_size));
         _index = _size;
     }
 
@@ -55,20 +55,20 @@ Env::Iterator& Env::Iterator::operator++ () {
 
 Env::Var Env::Iterator::operator-> () const {
     if (!(_index < _size)) {
-        raise<IndexOutOfRangeException>(static_cast<size_t>(_index),
-                                                static_cast<size_t>(0),
-                                                static_cast<size_t>(_size),
-                                                "iterator");
+        raise<IndexOutOfRangeException>("iterator",
+                                        static_cast<size_t>(_index),
+                                        static_cast<size_t>(0),
+                                        static_cast<size_t>(_size));
     }
 
     const auto env = environ[_index];
     auto c = strchr(env, '=');
 
     if (!c) {
-        raise<IndexOutOfRangeException>(static_cast<size_t>(_index),
-                                                static_cast<size_t>(0),
-                                                static_cast<size_t>(_size),
-                                                "iterator: Env");
+        raise<IndexOutOfRangeException>("iterator: Env",
+                                        static_cast<size_t>(_index),
+                                        static_cast<size_t>(0),
+                                        static_cast<size_t>(_size));
     }
 
     const String::size_type varNameSize = std::distance(env, c);

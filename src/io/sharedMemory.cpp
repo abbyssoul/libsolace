@@ -23,7 +23,6 @@
 
 #include <sys/mman.h>
 #include <sys/stat.h>        /* For mode constants */
-#include <sys/types.h>
 #include <fcntl.h>           /* For O_* constants */
 #include <unistd.h>
 
@@ -191,21 +190,12 @@ void SharedMemory::unlink(const Path& pathname) {
 
 MappedMemoryView
 SharedMemory::map(MappedMemoryView::Access mapping, int access, size_type mapSize) {
-
     const auto fd = validateFd();
 
-    const int flags = (mapping == MappedMemoryView::Access::Private)
-            ? MAP_PRIVATE
-            : MAP_SHARED;
-
-    if (mapSize == 0)
+    if (mapSize == 0) {
         mapSize = size();
-
-    auto addr = mmap(NULL, mapSize, access, flags, fd, 0);
-    if (addr == MAP_FAILED) {
-        raise<IOException>(errno, "mmap");
     }
 
-    return MappedMemoryView(mapSize, addr);
+    return MappedMemoryView::map(fd, mapSize, mapping, access);
 }
 

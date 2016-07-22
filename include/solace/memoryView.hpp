@@ -27,6 +27,7 @@
 
 #include "solace/types.hpp"
 
+
 #include <functional>
 
 
@@ -50,6 +51,8 @@ public:
     typedef value_type*         iterator;
     typedef const value_type*   const_iterator;
 
+public:
+
     /**
      * Wrap already allocated memory pointer into the buffer object.
      *
@@ -61,57 +64,59 @@ public:
      *
      * @return MemoryView object wrapping the memory address given
      */
-    static MemoryView wrap(void* data, size_type size, bool copyData = false) {
-        return {size, reinterpret_cast<byte*>(data), copyData};
+    static MemoryView wrap(void* data, size_type size, const std::function<void(MemoryView*)>& freeFunction = 0) {
+        return wrap(reinterpret_cast<byte*>(data), size, freeFunction);
     }
 
-    static MemoryView wrap(char* data, size_type size, bool copyData = false) {
-        return {size, reinterpret_cast<byte*>(data), copyData};
+    static MemoryView wrap(char* data, size_type size, const std::function<void(MemoryView*)>& freeFunction = 0) {
+        return wrap(reinterpret_cast<byte*>(data), size, freeFunction);
     }
 
-    static MemoryView wrap(byte* data, size_type size, bool copyData = false) {
-        return {size, reinterpret_cast<byte*>(data), copyData};
-    }
+    static MemoryView wrap(byte* data, size_type size, const std::function<void(MemoryView*)>& freeFunction = 0);
+
+
+    /** Copy a memory block.
+     * Create a new memory view that has a copy of data and will take ownership of that copy.
+     * @param data Data to copy.
+     * @param size Amount of the data to copy.
+     * @return A new memory view owning copy of the given data.
+     */
+//    static MemoryView copy(const void* data, size_type size) {
+//        return copy(reinterpret_cast<const byte*>(data), size);
+//    }
+
+//    static MemoryView copy(const char* data, size_type size) {
+//        return copy(reinterpret_cast<const byte*>(data), size);
+//    }
+
+//    static MemoryView copy(const byte* data, size_type size);
+
 
 public:
 
-    explicit MemoryView(size_type newSize);
+//    explicit MemoryView(size_type newSize);
 
-    MemoryView(MemoryView&& rhs):
-                _size(rhs._size),
-                _ownsData(rhs._ownsData),
-                _dataAddress(rhs._dataAddress)
-    {
-        // Stuff up rhs so it won't be destructed
-        rhs._size = 0;
-        rhs._ownsData = false;
-        rhs._dataAddress = 0;
-    }
+    MemoryView(MemoryView&& rhs) noexcept;
 
     MemoryView(const MemoryView& rhs);
 
-    MemoryView(size_type size, void* dataAddress, bool copyData = false);
+//    MemoryView(size_type size, void* data, bool takeOwnership, bool copyData);
+    MemoryView(size_type size, void* data, const std::function<void(MemoryView*)>& freeFunc);
 
     /** Deallocate memory */
     ~MemoryView();
 
-    MemoryView& swap(MemoryView& rhs) noexcept {
-        std::swap(_size, rhs._size);
-        std::swap(_ownsData, rhs._ownsData);
-        std::swap(_dataAddress, rhs._dataAddress);
-
-        return (*this);
-    }
+    MemoryView& swap(MemoryView& rhs) noexcept;
 
     MemoryView& operator= (MemoryView&& rhs) noexcept {
         return swap(rhs);
     }
 
-    MemoryView& operator= (const MemoryView& rhs) noexcept {
-        MemoryView(rhs).swap(*this);
+//    MemoryView& operator= (const MemoryView& rhs) noexcept {
+//        MemoryView(rhs).swap(*this);
 
-        return *this;
-    }
+//        return *this;
+//    }
 
     bool equals(const MemoryView& other) const noexcept {
         if ((&other == this) ||
@@ -139,7 +144,7 @@ public:
     }
 
     bool empty() const noexcept {
-        return ((!_dataAddress) || (_size == 0));
+        return (_size == 0);
     }
 
     /**
@@ -172,22 +177,49 @@ public:
     }
 
     value_type first() const noexcept { return _dataAddress[0]; }
-    value_type last()  const noexcept { return _dataAddress[_size - 1]; }
+    value_type last()  const noexcept { return _dataAddress[size() - 1]; }
 
-    reference  operator[] (size_type index) { return _dataAddress[index]; }
-    value_type operator[] (size_type index) const { return _dataAddress[index]; }
+    reference  operator[] (size_type index);
+    value_type operator[] (size_type index) const;
 
     byte* dataAddress() const noexcept { return _dataAddress; }
-    // TODO(abbyssoul): Range check should be done here
-    byte* dataAddress(size_type offset) const noexcept { return _dataAddress + offset; }
-    bool isOwner() const noexcept { return _ownsData; }
+    byte* dataAddress(size_type offset) const;
 
-    MemoryView slice(size_type from, size_type to, bool copyData) const;
+
+    /** Fill memory block with the given value.
+     *
+     * @param value Value to fill memory block with.
+     *
+     * @return A reference to this for fluent interface
+     */
+    MemoryView& fill(byte value);
+
+    /** Fill memory block with the given value.
+     *
+     * @param value Value to fill memory block with.
+     * @param from Offset to start the fill from.
+     * @param to Index to fill the view upto.
+     *
+     * @return A reference to this for fluent interface
+     */
+    MemoryView& fill(byte value, size_type from, size_type to);
+
+
+    /**  Create a slice/window view of this memory segment.
+     *
+     * @param from [in] Offset to begin the slice from.
+     * @param to [in] The last element to slice to.
+     *
+     * @return The slice of the memory segment.
+     */
+    MemoryView slice(size_type from, size_type to) const;
 
 private:
+
     size_type   _size;
-    bool        _ownsData;
     byte*       _dataAddress;
+
+    std::function<void(MemoryView*)> _free;
 };
 
 }  // End of namespace Solace

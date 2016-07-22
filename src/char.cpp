@@ -24,7 +24,7 @@
 #include <cstdio>
 #include <cctype>
 #include <cstring>
-
+#include <utility>
 
 using Solace::Char;
 using Solace::byte;
@@ -56,6 +56,16 @@ Char::Char(const byte* bytes, size_type count) {
     for (size_t i = 0; i < count; ++i) {
         _bytes[i] = bytes[i];
     }
+}
+
+
+Char::Char(Char&& c) noexcept : _value(std::move(c._value)) {
+}
+
+Char& Char::swap(Char& rhs) noexcept {
+    std::swap(_value, rhs._value);
+
+    return *this;
 }
 
 

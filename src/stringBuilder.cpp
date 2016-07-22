@@ -85,7 +85,9 @@ StringBuilder& StringBuilder::append(const String& str) {
 }
 
 String StringBuilder::toString() const {
-    return String(_buffer.viewWritten());
+    return _buffer.empty()
+            ? String::Empty
+            : String(_buffer.viewWritten());
 }
 
 bool StringBuilder::empty() const {

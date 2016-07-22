@@ -1,16 +1,30 @@
+/*
+*  Copyright 2016 Ivan Ryabov
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*/
 
-#include <solace/char.hpp>
-#include <solace/stringBuilder.hpp>
-#include <solace/version.hpp>
-#include <solace/io/serial.hpp>
+#include <solace/memoryManager.hpp>
 #include <solace/io/selector.hpp>
-
+#include <solace/io/serial.hpp>
+#include <solace/version.hpp>
 
 #include <iostream>
 
 using Solace::uint32;
 
-void enumeratePorts() {
+
+void enumerateDevices() {
 	for (const auto& descriptor : Solace::IO::Serial::enumeratePorts()) {
         std::cout << descriptor.file << ":" << std::endl;
         std::cout << "\t - " << descriptor.description << std::endl;
@@ -22,8 +36,8 @@ void enumeratePorts() {
 int main(int argc, char **argv) {
     std::cout << "libsolace: " << Solace::getBuildVersion() << std::endl;
 
-	if (argc == 1) { // No-arg call: list ports and exit
-		enumeratePorts();
+    if (argc < 2) { // No-arg call: list ports and exit
+        enumerateDevices();
 		return 0; 
 	}
 
@@ -40,7 +54,10 @@ int main(int argc, char **argv) {
               << "boudrate: " << boudRate << std::endl
               << "press ^C to quit" << std::endl;
 
-    Solace::ByteBuffer readBuffer(bufferSize);
+    Solace::MemoryManager memManager(2048);
+
+    auto buffer = memManager.create(bufferSize);
+    Solace::ByteBuffer readBuffer(buffer);
 	Solace::IO::Serial serial(file, boudRate);
     auto selector = Solace::IO::Selector::epoll(2);
     selector.add(&serial,   Solace::IO::Selector::Events::Read ||

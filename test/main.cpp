@@ -93,8 +93,8 @@ public:
             // See http://confluence.jetbrains.net/display/TCD6/Build+Script+Interaction+with+TeamCity#BuildScriptInteractionwithTeamCity-MessageFlowId
             return std::make_unique<jetbrains::teamcity::TeamcityProgressListener>();
         } else {
-//            return std::make_unique<CppUnit::BriefTestProgressListener>();
-            return std::make_unique<CppUnit::TextTestProgressListener>();
+            return std::make_unique<CppUnit::BriefTestProgressListener>();
+//            return std::make_unique<CppUnit::TextTestProgressListener>();
         }
     }
 

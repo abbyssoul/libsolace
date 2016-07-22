@@ -18,7 +18,7 @@
  *
  *  Created by soultaker on 03/07/16.
 *******************************************************************************/
-#include <solace/io/anonSharedMemory.hpp>
+#include <solace/io/mappedMemory.hpp>
 #include <solace/io/ioexception.hpp>
 
 
@@ -41,30 +41,42 @@ const int MappedMemoryView::Protection::Exec = PROT_EXEC;
 
 
 
-
-MappedMemoryView
-MappedMemoryView::create(size_type memSize, MappedMemoryView::Access mapping, int protection) {
+void* mapMemory(MappedMemoryView::size_type memSize, int protection, MappedMemoryView::Access mapping, int fd) {
     if (memSize == 0) {
-        raise<IllegalArgumentException>("size");
+        Solace::raise<IllegalArgumentException>("size");
     }
 
     int flags = MAP_ANONYMOUS;
     switch (mapping) {
-    case Access::Private: flags |= MAP_PRIVATE; break;
-    case Access::Shared: flags |= MAP_SHARED; break;
+    case MappedMemoryView::Access::Private: flags |= MAP_PRIVATE; break;
+    case MappedMemoryView::Access::Shared: flags |= MAP_SHARED; break;
     }
 
-    auto addr = mmap(NULL, memSize, protection, flags, -1, 0);
+    auto addr = mmap(NULL, memSize, protection, flags, fd, 0);
     if (addr == MAP_FAILED) {
-        raise<IOException>(errno, "mmap");
+        Solace::raise<IOException>(errno, "mmap");
     }
+
+    return addr;
+}
+
+
+MappedMemoryView
+MappedMemoryView::create(size_type memSize, MappedMemoryView::Access mapping, int protection) {
+    return map(-1, memSize, mapping, protection);
+}
+
+
+MappedMemoryView
+MappedMemoryView::map(int fd, size_type memSize, MappedMemoryView::Access mapping, int protection) {
+    auto addr = mapMemory(memSize, protection, mapping, fd);
 
     return MappedMemoryView(memSize, addr);
 }
 
 
 MappedMemoryView::MappedMemoryView(size_type newSize, void* data):
-    MemoryView(newSize, data)
+    MemoryView(newSize, data, 0)
 {
 
 }

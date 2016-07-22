@@ -55,7 +55,7 @@ public:
     struct Event {
         int             events;
         ISelectable*    pollable;
-        void*           data;
+//        void*           data;
     };
 
     class Iterator {
