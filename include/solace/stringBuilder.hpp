@@ -40,6 +40,15 @@ public:
     typedef String::size_type	size_type;
 
 public:
+    /** Initialize a new instance of StringBuilder with a given storage */
+    StringBuilder(MemoryView&& buffer);
+
+    /** Initialize a new instance of StringBuilder with a given storage */
+    StringBuilder(MemoryView&& buffer, const char* str);
+
+    /** Initialize a new instance of StringBuilder with a given storage */
+    StringBuilder(MemoryView&& buffer, const String& str);
+
 
     /** Initialize a new instance of StringBuilder with a given storage */
     StringBuilder(const ByteBuffer& buffer);

@@ -33,11 +33,6 @@ using Solace::byte;
 using Solace::MemoryView;
 
 
-// FIXME: To be removed
-void delFree(MemoryView* view) {
-    delete [] view->dataAddress();
-}
-
 
 
 MemoryView MemoryView::wrap(byte* data, size_type size, const std::function<void(MemoryView*)>& freeFunction) {
@@ -45,74 +40,37 @@ MemoryView MemoryView::wrap(byte* data, size_type size, const std::function<void
 }
 
 
-//MemoryView MemoryView::copy(const byte* data, size_type size) {
+// MemoryView MemoryView::copy(const byte* data, size_type size) {
 //    auto dataAddress = new value_type[size];
 
 //    memcpy(dataAddress, data, size * sizeof(value_type));
 
 //    return MemoryView{size, dataAddress, delFree};
-//}
-
-
-
-//MemoryView::MemoryView(size_type newSize):
-////    _size(newSize), _ownsData(true), _dataAddress(new value_type[newSize])
-//  _size(newSize), _dataAddress(new value_type[newSize]), _free(delFree)
-//{
-//}
+// }
 
 
 MemoryView::MemoryView(const MemoryView& rhs):
             _size(rhs._size),
-//            _ownsData(rhs._ownsData),
             _dataAddress(rhs._dataAddress),
             _free(0)
 {
-//    if (rhs._dataAddress && rhs._ownsData) {
-//        _dataAddress = new value_type[_size];
-
-//        memcpy(_dataAddress, rhs._dataAddress, _size * sizeof(value_type));
-//    }
 }
 
 
 MemoryView::MemoryView(MemoryView&& rhs) noexcept :
             _size(rhs._size),
-//            _ownsData(rhs._ownsData),
             _dataAddress(rhs._dataAddress),
             _free(std::move(rhs._free))
 {
     // Stuff up rhs so it won't be destructed
     rhs._size = 0;
-//    rhs._ownsData = false;
     rhs._dataAddress = nullptr;
     rhs._free = 0;
 }
 
 
-//MemoryView::MemoryView(size_type newSize, void* data, bool takeOwnership, bool copyData) :
-//    _size(newSize),
-//    _ownsData(takeOwnership),
-//    _dataAddress(reinterpret_cast<value_type*>(data))
-//{
-//    if (!bytes) {
-////         FIXME(abbyssoul): Review nullptr handling policy
-//        if (_size)
-//            raise<IllegalArgumentException>("data");
-////        _size = 0;
-//    }
-
-////    if (bytes && copyData) {
-////        _dataAddress = new value_type[_size];
-
-////        memcpy(_dataAddress, bytes, _size * sizeof(value_type));
-////    }
-//}
-
-
 MemoryView::MemoryView(size_type newSize, void* data, const std::function<void(MemoryView*)>& freeFunc) :
     _size(newSize),
-//    _ownsData(takeOwnership),
     _dataAddress(reinterpret_cast<value_type*>(data)),
     _free(freeFunc)
 {
@@ -130,15 +88,6 @@ MemoryView::~MemoryView() {
         _dataAddress = nullptr;
         _size = 0;
     }
-
-//    if (_ownsData && _dataAddress) {
-//        _ownsData = false;
-
-//        delete [] _dataAddress;
-
-//        _dataAddress = 0;
-//        _size = 0;
-//    }
 }
 
 MemoryView::reference  MemoryView::operator[] (size_type index) {

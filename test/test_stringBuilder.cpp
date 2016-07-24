@@ -46,10 +46,7 @@ private:
 protected:
 
     StringBuilder moveMe() {
-//        auto mem = ;
-        ByteBuffer buffer(_memoryManager.create(strlen(someConstString)));
-
-        return { buffer, someConstString };
+        return { _memoryManager.create(strlen(someConstString)), someConstString };
 	}
 
 public:

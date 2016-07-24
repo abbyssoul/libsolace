@@ -36,7 +36,7 @@
 
 #include <exception>
 #include <string>       // std::string (duh!)
-//#include <ostream>
+
 
 namespace Solace {
 
@@ -158,13 +158,12 @@ public:
 
 template <typename ExceptionType, typename... Args>
 void raise(Args&&... args) {
-    //, int line = __LINE__
     throw ExceptionType(std::forward<Args>(args)..., "place", -1);
 }
 
 }  // End of namespace Solace
 
-//#define THROW(msg) { throw Solace::Exception(msg, __FILE__, __LINE__); }
+
 #define checkAssert(condition, msg) { if ((!condition)) { THROW(msg); } }
 #define assertException(condition, _ex) do { if ( !(condition) ) { throw _ex; } } while (false)
 

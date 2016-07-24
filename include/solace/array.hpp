@@ -38,15 +38,6 @@
 
 namespace Solace {
 
-//class ArrayBase {
-//public:
-//    ArrayBase() = default;
-//    ~ArrayBase() = default;
-
-//protected:
-
-
-//};
 
 size_t validateIndex(size_t index, size_t from, size_t to);
 
@@ -55,7 +46,6 @@ size_t validateIndex(size_t index, size_t from, size_t to);
  */
 template<typename T>
 class Array:
-//        public ArrayBase,
         public IComparable<Array<T>>,
         public Iterable<Array<T>, T>
 {

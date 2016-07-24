@@ -29,7 +29,24 @@ using Solace::StringBuilder;
 using Solace::String;
 using Solace::IllegalArgumentException;
 using Solace::Optional;
+using Solace::MemoryView;
 using Solace::ByteBuffer;
+
+
+StringBuilder::StringBuilder(MemoryView&& buffer): _buffer(std::move(buffer)) {
+}
+
+StringBuilder::StringBuilder(MemoryView&& buffer, const char* cstr): _buffer(std::move(buffer)) {
+    if (!cstr) {
+        raise<IllegalArgumentException>("cstr");
+    }
+
+    _buffer.write(cstr, std::char_traits<char>::length(cstr));
+}
+
+StringBuilder::StringBuilder(MemoryView&& buffer, const String& str): _buffer(std::move(buffer)) {
+    _buffer.write(str.c_str(), str.length());
+}
 
 
 StringBuilder::StringBuilder(const ByteBuffer& buffer): _buffer(buffer) {

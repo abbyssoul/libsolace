@@ -94,13 +94,10 @@ public:
 
 public:
 
-//    explicit MemoryView(size_type newSize);
-
     MemoryView(MemoryView&& rhs) noexcept;
 
     MemoryView(const MemoryView& rhs);
 
-//    MemoryView(size_type size, void* data, bool takeOwnership, bool copyData);
     MemoryView(size_type size, void* data, const std::function<void(MemoryView*)>& freeFunc);
 
     /** Deallocate memory */

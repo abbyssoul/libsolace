@@ -40,5 +40,4 @@ public:
 }  // End of namespace EventLoop
 }  // End of namespace IO
 }  // End of namespace Solace
-#endif // SOLACE_IO_EVENTLOOP_CHANNEL_HPP
-
+#endif  // SOLACE_IO_EVENTLOOP_CHANNEL_HPP
