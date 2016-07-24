@@ -118,7 +118,6 @@ byte* MemoryView::dataAddress(size_type offset) const {
 
 MemoryView& MemoryView::swap(MemoryView& rhs) noexcept {
     std::swap(_size, rhs._size);
-//    std::swap(_ownsData, rhs._ownsData);
     std::swap(_dataAddress, rhs._dataAddress);
     std::swap(_free, rhs._free);
 
@@ -143,7 +142,7 @@ MemoryView MemoryView::slice(size_type from, size_type to) const {
 //            ? copy(_dataAddress + from, to - from)
 //            : wrap(_dataAddress + from, to - from, false);
 
-    return wrap(dataAddress(from), to - from, false);
+    return MemoryView::wrap(dataAddress(from), to - from);
 }
 
 
