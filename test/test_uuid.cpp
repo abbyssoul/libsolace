@@ -117,12 +117,12 @@ public:
         CPPUNIT_ASSERT_THROW(auto x = UUID({1, 0, 3, 4, 5, 6, 7, 8}), IllegalArgumentException);
 
 
-        UUID uid5(MemoryView::wrap(bytes, sizeof(bytes), false));
+        UUID uid5(MemoryView::wrap(bytes, sizeof(bytes)));
         for (UUID::size_type i = 0; i < sizeof(bytes); ++i) {
             CPPUNIT_ASSERT_EQUAL(bytes[i], uid5[i]);
         }
 
-        CPPUNIT_ASSERT_THROW(auto x = UUID(MemoryView::wrap(bytes, 7, false)), IllegalArgumentException);
+        CPPUNIT_ASSERT_THROW(auto x = UUID(MemoryView::wrap(bytes, 7)), IllegalArgumentException);
 
 
         auto mem = _memoryManager.create(16);

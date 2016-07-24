@@ -394,9 +394,9 @@ String String::join(const String& by, const Array<String>& list) {
 
 MemoryView String::getBytes() const {
     // FIXME: How about buffer for CONST data!
-    return MemoryView::wrap(const_cast<char*>(_str.data()),
-                _str.length(), false);
+    return MemoryView::wrap(const_cast<char*>(_str.data()), _str.length());
 }
+
 
 /** Return String representation of boolen value **/
 String String::valueOf(bool value) {
