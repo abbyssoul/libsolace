@@ -22,7 +22,7 @@
 *******************************************************************************/
 #include <solace/char.hpp>  // Class being tested.
 
-
+#include <string.h>
 #include <cppunit/extensions/HelperMacros.h>
 
 using namespace Solace;
@@ -62,15 +62,27 @@ public:
             CPPUNIT_ASSERT_EQUAL(static_cast<Char::value_type>('c'), x.getValue());
         }
 
+        // FIXME(abbyssoul): make unicode work again!
+//        {
+//            byte bytes[] = {0xE3, 0x81, 0xAA};
+//            const Char u(MemoryView::wrap(bytes, sizeof(bytes)));
+//            const char* expected = "な";
+//            CPPUNIT_ASSERT_EQUAL(static_cast<Char::value_type>(14909866), u.getValue());
+//            CPPUNIT_ASSERT_EQUAL(expected, u.c_str());
+//        }
         {
+//            byte bytes[] = {0xA4, 0x9D, 0xE2};
             byte bytes[] = {0xE2, 0x9D, 0xA4};
-            const Char u(bytes, 3);
+            const Char u(MemoryView::wrap(bytes, sizeof(bytes)));
+
             CPPUNIT_ASSERT_EQUAL(static_cast<Char::size_type>(3), u.getBytesCount());
             CPPUNIT_ASSERT_EQUAL(static_cast<char>(0xE2), u.c_str()[0]);
             CPPUNIT_ASSERT_EQUAL(static_cast<char>(0x9D), u.c_str()[1]);
             CPPUNIT_ASSERT_EQUAL(static_cast<char>(0xA4), u.c_str()[2]);
+
             // TODO(abbyssoul): Find a way to test it:
-            // CPPUNIT_ASSERT_EQUAL('♡', (int)u.getValue());
+//            const char* expect = "♡";
+//             CPPUNIT_ASSERT_EQUAL(expect, u.c_str());
             // CPPUNIT_ASSERT_EQUAL(static_cast<Char::value_type>('\u2764'), u.getValue());
         }
     }

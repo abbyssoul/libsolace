@@ -239,6 +239,8 @@ public:
         return read(reinterpret_cast<byte*>(bytes), count);
     }
     const ByteBuffer& read(size_type offset, byte* bytes, size_type count) const;
+    const ByteBuffer& read(size_type offset, MemoryView* bytes) const;
+    const ByteBuffer& read(size_type offset, MemoryView* bytes, size_type count) const;
 
 
     ByteBuffer& write(const MemoryView& memView) {

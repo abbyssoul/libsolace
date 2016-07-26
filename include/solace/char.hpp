@@ -27,6 +27,8 @@
 
 #include "solace/types.hpp"
 #include "solace/icomparable.hpp"
+#include "solace/memoryView.hpp"
+
 
 namespace Solace {
 
@@ -49,12 +51,6 @@ public:
     Char() noexcept : _value()
     {}
 
-    /** Construct new character from array of UTF-8 bytes (octets)
-     *
-     * @note: Size of array should be no more than <imp. def.> bytes
-     */
-    Char(const byte* bytes, size_type count);
-
     /** Construct new character from a byte value */
     Char(byte c);
 
@@ -71,6 +67,12 @@ public:
     /** Move-Construct character. */
     Char(Char&& c) noexcept;
 
+    /** Construct new character from array of UTF-8 bytes (octets)
+     *
+     * @note: Size of array should be no more than <imp. def.> bytes
+     */
+    Char(const MemoryView& bytes);
+
     /** Returns the code-point value of the character. */
     value_type getValue() const noexcept {
         return _value;
@@ -84,8 +86,7 @@ public:
     const char* c_str() const noexcept;
 
     /** Get raw bytes representation of the code-point */
-    // TODO(abbyssoul): Should be wrapped in Buffer()
-    const byte* data() const noexcept;
+    const MemoryView getBytes() const noexcept;
 
     /** Returns true if this character is equal to given. */
     bool equals(const Char& rhs) const noexcept override {

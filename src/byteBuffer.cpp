@@ -142,6 +142,30 @@ const ByteBuffer& ByteBuffer::read(size_type offset, byte* bytes, size_type coun
 }
 
 
+const ByteBuffer& ByteBuffer::read(size_type offset, MemoryView* bytes) const {
+    if (!bytes) {
+        raise<IllegalArgumentException>("bytes");
+    }
+
+    return read(offset, bytes, bytes->size());
+}
+
+
+const ByteBuffer& ByteBuffer::read(size_type offset, MemoryView* bytes, size_type count) const {
+    if ( !(offset + count <= _limit) ) {
+        raise<OverflowException>(offset + count, 0, _limit);
+    }
+
+    if ( !(bytes->size() < count) ) {
+        raise<OverflowException>(count, 0, bytes->size());
+    }
+
+    memcpy(bytes->dataAddress(), _storage.dataAddress(offset), count);
+
+    return (*this);
+}
+
+
 ByteBuffer& ByteBuffer::write(const MemoryView& buffer, size_type bytesToWrite) {
     if ( !(bytesToWrite <= remaining()) ) {
          raise<OverflowException>(_position + bytesToWrite, _position, remaining());

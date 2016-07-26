@@ -96,14 +96,21 @@ public:
         {   // Can't wrap nullptr with non-zero size
             CPPUNIT_ASSERT_THROW(auto b = MemoryView::wrap(nullB, 321), IllegalArgumentException);
         }
+
+        {   // Wrapping constructor
+            byte example[] = {0, 1, 0, 3, 2, 1};  // size = 6
+            auto test = MemoryView::wrap(example, sizeof(example));
+
+            CPPUNIT_ASSERT(!test.empty());
+            CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(6), test.size());
+
+            for (size_t i = 0; i < test.size(); ++i) {
+                CPPUNIT_ASSERT_EQUAL(example[i], test.dataAddress()[i]);
+            }
+        }
     }
 
     void testConstruction() {
-        {   // NullPointer smoke test
-             CPPUNIT_ASSERT_THROW(auto a = MemoryView(321, NULL, 0), IllegalArgumentException);
-//            MemoryView nullbuffer(321, NULL, false, false);
-//            CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(0), nullbuffer.size());
-        }
         {   // Fixed size constructor
             MemoryView test = manager.create(3102);
 
@@ -119,21 +126,11 @@ public:
             CPPUNIT_ASSERT_EQUAL(static_cast<byte>(255), test.dataAddress()[test.size() - 1]);
         }
 
-        {   // Wrapping constructor
-            byte example[] = {0, 1, 0, 3, 2, 1};  // size = 6
-            MemoryView test(sizeof(example), example, 0);
-
-            CPPUNIT_ASSERT(!test.empty());
-            CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(6), test.size());
-
-            for (size_t i = 0; i < test.size(); ++i)
-                CPPUNIT_ASSERT_EQUAL(example[i], test.dataAddress()[i]);
-        }
 
         {   // Copy-constructor
             byte example[] = {7, 5, 0, 2, 21, 15, 178};  // size = 7
-            MemoryView::size_type exampleSize = sizeof(example);
-            MemoryView b1(exampleSize, example, 0);
+            const MemoryView::size_type exampleSize = sizeof(example);
+            auto b1 = MemoryView::wrap(example, exampleSize);
             MemoryView b2(b1);
 
             CPPUNIT_ASSERT_EQUAL(exampleSize, b1.size());

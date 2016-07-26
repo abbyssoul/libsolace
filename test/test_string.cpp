@@ -52,6 +52,7 @@ class TestString : public CppUnit::TestFixture  {
 // TODO(abbyssoul): CPPUNIT_TEST(testValueOf);
         CPPUNIT_TEST(testToString);
         CPPUNIT_TEST(test_cstr);
+        CPPUNIT_TEST(test_iterable_forEach);
 
 // TODO(abbyssoul):    CPPUNIT_TEST(testJoin);
 // TODO(abbyssoul): Implement null safety first:
@@ -585,6 +586,21 @@ public:
 			CPPUNIT_ASSERT_EQUAL(0, strcmp(someConstString, str.c_str()));
 		}
 	}
+
+    void test_iterable_forEach() {
+        const String ident(someConstString);
+
+        int summ = 0;
+        for (auto c : ident.getBytes()) {
+            summ += c;
+        }
+
+        ident.forEach([&summ](const Char& c) {
+            summ -= c.getValue();
+        });
+
+        CPPUNIT_ASSERT_EQUAL(0, summ);
+    }
 
 };
 

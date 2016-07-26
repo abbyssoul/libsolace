@@ -98,8 +98,6 @@ public:
 
     MemoryView(const MemoryView& rhs);
 
-    MemoryView(size_type size, void* data, const std::function<void(MemoryView*)>& freeFunc);
-
     /** Deallocate memory */
     ~MemoryView();
 
@@ -108,12 +106,6 @@ public:
     MemoryView& operator= (MemoryView&& rhs) noexcept {
         return swap(rhs);
     }
-
-//    MemoryView& operator= (const MemoryView& rhs) noexcept {
-//        MemoryView(rhs).swap(*this);
-
-//        return *this;
-//    }
 
     bool equals(const MemoryView& other) const noexcept {
         if ((&other == this) ||
@@ -210,6 +202,10 @@ public:
      * @return The slice of the memory segment.
      */
     MemoryView slice(size_type from, size_type to) const;
+
+protected:
+
+    MemoryView(size_type size, void* data, const std::function<void(MemoryView*)>& freeFunc);
 
 private:
 

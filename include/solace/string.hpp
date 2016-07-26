@@ -28,6 +28,7 @@
 
 #include "solace/char.hpp"
 #include "solace/iformattable.hpp"
+#include "solace/iterable.hpp"
 #include "solace/byteBuffer.hpp"
 #include "solace/array.hpp"
 
@@ -43,8 +44,8 @@ namespace Solace {
  * it can be easily converted to and from std::string and/or C-strings
  */
 class String:   public IFormattable,
-                public IComparable<String>
-        // TODO(abbyssoul): public Iterable<Char>
+                public IComparable<String>,
+                public Iterable<String, Char>
 {
 public:
     typedef MemoryView::size_type   size_type;
@@ -298,7 +299,7 @@ public:  // Basic collection operations:
 	/**
      * Get bytes of the encoded representation of the string.
 	 */
-    MemoryView getBytes() const;
+    const MemoryView getBytes() const;
 
     /** Array index operator. Obtain a copy of the character at the given
 	 * offset in the string.
@@ -441,6 +442,10 @@ public:
     String substring(Iterator from) const;
     String substring(Iterator from, Iterator to) const;
 */
+
+    /** @see Iterable::forEach */
+    const String& forEach(const std::function<void(const value_type&)> &f) const override;
+
 private:
 
     // FIXME(abbyssoul): Come up a better implementation

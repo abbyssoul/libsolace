@@ -25,8 +25,9 @@
 #include "solace/exception.hpp"
 
 
-using Solace::StringBuilder;
+using Solace::Char;
 using Solace::String;
+using Solace::StringBuilder;
 using Solace::IllegalArgumentException;
 using Solace::Optional;
 using Solace::MemoryView;
@@ -124,13 +125,17 @@ String StringBuilder::substring(size_type from, size_type to) const {
 Optional<StringBuilder::size_type> StringBuilder::indexOf(const Char& ch, size_type fromIndex) const {
     // TODO(abbyssoul): Check for index out of range
 
-    Char c;
+    MemoryView::value_type buffer[Char::max_bytes];
+    auto b = MemoryView::wrap(buffer, sizeof(buffer));
+
+
     for (size_type i = fromIndex; i + ch.getBytesCount() < _buffer.position(); ++i) {
-        _buffer.read(i, const_cast<byte*>(c.data()), ch.getBytesCount());
-        if (c.equals(ch)) {
+        _buffer.read(i, &b, ch.getBytesCount());
+
+        if (ch.equals(b)) {
             return Optional<size_type>::of(i);
         }
     }
 
-    return Optional<size_type>::none();
+    return None();
 }
