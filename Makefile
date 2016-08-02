@@ -84,10 +84,10 @@ libs/FlintPlusPlus:
 	git clone --depth 3 https://github.com/L2Program/FlintPlusPlus.git libs/FlintPlusPlus
 
 libs/cppcheck/cppcheck: libs/cppcheck
-	$(MAKE) -C libs/cppcheck cppcheck
+	$(MAKE) -j2 -C libs/cppcheck cppcheck
 
 libs/FlintPlusPlus/flint: libs/FlintPlusPlus
-	$(MAKE) -C libs/FlintPlusPlus/flint
+	$(MAKE) -j2 -C libs/FlintPlusPlus/flint
 
 cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
 	cpplint --recursive --exclude=test/ci/* include/ src/ test/
@@ -103,10 +103,11 @@ cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) libs/cppcheck/cppcheck
 flint: $(MODULE_HEADERS) $(MODULE_SRC) libs/FlintPlusPlus/flint
 	libs/FlintPlusPlus/flint/flint++ -v -r src/ test/ examples/
 
-
 scan-build: ANALYZE_MAKE
 	cd $(ANALYZE_DIR) && scan-build $(MAKE)
 
+tidy:
+	clang-tidy -checks=llvm-*,modernize-*,clang-analyzer-* src/*.cpp -- -Iinclude/ -Ilibs/fmt/ -std=c++14
 
 codecheck: cpplint flint cppcheck #scan-build
 

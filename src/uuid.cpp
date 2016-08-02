@@ -94,8 +94,10 @@ UUID::UUID(std::initializer_list<byte> bytes) {
     size_type i = 0;
     for (const auto& v : bytes) {
         _bytes[i++] = v;
-        if (i >= size())
+
+        if (i >= size()) {
             break;
+        }
     }
 }
 
@@ -108,8 +110,9 @@ UUID& UUID::swap(UUID& rhs) noexcept {
 
 bool UUID::isNull() const noexcept {
     int summ = 0;
-    for (auto v : _bytes)
+    for (auto v : _bytes) {
         summ += v;
+    }
 
     return (summ == 0);
 }
@@ -140,6 +143,7 @@ bool operator < (const UUID& lhs, const UUID& rhs) noexcept {
     return memcmp(lhs.data(), rhs.data(), lhs.size()) < 0;
 }
 
+
 MemoryView UUID::toBytes() const {
     return MemoryView::wrap(const_cast<byte*>(_bytes), size());
 }
@@ -153,6 +157,7 @@ const UUID& UUID::forEach(const std::function<void(const_reference)> &f) const {
 
     return *this;
 }
+
 
 void nibbleData(char* buffer, const byte* data, size_t len) {
 //    static const char NibbleToHex[] = "0123456789ABCDEF";
@@ -184,12 +189,15 @@ String UUID::toString() const {
 
 
 int char2int(char input) {
-    if (input >= '0' && input <= '9')
+    if (input >= '0' && input <= '9') {
         return input - '0';
-    if (input >= 'A' && input <= 'F')
+    }
+    if (input >= 'A' && input <= 'F') {
         return input - 'A' + 10;
-    if (input >= 'a' && input <= 'f')
+    }
+    if (input >= 'a' && input <= 'f') {
         return input - 'a' + 10;
+    }
 
 /*
  Alternative down is unsafe as we don't controll input string and bytes def can be > 128
