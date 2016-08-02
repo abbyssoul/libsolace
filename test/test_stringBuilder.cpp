@@ -66,7 +66,7 @@ public:
         ByteBuffer buffer(mem);
 
         {   // Null Pointer exception test
-            CPPUNIT_ASSERT_THROW(const StringBuilder nullString(buffer, NULL), IllegalArgumentException);
+            CPPUNIT_ASSERT_THROW(const StringBuilder nullString(buffer, nullptr), IllegalArgumentException);
 		}
 
 	}

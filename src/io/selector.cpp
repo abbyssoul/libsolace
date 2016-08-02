@@ -67,7 +67,7 @@ class EPoll_PollerImpl : public Solace::IO::Selector::IPollerImpl {
 public:
 
     // FIXME: evlist will actually leak if we throw here...
-    EPoll_PollerImpl(uint maxReportedEvents): _evlist(maxReportedEvents) {
+    explicit EPoll_PollerImpl(uint maxReportedEvents): _evlist(maxReportedEvents) {
         _epfd = epoll_create(maxReportedEvents);
 
         if (-1 == _epfd) {

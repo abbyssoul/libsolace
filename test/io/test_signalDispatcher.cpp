@@ -54,7 +54,7 @@ public:
         timeToSleep.it_interval.tv_usec = 0;
         timeToSleep.it_value.tv_sec = 0;
         timeToSleep.it_value.tv_usec = 250 * 1000;
-        CPPUNIT_ASSERT_EQUAL(0, setitimer(ITIMER_REAL, &timeToSleep, NULL));
+        CPPUNIT_ASSERT_EQUAL(0, setitimer(ITIMER_REAL, &timeToSleep, nullptr));
 
         usleep(400 * 1000);
         CPPUNIT_ASSERT(signaled);
@@ -74,7 +74,7 @@ public:
         });
 
         timeToSleep.it_value.tv_usec = 300 * 1000;
-        CPPUNIT_ASSERT_EQUAL(0, setitimer(ITIMER_REAL, &timeToSleep, NULL));
+        CPPUNIT_ASSERT_EQUAL(0, setitimer(ITIMER_REAL, &timeToSleep, nullptr));
 
         usleep(600 * 1000);
 

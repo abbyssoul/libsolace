@@ -31,7 +31,7 @@ class TeamcityProgressListener: public CPPUNIT_NS::TestListener {
     TeamcityMessages messages;
     
 public:
-    TeamcityProgressListener(const std::string& _flowid);
+    explicit TeamcityProgressListener(const std::string& flowId);
     TeamcityProgressListener();
     ~TeamcityProgressListener();
 

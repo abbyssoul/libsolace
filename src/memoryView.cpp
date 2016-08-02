@@ -27,11 +27,11 @@
 
 #include <utility>
 #include <cstring>  // memcpy
+#include <sys/mman.h>
 
 
 using Solace::byte;
 using Solace::MemoryView;
-
 
 
 
@@ -166,6 +166,27 @@ MemoryView& MemoryView::fill(byte value, size_type from, size_type to) {
 
 MemoryView& MemoryView::fill(byte value) {
     memset(_dataAddress, value, _size);
+
+    return (*this);
+}
+
+
+MemoryView& MemoryView::lock() {
+
+    if (mlock(dataAddress(), size()) < 0) {
+        // TODO(abbyssoul): shold use ErrnoException
+        raise<Exception>("failed to lock memory");
+    }
+
+    return (*this);
+}
+
+
+MemoryView& MemoryView::unlock() {
+    if (munlock(dataAddress(), size()) < 0) {
+        // TODO(abbyssoul): shold use ErrnoException
+        raise<Exception>("failed to lock memory");
+    }
 
     return (*this);
 }

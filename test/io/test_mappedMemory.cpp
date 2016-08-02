@@ -105,7 +105,7 @@ public:
             } break;
 
             default: {  /* Parent: wait for child to terminate */
-                if (wait(NULL) == -1) {
+                if (wait(nullptr) == -1) {
                     const auto msg = String::join(": ", {"wait", strerror(errno)});
                     CPPUNIT_FAIL(msg.c_str());
                 }

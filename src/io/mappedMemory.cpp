@@ -52,7 +52,7 @@ void* mapMemory(MappedMemoryView::size_type memSize, int protection, MappedMemor
     case MappedMemoryView::Access::Shared: flags |= MAP_SHARED; break;
     }
 
-    auto addr = mmap(NULL, memSize, protection, flags, fd, 0);
+    auto addr = mmap(nullptr, memSize, protection, flags, fd, 0);
     if (addr == MAP_FAILED) {
         Solace::raise<IOException>(errno, "mmap");
     }

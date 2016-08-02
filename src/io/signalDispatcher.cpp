@@ -84,7 +84,7 @@ void SignalDispatcher::attachHandler(int signalNumber, const std::function<void(
         mapping.emplace(signalNumber, [old_action](int signal) {
             if ((old_action.sa_flags & SA_SIGINFO) == SA_SIGINFO) {
                 siginfo_t crap;
-                old_action.sa_sigaction(signal, &crap, NULL);
+                old_action.sa_sigaction(signal, &crap, nullptr);
             } else {
                 old_action.sa_handler(signal);
             }

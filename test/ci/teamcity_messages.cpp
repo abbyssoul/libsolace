@@ -25,18 +25,18 @@ namespace teamcity {
 
 std::string getFlowIdFromEnvironment() {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
-    char *flowId = NULL;
+    char *flowId = nullptr;
     size_t sz = 0;
     std::string result;
     if(!_dupenv_s(&flowId, &sz,"TEAMCITY_PROCESS_FLOW_ID")) {
-        result = flowId != NULL ? flowId : "";
+        result = flowId != nullptr ? flowId : "";
         free(flowId);
     }
 
     return result;
 #else
     const char *flowId = getenv("TEAMCITY_PROCESS_FLOW_ID");
-    return flowId == NULL ? "" : flowId;
+    return flowId == nullptr ? "" : flowId;
 #endif
 }
 
@@ -46,13 +46,13 @@ bool underTeamcity() {
     size_t sz = 0;
     bool result = false;
     if(!_dupenv_s(&teamCityProjectName, &sz, "TEAMCITY_PROJECT_NAME")) {
-        result = teamCityProjectName != NULL;
+        result = teamCityProjectName != nullptr;
         free(teamCityProjectName);
     }
 
     return result;
 #else
-    return getenv("TEAMCITY_PROJECT_NAME") != NULL;
+    return getenv("TEAMCITY_PROJECT_NAME") != nullptr;
 #endif
 }
 

@@ -62,7 +62,7 @@ private:
 class TestStopper: public CppUnit::Protector {
 public:
 
-    TestStopper(IntrruptableTestRunner& testRunner): _testRunner(testRunner) {
+    explicit TestStopper(IntrruptableTestRunner& testRunner): _testRunner(testRunner) {
     }
 
     // cppcheck-suppress unusedFunction
@@ -166,7 +166,7 @@ TestRunner GlobalTestRunner;
 
 int main(int argc, char* argv[]) {
     // FIXME(abbyssoul): Add signal handling in test ::signal(SIGSEGV, _sighandler);
-    srandom(time(NULL));
+    srandom(time(nullptr));
 
     return GlobalTestRunner.scanTests().run((argc > 1) ? argv[1] : "");
 }

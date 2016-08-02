@@ -141,7 +141,7 @@ public:
 
 
         timeval timeOfDay;
-        gettimeofday(&timeOfDay, NULL);
+        gettimeofday(&timeOfDay, nullptr);
         auto t = fs.getTimestamp(filename);
         CPPUNIT_ASSERT(timeOfDay.tv_sec - t.tv_sec < 2);
 

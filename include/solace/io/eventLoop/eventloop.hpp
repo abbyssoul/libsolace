@@ -25,6 +25,7 @@
 #define SOLACE_IO_EVENTLOOP_EVENTLOOP_HPP
 
 #include "solace/types.hpp"
+#include "solace/io/selector.hpp"
 #include "solace/io/eventLoop/channel.hpp"
 
 #include <memory>
@@ -32,7 +33,12 @@
 namespace Solace { namespace IO { namespace EventLoop {
 
 /**
- * Event Loop
+ * Event Loop build on top of selectors.
+ *
+ * This package allows developers to use heigher level concept of the event loop to write reactive applicatoins.
+ * Event loop abstacts data sources, polling all inputs and outputs and
+ * triggers all event handlers when a channel is ready.
+ *
  */
 class EventLoop {
 public:
@@ -49,7 +55,18 @@ public:
     void add(const std::shared_ptr<Channel>& channel);
     void remove(const std::shared_ptr<Channel>& channel);
 
+    /**
+     * Run a single iteration of the loop
+     * @return True, if there are still more iteration to run
+     */
     bool iterate();
+
+    void run();
+
+private:
+
+    Selector _selector;
+
 };
 
 }  // End of namespace EventLoop

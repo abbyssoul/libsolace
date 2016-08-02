@@ -218,7 +218,7 @@ PlatformFilesystem::size_type PlatformFilesystem::getFileSize(const Path& path) 
 
 Path PlatformFilesystem::realPath(const Path& path) const {
     const auto& pathString = path.toString();
-    std::unique_ptr<char, decltype(std::free)*> real_path{realpath(pathString.c_str(), NULL), std::free};
+    std::unique_ptr<char, decltype(std::free)*> real_path{realpath(pathString.c_str(), nullptr), std::free};
 
     return (real_path)
             ? Path::parse(String(real_path.get()))
@@ -241,7 +241,7 @@ Array<Path> PlatformFilesystem::glob(const String& pattern) const {
     std::vector<Path> pathsFound;
 
     glob_t globResults;
-    auto ret = ::glob(pattern.c_str(), 0, NULL, &globResults);
+    auto ret = ::glob(pattern.c_str(), 0, nullptr, &globResults);
 
     if (ret == 0) {  // All good - transfer matches into an array
         pathsFound.reserve(globResults.gl_pathc);
@@ -274,11 +274,11 @@ Array<Path> PlatformFilesystem::glob(std::initializer_list<const char*> patterns
         return pathsFound;
 
     glob_t globResults;
-    ::glob(*(patterns.begin()), 0, NULL, &globResults);
+    ::glob(*(patterns.begin()), 0, nullptr, &globResults);
 
     auto iter = patterns.begin();
     while (++iter != patterns.end()) {
-        ::glob(*iter, GLOB_APPEND, NULL, &globResults);
+        ::glob(*iter, GLOB_APPEND, nullptr, &globResults);
     }
 
     pathsFound.reserve(globResults.gl_pathc);

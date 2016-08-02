@@ -4,6 +4,7 @@
 PROJECT = solace
 
 BUILD_DIR = build
+ANALYZE_DIR = build-analyze
 INCLUDE_DIR = include
 SRC_DIR = src
 TEST_DIR = test
@@ -24,7 +25,7 @@ DOC_TARGET = $(DOC_DIR)/html
 
 
 # First tagret that starts not with '.'' - is a default target to run
-.PHONY: codecheck verify clean
+.PHONY: codecheck verify clean ANALYZE_MAKE
 
 all: lib
 
@@ -40,7 +41,7 @@ ${GENERATED_MAKE}: ${BUILD_DIR}
 
 
 #-------------------------------------------------------------------------------
-# Build lib
+# Build the project
 #-------------------------------------------------------------------------------
 $(LIB_TAGRET): ${GENERATED_MAKE}
 	$(MAKE) -C ${BUILD_DIR} solace
@@ -69,13 +70,24 @@ doc: $(MODULE_HEADERS) $(MODULE_SRC) $(DOC_TARGET)
 #-------------------------------------------------------------------------------
 # Code quality assurance
 #-------------------------------------------------------------------------------
+$(ANALYZE_DIR):
+	mkdir -p ${ANALYZE_DIR}
+
+ANALYZE_MAKE: ${ANALYZE_DIR}
+	cd ${ANALYZE_DIR} && cmake -DCMAKE_C_COMPILER=$(shell which scan-build) ..
+
 libs/cppcheck:
 	#./libs/dependencies
 	git clone --depth 3 https://github.com/danmar/cppcheck.git libs/cppcheck
 
+libs/FlintPlusPlus:
+	git clone --depth 3 https://github.com/L2Program/FlintPlusPlus.git libs/FlintPlusPlus
+
 libs/cppcheck/cppcheck: libs/cppcheck
 	$(MAKE) -C libs/cppcheck cppcheck
 
+libs/FlintPlusPlus/flint: libs/FlintPlusPlus
+	$(MAKE) -C libs/FlintPlusPlus/flint
 
 cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
 	cpplint --recursive --exclude=test/ci/* include/ src/ test/
@@ -88,11 +100,20 @@ cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) libs/cppcheck/cppcheck
 	--enable=warning,performance,portability,missingInclude,information,unusedFunction \
 	-I include -i test/ci src test examples
 
+flint: $(MODULE_HEADERS) $(MODULE_SRC) libs/FlintPlusPlus/flint
+	libs/FlintPlusPlus/flint/flint++ -v -r src/ test/ examples/
 
-codecheck: cpplint cppcheck
+
+scan-build: ANALYZE_MAKE
+	cd $(ANALYZE_DIR) && scan-build $(MAKE)
+
+
+codecheck: cpplint flint cppcheck #scan-build
+
+
 
 #-------------------------------------------------------------------------------
-# Code quality assurance
+# Runtime Quality Control
 #-------------------------------------------------------------------------------
 
 verify: $(TEST_TAGRET)

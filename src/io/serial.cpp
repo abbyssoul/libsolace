@@ -535,7 +535,7 @@ bool Serial::waitReadable(uint32 timeout) {
     FD_SET(fd, &readfds);
 
     timespec timeout_ts(timespec_from_ms(timeout));
-    const int r = pselect(fd + 1, &readfds, NULL, NULL, &timeout_ts, NULL);
+    const int r = pselect(fd + 1, &readfds, nullptr, nullptr, &timeout_ts, nullptr);
 
     if (r < 0) {
         // Select was interrupted

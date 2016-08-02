@@ -31,7 +31,7 @@ namespace Solace { namespace IO { namespace EventLoop {
 class Channel: public ISelectable {
 public:
 
-    virtual ~Channel();
+    virtual ~Channel() = default;
 
     virtual bool onRead() = 0;
     virtual bool onWrite() = 0;

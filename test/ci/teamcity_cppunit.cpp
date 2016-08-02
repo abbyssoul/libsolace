@@ -15,12 +15,13 @@
  * $Revision: 88625 $
 */
 
+#include "teamcity_cppunit.h"
+
 #include <sstream>
 
 #include "cppunit/Test.h"
 #include "cppunit/Exception.h"
 
-#include "teamcity_cppunit.h"
 
 using namespace CPPUNIT_NS;
 using namespace std;

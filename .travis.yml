@@ -1,4 +1,9 @@
 language: cpp
+compiler:
+  - clang
+  - gcc
+os:
+  - linux
 sudo: required
 dist: trusty
 addons:
@@ -13,6 +18,12 @@ addons:
    - python-pip
    - valgrind 
    - ggcov
+ coverity_scan:
+   project:
+     name: "ChaiScript/ChaiScript"
+     description: "Build submitted via Travis CI"
+   build_command: "cmake --build . -- -j2"
+
 # addons:
 #   apt:
 #     sources:
@@ -25,11 +36,6 @@ addons:
 #       - gcc-5
 #       - cmake
 #       - cmake-data
-compiler:
-  - clang
-  - gcc
-os:
-  - linux
 before_install:
   # - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   # - sudo apt-get install -qq cmake doxygen g++-4.9 python-pip valgrind ggcov
@@ -37,6 +43,7 @@ before_install:
 install:
   - sudo apt-get install -qq libcppunit-dev
   - sudo pip install cpplint
+  - sudo pip install cpp-coveralls
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.8 80
   # - if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
@@ -44,6 +51,6 @@ install:
   - libs/dependencies
 script:
   - make codecheck
-  - make
+  - make -j2
   - make test
   - make verify
