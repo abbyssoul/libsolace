@@ -49,8 +49,8 @@ UUID UUID::random() {
 
 
 UUID::UUID() noexcept {
-    for (size_type i = 0; i < StaticSize; ++i) {
-        _bytes[i] = rand() % 255;
+    for (auto& b : _bytes) {
+        b = rand() % 255;
     }
 }
 
@@ -80,13 +80,13 @@ UUID::UUID(ByteBuffer& s) {
         raise<IllegalArgumentException>("bytes");
     }
 
-    for (size_type i = 0; i < size(); ++i) {
-        _bytes[i] = s.get();
+    for (auto& b : _bytes) {
+        b = s.get();
     }
 }
 
 
-UUID::UUID(std::initializer_list<byte> bytes) {
+UUID::UUID(const std::initializer_list<byte>& bytes) {
     if (bytes.size() < size()) {
         raise<IllegalArgumentException>("bytes");
     }

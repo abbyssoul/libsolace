@@ -25,8 +25,9 @@
 #include "solace/exception.hpp"
 
 
-#include <utility>
 #include <cstring>  // memcpy
+#include <utility>
+
 #include <sys/mman.h>
 
 
@@ -52,7 +53,7 @@ MemoryView MemoryView::wrap(byte* data, size_type size, const std::function<void
 MemoryView::MemoryView(const MemoryView& rhs):
             _size(rhs._size),
             _dataAddress(rhs._dataAddress),
-            _free(0)
+            _free(nullptr)
 {
 }
 
@@ -65,7 +66,7 @@ MemoryView::MemoryView(MemoryView&& rhs) noexcept :
     // Stuff up rhs so it won't be destructed
     rhs._size = 0;
     rhs._dataAddress = nullptr;
-    rhs._free = 0;
+    rhs._free = nullptr;
 }
 
 

@@ -55,7 +55,7 @@ public:
     MemoryManager(const MemoryManager&) = delete;
 
     /** Deallocate memory */
-    virtual ~MemoryManager();
+    virtual ~MemoryManager() = default;
 
     MemoryManager& swap(MemoryManager& rhs) noexcept;
     MemoryManager& operator= (MemoryManager&& rhs) noexcept;

@@ -57,7 +57,7 @@ set(EXAMPLE_SERIAL_SOURCE_FILES examples/serial.cpp)
 
 set(FMT_USE_CPP11 OFF CACHE BOOL "Don't add std by fmt" FORCE)
 add_subdirectory(libs/fmt)
-add_subdirectory(src)
+add_subdirectory(libsolace)
 add_subdirectory(test)
 
 add_executable(serial ${EXAMPLE_SERIAL_SOURCE_FILES})

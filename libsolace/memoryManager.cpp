@@ -51,11 +51,6 @@ MemoryManager::MemoryManager(size_type allowedCapacity) :
 }
 
 
-MemoryManager::~MemoryManager() {
-
-}
-
-
 MemoryManager& MemoryManager::swap(MemoryManager& rhs) noexcept {
     std::swap(_capacity, rhs._capacity);
     std::swap(_size, rhs._size);

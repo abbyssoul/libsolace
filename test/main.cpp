@@ -59,6 +59,7 @@ private:
     bool _isStopped = false;
 };
 
+
 class TestStopper: public CppUnit::Protector {
 public:
 

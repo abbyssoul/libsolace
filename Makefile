@@ -3,11 +3,13 @@
 # this file is just a convenience wrapper for common tasks.
 PROJECT = solace
 
+# Project directory layout
 BUILD_DIR = build
 ANALYZE_DIR = build-analyze
 INCLUDE_DIR = include
-SRC_DIR = src
+SRC_DIR = libsolace
 TEST_DIR = test
+
 
 MODULE_HEADERS = ${INCLUDE_DIR}/*
 MODULE_SRC = ${SRC_DIR}/*
@@ -37,7 +39,7 @@ all: lib
 ${BUILD_DIR}:
 	mkdir -p ${BUILD_DIR}
 
-${GENERATED_MAKE}: ${BUILD_DIR}
+$(GENERATED_MAKE): ${BUILD_DIR}
 	cd ${BUILD_DIR} && cmake ..
 
 
@@ -91,7 +93,7 @@ libs/FlintPlusPlus/flint/flint++: libs/FlintPlusPlus
 	$(MAKE) -j2 -C libs/FlintPlusPlus/flint
 
 cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
-	cpplint --recursive --exclude=test/ci/* include/ src/ test/
+	cpplint --recursive --exclude=${TEST_DIR}/ci/* ${INCLUDE_DIR} ${SRC_DIR} ${TEST_DIR}
 
 #	--enable=style,unusedFunctions,exceptNew,exceptRealloc,possibleError 
 #	cppcheck --std=c++11 --enable=all -v -I $(MODULE_HEADERS) $(MODULE_SRC) 
@@ -99,16 +101,19 @@ cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) libs/cppcheck/cppcheck
 	#--inconclusive
 	libs/cppcheck/cppcheck --std=c++11 --std=posix -D __linux__ --inline-suppr -q --error-exitcode=2 \
 	--enable=warning,performance,portability,missingInclude,information,unusedFunction \
-	-I include -i test/ci src test examples
+	-I include -i test/ci ${SRC_DIR} ${TEST_DIR} examples
 
 flint: $(MODULE_HEADERS) $(MODULE_SRC) libs/FlintPlusPlus/flint/flint++
-	libs/FlintPlusPlus/flint/flint++ -v -r src/ test/ examples/
+	libs/FlintPlusPlus/flint/flint++ -v -r ${SRC_DIR} ${TEST_DIR} examples/
 
 scan-build: ANALYZE_MAKE
 	cd $(ANALYZE_DIR) && scan-build $(MAKE)
 
 tidy:
-	clang-tidy -checks=llvm-*,modernize-*,clang-analyzer-* src/*.cpp -- -Iinclude/ -Ilibs/fmt/ -std=c++14
+	clang-tidy -checks=llvm-*,modernize-*,clang-analyzer-*,-modernize-pass-by-value -header-filter=.* \
+	${SRC_DIR}/*.cpp -- -I${INCLUDE_DIR} -Ilibs/fmt/ -std=c++14
+
+
 
 codecheck: cpplint flint cppcheck #scan-build
 
