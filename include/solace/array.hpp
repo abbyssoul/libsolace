@@ -92,7 +92,7 @@ public:
     //------------------------------------------------------------------------------------------------------------------
 
     /** Construct an array from an initialized list */
-    Array(std::initializer_list<T> list): _storage(list) {
+    Array(const std::initializer_list<T>& list): _storage(list) {
     }
 
     /** Construct an array from an std:: */

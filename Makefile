@@ -86,7 +86,7 @@ libs/FlintPlusPlus:
 libs/cppcheck/cppcheck: libs/cppcheck
 	$(MAKE) -j2 -C libs/cppcheck cppcheck
 
-libs/FlintPlusPlus/flint: libs/FlintPlusPlus
+libs/FlintPlusPlus/flint/flint++: libs/FlintPlusPlus
 	$(MAKE) -j2 -C libs/FlintPlusPlus/flint
 
 cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
@@ -100,7 +100,7 @@ cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) libs/cppcheck/cppcheck
 	--enable=warning,performance,portability,missingInclude,information,unusedFunction \
 	-I include -i test/ci src test examples
 
-flint: $(MODULE_HEADERS) $(MODULE_SRC) libs/FlintPlusPlus/flint
+flint: $(MODULE_HEADERS) $(MODULE_SRC) libs/FlintPlusPlus/flint/flint++
 	libs/FlintPlusPlus/flint/flint++ -v -r src/ test/ examples/
 
 scan-build: ANALYZE_MAKE

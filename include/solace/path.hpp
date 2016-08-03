@@ -133,11 +133,11 @@ public:  // Object construction
         // No-op
     }
 
-    Path(std::initializer_list<Path> components): Path(Path::join(components)) {
+    Path(const std::initializer_list<Path>& components): Path(Path::join(components)) {
         // No-op
     }
 
-    Path(std::initializer_list<String> components): _components(components) {
+    Path(const std::initializer_list<String>& components): _components(components) {
         // No-op
     }
 
