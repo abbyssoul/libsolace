@@ -23,6 +23,7 @@ TEST_TAGRET = $(BUILD_DIR)/$(TEST_DIR)/$(TESTNAME)
 DOC_DIR = doc
 DOC_TARGET = $(DOC_DIR)/html
 
+COVERAGE_REPORT = coverage.json
 
 # First tagret that starts not with '.'' - is a default target to run
 .PHONY: codecheck verify clean ANALYZE_MAKE
@@ -125,6 +126,11 @@ verify: $(TEST_TAGRET)
 	valgrind --trace-children=yes --track-fds=yes --read-var-info=yes --redzone-size=128 --error-exitcode=3 \
 	--tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --partial-loads-ok=no \
 	$(TEST_TAGRET)
+
+$(COVERAGE_REPORT):
+	coveralls --exclude build --exclude libs --exclude tests --gcov-options '\-lp' --dump $(COVERAGE_REPORT)
+
+coverage: $(COVERAGE_REPORT)
 
 #-------------------------------------------------------------------------------
 # Insatall
