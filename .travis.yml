@@ -33,7 +33,7 @@ addons:
      description: "Framework for High Reliability/High Availability applications"
    notification_email: abbyssoul@gmail.com
    #build_command_prepend: "<Your build preprocessing command here>"
-   build_command: "cmake --build . -- -j2"
+   build_command: "make"
    branch_pattern: master
    #branch_pattern: coverity_scan
 
