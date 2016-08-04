@@ -111,17 +111,20 @@ void MemoryManager::free(MemoryView* view) {
 
 
 MemoryView MemoryManager::create(size_type dataSize) {
-    if (size() + dataSize > capacity())
+    if (size() + dataSize > capacity()) {
         raise<OverflowException>("dataSize", dataSize, 0, capacity() - size());
+    }
 
-    if (isLocked())
+    if (isLocked()) {
         raise<Exception>("locked");
+    }
 
     auto data = new MemoryView::value_type[dataSize];
 
     _size += dataSize;
 
-    return MemoryView::wrap(data, dataSize, std::bind(&MemoryManager::free, this, std::placeholders::_1));
+    return MemoryView::wrap(data, dataSize,
+                            [this](MemoryView* view) { this->free(view); });
 }
 
 

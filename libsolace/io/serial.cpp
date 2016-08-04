@@ -67,15 +67,15 @@ void reconfigurePort(int fd, uint32 baudrate, Serial::Bytesize bytesize,
     }
 
     // set up raw mode / no echo / binary
-    options.c_cflag |= (tcflag_t)  (CLOCAL | CREAD);
-    options.c_lflag &= (tcflag_t) ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN);
-    options.c_oflag &= (tcflag_t) ~(OPOST);
-    options.c_iflag &= (tcflag_t) ~(INLCR | IGNCR | ICRNL | IGNBRK);
+    options.c_cflag |= (CLOCAL | CREAD);
+    options.c_lflag &= ~(ICANON | ECHO | ECHOE | ECHOK | ECHONL | ISIG | IEXTEN);
+    options.c_oflag &= ~(OPOST);
+    options.c_iflag &= ~(INLCR | IGNCR | ICRNL | IGNBRK);
 #ifdef IUCLC
-    options.c_iflag &= (tcflag_t) ~IUCLC;
+    options.c_iflag &= ~IUCLC;
 #endif
 #ifdef PARMRK
-    options.c_iflag &= (tcflag_t) ~PARMRK;
+    options.c_iflag &= ~PARMRK;
 #endif
 
     // setup baud rate
@@ -255,7 +255,7 @@ void reconfigurePort(int fd, uint32 baudrate, Serial::Bytesize bytesize,
 
     // setup stopbits
     switch (stopbits) {
-        case Serial::Stopbits::one: options.c_cflag &= (tcflag_t) ~(CSTOPB); break;
+        case Serial::Stopbits::one: options.c_cflag &= ~(CSTOPB); break;
         case Serial::Stopbits::one_point_five:
         // ONE POINT FIVE same as TWO.. there is no POSIX support for 1.5
         options.c_cflag |=  (CSTOPB); break;
@@ -263,11 +263,11 @@ void reconfigurePort(int fd, uint32 baudrate, Serial::Bytesize bytesize,
     }
 
     // setup parity
-    options.c_iflag &= (tcflag_t) ~(INPCK | ISTRIP);
+    options.c_iflag &= ~(INPCK | ISTRIP);
     switch (parity) {
-        case Serial::Parity::none: options.c_cflag &= (tcflag_t) ~(PARENB | PARODD); break;
+        case Serial::Parity::none: options.c_cflag &= ~(PARENB | PARODD); break;
         case Serial::Parity::even:
-            options.c_cflag &= (tcflag_t) ~(PARODD);
+            options.c_cflag &= ~(PARODD);
             options.c_cflag |=  (PARENB);
             break;
         case Serial::Parity::odd:
@@ -279,7 +279,7 @@ void reconfigurePort(int fd, uint32 baudrate, Serial::Bytesize bytesize,
             break;
         case Serial::Parity::space:
             options.c_cflag |=  (PARENB | CMSPAR);
-            options.c_cflag &= (tcflag_t) ~(PARODD);
+            options.c_cflag &= ~(PARODD);
             break;
 #else
         // CMSPAR is not defined on OSX. So do not support mark or space parity.
@@ -312,24 +312,24 @@ void reconfigurePort(int fd, uint32 baudrate, Serial::Bytesize bytesize,
     if (xonxoff_)
         options.c_iflag |=  (IXON | IXOFF);
     else
-        options.c_iflag &= (tcflag_t) ~(IXON | IXOFF | IXANY);
+        options.c_iflag &= ~(IXON | IXOFF | IXANY);
 #else
     if (xonxoff_)
         options.c_iflag |=  (IXON | IXOFF);
     else
-        options.c_iflag &= (tcflag_t) ~(IXON | IXOFF);
+        options.c_iflag &= ~(IXON | IXOFF);
 #endif
     // rtscts
 #ifdef CRTSCTS
     if (rtscts_)
         options.c_cflag |=  (CRTSCTS);
     else
-        options.c_cflag &= (tcflag_t) ~(CRTSCTS);
+        options.c_cflag &= ~(CRTSCTS);
 #elif defined CNEW_RTSCTS
     if (rtscts_)
         options.c_cflag |=  (CNEW_RTSCTS);
     else
-        options.c_cflag &= (tcflag_t) ~(CNEW_RTSCTS);
+        options.c_cflag &= ~(CNEW_RTSCTS);
 #else
 #warning "OS Support seems wrong."
 #endif

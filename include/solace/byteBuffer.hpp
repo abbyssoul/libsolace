@@ -255,11 +255,11 @@ public:
         return write(reinterpret_cast<const byte*>(bytes), count);
     }
 
-    MemoryView viewRemaining() const noexcept {
+    MemoryView viewRemaining() const {
         return _storage.slice(position(), limit());
     }
 
-    MemoryView viewWritten() const noexcept {
+    MemoryView viewWritten() const {
         return _storage.slice(0, position());
     }
 

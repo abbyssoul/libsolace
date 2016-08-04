@@ -91,7 +91,7 @@ const char* Char::c_str() const noexcept {
 }
 
 
-const MemoryView Char::getBytes() const noexcept {
+const MemoryView Char::getBytes() const {
     return MemoryView::wrap( const_cast<byte*>(_bytes), getBytesCount());
 }
 

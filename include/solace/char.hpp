@@ -86,7 +86,7 @@ public:
     const char* c_str() const noexcept;
 
     /** Get raw bytes representation of the code-point */
-    const MemoryView getBytes() const noexcept;
+    const MemoryView getBytes() const;
 
     /** Returns true if this character is equal to given. */
     bool equals(const Char& rhs) const noexcept override {

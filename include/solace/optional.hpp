@@ -255,7 +255,6 @@ private:
 
 private:
 
-
     /**
      * Well, honestly it should have been called Schrodinger Cat's State 0_0
      */
@@ -290,7 +289,7 @@ template <typename T>
 std::ostream& operator<< (std::ostream& ostr, const Solace::Optional<T>& anOptional) {
     return (anOptional.isNone())
             ? ostr.write("None", 4)
-            : ostr << (const T&)anOptional.get();
+            : ostr << anOptional.get();
 }
 
 #endif  // SOLACE_OPTIONAL_HPP
