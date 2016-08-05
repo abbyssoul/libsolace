@@ -42,11 +42,14 @@ ${BUILD_DIR}:
 $(GENERATED_MAKE): ${BUILD_DIR}
 	cd ${BUILD_DIR} && cmake ..
 
+release: ${BUILD_DIR}
+	cd ${BUILD_DIR} && cmake -DCMAKE_BUILD_TYPE=Release ..
+	$(MAKE) -C ${BUILD_DIR}
 
 #-------------------------------------------------------------------------------
 # Build the project
 #-------------------------------------------------------------------------------
-$(LIB_TAGRET): ${GENERATED_MAKE}
+$(LIB_TAGRET): $(GENERATED_MAKE)
 	$(MAKE) -C ${BUILD_DIR} solace
 
 lib: $(LIB_TAGRET)

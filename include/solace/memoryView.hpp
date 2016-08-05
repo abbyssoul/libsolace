@@ -174,6 +174,11 @@ public:
     byte* dataAddress() const noexcept { return _dataAddress; }
     byte* dataAddress(size_type offset) const;
 
+    template <typename T>
+    T dataAs() const noexcept {
+        return reinterpret_cast<T>(_dataAddress);
+    }
+
 
     /** Fill memory block with the given value.
      *
