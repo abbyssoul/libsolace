@@ -50,7 +50,7 @@ UUID UUID::random() {
 
 UUID::UUID() noexcept {
     for (auto& b : _bytes) {
-        b = rand() % 255;
+        b = static_cast<char>(rand() % 255);
     }
 }
 
@@ -188,7 +188,7 @@ String UUID::toString() const {
 }
 
 
-int char2int(char input) {
+char char2int(char input) {
     if (input >= '0' && input <= '9') {
         return input - '0';
     }

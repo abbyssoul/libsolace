@@ -31,7 +31,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused -Wunused-function -Wunused-labe
 # TODO: Make this warning work too!
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion -Wold-style-cast -Wsign-conversion")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wold-style-cast")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-conversion")
 
 
 # FIXME(abbyssoul): fmt produces too much noise with '-Wswitch-enum'

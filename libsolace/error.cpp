@@ -14,15 +14,31 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace
- *	@file		array.cpp
- *	@author		$LastChangedBy: soultaker $
- *	@date		$LastChangedDate$
- *	@brief		Helper functions for fixed size arrays
- *	ID:			$Id$
+ *	@file		error.cpp
+ *	@author		$LastChangedBy: $
+ *	@date		$LastChangedDate: $
+ *	@brief		Implementation of error type
+ *	ID:			$Id: $
  ******************************************************************************/
-#include "solace/array.hpp"
+#include "solace/error.hpp"
+#include "solace/string.hpp"
 
-#include "solace/exception.hpp"
+
+using namespace Solace;
 
 
+
+Error::Error(const std::string& message, int code) noexcept :
+    _code(code),
+    _message(message)
+{}
+
+
+Error::~Error() noexcept {
+
+}
+
+
+String Error::toString() const {
+    return _message;
+}

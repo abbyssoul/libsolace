@@ -20,8 +20,10 @@
  *
  * Created on: 29 Feb 2016
 *******************************************************************************/
-#include <solace/string.hpp>
 #include <solace/optional.hpp>			// Class being tested
+#include <solace/string.hpp>
+#include <solace/exception.hpp>
+
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -72,7 +74,7 @@ public:
 
         SomeTestType(SomeTestType&& t): x(t.x), f(t.f), somethingElse(t.somethingElse)
         {
-
+            ++InstanceCount;
         }
 
         ~SomeTestType()
@@ -247,7 +249,7 @@ public:
     }
 
     void testMap() {
-        SomeTestType test(32, 2.4, "Test string");
+        SomeTestType test(32, 2.4f, "Test string");
 
         auto f = [&test](const int& content) -> SomeTestType {
             return SomeTestType(test.x * content, test.f, test.somethingElse);
@@ -268,7 +270,7 @@ public:
     }
 
     void testFlatMap() {
-        SomeTestType test(32, 2.4, "Test string");
+        SomeTestType test(32, 72.4f, "Test string");
 
         auto f = [](const SomeTestType& content) {
             return Optional<int>::of(content.x * 2);

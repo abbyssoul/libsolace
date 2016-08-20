@@ -24,9 +24,10 @@
 #ifndef SOLACE_OPTIONAL_HPP
 #define SOLACE_OPTIONAL_HPP
 
-
+#include "solace/types.hpp"
 #include "solace/icomparable.hpp"
-#include "solace/exception.hpp"
+#include "solace/assert.hpp"
+
 
 #include <functional>   // std::function
 #include <ostream>
@@ -34,7 +35,6 @@
 
 namespace Solace {
 
-void raiseInvalidStateError();
 
 /** Optional monad
  * Optional is a monad that represent a optionality of value returned by a function.
@@ -44,6 +44,9 @@ void raiseInvalidStateError();
  */
 template<typename T>
 class Optional: public IComparable<Optional<T>> {
+public:
+    typedef T value_type;
+
 public:
 
     static Optional<T> none() {
@@ -60,19 +63,21 @@ public:
 
 public:
 
-    Optional() {
-        _state = ::new (_stateBuffer.noneSpace) NoneState();
-    }
 
-    Optional(T&& t) {
-        _state = ::new (_stateBuffer.someSpace) SomeState(std::move(t));
-    }
+    Optional() : _state(::new (_stateBuffer.noneSpace) NoneState())
+    {}
 
-    Optional(Optional<T>&& that) : Optional() {
+    Optional(T&& t) noexcept(std::is_nothrow_copy_constructible<T>::value)
+        : _state(::new (_stateBuffer.someSpace) SomeState(std::move(t)))
+    {}
+
+    Optional(Optional<T>&& that)
+        noexcept(std::is_nothrow_copy_constructible<T>::value) : Optional() {
+
         swap(that);
     }
 
-    Optional(const Optional<T>& that) {
+    Optional(const Optional<T>& that) noexcept(std::is_nothrow_copy_constructible<T>::value) {
         if (that.isSome())
             _state = ::new (_stateBuffer.someSpace) SomeState(that.get());
         else
@@ -84,7 +89,7 @@ public:
     }
 
     Optional<T>& swap(Optional<T>& rhs) noexcept {
-
+        // TODO(abbyssoul): can we refactor this ugliness?
         if (isNone() && rhs.isNone()) {
             return *this;
         } else if (isSome()) {  // This has something inside:
@@ -128,13 +133,19 @@ public:
             return true;
         }
 
-        if (isNone() && other.isNone())
+        if (isNone() && other.isNone()) {
             return true;
+        }
 
-        if (isSome() && other.isSome())
+        if (isSome() && other.isSome()) {
             return get() == other.get();
+        }
 
         return false;
+    }
+
+    explicit operator bool() const {
+      return isSome();
     }
 
     bool isSome() const noexcept { return _state->isSome(); }
@@ -142,6 +153,10 @@ public:
     bool isNone() const noexcept { return _state->isNone(); }
 
     const T& get() const {
+        return _state->ref();
+    }
+
+    T& get() {
         return _state->ref();
     }
 
@@ -171,7 +186,7 @@ private:
     class AlignedStorage {
     private:
         union dummy_u {
-            char data[ sizeof(V) ];
+            byte data[ sizeof(V) ];
         } _dummy;
 
       public:
@@ -188,8 +203,8 @@ private:
     public:
         virtual ~IState() = default;
 
-        virtual bool isSome() const = 0;
-        virtual bool isNone() const = 0;
+        virtual bool isSome() const noexcept = 0;
+        virtual bool isNone() const noexcept = 0;
 
         virtual const T& orElse(const T& t) const = 0;
 
@@ -199,8 +214,8 @@ private:
 
     class NoneState: public IState {
     public:
-        bool isSome() const override { return false; }
-        bool isNone() const override { return true; }
+        bool isSome() const noexcept override { return false; }
+        bool isNone() const noexcept override { return true; }
 
         const T& orElse(const T& t) const override { return t; }
 
@@ -223,8 +238,8 @@ private:
             _storage.ref().T::~T();
         }
 
-        bool isSome() const override { return true; }
-        bool isNone() const override { return false; }
+        bool isSome() const noexcept override { return true; }
+        bool isNone() const noexcept override { return false; }
 
         const T& orElse(const T&) const override { return ref(); }
 
@@ -259,8 +274,8 @@ private:
      * Well, honestly it should have been called Schrodinger Cat's State 0_0
      */
     union SchrodingerState {
-        char noneSpace[ sizeof(NoneState) ];
-        char someSpace[ sizeof(SomeState) ];
+        byte noneSpace[ sizeof(NoneState) ];
+        byte someSpace[ sizeof(SomeState) ];
     } _stateBuffer;
 
     IState* _state;
@@ -269,7 +284,7 @@ private:
 
 
 /** "None" is a syntactic sugar for options
- * Noe type can be converted to any Optional<T>::none()
+ * None type can be converted to any Optional<T>::none()
  */
 class None {
 public:

@@ -196,7 +196,7 @@ public:
      *
      * @throws IOException if the system call has failed
      */
-    virtual size_type read(MemoryView& buffer, ByteBuffer::size_type bytesToRead);
+    virtual size_type read(MemoryView& buffer, MemoryView::size_type bytesToRead);
 
     /** Read data from this file object into the given buffer.
      *

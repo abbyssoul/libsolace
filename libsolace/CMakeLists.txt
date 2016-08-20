@@ -1,5 +1,6 @@
 
 set(SOURCE_FILES
+        assert.cpp
         memoryView.cpp
         memoryManager.cpp
         byteBuffer.cpp
@@ -10,6 +11,7 @@ set(SOURCE_FILES
         exception.cpp
         version.cpp
         path.cpp
+        error.cpp
 
         io/ioexception.cpp
         io/file.cpp
@@ -22,6 +24,7 @@ set(SOURCE_FILES
         io/mappedMemory.cpp
 
         process/env.cpp
+        framework/commandlineParser.cpp
     )
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES})

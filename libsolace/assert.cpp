@@ -14,15 +14,38 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace
- *	@file		array.cpp
- *	@author		$LastChangedBy: soultaker $
- *	@date		$LastChangedDate$
- *	@brief		Helper functions for fixed size arrays
- *	ID:			$Id$
+ *	@file		exception.cpp
+ *	@author		$LastChangedBy: $
+ *	@date		$LastChangedDate: $
+ *	@brief		Implementation of exception types
+ *	ID:			$Id: $
  ******************************************************************************/
-#include "solace/array.hpp"
-
+#include "solace/assert.hpp"
 #include "solace/exception.hpp"
 
+
+using namespace Solace;
+
+
+
+uint32 Solace::assertIndexInRange(uint32 index, uint32 from, uint32 to) {
+    if (index >= to || index < from) {
+        Solace::raise<IndexOutOfRangeException>(index, from, to);
+    }
+
+    return index;
+}
+
+uint64 Solace::assertIndexInRange(uint64 index, uint64 from, uint64 to) {
+    if (index >= to || index < from) {
+        Solace::raise<IndexOutOfRangeException>(index, from, to);
+    }
+
+    return index;
+}
+
+
+void Solace::raiseInvalidStateError() {
+    Solace::raise<NoSuchElementException>("None");
+}
 

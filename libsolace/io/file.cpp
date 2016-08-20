@@ -146,7 +146,7 @@ File::size_type File::read(ByteBuffer& buffer) {
     return read(buffer, buffer.remaining());
 }
 
-File::size_type File::read(MemoryView& buffer, ByteBuffer::size_type bytesToRead) {
+File::size_type File::read(MemoryView& buffer, MemoryView::size_type bytesToRead) {
     if (buffer.size() < bytesToRead) {
         raise<IllegalArgumentException>("bytesToRead");
     }

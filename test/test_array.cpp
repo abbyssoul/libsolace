@@ -23,6 +23,8 @@
  ******************************************************************************/
 #include <solace/array.hpp>    // Class being tested.
 #include <solace/string.hpp>   // Non POD subject.
+#include <solace/exception.hpp>
+
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -412,13 +414,13 @@ public:
 			const Array<int> array = {1, 2, 3};
 
 			const int equal_native_array[] = {1, 2, 3};
-			const size_t equal_native_array_length = arrayLength(equal_native_array);
+            const auto equal_native_array_length = arrayLength(equal_native_array);
 
 			const int nequal_native_array_0[] = {0, 1, 2, 3};
-			const size_t nequal_native_array_0_length = arrayLength(nequal_native_array_0);
+            const auto nequal_native_array_0_length = arrayLength(nequal_native_array_0);
 
 			const int nequal_native_array_1[] = {3, 2, 1};
-			const size_t nequal_native_array_1_length = arrayLength(nequal_native_array_1);
+            const auto nequal_native_array_1_length = arrayLength(nequal_native_array_1);
 
 			const Array<int> array_eq(equal_native_array_length, equal_native_array);
 			const Array<int> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
@@ -450,13 +452,13 @@ public:
 			const Array<String> array = {"tasrd", "", "hhha", "asd"};
 
 			const String equal_native_array[] = {"tasrd", "", "hhha", "asd"};
-			const size_t equal_native_array_length = arrayLength(equal_native_array);
+            const auto equal_native_array_length = arrayLength(equal_native_array);
 
 			const String nequal_native_array_0[] = {"tasrd", "", "hhha", "asd", "ugaga"};
-			const size_t nequal_native_array_0_length = arrayLength(nequal_native_array_0);
+            const auto nequal_native_array_0_length = arrayLength(nequal_native_array_0);
 
 			const String nequal_native_array_1[] = {"tasrd", "", "hhha", "basd"};
-			const size_t nequal_native_array_1_length = arrayLength(nequal_native_array_1);
+            const auto nequal_native_array_1_length = arrayLength(nequal_native_array_1);
 
 			const Array<String> array_eq(equal_native_array_length, equal_native_array);
 			const Array<String> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
@@ -498,7 +500,7 @@ public:
                     NonPodStruct(-321, "yyx"),
                     NonPodStruct(990, "x^hhf")
             };
-			const size_t equal_native_array_length = arrayLength(equal_native_array);
+            const auto equal_native_array_length = arrayLength(equal_native_array);
 
 			const NonPodStruct nequal_native_array_0[] = {
                     NonPodStruct(-31, "kek-yyyz"),
@@ -507,7 +509,7 @@ public:
                     NonPodStruct(21, "32"),
                     NonPodStruct(990, "x^hhf")
             };
-			const size_t nequal_native_array_0_length = arrayLength(nequal_native_array_0);
+            const auto nequal_native_array_0_length = arrayLength(nequal_native_array_0);
 
 			const NonPodStruct nequal_native_array_1[] = {
                     NonPodStruct(-31, "kek-yyyz"),
@@ -515,7 +517,7 @@ public:
                     NonPodStruct(0, "dhf")
             };
 
-            const size_t nequal_native_array_1_length = arrayLength(nequal_native_array_1);
+            const auto nequal_native_array_1_length = arrayLength(nequal_native_array_1);
 
 			const Array<NonPodStruct> array_eq(equal_native_array_length, equal_native_array);
 			const Array<NonPodStruct> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);

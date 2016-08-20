@@ -64,15 +64,21 @@ public:
      *
      * @return MemoryView object wrapping the memory address given
      */
-    static MemoryView wrap(void* data, size_type size, const std::function<void(MemoryView*)>& freeFunction = 0) {
-        return wrap(reinterpret_cast<byte*>(data), size, freeFunction);
+    static MemoryView wrap(void* data, size_type size, const std::function<void(MemoryView*)>& freeFunc = 0) {
+        return wrap(reinterpret_cast<byte*>(data), size, freeFunc);
     }
 
-    static MemoryView wrap(char* data, size_type size, const std::function<void(MemoryView*)>& freeFunction = 0) {
-        return wrap(reinterpret_cast<byte*>(data), size, freeFunction);
+    static MemoryView wrap(char* data, size_type size, const std::function<void(MemoryView*)>& freeFunc = 0) {
+        return wrap(reinterpret_cast<byte*>(data), size, freeFunc);
     }
 
-    static MemoryView wrap(byte* data, size_type size, const std::function<void(MemoryView*)>& freeFunction = 0);
+    static MemoryView wrap(byte* data, size_type size, const std::function<void(MemoryView*)>& freeFunc = 0);
+
+
+    template<typename PodType, std::size_t N>
+    static MemoryView wrap(PodType (&data)[N]) {
+        return MemoryView(N, static_cast<void*>(data), 0);
+    }
 
 
     /** Copy a memory block.
@@ -179,6 +185,27 @@ public:
         return reinterpret_cast<T>(_dataAddress);
     }
 
+
+    /**
+     * Copy data from the given memory view into this one
+     * @param source Source of data to be written into this location.
+     * @param offset Offset location into this buffer to copy data to.
+     */
+    void write(const MemoryView& source, size_type offset = 0);
+
+    /**
+     * Copy data from this buffer into the given one.
+     * @param data Data destinatio to transer data into.
+     */
+    void read(MemoryView& dest);
+
+    /**
+     * Copy data from this buffer into the given one.
+     * @param data Data destinatio to transer data into.
+     * @param bytesToRead Number of bytes to copy from this bufer into the destanation.
+     * @param offset Offset location into this buffer to start reading from.
+     */
+    void read(MemoryView& dest, size_type bytesToRead, size_type offset = 0);
 
     /** Fill memory block with the given value.
      *

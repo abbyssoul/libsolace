@@ -46,6 +46,11 @@ release: ${BUILD_DIR}
 	cd ${BUILD_DIR} && cmake -DCMAKE_BUILD_TYPE=Release ..
 	$(MAKE) -C ${BUILD_DIR}
 
+debug: ${BUILD_DIR}
+	cd ${BUILD_DIR} && cmake -DCMAKE_BUILD_TYPE=Debug ..
+	$(MAKE) -C ${BUILD_DIR}
+
+
 #-------------------------------------------------------------------------------
 # Build the project
 #-------------------------------------------------------------------------------

@@ -37,6 +37,8 @@ class TestMemoryView: public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE(TestMemoryView);
         CPPUNIT_TEST(testConstruction);
         CPPUNIT_TEST(testFill);
+        CPPUNIT_TEST(testRead);
+        CPPUNIT_TEST(testWrite);
         CPPUNIT_TEST(testWrapping);
     CPPUNIT_TEST_SUITE_END();
 
@@ -90,7 +92,7 @@ public:
     }
 
     void testWrapping() {
-        const auto nullB = static_cast<void*>(nullptr);
+        void* nullB = nullptr;
         CPPUNIT_ASSERT_NO_THROW(auto buffer = MemoryView::wrap(nullB, 0));
 
         {   // Can't wrap nullptr with non-zero size
@@ -99,12 +101,24 @@ public:
 
         {   // Wrapping constructor
             byte example[] = {0, 1, 0, 3, 2, 1};  // size = 6
-            auto test = MemoryView::wrap(example, sizeof(example));
+            auto test = MemoryView::wrap(example);
 
             CPPUNIT_ASSERT(!test.empty());
             CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(6), test.size());
 
-            for (size_t i = 0; i < test.size(); ++i) {
+            for (MemoryView::size_type i = 0; i < test.size(); ++i) {
+                CPPUNIT_ASSERT_EQUAL(example[i], test.dataAddress()[i]);
+            }
+        }
+
+        {   // Wrapping constructor with specific size
+            byte example[] = {0, 1, 0, 3, 2, 1};  // size = 6
+            auto test = MemoryView::wrap(example, 4);
+
+            CPPUNIT_ASSERT(!test.empty());
+            CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(4), test.size());
+
+            for (MemoryView::size_type i = 0; i < test.size(); ++i) {
                 CPPUNIT_ASSERT_EQUAL(example[i], test.dataAddress()[i]);
             }
         }
@@ -136,7 +150,7 @@ public:
             CPPUNIT_ASSERT_EQUAL(exampleSize, b1.size());
             CPPUNIT_ASSERT_EQUAL(exampleSize, b2.size());
 
-            for (size_t i = 0; i < b1.size(); ++i) {
+            for (MemoryView::size_type i = 0; i < b1.size(); ++i) {
                 CPPUNIT_ASSERT_EQUAL(example[i], b1.dataAddress()[i]);
                 CPPUNIT_ASSERT_EQUAL(example[i], b2.dataAddress()[i]);
             }
@@ -145,6 +159,129 @@ public:
         }
     }
 
+    void testRead() {
+        MemoryView buffer = manager.create(128);
+        MemoryView dest = manager.create(24);
+
+        dest.fill(0);
+        buffer.fill(64);
+
+        {
+            // Test simple read
+            buffer.read(dest);
+            for (auto b : dest) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(64), b);
+            }
+
+            // Test that source is independent of dest
+            buffer.fill(76);
+            for (auto b : dest) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(64), b);
+            }
+        }
+        dest.fill(0);
+
+        {  // Safety checks
+            // Reading more then bytes in the buffer
+            CPPUNIT_ASSERT_THROW(buffer.read(dest, 2*buffer.size()), Exception);
+
+            // Reading more then fits into the dest
+            CPPUNIT_ASSERT_THROW(dest.read(buffer), Exception);
+            CPPUNIT_ASSERT_THROW(buffer.read(dest, 2*dest.size()), Exception);
+
+            // Reading from invalid offset
+            CPPUNIT_ASSERT_THROW(buffer.read(dest, 1, buffer.size() + 10), Exception);
+
+            // Reading from invalid offset and too much
+            CPPUNIT_ASSERT_THROW(buffer.read(dest, 2*dest.size(), buffer.size() + 10), Exception);
+        }
+
+        {  // Test reading from an offset
+            buffer.fill(67, 0, 24);
+            buffer.fill(76, 24, buffer.size());
+
+            buffer.read(dest, 24);
+            for (auto b : dest) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(67), b);
+            }
+
+            // Test that source is independent of dest
+            buffer.read(dest, 24, 24);
+            for (auto b : dest) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(76), b);
+            }
+        }
+    }
+
+
+    void testWrite() {
+        MemoryView buffer = manager.create(128);
+        MemoryView src = manager.create(24);
+
+        src.fill(32);
+        buffer.fill(0);
+
+        {
+            // Test simple read
+            buffer.write(src);
+            for (MemoryView::size_type i = 0; i < src.size(); ++i) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(32), buffer[i]);
+            }
+            for (MemoryView::size_type i = src.size(); i < buffer.size(); ++i) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0), buffer[i]);
+            }
+
+            // Test that source is independent of dest
+            src.fill(76);
+            for (MemoryView::size_type i = 0; i < src.size(); ++i) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(32), buffer[i]);
+            }
+            for (MemoryView::size_type i = src.size(); i < buffer.size(); ++i) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0), buffer[i]);
+            }
+        }
+
+        {  // Safety checks
+
+            // Writing more then fits into the buffer
+            CPPUNIT_ASSERT_THROW(src.write(buffer), Exception);
+
+            // Reading from invalid offset
+            CPPUNIT_ASSERT_THROW(buffer.write(src, buffer.size() + 10), Exception);
+
+            // Reading from invalid offset and too much
+            CPPUNIT_ASSERT_THROW(buffer.write(src, buffer.size() - src.size() + 2), Exception);
+        }
+
+        {  // Test reading from an offset
+            src.fill(41);
+            buffer.fill(67, 0, 24);
+            buffer.fill(76, 24, buffer.size());
+
+            buffer.write(src, 24);
+            for (MemoryView::size_type i = 0; i < 24; ++i) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(67), buffer[i]);
+            }
+            for (MemoryView::size_type i = 24; i < 24 + src.size(); ++i) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(41), buffer[i]);
+            }
+            for (MemoryView::size_type i = 24 + src.size(); i < buffer.size(); ++i) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(76), buffer[i]);
+            }
+
+            src.fill(71);
+            buffer.write(src, 14);
+            for (MemoryView::size_type i = 0; i < 14; ++i) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(67), buffer[i]);
+            }
+            for (MemoryView::size_type i = 14; i < 14 + src.size(); ++i) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(71), buffer[i]);
+            }
+            for (MemoryView::size_type i = 24 + src.size(); i < buffer.size(); ++i) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(76), buffer[i]);
+            }
+        }
+    }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestMemoryView);

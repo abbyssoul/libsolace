@@ -22,6 +22,7 @@
  *	ID:			$Id$
  ******************************************************************************/
 #include "solace/byteBuffer.hpp"
+#include "solace/exception.hpp"
 
 
 #include <cstring>  // memcpy

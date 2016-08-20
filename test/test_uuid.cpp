@@ -23,6 +23,7 @@
 #include <solace/uuid.hpp>			// Class being tested
 #include <solace/array.hpp>
 #include <solace/memoryManager.hpp>
+#include <solace/exception.hpp>
 
 
 #include <cppunit/extensions/HelperMacros.h>

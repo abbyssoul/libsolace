@@ -14,7 +14,7 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Fixed size array type
+ * libSolace: Fixed size array template
  *	@file		solace/array.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
@@ -28,6 +28,7 @@
 #include "solace/types.hpp"
 #include "solace/icomparable.hpp"
 #include "solace/iterable.hpp"
+#include "solace/assert.hpp"
 
 
 // TODO(abbyssoul): Remove std dependencies!
@@ -38,8 +39,6 @@
 
 namespace Solace {
 
-
-size_t validateIndex(size_t index, size_t from, size_t to);
 
 /** Fixed-size indexed collection of elements aka array.
  * Array is a collection template that has a fixed size specified at the time of its creation
@@ -52,7 +51,8 @@ class Array:
 public:
     typedef T                                   value_type;
     typedef std::vector<T> Storage;
-    typedef typename Storage::size_type         size_type;
+    typedef uint32                              size_type;
+//    typedef typename Storage::size_type         size_type;
 
     typedef typename Storage::iterator          Iterator;
     typedef typename Storage::const_iterator    const_iterator;
@@ -66,7 +66,7 @@ public:
 public:
 
     /** Construct an empty array
-     * note: stl vector does not guaranty 'noexcept' even for an empty vector :(
+     * note: stl vector does not guaranty 'noexcept' even for an empty vector :'(
      * */
     Array(): _storage() {
     }
@@ -77,6 +77,7 @@ public:
 
     /** Construct an array of a given fixed size */
     explicit Array(size_type initialSize): _storage(initialSize) {
+        _storage.reserve(initialSize);
     }
 
     /** Construct a new array to be a copy of a given */
@@ -144,13 +145,13 @@ public:
     }
 
     const_reference operator[] (size_type index) const {
-        index = validateIndex(index, 0, size());
+        index = assertIndexInRange(index, 0, size());
 
         return _storage[index];
     }
 
     reference operator[] (size_type index) {
-        index = validateIndex(index, 0, size());
+        index = assertIndexInRange(index, 0, size());
 
         return _storage[index];
     }

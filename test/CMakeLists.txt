@@ -18,6 +18,7 @@ set(TEST_SOURCE_FILES
         test_memoryManager.cpp
         test_byteBuffer.cpp
         test_optional.cpp
+        test_result.cpp
         test_uuid.cpp
         test_char.cpp
         test_array.cpp
@@ -31,6 +32,7 @@ set(TEST_SOURCE_FILES
         io/test_sharedMemory.cpp
         io/test_mappedMemory.cpp
         process/test_env.cpp
+        framework/test_commandlineParser.cpp
     )
 
 add_executable(test_${PROJECT_NAME} ${TEST_SOURCE_FILES})

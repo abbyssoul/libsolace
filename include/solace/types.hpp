@@ -71,7 +71,7 @@ static_assert(8 == sizeof(float64), "size of float64 is not 8 bytes!");
 
 
 template <typename T, ::std::size_t N>
-::std::size_t arrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
+uint32 arrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
 
 }  // End of namespace Solace
 #endif  // SOLACE_TYPES_HPP

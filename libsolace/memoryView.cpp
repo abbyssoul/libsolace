@@ -165,6 +165,57 @@ MemoryView& MemoryView::fill(byte value, size_type from, size_type to) {
     return (*this);
 }
 
+
+void MemoryView::write(const MemoryView& source, size_type offset) {
+    const auto thisSize = size();
+
+    if (offset > thisSize) {  // Make sure that offset is within [0, size())
+        raise<IndexOutOfRangeException>("offset", offset, 0, thisSize);
+    }
+
+    if (source.size() >= thisSize - offset) {  // Make sure that source is writing no more then there is room.
+        raise<OverflowException>("source", source.size(), 0, thisSize - offset);
+    }
+
+    memcpy(dataAddress(offset), source.dataAddress(), source.size());
+
+    // TODO(abbyssoul): return Result<>;
+}
+
+
+void MemoryView::read(MemoryView& dest) {
+    const auto thisSize = size();
+
+    if (thisSize < dest.size()) {
+        raise<OverflowException>("dest", thisSize, 0, dest.size());
+    }
+
+    memcpy(dest.dataAddress(), dataAddress(), dest.size());
+    // TODO(abbyssoul): return Result<>;
+}
+
+
+void MemoryView::read(MemoryView& dest, size_type bytesToRead, size_type offset) {
+    const auto thisSize = size();
+
+    if (thisSize < offset) {  // Make sure that offset is within [0, size())
+        raise<IndexOutOfRangeException>("offset", offset, 0, thisSize);
+    }
+
+    if (bytesToRead > thisSize - offset) {  // Make sure that bytes to read is within [offset, size())
+        raise<IndexOutOfRangeException>("bytesToRead", offset, 0, thisSize - offset);
+    }
+
+    if (dest.size() < bytesToRead) {  // Make sure that dest has enough space to store data
+        raise<OverflowException>("dest.size()", dest.size(), 0, bytesToRead);
+    }
+
+    memcpy(dest.dataAddress(), dataAddress(offset), bytesToRead);
+
+    // TODO(abbyssoul): return Result<>;
+}
+
+
 MemoryView& MemoryView::fill(byte value) {
     memset(_dataAddress, value, _size);
 

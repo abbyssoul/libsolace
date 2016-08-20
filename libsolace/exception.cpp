@@ -175,17 +175,3 @@ InvalidMarkException::InvalidMarkException(const char* file, int line) :
 {
     // Nothing else to do here
 }
-
-
-size_t Solace::validateIndex(size_t index, size_t from, size_t to) {
-    if (index >= to) {
-        Solace::raise<Solace::IndexOutOfRangeException>(index, from, to);
-    }
-
-    return index;
-}
-
-// From optional:
-void Solace::raiseInvalidStateError() {
-    Solace::raise<NoSuchElementException>("None");
-}
