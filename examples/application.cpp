@@ -59,7 +59,7 @@ public:
 protected:
 
     int printVersion() {
-        std::cout << "Version: " << _version << std::endl;
+        std::cout << "Version: " << getVersion() << std::endl;
 
         return EXIT_SUCCESS;
     }

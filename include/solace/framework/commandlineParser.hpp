@@ -256,22 +256,9 @@ public:
         return (*this);
     }
 
-    CommandlineParser& version(const Version& value) noexcept {
-        _version = value;
-
-        return (*this);
-    }
-
-    const Version& version() const noexcept {
-        return _version;
-    }
-
     Result<Unit, Error> parse(int argc, const char* argv[]) const;
 
 private:
-
-    /// Version of the Application displayed on request.
-    Version         _version;
 
     /// Human readable description of the application.
     const char*     _description;

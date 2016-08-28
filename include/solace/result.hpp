@@ -303,7 +303,7 @@ template <typename V,
           typename ValueType = typename std::remove_reference<V>::type,
           typename ErrorType = typename std::remove_reference<E>::type
           >
-__attribute__ ((warn_unused_result))
+__attribute__((warn_unused_result))
 Result<ValueType, ErrorType> Ok(V&& value)
 {
     return Result<ValueType, ErrorType>(std::forward<V>(value));
@@ -314,7 +314,7 @@ template <typename V,
           typename ValueType = typename std::remove_reference<V>::type,
           typename ErrorType = typename std::remove_reference<E>::type
           >
-__attribute__ ((warn_unused_result))
+__attribute__((warn_unused_result))
 Result<ValueType, ErrorType> Err(E&& value)
 {
     return Result<ValueType, ErrorType>(nullptr, std::forward<E>(value));
