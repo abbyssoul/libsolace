@@ -40,6 +40,7 @@ namespace Solace {
  * Note: Result<void, Error> is technically equivalent of Optional<Error>
  */
 template <typename V, typename E>
+// TODO(c++17): [[nodiscard]]
 class Result {
 public:
     typedef V value_type;
@@ -90,6 +91,16 @@ public:
                 ? success(getResult())
                 : failure(getError());
     }
+
+
+//    template<typename D>
+//    auto then(  const std::function<D(const V&)>& success,
+//                const std::function<D(const E&)>& failure) -> D {
+
+//        return isOk()
+//                ? success(getResult())
+//                : failure(getError());
+//    }
 
 
     Result& swap(Result& rhs) noexcept {
@@ -292,7 +303,9 @@ template <typename V,
           typename ValueType = typename std::remove_reference<V>::type,
           typename ErrorType = typename std::remove_reference<E>::type
           >
-Result<ValueType, ErrorType> Ok(V&& value) {
+__attribute__ ((warn_unused_result))
+Result<ValueType, ErrorType> Ok(V&& value)
+{
     return Result<ValueType, ErrorType>(std::forward<V>(value));
 }
 
@@ -301,7 +314,9 @@ template <typename V,
           typename ValueType = typename std::remove_reference<V>::type,
           typename ErrorType = typename std::remove_reference<E>::type
           >
-Result<ValueType, ErrorType> Err(E&& value) {
+__attribute__ ((warn_unused_result))
+Result<ValueType, ErrorType> Err(E&& value)
+{
     return Result<ValueType, ErrorType>(nullptr, std::forward<E>(value));
 }
 

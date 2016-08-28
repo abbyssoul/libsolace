@@ -31,6 +31,8 @@
 #include "solace/unit.hpp"
 #include "solace/error.hpp"
 #include "solace/array.hpp"
+#include "solace/version.hpp"
+
 
 
 namespace Solace { namespace Framework {
@@ -55,6 +57,7 @@ namespace Solace { namespace Framework {
                 // Mandatory arguments support:
                 { "Mandatory argument", &settings.param },
             })
+            .verion({1, 2, 18, "Dev"})
             .parse(argc, argv)
             .then(...consume parsing results...
                   ...handle errors...);
@@ -65,16 +68,47 @@ namespace Solace { namespace Framework {
 class CommandlineParser {
 public:
 
+    /**
+     * Context used by callback function to get the state of the pasring.
+     */
+    struct Context {
+        /// Name of the option / argument being parsed.
+        const char* const name;
+
+        /// Current option raw value.
+        const char* const value;
+
+        /// Reference to the instance of the parser that invokes the callback.
+        const CommandlineParser& parser;
+
+        bool isStopRequired;
+
+        Context(const char* inName, const char* inValue, const CommandlineParser& self) :
+            name(inName),
+            value(inValue),
+            parser(self),
+            isStopRequired(false)
+        {}
+
+        void stopParsing() noexcept {
+            isStopRequired = true;
+        }
+    };
+
+
+    /**
+     * An optional argument / flag object used by command line parser.
+     */
     class Option {
     public:
-        // Optional arguments
         Option(char shortName, const char* longName, const char* description, int32* value);
         Option(char shortName, const char* longName, const char* description, uint32* value);
         Option(char shortName, const char* longName, const char* description, float32* value);
         Option(char shortName, const char* longName, const char* description, bool* value);
         Option(char shortName, const char* longName, const char* description, String* value);
         Option(char shortName, const char* longName, const char* description,
-               const std::function<Optional<Error> (const char*)>& callback);
+               const std::function<Optional<Error> (Context&)>& callback,
+               bool expectsArgument = true);
 
         Option(const Option& rhs) noexcept :
             _shortName(rhs._shortName),
@@ -115,15 +149,16 @@ public:
 
         bool operator == (const Option& other) const noexcept;
 
+
         bool isMatch(const char* name, char shortPrefix, const char* longPrefix) const;
         bool isExpectsArgument() const noexcept { return _expectsArgument; }
-        Optional<Error> match(const char* value) const;
+        Optional<Error> match(Context& c) const;
 
     private:
         char                                _shortName;
         const char*                         _longName;
         const char*                         _description;
-        std::function<Optional<Error> (const char*)>    _callback;
+        std::function<Optional<Error> (Context&)>    _callback;
 
         bool                                _expectsArgument;
     };
@@ -132,19 +167,22 @@ public:
     class Argument {
     public:
         // Mandatory positional arguments
-        Argument(const char* description, int32* value);
-        Argument(const char* description, uint32* value);
-        Argument(const char* description, float32* value);
-        Argument(const char* description, bool* value);
-        Argument(const char* description, String* value);
-        Argument(const char* description, const std::function<Optional<Error> (const char*)>& callback);
+        Argument(const char* name, const char* description, int32* value);
+        Argument(const char* name, const char* description, uint32* value);
+        Argument(const char* name, const char* description, float32* value);
+        Argument(const char* name, const char* description, bool* value);
+        Argument(const char* name, const char* description, String* value);
+        Argument(const char* name, const char* description,
+                 const std::function<Optional<Error> (Context&)>& callback);
 
         Argument(const Argument& rhs) noexcept :
+            _name(rhs._name),
             _description(rhs._description),
             _callback(rhs._callback)
         {}
 
         Argument(Argument&& rhs) noexcept :
+            _name(std::move(rhs._name)),
             _description(std::move(rhs._description)),
             _callback(std::move(rhs._callback))
         {}
@@ -160,6 +198,7 @@ public:
         }
 
         Argument& swap(Argument& rhs) noexcept {
+            std::swap(_name, rhs._name);
             std::swap(_description, rhs._description);
             std::swap(_callback, rhs._callback);
 
@@ -168,11 +207,16 @@ public:
 
         bool operator == (const Argument& other) const noexcept;
 
-        Optional<Error> match(const char* value) const;
+        const char* name() const noexcept {
+            return _name;
+        }
+
+        Optional<Error> match(Context& c) const;
 
     private:
+        const char*                         _name;
         const char*                         _description;
-        std::function<Optional<Error>(const char*)>    _callback;
+        std::function<Optional<Error>(Context&)>    _callback;
     };
 
 public:
@@ -212,13 +256,30 @@ public:
         return (*this);
     }
 
+    CommandlineParser& version(const Version& value) noexcept {
+        _version = value;
+
+        return (*this);
+    }
+
+    const Version& version() const noexcept {
+        return _version;
+    }
+
     Result<Unit, Error> parse(int argc, const char* argv[]) const;
 
 private:
 
-    const char* _description;
+    /// Version of the Application displayed on request.
+    Version         _version;
 
+    /// Human readable description of the application.
+    const char*     _description;
+
+    /// Commad line options / flags that application accepts.
     Array<Option>   _options;
+
+    /// Mandatory arguments application requires.
     Array<Argument> _arguments;
 };
 

@@ -243,13 +243,14 @@ public:
         {  // Test that success handler is called on success
             int thenValue = 0;
             int cValue = f(true).then<int>(
-                        [&thenValue](int value) -> int {
+                        [&thenValue](const int& value) {
                             thenValue = value;
 
                             return 998;
                         },
-                        [&thenValue](int errCode) -> int {
+                        [&thenValue](const int& errCode) {
                             thenValue = errCode;
+
                             return -776;
                         });
 
@@ -262,12 +263,12 @@ public:
             int thenValue = 0;
             int cValue = f(false)
                     .then<int>(
-                        [&thenValue](int value) -> int {
+                        [&thenValue](int value) {
                             thenValue = value;
 
                             return 998;
                         },
-                        [&thenValue](int errCode) -> int {
+                        [&thenValue](int errCode) {
                             thenValue = errCode;
                             return -776;
                         });

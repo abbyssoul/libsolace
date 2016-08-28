@@ -75,6 +75,11 @@ public:
         return (*this);
     }
 
+    operator bool () const noexcept {
+        return (value() != 0);
+    }
+
+
     //! Get message description of the exception.
     String toString() const override;
 

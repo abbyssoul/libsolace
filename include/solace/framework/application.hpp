@@ -39,11 +39,13 @@ namespace Solace { namespace Framework {
 class Application {
 public:
 
+    virtual ~Application() = default;
+
     /**
      * Get Application version
      * @return Build time version of this application
      */
-    virtual Version getVersion() const = nullptr;
+    virtual Version getVersion() const noexcept = 0;
 
     /**
      * Initialise application instance.
@@ -54,7 +56,7 @@ public:
      * @return Initialization result which can be either runnable action that resulted from given command line or
      * an error if application failed to initialized.
      */
-    virtual Result<std::function<int()>, Error> init(int argc, char *argv[]) = nullptr;
+    virtual Result<std::function<int()>, Error> init(int argc, const char *argv[]) = 0;
 
 };
 
