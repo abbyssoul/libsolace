@@ -56,7 +56,21 @@ public:
      * @return Initialization result which can be either runnable action that resulted from given command line or
      * an error if application failed to initialized.
      */
-    virtual Result<std::function<int()>, Error> init(int argc, const char *argv[]) = 0;
+    virtual Result<std::function<int()>, Error>
+    init(int argc, const char *argv[]) = 0;
+
+    /**
+     * Non-const version of init for convenience.
+     * @see Application::init
+     *
+     * @param argc Number of command line options
+     * @param argv Vector of command line arguments
+     * @return Initialization result which can be either runnable action that resulted from given command line or
+     * an error if application failed to initialized.
+     */
+    Result<std::function<int()>, Error> init(int argc, char *argv[]) {
+        return init(argc, const_cast<const char**>(argv));
+    }
 
 };
 

@@ -41,10 +41,10 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat-security -Wmissing-format-attri
 
 
 # If the library is built as a shared object: use -fPIC
-check_cxx_compiler_flag("-fPIC" WITH_FPIC)
-if (WITH_FPIC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-endif (WITH_FPIC)
+#check_cxx_compiler_flag("-fPIC" WITH_FPIC)
+#if (WITH_FPIC)
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
+#endif (WITH_FPIC)
 
 
 # It's better to use fortify_sources if compiler supports it

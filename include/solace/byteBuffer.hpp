@@ -46,18 +46,6 @@ public:
 public:
 
     /**
-     * Construct a byte buffer of the given size
-     * @param initialSize Fixed size of the byte buffer
-     */
-//    explicit ByteBuffer(size_type initialSize) :
-//            _position(0),
-//            _limit(initialSize),
-//            _mark(),
-//            _storage(initialSize)
-//    {
-//    }
-
-    /**
      * Construct the byte buffer by copeing content of the given buffer
      * @param other Other buffer to copy data from
      */
@@ -234,9 +222,11 @@ public:
     ByteBuffer& read(MemoryView& buffer, ByteBuffer::size_type bytesToRead);
 
     ByteBuffer& read(void* bytes, size_type count);
-    ByteBuffer& read(byte* bytes, size_type count);
+    ByteBuffer& read(byte* bytes, size_type count) {
+        return read(reinterpret_cast<void*>(bytes), count);
+    }
     ByteBuffer& read(char* bytes, size_type count) {
-        return read(reinterpret_cast<byte*>(bytes), count);
+        return read(reinterpret_cast<void*>(bytes), count);
     }
     const ByteBuffer& read(size_type offset, byte* bytes, size_type count) const;
     const ByteBuffer& read(size_type offset, MemoryView* bytes) const;

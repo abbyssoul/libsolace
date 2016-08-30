@@ -106,7 +106,7 @@ Design of the libraty is significantly inspired by [https://github.com/3rdparty/
 			- float{32,64}
 	- Immutable String (for thouse who are from Java land)
 	- Optional<>
-	- Result<> (like in Rust, can't be ignored)
+	- Result<> - a possible alternative to throwing an exception.
 	- Collections (WIP):
 		- Array: Fixed-size array (dynamically allocated on the heap)
 		- (TBD):List/Vector: variable-length collection
@@ -115,7 +115,7 @@ Design of the libraty is significantly inspired by [https://github.com/3rdparty/
 	- Text utilities:
 		- Formatting
 		- Encoding
-		- String builder
+		- String builder (WIP)
 
 
 ### Exceptions policy
@@ -126,11 +126,14 @@ Given the language choice library is designed with the idea tha exceptions can b
 
 
 ## Dependencies
+Actually only fmtlib.
+* [fmt](https://github.com/fmtlib/fmt) - C++ Format is an open-source formatting library for C++ [More info](http://fmtlib.net/latest/index.html)
+
+Here are some other usefull libs to consider:
 * [jemalloc](http://www.canonware.com/jemalloc) - General-purpose scalable concurrent malloc implementation.
 * [bzip2](http://www.bzip.org/) - a high-quality data compressor.
 * [libsigc++](http://libsigc.sourceforge.net/) - typesafe callback system for standard C++
 * [utf8cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweight generic library for handling UTF-8 encoded strings.
-* [fmt](https://github.com/fmtlib/fmt) - C++ Format is an open-source formatting library for C++ [More info](http://fmtlib.net/latest/index.html)
 * [spdlog](https://github.com/gabime/spdlog) - Very fast, header only, C++ logging library.
 
 
@@ -159,10 +162,11 @@ make verify
 
 
 ## Similar projects
-Here are some other projects and library that can be very usefull in the development:
+Some other awesome projects and library that can be very usefull:
+* [Folly](https://github.com/facebook/folly)
 * [Poco](http://pocoproject.org/)
 * [NSPR](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSPR)
-* [ARP](http://apr.apache.org/)
+* [APR](http://apr.apache.org/)
 * [Stout](https://github.com/3rdparty/stout)
 * [SDL](http://www.libsdl.org/)
 * [Qt(Core)](http://doc.qt.nokia.com/)
@@ -170,10 +174,11 @@ Here are some other projects and library that can be very usefull in the develop
 * [GLibMM](http://developer.gnome.org/glibmm/)
 
 
-## License 
-Please see LICENSE file for details
+## License
+The library available under Apache License 2.0
+Please see LICENSE file for details.
 
 
 ## Authors
-Please see AUTHORS file for the list of contributors
+Please see AUTHORS file for the list of contributors.
 

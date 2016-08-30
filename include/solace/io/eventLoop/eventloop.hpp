@@ -45,7 +45,7 @@ public:
 //    typedef
 public:
 
-    explicit EventLoop(uint32 size);
+    explicit EventLoop(uint32 size, Selector&& selector);
     EventLoop(EventLoop&& rhs);
     ~EventLoop();
 

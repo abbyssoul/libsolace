@@ -93,7 +93,7 @@ byte ByteBuffer::get(size_type pos) const {
 }
 
 
-ByteBuffer& ByteBuffer::read(MemoryView& buffer, ByteBuffer::size_type bytesToRead) {
+ByteBuffer& ByteBuffer::read(MemoryView& buffer, size_type bytesToRead) {
     if (buffer.size() < bytesToRead) {
         raise<IllegalArgumentException>("bytesToRead");
     }
@@ -108,17 +108,6 @@ ByteBuffer& ByteBuffer::read(MemoryView& buffer, ByteBuffer::size_type bytesToRe
     return (*this);
 }
 
-
-ByteBuffer& ByteBuffer::read(byte* bytes, size_type count) {
-    if ( !(_position + count <= _limit) ) {
-        raise<OverflowException>(_position + count, _position, _limit);
-    }
-
-    memcpy(bytes, _storage.dataAddress(_position), count);
-    _position += count;
-
-    return (*this);
-}
 
 ByteBuffer& ByteBuffer::read(void* bytes, size_type count) {
     if ( !(_position + count <= _limit) ) {

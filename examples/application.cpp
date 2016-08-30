@@ -36,18 +36,21 @@ public:
         return _version;
     }
 
+    using Application::init;
+
     Solace::Result<std::function<int()>, Solace::Error>
     init(int argc, const char *argv[]) override {
 
         bool isVersionRequested = false;
 
         return Solace::Framework::CommandlineParser("Solace framework example", {
-                { 'v', "version", "Print application version.", &isVersionRequested}
-                }).parse(argc, argv)
+                    { 'v', "version", "Print application version.", &isVersionRequested}
+                })
+                .parse(argc, argv)
                 .then<Solace::Result<std::function<int()>, Solace::Error>>(
                         [this, isVersionRequested](Solace::Unit) {
                             return isVersionRequested
-                                        ? Solace::Ok<std::function<int()>, Solace::Error>( std::move([this]() { return run(); }))
+                                        ? Solace::Ok<std::function<int()>, Solace::Error>( [this]() { return run(); })
                                         : Solace::Ok<std::function<int()>, Solace::Error>( [this]() { return printVersion(); });
                         },
                         [this](Solace::Error e) {
@@ -76,7 +79,7 @@ private:
 };
 
 
-int main(int argc, const char **argv) {
+int main(int argc, char **argv) {
 
     ExampleApp app;
 
