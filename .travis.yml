@@ -11,43 +11,34 @@ env:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
    - secure: "CwhSj6NvaLnzxGe5jFUMonTK4XvXQNcxab67rLJAifRW7k6yMrzST8CP89J3AjfjBWd+NudmhSKqNdA3gzAxlAqqoVMlpkI3cufKP0RUAdJRC572zIPcoJxr322bpXl5PrwQ+jV6b5BzugqXAoeAJlVYY47OddlRyOXaDe92cUS2ZIxov/C/8QNXRZ0Ap8MvYBmLDct9wf/qoP9A2U7K7qErG16YQw40V5xfRfvA5x4JLkOjxYyi9o0fKnw4cRlBYFwSzFgzWIz8zvYOYZ9FJbrPbCfORoaVC9jRj2JCFSydV83OvesmAKyrCLyqmTQTdsTEoywbc0sbgESK3UeqlnBFFwj9Red4FLTg3kVZZAX6RzY7va9Xai7kuIXOSCeoH2kkj+Mc7pap5XvqAnOq2WpklEp+rITiUDR5aT/uSatLnjE43io0r1bH5NUN8PcMGedaJvA9soxN9E8gZCDumH4ZbmnNQPoMvPnu2kYTg9EcMRNr8E5pLg7OVc5IO30LS+cilmnLlCQ4wh6hNsWRTZ6CJDRrIf6Z14Xu4NFoHOCNIO1PoVaVf+N0IyZd3h0qw4tGIPi6Q/qi6W1YCFXa7r084mT+J/xyU1z0S4xw0AO417kT1e3vkm6L5ae/5H7aGCb03/g4YIEiv3I3ZJ6oN79uPNFvT/ZDiHYdNmSULXY="
-
 addons:
-   apt:
-     sources:
-       - ubuntu-toolchain-r-test
+ apt:
+   sources:
+   - ubuntu-toolchain-r-test
    packages:
-    - clang-3.7
-#       - g++-5
-#       - gcc-5
-    - gcc-4.9
-    - g++-4.9
-    - cmake
-    - doxygen
-    - python-pip
-    - valgrind
-    - ggcov
-    - lcov
-    - curl
+   - clang-3.7
+   - gcc-4.9
+   - g++-4.9
+   - cmake
+   - doxygen
+   - python-pip
+   - valgrind
+   - ggcov
+   - lcov
+   - curl
+   - libcppunit-dev
  coverity_scan:
-   project:
-     name: "abbyssoul/libsolace"
-     description: "Framework for High Reliability/High Availability applications"
-   notification_email: abbyssoul@gmail.com
-   #build_command_prepend: "<Your build preprocessing command here>"
-   build_command: "make"
-   branch_pattern: master
-   #branch_pattern: coverity_scan
+  project:
+      name: "abbyssoul/libsolace"
+      description: "Foundation of High Reliability/High Availability Applications"
+  notification_email: abbyssoul@gmail.com
+  build_command: "make"
+  branch_pattern: master
 
 before_install:
-  # - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
-  # - sudo apt-get install -qq cmake doxygen g++-4.9 python-pip valgrind ggcov
-  - sudo apt-get update -qq
   - pip install --user cpp-coveralls
   - pip install --user cpplint
 install:
-#- sudo install clang-tidy
-  - sudo apt-get install -qq libcppunit-dev
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.9 90
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
