@@ -103,10 +103,8 @@ libs/FlintPlusPlus/flint/flint++: libs/FlintPlusPlus
 cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
 	cpplint --recursive --exclude=${TEST_DIR}/ci/* ${INCLUDE_DIR} ${SRC_DIR} ${TEST_DIR}
 
-#	--enable=style,unusedFunctions,exceptNew,exceptRealloc,possibleError 
-#	cppcheck --std=c++11 --enable=all -v -I $(MODULE_HEADERS) $(MODULE_SRC) 
+# TODO: Extra cppcheck options to consider: --enable=style --inconclusive
 cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) libs/cppcheck/cppcheck
-	#--inconclusive
 	libs/cppcheck/cppcheck --std=c++11 --std=posix -D __linux__ --inline-suppr -q --error-exitcode=2 \
 	--enable=warning,performance,portability,missingInclude,information,unusedFunction \
 	-I include -i test/ci ${SRC_DIR} ${TEST_DIR} examples
