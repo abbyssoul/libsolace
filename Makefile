@@ -3,6 +3,9 @@
 # this file is just a convenience wrapper for common tasks.
 PROJECT = solace
 
+# Installation prefix
+PREFIX ?= /usr/local
+
 # Project directory layout
 BUILD_DIR = build
 ANALYZE_DIR = build-analyze
@@ -16,10 +19,10 @@ MODULE_SRC = ${SRC_DIR}/*
 
 GENERATED_MAKE = ${BUILD_DIR}/Makefile
 
-LIBNAME = libsolace.a
-LIB_TAGRET = ${BUILD_DIR}/${LIBNAME}
+LIBNAME = lib$(PROJECT).a
+LIB_TAGRET = $(BUILD_DIR)/$(SRC_DIR)/$(LIBNAME)
 
-TESTNAME = test_solace
+TESTNAME = test_$(PROJECT)
 TEST_TAGRET = $(BUILD_DIR)/$(TEST_DIR)/$(TESTNAME)
 
 DOC_DIR = doc
@@ -28,7 +31,7 @@ DOC_TARGET = $(DOC_DIR)/html
 COVERAGE_REPORT = coverage.json
 
 # First tagret that starts not with '.'' - is a default target to run
-.PHONY: codecheck verify clean ANALYZE_MAKE
+.PHONY: codecheck verify ANALYZE_MAKE
 
 all: lib
 
@@ -36,8 +39,8 @@ all: lib
 #-------------------------------------------------------------------------------
 # CMake wrapper
 #-------------------------------------------------------------------------------
-${BUILD_DIR}:
-	mkdir -p ${BUILD_DIR}
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
 
 $(GENERATED_MAKE): ${BUILD_DIR}
 	cd ${BUILD_DIR} && cmake ..
@@ -143,15 +146,28 @@ $(COVERAGE_REPORT):
 
 coverage: $(COVERAGE_REPORT)
 
+
 #-------------------------------------------------------------------------------
 # Insatall
 #-------------------------------------------------------------------------------
+
+.PHONY: install
+install: $(LIB_TAGRET)
+	@install -v -D -t $(DESTDIR)$(PREFIX)/lib $(LIB_TAGRET)
+	@install -v -d $(DESTDIR)$(PREFIX)/include/$(PROJECT)
+	cp -r $(INCLUDE_DIR)/$(PROJECT)/* $(DESTDIR)$(PREFIX)/include/$(PROJECT)
+
+
+.PHONY: uninstall
+uninstall:
+	$(RM) -f $(DESTDIR)$(PREFIX)/lib/$(LIBNAME)
+	$(RM) -rf $(DESTDIR)$(PREFIX)/include/$(PROJECT)
+
 
 #-------------------------------------------------------------------------------
 # Cleanup
 #-------------------------------------------------------------------------------
 
-# Phony targets
-
+.PHONY: clean
 clean:
 	$(RM) -rf $(DOC_TARGET) $(BUILD_DIR)
