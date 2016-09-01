@@ -1,6 +1,4 @@
-# libSolace build file
-# Please note currently project use cmake as a build system and
-# this file is just a convenience wrapper for common tasks.
+
 PROJECT = solace
 
 # Project directory layout
