@@ -45,9 +45,11 @@ public:
 //    typedef
 public:
 
-    explicit EventLoop(uint32 size, Selector&& selector);
+    explicit EventLoop(uint32 size, Selector&& selector) : _selector(std::move(selector))
+    {}
+
     EventLoop(EventLoop&& rhs);
-    ~EventLoop();
+    ~EventLoop() = default;
 
     EventLoop& operator= (EventLoop&& rhs);
     EventLoop& swap(EventLoop& rhs);
@@ -59,9 +61,13 @@ public:
      * Run a single iteration of the loop
      * @return True, if there are still more iteration to run
      */
-    bool iterate();
+    bool iterate() {
+        return false;
+    }
 
-    void run();
+    void run() {
+
+    }
 
 private:
 

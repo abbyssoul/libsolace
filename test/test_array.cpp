@@ -32,6 +32,10 @@
 using namespace Solace;
 
 
+template <typename T, size_t N>
+uint32 nativeArrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
+
+
 class TestArray : public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(TestArray);
@@ -258,7 +262,7 @@ public:
 			const int native_array[] = {0, 1, 2, 3};
 			const Array<int> array = {0, 1, 2, 3};
 
-			CPPUNIT_ASSERT_EQUAL(arrayLength(native_array), array.size());
+            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
 
 			for (auto i = ZERO, end = array.size(); i < end; ++i) {
 				CPPUNIT_ASSERT_EQUAL(native_array[i], array[i]);
@@ -269,7 +273,7 @@ public:
 			const String native_array[] = {"Abc", "", "dfe", "_xyz3"};
 			const Array<String> array = {"Abc", "", "dfe", "_xyz3"};
 
-			CPPUNIT_ASSERT_EQUAL(arrayLength(native_array), array.size());
+            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
 
 			for (auto i = ZERO, end = array.size(); i < end; ++i) {
 				CPPUNIT_ASSERT_EQUAL(native_array[i], array[i]);
@@ -284,7 +288,7 @@ public:
 					NonPodStruct(-321, "yyx"),
 					NonPodStruct(990, "x^hhf")
 			};
-            CPPUNIT_ASSERT_EQUAL(arrayLength(native_array), NonPodStruct::TotalCount);
+            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), NonPodStruct::TotalCount);
 
 			const Array<NonPodStruct> array = {
 					NonPodStruct(0, "yyyz"),
@@ -293,8 +297,8 @@ public:
 					NonPodStruct(990, "x^hhf")
 			};
 
-			CPPUNIT_ASSERT_EQUAL(arrayLength(native_array), array.size());
-			CPPUNIT_ASSERT_EQUAL(arrayLength(native_array) + array.size(), NonPodStruct::TotalCount);
+            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
+            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array) + array.size(), NonPodStruct::TotalCount);
 
 			for (auto i = ZERO, end = array.size(); i < end; ++i) {
 				CPPUNIT_ASSERT_EQUAL(native_array[i].iValue, array[i].iValue);
@@ -309,9 +313,9 @@ public:
 
 		{
 			const int native_array[] = {0, 1, 2, 3};
-			const Array<int> array(arrayLength(native_array), native_array);
+            const Array<int> array(nativeArrayLength(native_array), native_array);
 
-			CPPUNIT_ASSERT_EQUAL(arrayLength(native_array), array.size());
+            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
 
 			for (auto i = ZERO, end = array.size(); i < end; ++i) {
 				CPPUNIT_ASSERT_EQUAL(native_array[i], array[i]);
@@ -320,9 +324,9 @@ public:
 
 		{
 			const String native_array[] = {"Abc", "", "dfe", "_xyz3"};
-			const Array<String> array(arrayLength(native_array), native_array);
+            const Array<String> array(nativeArrayLength(native_array), native_array);
 
-			CPPUNIT_ASSERT_EQUAL(arrayLength(native_array), array.size());
+            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
 
 			for (auto i = ZERO, end = array.size(); i < end; ++i) {
 				CPPUNIT_ASSERT_EQUAL(native_array[i], array[i]);
@@ -336,9 +340,9 @@ public:
 					NonPodStruct(-321, "yyx"),
 					NonPodStruct(990, "x^hhf")
 			};
-			const Array<NonPodStruct> array(arrayLength(native_array), native_array);
+            const Array<NonPodStruct> array(nativeArrayLength(native_array), native_array);
 
-			CPPUNIT_ASSERT_EQUAL(arrayLength(native_array), array.size());
+            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
 
 			for (auto i = ZERO, end = array.size(); i < end; ++i) {
 				CPPUNIT_ASSERT_EQUAL(native_array[i].iValue, array[i].iValue);
@@ -414,13 +418,13 @@ public:
 			const Array<int> array = {1, 2, 3};
 
 			const int equal_native_array[] = {1, 2, 3};
-            const auto equal_native_array_length = arrayLength(equal_native_array);
+            const auto equal_native_array_length = nativeArrayLength(equal_native_array);
 
 			const int nequal_native_array_0[] = {0, 1, 2, 3};
-            const auto nequal_native_array_0_length = arrayLength(nequal_native_array_0);
+            const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
 
 			const int nequal_native_array_1[] = {3, 2, 1};
-            const auto nequal_native_array_1_length = arrayLength(nequal_native_array_1);
+            const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
 			const Array<int> array_eq(equal_native_array_length, equal_native_array);
 			const Array<int> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
@@ -452,13 +456,13 @@ public:
 			const Array<String> array = {"tasrd", "", "hhha", "asd"};
 
 			const String equal_native_array[] = {"tasrd", "", "hhha", "asd"};
-            const auto equal_native_array_length = arrayLength(equal_native_array);
+            const auto equal_native_array_length = nativeArrayLength(equal_native_array);
 
 			const String nequal_native_array_0[] = {"tasrd", "", "hhha", "asd", "ugaga"};
-            const auto nequal_native_array_0_length = arrayLength(nequal_native_array_0);
+            const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
 
 			const String nequal_native_array_1[] = {"tasrd", "", "hhha", "basd"};
-            const auto nequal_native_array_1_length = arrayLength(nequal_native_array_1);
+            const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
 			const Array<String> array_eq(equal_native_array_length, equal_native_array);
 			const Array<String> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
@@ -500,7 +504,7 @@ public:
                     NonPodStruct(-321, "yyx"),
                     NonPodStruct(990, "x^hhf")
             };
-            const auto equal_native_array_length = arrayLength(equal_native_array);
+            const auto equal_native_array_length = nativeArrayLength(equal_native_array);
 
 			const NonPodStruct nequal_native_array_0[] = {
                     NonPodStruct(-31, "kek-yyyz"),
@@ -509,7 +513,7 @@ public:
                     NonPodStruct(21, "32"),
                     NonPodStruct(990, "x^hhf")
             };
-            const auto nequal_native_array_0_length = arrayLength(nequal_native_array_0);
+            const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
 
 			const NonPodStruct nequal_native_array_1[] = {
                     NonPodStruct(-31, "kek-yyyz"),
@@ -517,7 +521,7 @@ public:
                     NonPodStruct(0, "dhf")
             };
 
-            const auto nequal_native_array_1_length = arrayLength(nequal_native_array_1);
+            const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
 			const Array<NonPodStruct> array_eq(equal_native_array_length, equal_native_array);
 			const Array<NonPodStruct> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
@@ -567,10 +571,10 @@ public:
             Array<int> array(5);
 
             const int equal_array[] = {1, 2, 3};
-            const size_t equal_length = arrayLength(equal_array);
+            const size_t equal_length = nativeArrayLength(equal_array);
 
             const int nequal_array[] = {0, 1, 2, 3};
-            const size_t nequal_length = arrayLength(nequal_array);
+            const size_t nequal_length = nativeArrayLength(nequal_array);
 
             array.fill(equal_array, equal_length, 1);
             CPPUNIT_ASSERT_EQUAL(true, array.equals({1, 1, 2, 3, array[4]}));

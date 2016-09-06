@@ -32,7 +32,7 @@ addons:
       name: "abbyssoul/libsolace"
       description: "Foundation of High Reliability/High Availability Applications"
   notification_email: abbyssoul@gmail.com
-  build_command: "make"
+  build_command: "make -j2"
   branch_pattern: master
 
 before_install:
@@ -48,7 +48,7 @@ install:
   - if [ "$CXX" = "clang++" ]; then which clang++; clang++ --version; fi
   - libs/dependencies
 script:
-  - make codecheck
+  - make -j2 codecheck
   - make -j2 && make test && make verify
 after_success:
   - coveralls --exclude build --exclude libs --exclude tests --gcov-options '\-lp'

@@ -40,6 +40,9 @@ class TestCommandlineParser: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testNoShortValue);
         CPPUNIT_TEST(testNoLongValue);
         CPPUNIT_TEST(testInvalidValueType);
+        CPPUNIT_TEST(testEmptyName);
+        CPPUNIT_TEST(testSinglePrefix);
+        CPPUNIT_TEST(testDoublePrefix);
         CPPUNIT_TEST(testCustomHandlerShort);
         CPPUNIT_TEST(testCustomHandlerLong);
         CPPUNIT_TEST(testCustomNoValue);
@@ -232,6 +235,66 @@ public:
         CommandlineParser(appDesc, {
                               {'x', "xxx", "Something", &xValue}
                           })
+                .parse(argc, argv)
+                .then<void>(
+                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+
+
+        CPPUNIT_ASSERT(!parsedSuccessully);
+        CPPUNIT_ASSERT_EQUAL(0, xValue);
+    }
+
+
+    void testEmptyName() {
+        bool parsedSuccessully = false;
+        int xValue = 0;
+
+        const char* argv[] = {"prog", "", "-xy", "32", nullptr};
+        const int argc = 4;
+
+        const char* appDesc = "Something awesome";
+        CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
+                .parse(argc, argv)
+                .then<void>(
+                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+
+
+        CPPUNIT_ASSERT(!parsedSuccessully);
+        CPPUNIT_ASSERT_EQUAL(0, xValue);
+    }
+
+
+    void testSinglePrefix() {
+        bool parsedSuccessully = false;
+        int xValue = 0;
+
+        const char* argv[] = {"prog", "-", "32", nullptr};
+        const int argc = 3;
+
+        const char* appDesc = "Something awesome";
+        CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
+                .parse(argc, argv)
+                .then<void>(
+                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+
+
+        CPPUNIT_ASSERT(!parsedSuccessully);
+        CPPUNIT_ASSERT_EQUAL(0, xValue);
+    }
+
+
+    void testDoublePrefix() {
+        bool parsedSuccessully = false;
+        int xValue = 0;
+
+        const char* argv[] = {"prog", "--", "BHAL!", nullptr};
+        const int argc = 3;
+
+        const char* appDesc = "Something awesome";
+        CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
                 .parse(argc, argv)
                 .then<void>(
                     [&parsedSuccessully](Unit) {parsedSuccessully = true; },

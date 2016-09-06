@@ -36,16 +36,11 @@ namespace Solace { namespace IO {
 class IOException: public Exception {
 public:
 
-//    IOException();
+    IOException(int errorCode) noexcept;
 
-    IOException(int errorCode,
-                const char* file = 0, int line = 0);
+    IOException(int errorCode, const std::string& msg) noexcept;
 
-    IOException(int errorCode, const std::string& msg,
-                const char* file = 0, int line = 0);
-
-    IOException(const std::string& msg,
-                const char* file = 0, int line = 0);
+    IOException(const std::string& msg) noexcept;
 
     virtual ~IOException() noexcept = default;
 
@@ -63,7 +58,7 @@ private:
  */
 class NotOpen: public IOException {
 public:
-    NotOpen(const char* file = 0, int line = 0);
+    NotOpen() noexcept;
 };
 
 

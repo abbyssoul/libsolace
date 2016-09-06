@@ -27,6 +27,7 @@
 
 #include "solace/libsolace_config.h"
 
+#include <cstddef>
 #include <cstdint>
 
 namespace Solace {
@@ -70,8 +71,8 @@ static_assert(4 == sizeof(float32), "size of float32 is not 4 bytes!");
 static_assert(8 == sizeof(float64), "size of float64 is not 8 bytes!");
 
 
-template <typename T, ::std::size_t N>
-uint32 arrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
+template <typename T, size_t N>
+size_t arrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
 
 }  // End of namespace Solace
 #endif  // SOLACE_TYPES_HPP

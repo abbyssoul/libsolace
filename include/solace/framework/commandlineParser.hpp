@@ -150,7 +150,7 @@ public:
         bool operator == (const Option& other) const noexcept;
 
 
-        bool isMatch(const char* name, char shortPrefix, const char* longPrefix) const;
+        bool isMatch(const char* name, char shortPrefix) const noexcept;
         bool isExpectsArgument() const noexcept { return _expectsArgument; }
         Optional<Error> match(Context& c) const;
 
@@ -221,18 +221,24 @@ public:
 
 public:
 
+    static const char DefaultPrefix;
+
+public:
+
     CommandlineParser(const char* appDescription, const std::initializer_list<Option>& options);
     CommandlineParser(const char* appDescription,
                       const std::initializer_list<Option>& options,
                       const std::initializer_list<Argument>& arguments);
 
     CommandlineParser(const CommandlineParser& rhs) :
+        prefix(rhs.prefix),
         _description(rhs._description),
         _options(rhs._options),
         _arguments(rhs._arguments)
     {}
 
     CommandlineParser(CommandlineParser&& rhs) noexcept :
+        prefix(rhs.prefix),
         _description(std::move(rhs._description)),
         _options(std::move(rhs._options)),
         _arguments(std::move(rhs._arguments))
@@ -249,6 +255,7 @@ public:
     }
 
     CommandlineParser& swap(CommandlineParser& rhs) noexcept {
+        std::swap(prefix, rhs.prefix);
         std::swap(_description, rhs._description);
         std::swap(_options, rhs._options);
         std::swap(_arguments, rhs._arguments);
@@ -257,6 +264,16 @@ public:
     }
 
     Result<Unit, Error> parse(int argc, const char* argv[]) const;
+
+
+    // TODO(abbyssoul):
+    // printVersion() const
+    // printUsage() const
+    // printHelp() const
+
+public:
+
+    char prefix;
 
 private:
 

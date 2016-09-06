@@ -48,8 +48,7 @@ class Exception :   public IFormattable,
 public:
 
     //! Construct exception w. message
-    Exception(const std::string& message,
-              const char* file = 0, int line = 0) noexcept;
+    Exception(const std::string& message) noexcept;
 
     Exception(const Exception& other) noexcept;
 
@@ -70,8 +69,6 @@ private:
     const std::string	_message;		//!< Message of the exception.
 
 #ifdef SOLACE_DEBUG
-    const char* 		_file;			//!< File where it was thrown.
-    const int 			_line;			//!< Line in file.
 //  const Debug::Trace 	_trace;			//!< Stack trace
 #endif  // SOLACE_DEBUG
 
@@ -83,13 +80,11 @@ private:
 */
 class IllegalArgumentException: public Exception {
 public:
-    IllegalArgumentException();
+    IllegalArgumentException() noexcept;
 
-    IllegalArgumentException(const char* argumentName);
+    IllegalArgumentException(const char* argumentName) noexcept;
 
-    IllegalArgumentException(const std::string& msg,
-                             const char* file = 0,
-                             int line = 0);
+    explicit IllegalArgumentException(const std::string& msg) noexcept;
 
     virtual ~IllegalArgumentException() noexcept = default;
 };
@@ -101,15 +96,13 @@ public:
 class IndexOutOfRangeException : public Exception {
 public:
 
-    IndexOutOfRangeException();
+    IndexOutOfRangeException() noexcept;
 
     //! Construct exception given expected range values:
-    IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue,
-                             const char* file = 0, int line = 0) noexcept;
+    IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue) noexcept;
 
     //! Construct exception giving expected values and w. custom message
-    IndexOutOfRangeException(const char* indexName, size_t index, size_t minValue, size_t maxValue,
-                             const char* file = 0, int line = 0) noexcept;
+    IndexOutOfRangeException(const char* indexName, size_t index, size_t minValue, size_t maxValue) noexcept;
 
     virtual ~IndexOutOfRangeException() noexcept = default;
 };
@@ -120,11 +113,9 @@ public:
 class OverflowException : public Exception {
 public:
 
-    OverflowException(const char* indexName, size_t index, size_t minValue, size_t maxValue,
-                      const char* file = 0, int line = 0) noexcept;
+    OverflowException(const char* indexName, size_t index, size_t minValue, size_t maxValue) noexcept;
 
-    OverflowException(size_t index, size_t minValue, size_t maxValue,
-                        const char* file = 0, int line = 0) noexcept;
+    OverflowException(size_t index, size_t minValue, size_t maxValue) noexcept;
 
     virtual ~OverflowException() noexcept = default;
 };
@@ -136,10 +127,9 @@ public:
 class NoSuchElementException: public Exception {
 public:
 
-    NoSuchElementException();
+    NoSuchElementException() noexcept;
 
-    NoSuchElementException(const char* elementName,
-                           const char* file = 0, int line = 0);
+    NoSuchElementException(const char* elementName) noexcept;
 
     virtual ~NoSuchElementException() noexcept = default;
 };
@@ -150,7 +140,7 @@ public:
  */
 class InvalidMarkException: public Exception {
 public:
-    InvalidMarkException(const char* file = 0, int line = 0);
+    InvalidMarkException() noexcept;
 
     virtual ~InvalidMarkException() noexcept = default;
 };
@@ -158,7 +148,7 @@ public:
 
 template <typename ExceptionType, typename... Args>
 void raise(Args&&... args) {
-    throw ExceptionType(std::forward<Args>(args)..., "place", -1);
+    throw ExceptionType(std::forward<Args>(args)...);
 }
 
 }  // End of namespace Solace

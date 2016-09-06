@@ -37,36 +37,20 @@ using Solace::InvalidMarkException;
 
 
 
-Exception::Exception(const std::string& message, const char* file, int line) noexcept :
-      #if defined(SOLACE_DEBUG)
-        _message(file
-                 ? fmt::format("{}, File: '{}':{}", message, file, line)
-                 : message)
-          , _file(file)
-          , _line(line)
-      #else
+Exception::Exception(const std::string& message) noexcept :
         _message(message)
-      #endif
 {
     // Nothing else to do here
 }
 
 Exception::Exception(const Exception& other) noexcept :
     _message(other._message)
-  #if defined(SOLACE_DEBUG)
-      , _file(other._file)
-      , _line(other._line)
-  #endif
 {
     // Nothing else to do here
 }
 
 Exception::Exception(Exception&& other) noexcept :
     _message(std::move(other._message))
-  #if defined(SOLACE_DEBUG)
-      , _file(other._file)
-      , _line(other._line)
-  #endif
 {
     // Nothing else to do here
 }
@@ -88,29 +72,28 @@ String Exception::toString() const {
 
 
 
-IllegalArgumentException::IllegalArgumentException() :
+IllegalArgumentException::IllegalArgumentException() noexcept:
     Exception("IllegalArgumentException")
 {
 
 }
 
 
-IllegalArgumentException::IllegalArgumentException(const char* argumentName) :
+IllegalArgumentException::IllegalArgumentException(const char* argumentName) noexcept:
     Exception(fmt::format("Illegal argument '{}'", argumentName))
 {
     // Nothing to do here
 }
 
 
-IllegalArgumentException::IllegalArgumentException(const std::string& msg,
-                         const char* file, int line)
-        : Exception(msg, file, line)
+IllegalArgumentException::IllegalArgumentException(const std::string& msg) noexcept:
+    Exception(msg)
 {
 
 }
 
 
-IndexOutOfRangeException::IndexOutOfRangeException():
+IndexOutOfRangeException::IndexOutOfRangeException() noexcept:
     Exception("Index out of range")
 {
     // No-op
@@ -118,60 +101,52 @@ IndexOutOfRangeException::IndexOutOfRangeException():
 
 
 
-IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue,
-                                                   const char* file, const int line) noexcept :
-    Exception(fmt::format("Value '{}' is out of range [{}, {})", index, minValue, maxValue),
-              file, line)
+IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue) noexcept :
+    Exception(fmt::format("Value '{}' is out of range [{}, {})", index, minValue, maxValue))
 {
     // No-op
 }
 
 
 IndexOutOfRangeException::IndexOutOfRangeException(const char* indexName,
-                                                   size_t index, size_t minValue, size_t maxValue,
-                                                   const char* file, const int line) noexcept :
-    Exception(fmt::format("Index '{}'={} is out of range [{}, {})",
-                          indexName, index, minValue, maxValue),
-              file, line)
+                                                   size_t index, size_t minValue, size_t maxValue) noexcept :
+    Exception(fmt::format("Index '{}'={} is out of range [{}, {})", indexName, index, minValue, maxValue))
 {
     // No-op
 }
 
 
 OverflowException::OverflowException(const char* indexName,
-                                     size_t index, size_t minValue, size_t maxValue,
-                                     const char* file, const int line) noexcept :
+                                     size_t index, size_t minValue, size_t maxValue) noexcept :
     Exception(fmt::format("Value '{}'={} overflows range [{}, {})",
-                          indexName, index, minValue, maxValue),
-              file, line)
+                          indexName, index, minValue, maxValue))
 {
     // Nothing else to do here
 }
 
-OverflowException::OverflowException(size_t index, size_t minValue, size_t maxValue,
-                                     const char* file, const int line) noexcept :
-    Exception(fmt::format("Value {} overflows range [{}, {})",
-                          index, minValue, maxValue),
-              file, line)
+
+OverflowException::OverflowException(size_t index, size_t minValue, size_t maxValue) noexcept :
+    Exception(fmt::format("Value {} overflows range [{}, {})", index, minValue, maxValue))
 {
 }
 
-NoSuchElementException::NoSuchElementException() :
+
+NoSuchElementException::NoSuchElementException() noexcept:
         Exception("No such element")
 {
     // No-op
 }
 
-NoSuchElementException::NoSuchElementException(const char* elementName,
-                                               const char* file, const int line) :
-    Exception(fmt::format("No such element: '{}'", elementName),
-              file, line)
+
+NoSuchElementException::NoSuchElementException(const char* elementName) noexcept:
+    Exception(fmt::format("No such element: '{}'", elementName))
 {
     // Nothing else to do here
 }
 
-InvalidMarkException::InvalidMarkException(const char* file, int line) :
-    Exception("InvalidMarkException", file, line)
+
+InvalidMarkException::InvalidMarkException() noexcept:
+    Exception("InvalidMarkException")
 {
     // Nothing else to do here
 }

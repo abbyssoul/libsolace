@@ -31,6 +31,10 @@ using namespace Solace;
 using namespace Solace::Framework;
 
 
+const char CommandlineParser::DefaultPrefix = '-';
+
+
+
 bool as_boolean(const char* v, bool* value) {
     if (strcasecmp("true", v) == 0 || strcmp("1", v) == 0) {
         *value = true;
@@ -45,6 +49,7 @@ bool as_boolean(const char* v, bool* value) {
     return false;
 }
 
+
 CommandlineParser::Option::Option(char shortName, const char* longName, const char* description, int32* value):
     _shortName(shortName),
     _longName(longName),
@@ -54,7 +59,7 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
         *value = strtol(context.value, &pEnd, 0);
 
         return (!pEnd || pEnd == context.value)
-                ? Optional<Error>::of(fmt::format("Error pasring value of '{}': can't convert '{}' to int32",
+                ? Optional<Error>::of(fmt::format("Argument '{}' invalid int32 value: '{}'",
                                                   context.name,
                                                   context.value))  // No conversion was done!
                 : None();
@@ -72,7 +77,7 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
         char* pEnd = nullptr;
         *value = strtoul(context.value, &pEnd, 0);
         return (!pEnd || pEnd == context.value)
-                ? Optional<Error>::of(fmt::format("Error pasring value of '{}': can't convert '{}' to uint32",
+                ? Optional<Error>::of(fmt::format("Argument '{}' invalid uint32 value: '{}'",
                                                   context.name,
                                                   context.value))  // No conversion was done!
                 : None();
@@ -90,7 +95,7 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
         char* pEnd = nullptr;
         *value = strtof(context.value, &pEnd);
         return (!pEnd || pEnd == context.value)
-                ? Optional<Error>::of(fmt::format("Error pasring value of '{}': can't convert '{}' to float32",
+                ? Optional<Error>::of(fmt::format("Argument '{}' invalid float32 value: '{}'",
                                                   context.name,
                                                   context.value))  // No conversion was done!
             : None();
@@ -107,7 +112,7 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
     _callback([value](Context& context) {
 
         return (!as_boolean(context.value, value))
-                ? Optional<Error>::of(fmt::format("Error pasring value of '{}': can't convert '{}' to boolean",
+                ? Optional<Error>::of(fmt::format("Argument '{}' invalid boolean value: '{}'",
                                                   context.name,
                                                   context.value))  // No conversion was done!
                 : None();
@@ -157,7 +162,7 @@ CommandlineParser::Argument::Argument(const char* name, const char* description,
         char* pEnd = nullptr;
         *value = strtof(context.value, &pEnd);
         return (!pEnd || pEnd == context.value)
-                ? Optional<Error>::of(fmt::format("Error pasring value of '{}': can't convert '{}' to int32",
+                ? Optional<Error>::of(fmt::format("Argument '{}' invalid int32 value: '{}'",
                                                   context.name,
                                                   context.value))  // No conversion was done!
             : None();
@@ -173,7 +178,7 @@ CommandlineParser::Argument::Argument(const char* name, const char* description,
         char* pEnd = nullptr;
         *value = strtof(context.value, &pEnd);
         return (!pEnd || pEnd == context.value)
-                ? Optional<Error>::of(fmt::format("Error pasring value of '{}': can't convert '{}' to uint32",
+                ? Optional<Error>::of(fmt::format("Argument '{}' invalid uint32 value: '{}'",
                                                   context.name,
                                                   context.value))  // No conversion was done!
             : None();
@@ -189,7 +194,7 @@ CommandlineParser::Argument::Argument(const char* name, const char* description,
         char* pEnd = nullptr;
         *value = strtof(context.value, &pEnd);
         return (!pEnd || pEnd == context.value)
-                ? Optional<Error>::of(fmt::format("Error pasring value of '{}': can't convert '{}' to float32",
+                ? Optional<Error>::of(fmt::format("Argument '{}' invalid float32 value: '{}'",
                                                   context.name,
                                                   context.value))  // No conversion was done!
             : None();
@@ -203,7 +208,7 @@ CommandlineParser::Argument::Argument(const char* name, const char* description,
     _description(description),
     _callback([value](Context& context) {
         return (as_boolean(context.value, value))
-                ? Optional<Error>::of(fmt::format("Error pasring value of '{}': can't convert '{}' to boolean",
+                ? Optional<Error>::of(fmt::format("Argument '{}' invalid boolean value: '{}'",
                                                   context.name,
                                                   context.value))  // No conversion was done!
             : None();
@@ -242,6 +247,7 @@ bool CommandlineParser::Argument::operator == (const CommandlineParser::Argument
 
 CommandlineParser::CommandlineParser(const char* appDescription,
                                      const std::initializer_list<Option>& options) :
+    prefix(DefaultPrefix),
     _description(appDescription),
     _options(options)
 {
@@ -251,6 +257,7 @@ CommandlineParser::CommandlineParser(const char* appDescription,
 CommandlineParser::CommandlineParser(const char* appDescription,
                                      const std::initializer_list<Option>& options,
                                      const std::initializer_list<Argument>& arguments) :
+    prefix(DefaultPrefix),
     _description(appDescription),
     _options(options),
     _arguments(arguments)
@@ -258,20 +265,15 @@ CommandlineParser::CommandlineParser(const char* appDescription,
 }
 
 
-bool CommandlineParser::Option::isMatch(const char* name, char shortPrefix, const char* longPrefix) const {
-
-    if (!name) {  // TODO(abbyssol): Possible error case, maybe better to throw!
-        return false;
-    }
-
-    if (_shortName) {
+bool CommandlineParser::Option::isMatch(const char* name, char shortPrefix) const noexcept {
+    if (_shortName && name) {
         if (name[0] == shortPrefix && name[1] == _shortName && name[2] == 0) {
             return true;
         }
     }
 
-    if (_longName) {
-        if (name[0] == longPrefix[0] && name[1] == longPrefix[1] &&
+    if (_longName && name) {
+        if (name[0] == shortPrefix && name[1] == shortPrefix && name[2] != 0 &&
                 strcmp(name + 2, _longName) == 0)  {
             return true;
         }
@@ -293,32 +295,28 @@ Optional<Error> CommandlineParser::Argument::match(Context& c) const {
 
 Result<Unit, Error>
 CommandlineParser::parse(int argc, const char *argv[]) const {
-
-    const char flagPrefix = '-';
-    const char* optionPrefix = "--";
-
-    int firstPositionalArgument = 1;
+    uint32 firstPositionalArgument = 1;
 
     // Handle flags
     for (int i = 1; i < argc; ++i, ++firstPositionalArgument) {
         const char* arg = argv[i];
 
-        if (arg[0] == flagPrefix) {
+        if (arg[0] == prefix) {
 
             int numberMatched = 0;
             bool valueConsumed = false;
             for (auto& option : _options) {
 
-                if (option.isMatch(arg, flagPrefix, optionPrefix)) {
+                if (option.isMatch(arg, prefix)) {
                     numberMatched += 1;
 
                     if (i + 1 < argc) {
 
                         const char* value = nullptr;
-                        if (argv[i + 1][0] == flagPrefix) {
+                        if (argv[i + 1][0] == prefix) {
                             if (option.isExpectsArgument()) {
                                 return Err<Unit, Error>(Error(
-                                    fmt::format("Option '{}' expected an argument and non was given.", argv[i])));
+                                    fmt::format("Option '{}' expected one argument", argv[i])));
                             } else {
                                 value = "true";
                             }
@@ -376,7 +374,7 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
 
     // Positional arguments processing
 
-    const auto nbPositionalArgument = argc - firstPositionalArgument;
+    const uint32 nbPositionalArgument = argc - firstPositionalArgument;
     if (nbPositionalArgument > _arguments.size()) {
         return Err<Unit, Error>(Error(fmt::format("Too many arguments given {}, expected: {}",
                                                   nbPositionalArgument,
@@ -389,7 +387,7 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
                                                   _arguments[_arguments.size() - nbPositionalArgument - 1].name())));
     }
 
-    for (int i = 0; i < nbPositionalArgument; ++i) {
+    for (uint32 i = 0; i < nbPositionalArgument; ++i) {
         Context c {_arguments[i].name(),
                     argv[firstPositionalArgument + i],
                     *this};

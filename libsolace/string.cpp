@@ -417,7 +417,7 @@ String String::valueOf(bool value) {
 
 
 String String::valueOf(String value) {
-    return std::move(value);
+    return value;
 }
 
 String String::valueOf(int32 val) {

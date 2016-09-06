@@ -45,26 +45,27 @@ std::string formatErrono(int errorCode, const std::string& msg) {
 }
 
 
-IOException::IOException(const std::string& msg,
-                         const char* file, int line): Exception(msg, file, line), _errorCode(-1) {
+IOException::IOException(const std::string& msg) noexcept: Exception(msg), _errorCode(-1) {
 }
 
 
-IOException::IOException(int errorCode,
-                         const char* file, int line): Exception(formatErrono(errorCode), file, line),
+IOException::IOException(int errorCode) noexcept:
+    Exception(formatErrono(errorCode)),
     _errorCode(errorCode)
 {
 }
 
 
-IOException::IOException(int errorCode, const std::string& msg,
-                         const char* file, int line): Exception(formatErrono(errorCode, msg), file, line),
+IOException::IOException(int errorCode, const std::string& msg) noexcept:
+    Exception(formatErrono(errorCode, msg)),
     _errorCode(errorCode)
 {
 }
 
 
-NotOpen::NotOpen(const char* file, int line): IOException("File descriptor not opened", file, line) {
+NotOpen::NotOpen() noexcept:
+    IOException("File descriptor not opened")
+{
     // No-op
 }
 

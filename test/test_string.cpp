@@ -23,7 +23,6 @@
 #include <cppunit/extensions/HelperMacros.h>
 
 
-#include <fmt/format.h>
 #include <cstring>
 
 using namespace Solace;
@@ -364,9 +363,7 @@ public:
             const String toTrim("Hello, world!");
             testString = toTrim.trim();
             CPPUNIT_ASSERT(testString == toTrim);
-            CPPUNIT_ASSERT_EQUAL_MESSAGE(fmt::format("The string '{}' doesn't match '{}'",
-            							 testString.to_str(), trimmed.to_str()),
-                                         trimmed, testString);
+            CPPUNIT_ASSERT_EQUAL(trimmed, testString);
         }
 
         // Trim start
@@ -375,9 +372,7 @@ public:
             const String toTrim(" Hello, world!");
             testString = toTrim.trim();
             CPPUNIT_ASSERT(testString != toTrim);
-            CPPUNIT_ASSERT_EQUAL_MESSAGE(fmt::format("The string '{}' doesn't match '{}'",
-    									testString.to_str(), trimmed.to_str()),
-                                         trimmed, testString);
+            CPPUNIT_ASSERT_EQUAL(trimmed, testString);
         }
 
 		// Trim both
@@ -386,9 +381,7 @@ public:
             const String toTrim("  Hello, world!  ");
             testString = toTrim.trim();
             CPPUNIT_ASSERT(testString != toTrim);
-            CPPUNIT_ASSERT_EQUAL_MESSAGE(fmt::format("The string '{}' doesn't match '{}'",
-            							 testString.to_str(), trimmed.to_str()),
-                                         trimmed, testString);
+            CPPUNIT_ASSERT_EQUAL(trimmed, testString);
         }
 
 		// Trim End
@@ -397,9 +390,7 @@ public:
             const String toTrim("Hello, world !  ");
             testString = toTrim.trim();
             CPPUNIT_ASSERT(testString != toTrim);
-            CPPUNIT_ASSERT_EQUAL_MESSAGE(fmt::format("The string '{}' doesn't match '{}'",
-            							 testString.to_str(), trimmed.to_str()),
-                                         trimmed, testString);
+            CPPUNIT_ASSERT_EQUAL(trimmed, testString);
         }
 	}
 
