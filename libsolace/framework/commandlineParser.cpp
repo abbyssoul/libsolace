@@ -293,7 +293,13 @@ Optional<Error> CommandlineParser::Argument::match(Context& c) const {
 }
 
 
-Result<Unit, Error>
+Result<const CommandlineParser*, Error>
+fail(const std::string& message) {
+    return Err<const CommandlineParser*, Error>(Error(message));
+}
+
+
+Result<const CommandlineParser*, Error>
 CommandlineParser::parse(int argc, const char *argv[]) const {
     uint32 firstPositionalArgument = 1;
 
@@ -315,8 +321,7 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
                         const char* value = nullptr;
                         if (argv[i + 1][0] == prefix) {
                             if (option.isExpectsArgument()) {
-                                return Err<Unit, Error>(Error(
-                                    fmt::format("Option '{}' expected one argument", argv[i])));
+                                return fail(fmt::format("Option '{}' expected one argument", argv[i]));
                             } else {
                                 value = "true";
                             }
@@ -328,28 +333,27 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
                         Context c {arg, value, *this};
                         auto r = option.match(c);
                         if (r.isSome()) {
-                            return Err<Unit, Error>(std::move(r.get()));
+                            return Err<const CommandlineParser*, Error>(std::move(r.get()));
                         }
 
                         if (c.isStopRequired) {
                             Error e("", 0);
-                            return Err<Unit, Error>(std::move(e));
+                            return Err<const CommandlineParser*, Error>(std::move(e));
                         }
 
                     } else {
                         if (option.isExpectsArgument()) {
-                            return Err<Unit, Error>(Error(
-                            fmt::format("Option '{}' expected an argument and non was given.", argv[i])));
+                            return fail(fmt::format("Option '{}' expected an argument and non was given.", argv[i]));
                         } else {
                             Context c {arg, "true", *this};
                             auto r = option.match(c);
                             if (r.isSome()) {
-                                return Err<Unit, Error>(std::move(r.get()));
+                                return Err<const CommandlineParser*, Error>(std::move(r.get()));
                             }
 
                             if (c.isStopRequired) {
                                 Error e("", 0);
-                                return Err<Unit, Error>(std::move(e));
+                                return Err<const CommandlineParser*, Error>(std::move(e));
                             }
                         }
                     }
@@ -357,7 +361,7 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
             }
 
             if (numberMatched < 1) {
-                return Err<Unit, Error>(Error(fmt::format("Unexpeced option '{}'", argv[i])));
+                return fail(fmt::format("Unexpeced option '{}'", argv[i]));
             }
 
             if (valueConsumed) {
@@ -376,15 +380,15 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
 
     const uint32 nbPositionalArgument = argc - firstPositionalArgument;
     if (nbPositionalArgument > _arguments.size()) {
-        return Err<Unit, Error>(Error(fmt::format("Too many arguments given {}, expected: {}",
+        return fail(fmt::format("Too many arguments given {}, expected: {}",
                                                   nbPositionalArgument,
-                                                  _arguments.size())));
+                                                  _arguments.size()));
     }
 
     if (nbPositionalArgument < _arguments.size()) {
-        return Err<Unit, Error>(Error(fmt::format("No value given for argument {} '{}'",
+        return fail(fmt::format("No value given for argument {} '{}'",
                                                   _arguments.size() - nbPositionalArgument,
-                                                  _arguments[_arguments.size() - nbPositionalArgument - 1].name())));
+                                                  _arguments[_arguments.size() - nbPositionalArgument - 1].name()));
     }
 
     for (uint32 i = 0; i < nbPositionalArgument; ++i) {
@@ -396,5 +400,5 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
     }
 
 
-    return Ok<Unit, Error>(Unit());
+    return Ok<const CommandlineParser*, Error>(this);
 }

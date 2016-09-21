@@ -19,6 +19,8 @@ set(SOURCE_FILES
         io/serial_list_ports.cpp
         io/signalDispatcher.cpp
         io/selector.cpp
+        io/selector_poll.cpp
+        io/selector_epoll.cpp
         io/platformFilesystem.cpp
         io/sharedMemory.cpp
         io/mappedMemory.cpp

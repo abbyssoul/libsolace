@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
     auto buffer = memManager.create(bufferSize);
     Solace::ByteBuffer readBuffer(buffer);
 	Solace::IO::Serial serial(file, boudRate);
-    auto selector = Solace::IO::Selector::epoll(2);
+    auto selector = Solace::IO::Selector::createEPoll(2);
     selector.add(&serial,   Solace::IO::Selector::Events::Read ||
                             Solace::IO::Selector::Events::Error);
 

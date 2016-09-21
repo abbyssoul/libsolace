@@ -40,7 +40,8 @@ public:
     class IPollerImpl;
 
 
-    static Selector epoll(uint eventSize);
+    static Selector createEPoll(uint eventSize);
+    static Selector createPoll(uint eventSize);
 
 
 public:
@@ -57,6 +58,7 @@ public:
         ISelectable*    pollable;
 //        void*           data;
     };
+
 
     class Iterator {
     public:
@@ -79,13 +81,9 @@ public:
 
         Event operator-> () const;
 
-        Iterator begin() const {
-            return Iterator(_size, _pimpl);
-        }
+        Iterator begin() const;
 
-        Iterator end() const {
-            return Iterator(_size, _size, _pimpl);
-        }
+        Iterator end() const;
 
         Iterator& swap(Iterator& rhs) noexcept {
             std::swap(_index, rhs._index);
@@ -99,13 +97,13 @@ public:
             return _size;
         }
 
-        Iterator(uint index, uint size, const std::shared_ptr<IPollerImpl>& p): _index(index), _size(size),
+        Iterator(const std::shared_ptr<IPollerImpl>& p, uint index, uint size): _index(index), _size(size),
             _pimpl(p)
         {}
 
-        Iterator(uint size, const std::shared_ptr<IPollerImpl>& p): _index(0), _size(size),
-            _pimpl(p)
-        {}
+//        Iterator(uint size, const std::shared_ptr<IPollerImpl>& p): _index(0), _size(size),
+//            _pimpl(p)
+//        {}
 
         Iterator(Iterator&& rhs): _index(rhs._index), _size(rhs._size),
             _pimpl(std::move(rhs._pimpl))

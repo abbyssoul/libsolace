@@ -263,7 +263,7 @@ public:
         return (*this);
     }
 
-    Result<Unit, Error> parse(int argc, const char* argv[]) const;
+    Result<const CommandlineParser*, Error> parse(int argc, const char* argv[]) const;
 
 
     // TODO(abbyssoul):

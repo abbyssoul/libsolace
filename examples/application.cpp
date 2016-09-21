@@ -48,7 +48,7 @@ public:
                 })
                 .parse(argc, argv)
                 .then<Solace::Result<std::function<int()>, Solace::Error>>(
-                        [this, isVersionRequested](Solace::Unit) {
+                        [this, isVersionRequested](const Solace::Framework::CommandlineParser*) {
                             return isVersionRequested
                                         ? Solace::Ok<std::function<int()>, Solace::Error>( [this]() { return run(); })
                                         : Solace::Ok<std::function<int()>, Solace::Error>( [this]() { return printVersion(); });

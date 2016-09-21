@@ -33,7 +33,7 @@
 namespace Solace { namespace IO { namespace EventLoop {
 
 /**
- * Event Loop build on top of selectors.
+ * Event Loop.
  *
  * This package allows developers to use heigher level concept of the event loop to write reactive applicatoins.
  * Event loop abstacts data sources, polling all inputs and outputs and
@@ -43,9 +43,14 @@ namespace Solace { namespace IO { namespace EventLoop {
 class EventLoop {
 public:
 //    typedef
+
+    class Work;
+
 public:
 
-    explicit EventLoop(uint32 size, Selector&& selector) : _selector(std::move(selector))
+    explicit EventLoop(uint32 backlogCapacity, Selector&& selector) :
+        _backlog(backlogCapacity),
+        _selector(std::move(selector))
     {}
 
     EventLoop(EventLoop&& rhs);
@@ -58,7 +63,8 @@ public:
     void remove(const std::shared_ptr<Channel>& channel);
 
     /**
-     * Run a single iteration of the loop
+     * Run a single iteration of the event loop.
+     *
      * @return True, if there are still more iteration to run
      */
     bool iterate() {
@@ -69,8 +75,10 @@ public:
 
     }
 
+
 private:
 
+    Array<std::shared_ptr<Work>> _backlog;
     Selector _selector;
 
 };

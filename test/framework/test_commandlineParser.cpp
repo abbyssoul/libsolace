@@ -75,7 +75,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -98,7 +98,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -121,7 +121,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error e){
                         parsedSuccessully = false;
                         CPPUNIT_FAIL(e.toString().c_str());
@@ -146,7 +146,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -168,7 +168,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -191,7 +191,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -214,7 +214,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -237,7 +237,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -257,7 +257,7 @@ public:
         CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -277,7 +277,7 @@ public:
         CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -297,7 +297,7 @@ public:
         CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -329,7 +329,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -363,7 +363,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -395,7 +395,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -425,7 +425,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -451,7 +451,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -475,7 +475,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -500,7 +500,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -528,7 +528,7 @@ public:
                           )
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -557,7 +557,7 @@ public:
                           )
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -583,7 +583,7 @@ public:
                           )
                 .parse(argc, argv)
                 .then<void>(
-                    [&parsedSuccessully](Unit) {parsedSuccessully = true; },
+                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
                     [&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
