@@ -394,7 +394,7 @@ String String::join(const String& by, const Array<String>& list) {
 
 const MemoryView String::getBytes() const {
     // FIXME: How about buffer for CONST data!
-    return MemoryView::wrap(const_cast<char*>(_str.data()), _str.length());
+    return wrapMemory(const_cast<char*>(_str.data()), _str.length());
 }
 
 

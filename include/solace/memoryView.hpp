@@ -53,53 +53,6 @@ public:
 
 public:
 
-    /**
-     * Wrap already allocated memory pointer into the buffer object.
-     *
-     * @param data Pointer the memory to wrap
-     * @param size Size in bytes of the allocated memory
-     * @param copyData If true - a memory to store the data will be allocated and
-     * the content of the data will be copied. Created buffer will be responsible for managing new memory.
-     * If false - new buffer will be acting as a pointer and it's caller's responsibility to despose of the memory.
-     *
-     * @return MemoryView object wrapping the memory address given
-     */
-    static MemoryView wrap(void* data, size_type size, const std::function<void(MemoryView*)>& freeFunc = 0) {
-        return wrap(reinterpret_cast<byte*>(data), size, freeFunc);
-    }
-
-    static MemoryView wrap(char* data, size_type size, const std::function<void(MemoryView*)>& freeFunc = 0) {
-        return wrap(reinterpret_cast<byte*>(data), size, freeFunc);
-    }
-
-    static MemoryView wrap(byte* data, size_type size, const std::function<void(MemoryView*)>& freeFunc = 0);
-
-
-    template<typename PodType, std::size_t N>
-    static MemoryView wrap(PodType (&data)[N]) {
-        return MemoryView(N, static_cast<void*>(data), 0);
-    }
-
-
-    /** Copy a memory block.
-     * Create a new memory view that has a copy of data and will take ownership of that copy.
-     * @param data Data to copy.
-     * @param size Amount of the data to copy.
-     * @return A new memory view owning copy of the given data.
-     */
-//    static MemoryView copy(const void* data, size_type size) {
-//        return copy(reinterpret_cast<const byte*>(data), size);
-//    }
-
-//    static MemoryView copy(const char* data, size_type size) {
-//        return copy(reinterpret_cast<const byte*>(data), size);
-//    }
-
-//    static MemoryView copy(const byte* data, size_type size);
-
-
-public:
-
     MemoryView(MemoryView&& rhs) noexcept;
 
     MemoryView(const MemoryView& rhs);
@@ -250,9 +203,12 @@ public:
      */
     MemoryView& unlock();
 
+    friend MemoryView wrapMemory(byte*, MemoryView::size_type, const std::function<void(MemoryView*)>&);
+
 protected:
 
     MemoryView(size_type size, void* data, const std::function<void(MemoryView*)>& freeFunc);
+
 
 private:
 
@@ -261,6 +217,40 @@ private:
 
     std::function<void(MemoryView*)> _free;
 };
+
+
+/**
+ * Wrap an memory pointer into a memory view object.
+ *
+ * @param data Pointer the memory to wrap
+ * @param size Size in bytes of the allocated memory segment
+ * @param freeFunc A funcion to call when the wrapper object is destroyed.
+ * This can be used to free the memory pointed by the data pointed as the MemoryView does not assume the ownership.
+ *
+ * @return MemoryView object wrapping the memory address given
+ */
+inline MemoryView wrapMemory(byte* data, MemoryView::size_type size,
+                             const std::function<void(MemoryView*)>& freeFunc = 0) {
+    return MemoryView{size, data, freeFunc};
+}
+
+inline MemoryView wrapMemory(void* data, MemoryView::size_type size,
+                             const std::function<void(MemoryView*)>& freeFunc = 0) {
+    return wrapMemory(reinterpret_cast<byte*>(data), size, freeFunc);
+}
+
+inline MemoryView wrapMemory(char* data, MemoryView::size_type size,
+                             const std::function<void(MemoryView*)>& freeFunc = 0) {
+    return wrapMemory(reinterpret_cast<byte*>(data), size, freeFunc);
+}
+
+template<typename PodType, std::size_t N>
+inline MemoryView wrapMemory(PodType (&data)[N],
+                             const std::function<void(MemoryView*)>& freeFunc = 0)
+{
+    return wrapMemory(static_cast<void*>(data), N * sizeof(PodType), freeFunc);
+}
+
 
 }  // End of namespace Solace
 #endif  // SOLACE_MEMORYVIEW_HPP

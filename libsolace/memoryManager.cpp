@@ -123,8 +123,8 @@ MemoryView MemoryManager::create(size_type dataSize) {
 
     _size += dataSize;
 
-    return MemoryView::wrap(data, dataSize,
-                            [this](MemoryView* view) { this->free(view); });
+    return wrapMemory(data, dataSize,
+                      [this](MemoryView* view) { this->free(view); });
 }
 
 

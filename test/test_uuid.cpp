@@ -102,7 +102,7 @@ public:
         {
             byte buff[] = {7, 5, 3, 4, 8, 6, 7, 8, 3, 7, 3, 4, 5, 6, 7, 8};
 
-            UUID uid4(moveMe(MemoryView::wrap(buff, sizeof(buff))));
+            UUID uid4(moveMe(wrapMemory(buff, sizeof(buff))));
             for (UUID::size_type i = 0; i < sizeof(buff); ++i) {
                 CPPUNIT_ASSERT_EQUAL(buff[i], uid4[i]);
             }
@@ -118,12 +118,12 @@ public:
         CPPUNIT_ASSERT_THROW(auto x = UUID({1, 0, 3, 4, 5, 6, 7, 8}), IllegalArgumentException);
 
 
-        UUID uid5(MemoryView::wrap(bytes, sizeof(bytes)));
+        UUID uid5(wrapMemory(bytes, sizeof(bytes)));
         for (UUID::size_type i = 0; i < sizeof(bytes); ++i) {
             CPPUNIT_ASSERT_EQUAL(bytes[i], uid5[i]);
         }
 
-        CPPUNIT_ASSERT_THROW(auto x = UUID(MemoryView::wrap(bytes, 7)), IllegalArgumentException);
+        CPPUNIT_ASSERT_THROW(auto x = UUID(wrapMemory(bytes, 7)), IllegalArgumentException);
 
 
         auto mem = _memoryManager.create(16);

@@ -20,9 +20,8 @@
 *******************************************************************************/
 #include <solace/io/selector.hpp>
 #include <solace/io/ioexception.hpp>
-//#include <solace/array.hpp>
 
-#include "selector_impl.h"
+#include "selector_impl.hpp"
 
 
 #include <vector>

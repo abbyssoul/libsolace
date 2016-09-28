@@ -93,15 +93,15 @@ public:
 
     void testWrapping() {
         void* nullB = nullptr;
-        CPPUNIT_ASSERT_NO_THROW(auto buffer = MemoryView::wrap(nullB, 0));
+        CPPUNIT_ASSERT_NO_THROW(auto buffer = wrapMemory(nullB, 0));
 
         {   // Can't wrap nullptr with non-zero size
-            CPPUNIT_ASSERT_THROW(auto b = MemoryView::wrap(nullB, 321), IllegalArgumentException);
+            CPPUNIT_ASSERT_THROW(auto b = wrapMemory(nullB, 321), IllegalArgumentException);
         }
 
         {   // Wrapping constructor
             byte example[] = {0, 1, 0, 3, 2, 1};  // size = 6
-            auto test = MemoryView::wrap(example);
+            auto test = wrapMemory(example);
 
             CPPUNIT_ASSERT(!test.empty());
             CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(6), test.size());
@@ -113,7 +113,7 @@ public:
 
         {   // Wrapping constructor with specific size
             byte example[] = {0, 1, 0, 3, 2, 1};  // size = 6
-            auto test = MemoryView::wrap(example, 4);
+            auto test = wrapMemory(example, 4);
 
             CPPUNIT_ASSERT(!test.empty());
             CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(4), test.size());
@@ -144,7 +144,7 @@ public:
         {   // Copy-constructor
             byte example[] = {7, 5, 0, 2, 21, 15, 178};  // size = 7
             const MemoryView::size_type exampleSize = sizeof(example);
-            auto b1 = MemoryView::wrap(example, exampleSize);
+            auto b1 = wrapMemory(example, exampleSize);
             MemoryView b2(b1);
 
             CPPUNIT_ASSERT_EQUAL(exampleSize, b1.size());

@@ -36,20 +36,6 @@ using Solace::MemoryView;
 
 
 
-MemoryView MemoryView::wrap(byte* data, size_type size, const std::function<void(MemoryView*)>& freeFunction) {
-    return MemoryView{size, data, freeFunction};
-}
-
-
-// MemoryView MemoryView::copy(const byte* data, size_type size) {
-//    auto dataAddress = new value_type[size];
-
-//    memcpy(dataAddress, data, size * sizeof(value_type));
-
-//    return MemoryView{size, dataAddress, delFree};
-// }
-
-
 MemoryView::MemoryView(const MemoryView& rhs):
             _size(rhs._size),
             _dataAddress(rhs._dataAddress),
@@ -143,7 +129,7 @@ MemoryView MemoryView::slice(size_type from, size_type to) const {
 //            ? copy(_dataAddress + from, to - from)
 //            : wrap(_dataAddress + from, to - from, false);
 
-    return MemoryView::wrap(dataAddress(from), to - from);
+    return wrapMemory(dataAddress(from), to - from);
 }
 
 

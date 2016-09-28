@@ -23,7 +23,7 @@
 #include <solace/io/ioexception.hpp>
 #include <solace/array.hpp>
 
-#include "selector_impl.h"
+#include "selector_impl.hpp"
 
 #include <sys/epoll.h>
 #include <fcntl.h>

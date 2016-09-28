@@ -15,7 +15,7 @@
 */
 /*******************************************************************************
  * libSolace: Unit type - void of functional programming
- *	@file		solace/uuid.hpp
+ *	@file		solace/unit.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$

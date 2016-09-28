@@ -24,17 +24,23 @@
 #ifndef SOLACE_IO_EVENTLOOP_CHANNEL_HPP
 #define SOLACE_IO_EVENTLOOP_CHANNEL_HPP
 
+#include "solace/byteBuffer.hpp"
 #include "solace/io/selectable.hpp"
+#include "solace/io/eventLoop/eventloop.hpp"
+
 
 namespace Solace { namespace IO { namespace EventLoop {
 
 class Channel: public ISelectable {
 public:
+    Channel();
 
     virtual ~Channel() = default;
 
-    virtual bool onRead() = 0;
-    virtual bool onWrite() = 0;
+//    virtual bool onRead(ByteBuffer& buffer) = 0;
+//    virtual bool onWrite(ByteBuffer& buffer) = 0;
+
+    std::shared_ptr<EventLoop> getIOService() = 0;
 };
 
 }  // End of namespace EventLoop

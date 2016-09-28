@@ -14,8 +14,8 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Unix File handle wrapper
- *	@file		solace/io/file.hpp
+ * libSolace: Event loop based on selectors
+ *	@file		solace/io/eventLoop/eventLoop.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$
@@ -24,7 +24,7 @@
 #ifndef SOLACE_IO_EVENTLOOP_EVENTLOOP_HPP
 #define SOLACE_IO_EVENTLOOP_EVENTLOOP_HPP
 
-#include "solace/types.hpp"
+#include "solace/array.hpp"
 #include "solace/io/selector.hpp"
 #include "solace/io/eventLoop/channel.hpp"
 

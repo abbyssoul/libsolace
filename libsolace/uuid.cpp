@@ -145,7 +145,7 @@ bool operator < (const UUID& lhs, const UUID& rhs) noexcept {
 
 
 MemoryView UUID::toBytes() const {
-    return MemoryView::wrap(const_cast<byte*>(_bytes), size());
+    return wrapMemory(const_cast<byte*>(_bytes), size());
 }
 
 
@@ -239,5 +239,5 @@ UUID UUID::parse(const String& str) {
     byte data[StaticSize];
     hex2bin(data, str.c_str(), StringSize);
 
-    return UUID(MemoryView::wrap(data, sizeof(data)));
+    return UUID(wrapMemory(data, sizeof(data)));
 }

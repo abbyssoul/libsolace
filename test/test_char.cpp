@@ -65,7 +65,7 @@ public:
         // FIXME(abbyssoul): make unicode work again!
 //        {
 //            byte bytes[] = {0xE3, 0x81, 0xAA};
-//            const Char u(MemoryView::wrap(bytes, sizeof(bytes)));
+//            const Char u(wrapMemory(bytes, sizeof(bytes)));
 //            const char* expected = "な";
 //            CPPUNIT_ASSERT_EQUAL(static_cast<Char::value_type>(14909866), u.getValue());
 //            CPPUNIT_ASSERT_EQUAL(expected, u.c_str());
@@ -73,7 +73,7 @@ public:
         {
 //            byte bytes[] = {0xA4, 0x9D, 0xE2};
             byte bytes[] = {0xE2, 0x9D, 0xA4};
-            const Char u(MemoryView::wrap(bytes, sizeof(bytes)));
+            const Char u(wrapMemory(bytes, sizeof(bytes)));
 
             CPPUNIT_ASSERT_EQUAL(static_cast<Char::size_type>(3), u.getBytesCount());
             CPPUNIT_ASSERT_EQUAL(static_cast<char>(0xE2), u.c_str()[0]);
