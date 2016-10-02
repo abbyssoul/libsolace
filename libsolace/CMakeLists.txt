@@ -25,6 +25,9 @@ set(SOURCE_FILES
         io/sharedMemory.cpp
         io/mappedMemory.cpp
 
+        io/async/eventLoop.cpp
+        io/async/serialChannel.cpp
+
         process/env.cpp
         framework/commandlineParser.cpp
     )

@@ -64,6 +64,12 @@ namespace Solace { namespace Framework {
     ...
 
     \endcode
+
+
+ * Note: Commandline parsing is meant ot be performed at the start of an application so that
+ * memory allocation limits / strategy can be passed via options.
+ * Thus it is essential that parser don't allocate any memory during parsing.
+ *
  */
 class CommandlineParser {
 public:

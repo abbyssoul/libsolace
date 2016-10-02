@@ -1,6 +1,8 @@
-# libSolace build file
-# Please note currently project use cmake as a build system and
-# this file is just a convenience wrapper for common tasks.
+# Generated Makefile for libsolace: Saturday 1 October  01:28:23 AEST 2016
+PREFIX = ../aliss/usr/local/
+dbg = -g
+
+
 PROJECT = solace
 
 # Project directory layout
@@ -150,9 +152,11 @@ coverage: $(COVERAGE_REPORT)
 
 .PHONY: install
 install: $(LIB_TAGRET)
-	@install -v -D -t $(DESTDIR)$(PREFIX)/lib $(LIB_TAGRET)
-	@install -v -d $(DESTDIR)$(PREFIX)/include/$(PROJECT)
-	cp -r $(INCLUDE_DIR)/$(PROJECT)/* $(DESTDIR)$(PREFIX)/include/$(PROJECT)
+	@install -m 644 -v -D -t $(DESTDIR)$(PREFIX)/lib $(LIB_TAGRET)
+	@for i in $(shell find $(INCLUDE_DIR)/$(PROJECT) -type d); do \
+		install -m 755 -v -d $(DESTDIR)$(PREFIX)/$$i; \
+		install -m 644 -v -D -t $(DESTDIR)$(PREFIX)/$$i $$i/*.hpp; \
+	done
 
 
 .PHONY: uninstall
@@ -160,6 +164,18 @@ uninstall:
 	$(RM) -f $(DESTDIR)$(PREFIX)/lib/$(LIBNAME)
 	$(RM) -rf $(DESTDIR)$(PREFIX)/include/$(PROJECT)
 
+
+#-------------------------------------------------------------------------------
+# Packaging
+#-------------------------------------------------------------------------------
+
+.PHONY: debian
+debian:
+	dpkg-buildpackage -d
+
+.PHONY: debian-clean
+debian-clean:
+	dpkg-buildpackage -d -T clean
 
 #-------------------------------------------------------------------------------
 # Cleanup

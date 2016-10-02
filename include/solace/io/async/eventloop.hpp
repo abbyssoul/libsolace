@@ -15,22 +15,27 @@
 */
 /*******************************************************************************
  * libSolace: Event loop based on selectors
- *	@file		solace/io/eventLoop/eventLoop.hpp
+ *	@file		solace/io/async/eventLoop.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_IO_EVENTLOOP_EVENTLOOP_HPP
-#define SOLACE_IO_EVENTLOOP_EVENTLOOP_HPP
+#ifndef SOLACE_IO_ASYNC_EVENTLOOP_HPP
+#define SOLACE_IO_ASYNC_EVENTLOOP_HPP
 
-#include "solace/array.hpp"
+//#include "solace/array.hpp"
+#include "solace/byteBuffer.hpp"
+
 #include "solace/io/selector.hpp"
-#include "solace/io/eventLoop/channel.hpp"
+#include "solace/io/async/asyncResult.hpp"
+//#include "solace/io/async/channel.hpp"
 
 #include <memory>
+#include <vector>
 
-namespace Solace { namespace IO { namespace EventLoop {
+
+namespace Solace { namespace IO { namespace async {
 
 /**
  * Event Loop.
@@ -42,13 +47,45 @@ namespace Solace { namespace IO { namespace EventLoop {
  */
 class EventLoop {
 public:
-//    typedef
 
-    class Work;
+    class Request :
+            public ISelectable {
+    public:
+
+        Request(ISelectable* selectable, ByteBuffer& buffer) :
+            _selectable(selectable),
+            _buffer(buffer)
+        {}
+
+        Request(Request&& rhs) :
+            _selectable(rhs._selectable),
+            _buffer(rhs._buffer),
+            _future(std::move(rhs._future))
+        {}
+
+        Result& promiss() {
+            return _future;
+        }
+
+        poll_id getSelectId() const {
+            return _selectable->getSelectId();
+        }
+
+        virtual void onRead();
+        virtual void onWrite();
+        virtual void onError();
+
+    private:
+        ISelectable*    _selectable;
+        ByteBuffer&     _buffer;
+        Result          _future;
+    };
+
 
 public:
 
-    explicit EventLoop(uint32 backlogCapacity, Selector&& selector) :
+    EventLoop(uint32 backlogCapacity, Selector&& selector) :
+        _keepOnRunning(true),
         _backlog(backlogCapacity),
         _selector(std::move(selector))
     {}
@@ -59,8 +96,13 @@ public:
     EventLoop& operator= (EventLoop&& rhs);
     EventLoop& swap(EventLoop& rhs);
 
-    void add(const std::shared_ptr<Channel>& channel);
-    void remove(const std::shared_ptr<Channel>& channel);
+    Selector& getSelector() noexcept {
+        return _selector;
+    }
+
+    const Selector& getSelector() const noexcept {
+        return _selector;
+    }
 
     /**
      * Run a single iteration of the event loop.
@@ -71,20 +113,20 @@ public:
         return false;
     }
 
-    void run() {
+    void run();
 
-    }
-
+    Result& submit(const std::shared_ptr<Request>& request);
 
 private:
 
-    Array<std::shared_ptr<Work>> _backlog;
+    bool _keepOnRunning;
+    std::vector<std::shared_ptr<Request>>   _backlog;
     Selector _selector;
 
 };
 
-}  // End of namespace EventLoop
+}  // End of namespace async
 }  // End of namespace IO
 }  // End of namespace Solace
-#endif  // SOLACE_IO_EVENTLOOP_EVENTLOOP_HPP
+#endif  // SOLACE_IO_ASYNC_EVENTLOOP_HPP
 

@@ -96,7 +96,8 @@ struct SerialPortInfo {
  * Serial port device file
  * 
  */
-class Serial: public File {
+class Serial :
+        public File {
 public:
 
     /**

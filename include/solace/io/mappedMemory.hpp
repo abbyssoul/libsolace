@@ -33,7 +33,8 @@ namespace Solace { namespace IO {
 /** Mapped shared memory segment
  *
  */
-class MappedMemoryView: public MemoryView {
+class MappedMemoryView :
+        public MemoryView {
 public:
 
     using MemoryView::size_type;

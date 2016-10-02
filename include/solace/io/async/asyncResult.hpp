@@ -21,29 +21,50 @@
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_IO_EVENTLOOP_CHANNEL_HPP
-#define SOLACE_IO_EVENTLOOP_CHANNEL_HPP
+#ifndef SOLACE_IO_EVENTLOOP_ASYNCRESULT_HPP
+#define SOLACE_IO_EVENTLOOP_ASYNCRESULT_HPP
 
-#include "solace/byteBuffer.hpp"
-#include "solace/io/selectable.hpp"
-#include "solace/io/eventLoop/eventloop.hpp"
+#include <functional>
 
+namespace Solace { namespace IO { namespace async {
 
-namespace Solace { namespace IO { namespace EventLoop {
-
-class Channel: public ISelectable {
+class Result {
 public:
-    Channel();
 
-    virtual ~Channel() = default;
+    Result() :
+        _handler()
+    {}
 
-//    virtual bool onRead(ByteBuffer& buffer) = 0;
-//    virtual bool onWrite(ByteBuffer& buffer) = 0;
+    Result(Result&& rhs) :
+        _handler(std::move(rhs._handler))
+    {}
 
-    std::shared_ptr<EventLoop> getIOService() = 0;
+    ~Result();
+
+//    template<typename T>
+//    typename std::result_of<T()>::type then(const T& handler);
+
+//    template<typename T>
+//    T then(const std::function<T()>& handler);
+
+    void then(const std::function<void()>& handler) {
+        _handler = handler;
+    }
+
+    // Resolve this future and call the handler.
+    void resolve() {
+        if (_handler) {
+            _handler();
+        }
+    }
+
+
+private:
+
+    std::function<void()> _handler;
 };
 
-}  // End of namespace EventLoop
+}  // End of namespace async
 }  // End of namespace IO
 }  // End of namespace Solace
-#endif  // SOLACE_IO_EVENTLOOP_CHANNEL_HPP
+#endif // SOLACE_IO_EVENTLOOP_ASYNCRESULT_HPP
