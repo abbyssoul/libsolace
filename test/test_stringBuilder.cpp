@@ -62,14 +62,10 @@ public:
 	}
 
 	void testNullString() {
-        auto mem = _memoryManager.create(25);
-        ByteBuffer buffer(mem);
-
-        {   // Null Pointer exception test
-            CPPUNIT_ASSERT_THROW(const StringBuilder nullString(buffer, nullptr), IllegalArgumentException);
-		}
-
+        CPPUNIT_ASSERT_THROW(const StringBuilder nullString(_memoryManager.create(5), nullptr),
+                             IllegalArgumentException);
 	}
+
 	/**
 	 * Test construction calls
 	 */
@@ -77,36 +73,28 @@ public:
         const String constStr { someConstString };
 
         {   // empty buffer usage
-            auto mem = _memoryManager.create(0);
-            ByteBuffer buffer(mem);
-            const StringBuilder empty(buffer);  // No throw?
+            const StringBuilder empty(_memoryManager.create(0));  // No throw?
 
             CPPUNIT_ASSERT(empty.empty());
             CPPUNIT_ASSERT(empty.toString().empty());
         }
 
         {   // Empty string post-conditions
-            auto mem = _memoryManager.create(2 * constStr.size());
-            ByteBuffer buffer(mem);
-            const StringBuilder empty(buffer);  // No throw?
+            const StringBuilder empty(_memoryManager.create(2 * constStr.size()));  // No throw?
 
             CPPUNIT_ASSERT(empty.empty());
             CPPUNIT_ASSERT(empty.toString().empty());
 		}
 
 		{
-            auto mem = _memoryManager.create(strlen(someConstString));
-            ByteBuffer buffer(mem);
-			const StringBuilder sb(buffer, someConstString);
+            const StringBuilder sb(_memoryManager.create(strlen(someConstString)), someConstString);
 
 			CPPUNIT_ASSERT(!sb.empty());
 			CPPUNIT_ASSERT_EQUAL(constStr, sb.toString());
 		}
 
 		{
-            auto mem = _memoryManager.create(2 * constStr.size());
-            ByteBuffer buffer(mem);
-			const StringBuilder sb(buffer, constStr);
+            const StringBuilder sb(_memoryManager.create(2 * constStr.size()), constStr);
 
 			CPPUNIT_ASSERT(!sb.empty());
             CPPUNIT_ASSERT_EQUAL(constStr, sb.toString());
@@ -124,10 +112,7 @@ public:
 	 * Test toString conversion
 	 */
 	void testToString() {
-        auto mem = _memoryManager.create(strlen(someConstString));
-
-        ByteBuffer buffer(mem);
-        const StringBuilder ident(buffer, someConstString);
+        const StringBuilder ident(_memoryManager.create(strlen(someConstString)), someConstString);
 
 		const auto str = ident.toString();
 

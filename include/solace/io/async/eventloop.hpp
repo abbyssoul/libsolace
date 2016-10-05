@@ -24,12 +24,11 @@
 #ifndef SOLACE_IO_ASYNC_EVENTLOOP_HPP
 #define SOLACE_IO_ASYNC_EVENTLOOP_HPP
 
-//#include "solace/array.hpp"
-#include "solace/byteBuffer.hpp"
 
+#include "solace/byteBuffer.hpp"
 #include "solace/io/selector.hpp"
 #include "solace/io/async/asyncResult.hpp"
-//#include "solace/io/async/channel.hpp"
+
 
 #include <memory>
 #include <vector>
@@ -52,43 +51,49 @@ public:
             public ISelectable {
     public:
 
-        Request(ISelectable* selectable, ByteBuffer& buffer) :
-            _selectable(selectable),
-            _buffer(buffer)
+        Request()
         {}
 
         Request(Request&& rhs) :
-            _selectable(rhs._selectable),
-            _buffer(rhs._buffer),
             _future(std::move(rhs._future))
         {}
 
-        Result& promiss() {
+        virtual ~Request() = default;
+
+        /**
+         * Check if this request has been resolved.
+         * If the request has been resolved - it will be removed from the backlog.
+         *
+         * @return True, if this request has been resolve, false otherwise.
+         */
+        virtual bool isComplete() const noexcept {
+            return false;
+        }
+
+        Result& promiss() noexcept {
             return _future;
         }
 
-        poll_id getSelectId() const {
-            return _selectable->getSelectId();
-        }
+        virtual poll_id getSelectId() const = 0;
 
-        virtual void onRead();
-        virtual void onWrite();
+        virtual void onRead() = 0;
+        virtual void onWrite() = 0;
         virtual void onError();
 
     private:
-        ISelectable*    _selectable;
-        ByteBuffer&     _buffer;
         Result          _future;
     };
 
 
 public:
 
-    EventLoop(uint32 backlogCapacity, Selector&& selector) :
-        _keepOnRunning(true),
-        _backlog(backlogCapacity),
-        _selector(std::move(selector))
-    {}
+    /**
+     * Construct a new event loop/io context.
+     *
+     * @param backlogCapacity Maximum number of concurent request in flight.
+     * @param selector Selector service to use to dispatch requests.
+     */
+    EventLoop(uint32 backlogCapacity, Selector&& selector);
 
     EventLoop(EventLoop&& rhs);
     ~EventLoop() = default;
@@ -115,6 +120,21 @@ public:
 
     void run();
 
+    void stop() noexcept {
+        _keepOnRunning = false;
+    }
+
+    bool isStopped() const noexcept {
+        return _keepOnRunning;
+    }
+
+    /**
+     * Submit a request to the event loop.
+     * This method is designed to be used by IO objects which createa custom request objects.
+     *
+     * @param request A request object to execute.
+     * @return A promiss that will be called once request has been processed.
+     */
     Result& submit(const std::shared_ptr<Request>& request);
 
 private:

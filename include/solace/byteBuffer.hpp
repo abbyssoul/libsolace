@@ -27,7 +27,7 @@
 
 #include "solace/types.hpp"
 #include "solace/memoryView.hpp"
-#include "solace/optional.hpp"  // FIXME(abbyssoul): Consider removal
+//#include "solace/optional.hpp"  // FIXME(abbyssoul): Consider removal
 
 
 namespace Solace {
@@ -46,38 +46,13 @@ public:
 public:
 
     /**
-     * Construct the byte buffer by copeing content of the given buffer
-     * @param other Other buffer to copy data from
-     */
-    ByteBuffer(const ByteBuffer& other) :
-            _position(other._position),
-            _limit(other._limit),
-            _mark(other._mark),
-            _storage(other._storage)
-    {
-    }
-
-    /**
      * Construct the byte buffer by moving content from the other buffer
      * @param other Other buffer to take over from
      */
     ByteBuffer(ByteBuffer&& other) :
             _position(other._position),
             _limit(other._limit),
-            _mark(std::move(other._mark)),
             _storage(std::move(other._storage))
-    {
-    }
-
-    /**
-     * Construct the byte buffer from the memory view object
-     * @param other Other buffer to copy data from
-     */
-    ByteBuffer(const MemoryView& memView) :
-            _position(0),
-            _limit(memView.size()),
-            _mark(),
-            _storage(memView)
     {
     }
 
@@ -88,10 +63,10 @@ public:
     ByteBuffer(MemoryView&& memView) :
             _position(0),
             _limit(memView.size()),
-            _mark(),
             _storage(std::move(memView))
     {
     }
+
 
     /**
      * Default destructor
@@ -102,21 +77,16 @@ public:
     ByteBuffer& swap(ByteBuffer& rhs) noexcept {
         std::swap(_position, rhs._position);
         std::swap(_limit, rhs._limit);
-        std::swap(_mark, rhs._mark);
-        _storage.swap(rhs._storage);
+        Solace::swap(_storage, rhs._storage);
 
         return *this;
     }
 
-    ByteBuffer& operator= (const ByteBuffer& rhs) noexcept {
-        ByteBuffer(rhs).swap(*this);
-
-        return *this;
-    }
 
     ByteBuffer& operator= (ByteBuffer&& rhs) noexcept {
         return swap(rhs);
     }
+
 
     /**
      * Check if the bute buffer is empty, that is no data has been written
@@ -131,7 +101,6 @@ public:
      */
     ByteBuffer& clear() {
         _position = 0;
-        _mark = Optional<size_type>::none();
         _limit = capacity();
 
         return *this;
@@ -141,7 +110,6 @@ public:
      * Set the limit to the current position and then sets the position to zero.
      */
     ByteBuffer& flip() {
-        _mark = Optional<size_type>::none();
         _limit = _position;
         _position = 0;
 
@@ -152,7 +120,6 @@ public:
      * Leave the limit unchanged and sets the position to zero.
      */
     ByteBuffer& rewind() {
-        _mark = Optional<size_type>::none();
         _position = 0;
 
         return *this;
@@ -183,11 +150,19 @@ public:
      */
     ByteBuffer& limit(size_type newLimit);
 
-    ByteBuffer& mark() {
-        _mark = Optional<size_type>::of(_position);
-
-        return *this;
+    size_type mark() const noexcept {
+        return _position;
     }
+
+    /**
+     * Set position back to the previously saved mark
+     * TODO(abbyssoul): Don't store a mark internally, but make it a paramenter of this method
+     * @return Reference to this
+     */
+    ByteBuffer& reset(size_type savedMark) {
+        return position(savedMark);
+    }
+
 
     size_type position() const noexcept { return _position; }
 
@@ -198,8 +173,6 @@ public:
     size_type remaining() const noexcept { return limit() - position(); }
 
     bool hasRemaining() const noexcept { return remaining() > 0; }
-
-    ByteBuffer& reset();
 
     /**
      * Read a single byte from the buffer
@@ -275,7 +248,6 @@ private:
 
     size_type           _position;
     size_type           _limit;
-    Optional<size_type> _mark;
 
     Storage             _storage;
 };

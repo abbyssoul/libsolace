@@ -56,8 +56,7 @@ int main(int argc, char **argv) {
 
     Solace::MemoryManager memManager(2048);
 
-    auto buffer = memManager.create(bufferSize);
-    Solace::ByteBuffer readBuffer(buffer);
+    Solace::ByteBuffer readBuffer(memManager.create(bufferSize));
 	Solace::IO::Serial serial(file, boudRate);
     auto selector = Solace::IO::Selector::createEPoll(2);
     selector.add(&serial,   Solace::IO::Selector::Events::Read ||
@@ -68,7 +67,7 @@ int main(int argc, char **argv) {
         for (auto event : selector.poll()) {
 
             if (event.events & Solace::IO::Selector::Events::Read &&
-                event.pollable == &serial) {
+                event.data == &serial) {
                 const auto bytesRead = serial.read(readBuffer);
                 if (bytesRead > 0) {
                     auto dataView = readBuffer.viewWritten();

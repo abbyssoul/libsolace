@@ -24,8 +24,7 @@
 #ifndef SOLACE_IO_ASYNC_CHANNEL_HPP
 #define SOLACE_IO_ASYNC_CHANNEL_HPP
 
-//#include "solace/byteBuffer.hpp"
-//#include "solace/io/selectable.hpp"
+
 #include "solace/io/async/eventloop.hpp"
 
 
@@ -39,33 +38,35 @@ namespace Solace { namespace IO { namespace async {
 class Channel {
 public:
     Channel(EventLoop& ioContext) :
-        _ioContext(ioContext)
+        _ioContext(&ioContext)
     {
     }
 
     Channel(Channel&& rhs) :
-        _ioContext(rhs.getIOContext())
+        _ioContext(&rhs.getIOContext())
     {}
 
     virtual ~Channel() = default;
 
     Channel& operator = (Channel&& rhs) noexcept {
-        _ioContext = std::move(rhs._ioContext);
+//        _ioContext = std::move(rhs._ioContext);
+        _ioContext = rhs._ioContext;
+//        rhs._ioContext = nullptr;
 
         return *this;
     }
 
     EventLoop& getIOContext() noexcept {
-        return _ioContext;
+        return *_ioContext;
     }
 
     const EventLoop& getIOContext() const noexcept {
-        return _ioContext;
+        return *_ioContext;
     }
 
 private:
 
-    Solace::IO::async::EventLoop&   _ioContext;
+    Solace::IO::async::EventLoop*   _ioContext;
 };
 
 }  // End of namespace async

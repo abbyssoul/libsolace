@@ -22,7 +22,7 @@
  ******************************************************************************/
 #include "solace/version.hpp"
 
-#include "solace/libsolace_config.h"		// Defines compile time version
+#include "solace/libsolace_config.hpp"		// Defines compile time version
 
 
 #include <fmt/format.h>

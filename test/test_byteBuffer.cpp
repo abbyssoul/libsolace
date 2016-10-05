@@ -55,9 +55,7 @@ public:
 
     void testPositioning() {
         constexpr ByteBuffer::size_type testSize = 12;
-        auto mem = _memoryManager.create(testSize);
-
-        ByteBuffer buffer(mem);
+        ByteBuffer buffer(_memoryManager.create(testSize));
 
         CPPUNIT_ASSERT_EQUAL(testSize, buffer.capacity());
         CPPUNIT_ASSERT_EQUAL(testSize, buffer.limit());
@@ -84,8 +82,7 @@ public:
         byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
 
         constexpr ByteBuffer::size_type testSize = sizeof(bytes);
-        auto mem = _memoryManager.create(testSize);
-        ByteBuffer buffer(mem);
+        ByteBuffer buffer(_memoryManager.create(testSize));
 
         CPPUNIT_ASSERT_NO_THROW(buffer.write(bytes, sizeof(bytes)));
         CPPUNIT_ASSERT_EQUAL(buffer.limit(), buffer.position());
@@ -95,8 +92,7 @@ public:
         byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
 
         constexpr ByteBuffer::size_type testSize = sizeof(bytes);
-        auto mem = _memoryManager.create(testSize);
-        ByteBuffer buffer(mem);
+        ByteBuffer buffer(_memoryManager.create(testSize));
 
         CPPUNIT_ASSERT_NO_THROW(buffer.write(bytes, sizeof(bytes)));
 
@@ -121,8 +117,7 @@ public:
 
 
         constexpr ByteBuffer::size_type testSize = sizeof(bytes);
-        auto mem = _memoryManager.create(testSize);
-        ByteBuffer buffer(mem);
+        ByteBuffer buffer(_memoryManager.create(testSize));
 
         CPPUNIT_ASSERT_NO_THROW(buffer.write(bytes, sizeof(bytes)));
 

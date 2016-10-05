@@ -72,8 +72,23 @@ void Selector::add(ISelectable* selectable, int events) {
 }
 
 
+void Selector::add(ISelectable::poll_id fd, ISelectable* selectable, int events) {
+    _pimpl->add(fd, selectable, events);
+}
+
+
+void Selector::addRaw(ISelectable::poll_id fd, int events, void* data) {
+    _pimpl->addRaw(fd, events, data);
+}
+
+
 void Selector::remove(const ISelectable* selectable) {
     _pimpl->remove(selectable);
+}
+
+
+void Selector::remove(ISelectable::poll_id fd) {
+    _pimpl->remove(fd);
 }
 
 

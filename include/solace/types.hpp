@@ -25,7 +25,7 @@
 #ifndef SOLACE_TYPES_HPP
 #define SOLACE_TYPES_HPP
 
-#include "solace/libsolace_config.h"
+#include "solace/libsolace_config.hpp"
 
 #include <cstddef>
 #include <cstdint>

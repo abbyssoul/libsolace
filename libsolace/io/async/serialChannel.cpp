@@ -25,15 +25,53 @@ using namespace Solace::IO;
 using namespace Solace::IO::async;
 
 
+class SerialReadRequest :
+        public EventLoop::Request {
+public:
+
+    SerialReadRequest(Serial* selectable, ByteBuffer& buffer) :
+        Request(),
+        _selectable(selectable),
+        _buffer(buffer)
+    {}
+
+    void onRead() override {
+//        static_cast<Serial*>(_selectable)->read(_buffer);
+        _selectable->read(_buffer);
+
+        promiss().resolve();
+    }
+
+    void onWrite() override {
+//        static_cast<Serial*>(_selectable)->write(_buffer);
+        _selectable->write(_buffer);
+
+        promiss().resolve();
+    }
+
+//    virtual ISelectable* getSelectable() {
+//        return _selectable;
+//    }
+
+    poll_id getSelectId() const override {
+        return _selectable->getSelectId();
+    }
+
+private:
+    Serial*     _selectable;
+    ByteBuffer& _buffer;
+};
+
+
 Solace::IO::async::Result&
 SerialChannel::asyncRead(Solace::ByteBuffer& buffer) {
     auto& iocontext = getIOContext();
     auto& selector = iocontext.getSelector();
 
-    auto request = std::make_shared<EventLoop::Request>(&_serial, buffer);
+    auto request = std::make_shared<SerialReadRequest>(&_serial, buffer);
     selector.add(request.get(), Solace::IO::Selector::Events::Read);
 
     // Promiss to call back once this request has been resolved
-    return iocontext.submit(request); //request.promise();
+    return iocontext.submit(request);
 }
 

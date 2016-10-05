@@ -38,11 +38,12 @@ using namespace Solace::IO;
 
 
 
-class PollSelectorImpl : public Solace::IO::Selector::IPollerImpl {
+class PollSelectorImpl :
+        public Solace::IO::Selector::IPollerImpl {
 public:
 
     // FIXME: evlist will actually leak if we throw here...
-    explicit PollSelectorImpl(uint maxPollables) : _selectables(maxPollables), _pollfds(maxPollables) {
+    explicit PollSelectorImpl(uint maxPollables) {
         _selectables.reserve(maxPollables);
         _pollfds.reserve(maxPollables);
     }
@@ -51,18 +52,31 @@ public:
     }
 
     void add(ISelectable* selectable, int events) override {
-        pollfd ev;
-        ev.fd = selectable->getSelectId();
-        ev.events = 0;
+        add(selectable->getSelectId(), selectable, events);
+    }
+
+    void add(ISelectable::poll_id fd, ISelectable* selectable, int events) override {
+        int pollEvents = 0;
 
         if (events & Selector::Events::Read)
-            ev.events |= POLLIN | POLLPRI;
+            pollEvents |= POLLIN | POLLPRI;
         if (events & Selector::Events::Write)
-            ev.events |= POLLOUT;
+            pollEvents |= POLLOUT;
         if (events & Selector::Events::Hup)
-            ev.events |= POLLRDHUP;
+            pollEvents |= POLLRDHUP;
 
-        _selectables.push_back(selectable);
+        addRaw(fd, pollEvents, selectable);
+    }
+
+
+    void addRaw(ISelectable::poll_id fd, int nativeEvents, void* data) override {
+        pollfd ev = {
+            fd,
+            static_cast<short int>(nativeEvents),
+            0
+        };
+
+        _selectables.push_back(data);
         _pollfds.push_back(ev);
     }
 
@@ -81,6 +95,12 @@ public:
     }
 
 
+    void remove(ISelectable::poll_id fd) override {
+        // Find the index if this selectable in _selectables
+        // TODO:!!
+    }
+
+
     std::tuple<uint, uint> poll(uint32 msec) override {
         const auto r = ::poll(_pollfds.data(), _pollfds.size(), msec);
         if (r < 0) {
@@ -95,7 +115,7 @@ public:
         const auto& ev = _pollfds[i];
 
         Selector::Event event;
-        event.pollable = _selectables[i];
+        event.data = _selectables[i];
         event.events = 0;
 
         if ((ev.revents & POLLIN) || (ev.revents & POLLPRI))
@@ -135,8 +155,8 @@ private:
     PollSelectorImpl& operator= (const PollSelectorImpl&) = delete;
 
     // This two are tightly coupled
-    std::vector<ISelectable*>   _selectables;
-    std::vector<pollfd>         _pollfds;
+    std::vector<void*>      _selectables;
+    std::vector<pollfd>     _pollfds;
 };
 
 

@@ -65,17 +65,6 @@ ByteBuffer& ByteBuffer::advance(size_type positionIncrement) {
 }
 
 
-ByteBuffer& ByteBuffer::reset() {
-    if (!_mark.isSome()) {
-        raise<InvalidMarkException>();
-    }
-
-    _position = _mark.get();
-
-    return *this;
-}
-
-
 byte ByteBuffer::get() {
     if ( !(_position + 1 <= _limit) ) {
         raise<OverflowException>(_position + 1, _position, _limit);
@@ -175,6 +164,7 @@ ByteBuffer& ByteBuffer::write(const byte* bytes, size_type count) {
 
     return advance(count);
 }
+
 
 ByteBuffer& ByteBuffer::write(const void* bytes, size_type count) {
     if ( !(count <= remaining()) ) {

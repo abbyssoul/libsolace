@@ -50,28 +50,28 @@ StringBuilder::StringBuilder(MemoryView&& buffer, const String& str): _buffer(st
 }
 
 
-StringBuilder::StringBuilder(const ByteBuffer& buffer): _buffer(buffer) {
-}
+//StringBuilder::StringBuilder(const ByteBuffer& buffer): _buffer(buffer) {
+//}
 
-StringBuilder::StringBuilder(const ByteBuffer& buffer, const char* cstr): _buffer(buffer) {
-    if (!cstr) {
-        raise<IllegalArgumentException>("cstr");
-    }
+//StringBuilder::StringBuilder(const ByteBuffer& buffer, const char* cstr): _buffer(buffer) {
+//    if (!cstr) {
+//        raise<IllegalArgumentException>("cstr");
+//    }
 
-    _buffer.write(cstr, std::char_traits<char>::length(cstr));
-}
-
-
-StringBuilder::StringBuilder(const ByteBuffer& buffer, const String& str): _buffer(buffer) {
-	_buffer.write(str.c_str(), str.length());
-}
+//    _buffer.write(cstr, std::char_traits<char>::length(cstr));
+//}
 
 
-StringBuilder::StringBuilder(const ByteBuffer& buffer, std::initializer_list<String> content): _buffer(buffer) {
-    for (const auto& str : content) {
-        _buffer.write(str.c_str(), str.length());
-    }
-}
+//StringBuilder::StringBuilder(const ByteBuffer& buffer, const String& str): _buffer(buffer) {
+//	_buffer.write(str.c_str(), str.length());
+//}
+
+
+//StringBuilder::StringBuilder(const ByteBuffer& buffer, std::initializer_list<String> content): _buffer(buffer) {
+//    for (const auto& str : content) {
+//        _buffer.write(str.c_str(), str.length());
+//    }
+//}
 
 
 StringBuilder& StringBuilder::append(char c) {

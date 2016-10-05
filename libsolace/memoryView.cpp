@@ -36,12 +36,12 @@ using Solace::MemoryView;
 
 
 
-MemoryView::MemoryView(const MemoryView& rhs):
-            _size(rhs._size),
-            _dataAddress(rhs._dataAddress),
-            _free(nullptr)
-{
-}
+//MemoryView::MemoryView(const MemoryView& rhs):
+//            _size(rhs._size),
+//            _dataAddress(rhs._dataAddress),
+//            _free(nullptr)  // FIXME(abbyssoul): Huge mistake! This is why memoryView can not be copy-constructible
+//{
+//}
 
 
 MemoryView::MemoryView(MemoryView&& rhs) noexcept :
@@ -49,7 +49,7 @@ MemoryView::MemoryView(MemoryView&& rhs) noexcept :
             _dataAddress(rhs._dataAddress),
             _free(std::move(rhs._free))
 {
-    // Stuff up rhs so it won't be destructed
+    // Stuff up rhs so it won't destruct anything
     rhs._size = 0;
     rhs._dataAddress = nullptr;
     rhs._free = nullptr;
@@ -77,7 +77,7 @@ MemoryView::~MemoryView() {
     }
 }
 
-MemoryView::reference  MemoryView::operator[] (size_type index) {
+MemoryView::reference MemoryView::operator[] (size_type index) {
     if (index >= size()) {
         raise<IndexOutOfRangeException>("index", index, 0, size());
     }
@@ -227,4 +227,9 @@ MemoryView& MemoryView::unlock() {
     }
 
     return (*this);
+}
+
+
+MemoryView MemoryView::viewShallow() const {
+    return wrapMemory(dataAddress(), size());
 }

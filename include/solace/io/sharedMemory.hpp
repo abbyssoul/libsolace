@@ -33,11 +33,12 @@
 
 namespace Solace { namespace IO {
 
-/** Shared memory region
+/**
+ * Shared memory region
  *
  */
-class SharedMemory: public ISelectable
-{
+class SharedMemory
+        : public ISelectable {
 public:
 
     using ISelectable::poll_id;
@@ -71,7 +72,8 @@ public:
                                int permissionsMode = (File::Mode::IRUSR | File::Mode::IWUSR));
 
 
-    /** Open already existing named shared memory segment.
+    /**
+     * Open already existing named shared memory region.
      *
      * @param pathname The name of the shared memory segment to attach.
      * @param mode Access mode to open shared memory in.

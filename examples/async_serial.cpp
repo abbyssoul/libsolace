@@ -60,8 +60,7 @@ int main(int argc, char **argv) {
     Solace::IO::async::SerialChannel serial(iocontext, file, boudRate);
 
     Solace::MemoryManager memManager(2048);
-    auto buffer = memManager.create(bufferSize);
-    Solace::ByteBuffer readBuffer(buffer);
+    Solace::ByteBuffer readBuffer(memManager.create(bufferSize));
 
     serial.asyncRead(readBuffer).then([&readBuffer]() {
         auto dataView = readBuffer.viewWritten();

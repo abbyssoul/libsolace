@@ -31,6 +31,7 @@
 #include "solace/iterable.hpp"
 #include "solace/byteBuffer.hpp"
 #include "solace/array.hpp"
+#include "solace/optional.hpp"
 
 
 #include <string>   // std::string

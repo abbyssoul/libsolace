@@ -55,13 +55,40 @@ public:
 
     struct Event {
         int             events;
-        ISelectable*    pollable;
-//        void*           data;
+//        ISelectable*    pollable;
+        void*           data;
     };
 
 
     class Iterator {
     public:
+        Iterator(const std::shared_ptr<IPollerImpl>& p, uint index, uint size):
+            _index(index),
+            _size(size),
+            _pimpl(p)
+        {}
+
+
+        Iterator(Iterator&& rhs):
+            _index(rhs._index),
+            _size(rhs._size),
+            _pimpl(std::move(rhs._pimpl))
+        {}
+
+
+        Iterator& swap(Iterator& rhs) noexcept {
+            std::swap(_index, rhs._index);
+            std::swap(_size, rhs._size);
+            std::swap(_pimpl, rhs._pimpl);
+
+            return *this;
+        }
+
+
+        Iterator& operator= (Iterator&& rhs) noexcept  {
+            return swap(rhs);
+        }
+
         bool operator!= (const Iterator& other) const {
             return ((_index != other._index) ||
                     (_size != other._size) ||
@@ -85,33 +112,10 @@ public:
 
         Iterator end() const;
 
-        Iterator& swap(Iterator& rhs) noexcept {
-            std::swap(_index, rhs._index);
-            std::swap(_size, rhs._size);
-            std::swap(_pimpl, rhs._pimpl);
-
-            return *this;
-        }
-
         uint getSize() const noexcept {
             return _size;
         }
 
-        Iterator(const std::shared_ptr<IPollerImpl>& p, uint index, uint size): _index(index), _size(size),
-            _pimpl(p)
-        {}
-
-//        Iterator(uint size, const std::shared_ptr<IPollerImpl>& p): _index(0), _size(size),
-//            _pimpl(p)
-//        {}
-
-        Iterator(Iterator&& rhs): _index(rhs._index), _size(rhs._size),
-            _pimpl(std::move(rhs._pimpl))
-        {}
-
-        Iterator& operator= (Iterator&& rhs) noexcept  {
-            return swap(rhs);
-        }
 
     private:
         uint _index;
@@ -119,6 +123,7 @@ public:
 
         std::shared_ptr<IPollerImpl> _pimpl;
     };
+
 
 public:
 
@@ -136,12 +141,17 @@ public:
      */
     void add(ISelectable* selectable, int events);
 
+    void add(ISelectable::poll_id fd, ISelectable* selectable, int events);
+    void addRaw(ISelectable::poll_id fd, int events, void* data);
+
     /**
      * Deregister the pollable object
      * @param selectable - a pollable object to deregister
      *
      */
     void remove(const ISelectable* selectable);
+
+    void remove(ISelectable::poll_id fd);
 
     /**
      * Wait for events on the previously added selectable items.
@@ -151,11 +161,14 @@ public:
      */
     Iterator poll(uint msec = -1);
 
-private:
-    std::shared_ptr<IPollerImpl> _pimpl;
+protected:
 
     Selector(const std::shared_ptr<IPollerImpl>& impl);
     Selector(std::shared_ptr<IPollerImpl>&& impl);
+
+private:
+    std::shared_ptr<IPollerImpl> _pimpl;
+
 };
 
 

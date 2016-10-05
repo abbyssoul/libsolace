@@ -91,7 +91,8 @@ public:
 
 public:
 
-    MappedMemoryView(MappedMemoryView&& rhs): MemoryView(std::move(rhs))
+    MappedMemoryView(MappedMemoryView&& rhs) :
+        MemoryView(std::move(rhs))
     {
     }
 
@@ -108,6 +109,7 @@ public:
     }
 
 private:
+    MappedMemoryView() = delete;
     MappedMemoryView(size_type newSize, void* dataAddress);
 
 };

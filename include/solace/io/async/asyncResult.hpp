@@ -39,7 +39,7 @@ public:
         _handler(std::move(rhs._handler))
     {}
 
-    ~Result();
+    ~Result() = default;
 
 //    template<typename T>
 //    typename std::result_of<T()>::type then(const T& handler);
@@ -67,4 +67,4 @@ private:
 }  // End of namespace async
 }  // End of namespace IO
 }  // End of namespace Solace
-#endif // SOLACE_IO_EVENTLOOP_ASYNCRESULT_HPP
+#endif  // SOLACE_IO_EVENTLOOP_ASYNCRESULT_HPP

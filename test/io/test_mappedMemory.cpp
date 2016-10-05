@@ -98,7 +98,7 @@ public:
 
             case 0: {                     /* Child: increment shared integer and exit */
                 isChild = true;
-                ByteBuffer sb(view);
+                ByteBuffer sb(view.viewShallow());
                 sb << getpid();
                 sb.write("child", 5);
 
@@ -114,7 +114,7 @@ public:
                 int viewedPid;
                 char message[10];
 
-                ByteBuffer sb(view);
+                ByteBuffer sb(view.viewShallow());
                 sb >> viewedPid;
                 CPPUNIT_ASSERT_EQUAL(childPid, viewedPid);
 

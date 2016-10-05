@@ -78,8 +78,7 @@ public:
 
             f->seek(0, File::Seek::Set);
 
-            auto mem = _memoryManager.create(fileUIDBytes.size());
-            ByteBuffer readBuffer(mem);
+            ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
             MemoryView::size_type bytesRead = f->read(readBuffer);
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
@@ -109,11 +108,9 @@ public:
             auto f = fs.create(filename);
             CPPUNIT_ASSERT(fs.exists(filename));
             f->write(fileUIDBytes);
-
             f->close();
 
-            auto mem = _memoryManager.create(fileUIDBytes.size());
-            ByteBuffer readBuffer(mem);
+            ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
             CPPUNIT_ASSERT_THROW(auto x = f->seek(0, File::Seek::Set), NotOpen);
             CPPUNIT_ASSERT_THROW(auto x = f->read(readBuffer), NotOpen);
         }
@@ -127,8 +124,7 @@ public:
         {
             auto f = fs.open(filename);
 
-            auto mem = _memoryManager.create(fileUIDBytes.size());
-            ByteBuffer readBuffer(mem);
+            ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
             MemoryView::size_type bytesRead = f->read(readBuffer);
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
@@ -192,8 +188,7 @@ public:
 
             f->seek(0, File::Seek::Set);
 
-            auto mem = _memoryManager.create(fileUIDBytes.size());
-            ByteBuffer readBuffer(mem);
+            ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
             const MemoryView::size_type bytesRead = f->read(readBuffer);
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());

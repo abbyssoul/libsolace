@@ -55,8 +55,6 @@ public:
 
     MemoryView(MemoryView&& rhs) noexcept;
 
-    MemoryView(const MemoryView& rhs);
-
     /** Deallocate memory */
     ~MemoryView();
 
@@ -205,6 +203,8 @@ public:
 
     friend MemoryView wrapMemory(byte*, MemoryView::size_type, const std::function<void(MemoryView*)>&);
 
+    MemoryView viewShallow() const;
+
 protected:
 
     MemoryView(size_type size, void* data, const std::function<void(MemoryView*)>& freeFunc);
@@ -251,6 +251,10 @@ inline MemoryView wrapMemory(PodType (&data)[N],
     return wrapMemory(static_cast<void*>(data), N * sizeof(PodType), freeFunc);
 }
 
+
+inline void swap(MemoryView& a, MemoryView& b) {
+    a.swap(b);
+}
 
 }  // End of namespace Solace
 #endif  // SOLACE_MEMORYVIEW_HPP

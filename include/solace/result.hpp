@@ -60,7 +60,7 @@ public:
         _state( ::new (_stateBuffer.errSpace) ErrorState(err) )
     {}
 
-    Result(const V*, E&& err):
+    Result(const V*, E && err):
         _state( ::new (_stateBuffer.errSpace) ErrorState(std::move(err)) )
     {}
 
@@ -84,8 +84,8 @@ public:
 
 
     template<typename D>
-    auto then(  const std::function<D(V)>& success,
-                const std::function<D(E)>& failure) -> D {
+    auto then(const std::function<D(V)>& success,
+              const std::function<D(E)>& failure) -> D {
 
         return isOk()
                 ? success(getResult())
@@ -94,8 +94,8 @@ public:
 
 
 //    template<typename D>
-//    auto then(  const std::function<D(const V&)>& success,
-//                const std::function<D(const E&)>& failure) -> D {
+//    auto then(const std::function<D(const V&)>& success,
+//              const std::function<D(const E&)>& failure) -> D {
 
 //        return isOk()
 //                ? success(getResult())
@@ -167,7 +167,7 @@ public:
     Result& operator= (const Result& rhs) noexcept = delete;
 
     operator bool () const noexcept {
-        return isError();
+        return isOk();
     }
 
     bool isOk() const noexcept {

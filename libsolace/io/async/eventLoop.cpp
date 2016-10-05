@@ -29,8 +29,13 @@ using namespace Solace::IO;
 using namespace Solace::IO::async;
 
 
-Result::~Result() {
 
+EventLoop::EventLoop(uint32 backlogCapacity, Selector&& selector) :
+    _keepOnRunning(true),
+    _backlog(),
+    _selector(std::move(selector))
+{
+    _backlog.reserve(backlogCapacity);
 }
 
 
@@ -41,17 +46,21 @@ Result& EventLoop::submit(const std::shared_ptr<Request>& request) {
 }
 
 
-void noop(ISelectable*) {}
+void noop(ISelectable* v) {
+ (void)v;
+}
 
 void EventLoop::run() {
+//    typedef std::vector<std::shared_ptr<Request>>::iterator iter;
+
     while (_keepOnRunning) {
         for (auto event : _selector.poll()) {
 
-            std::shared_ptr<ISelectable> p(event.pollable, noop);
+//            std::shared_ptr<ISelectable> p(event.data, noop);
 
-            if (std::find(_backlog.begin(), _backlog.end(), p) != _backlog.end()) {
-//            if (_backlog.contains(event.pollable)) {
-                auto request = static_cast<Request*>(event.pollable);
+            auto p = std::find_if(_backlog.begin(), _backlog.end(), [&event](auto i){ return event.data == i.get(); });
+            if (p != _backlog.end()) {
+                auto request = static_cast<Request*>(event.data);
 
                 if (event.events & Solace::IO::Selector::Events::Read) {
                     request->onRead();
@@ -64,21 +73,18 @@ void EventLoop::run() {
                 if (event.events & Solace::IO::Selector::Events::Error) {
                     request->onError();
                 }
+
+                // Remove completed request
+                if (request->isComplete()) {
+                    _backlog.erase(p);
+//                    _backlog.erase(std::remove(_backlog.begin(), _backlog.end(), p), _backlog.end());
+                }
             }
         }
     }
 }
 
 
-void EventLoop::Request::onRead() {
-    static_cast<File*>(_selectable)->read(_buffer);
-
-    _future.resolve();
-}
-
-void EventLoop::Request::onWrite() {
-
-}
 
 void EventLoop::Request::onError() {
 

@@ -227,7 +227,7 @@ public:
     template <typename O>
     Array<O> map(const std::function<O(const_reference)>& f) const {
         const auto thisSize = size();
-        typename Array<O>::Storage mappedStorage(thisSize);
+        typename Array<O>::Storage mappedStorage;  // NOTE: No default size here as it will insert that many elements.
         mappedStorage.reserve(thisSize);
 
         for (const auto& x : _storage) {
@@ -240,7 +240,7 @@ public:
     template <typename O>
     Array<O> map(const std::function<O(size_type, const_reference)>& f) const {
         const size_type thisSize = size();
-        typename Array<O>::Storage mappedStorage(thisSize);
+        typename Array<O>::Storage mappedStorage;  // NOTE: No default size here as it will insert that many elements.
         mappedStorage.reserve(thisSize);
 
         for (size_type i = 0; i < thisSize; ++i) {

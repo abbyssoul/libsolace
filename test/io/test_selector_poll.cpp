@@ -61,7 +61,7 @@ public:
 //        CPPUNIT_ASSERT_EQUAL(static_cast<uint>(1), i.getSize());
 
         auto ev = *i;
-        CPPUNIT_ASSERT_EQUAL(static_cast<ISelectable*>(&write), ev.pollable);
+        CPPUNIT_ASSERT_EQUAL(static_cast<void*>(&write), ev.data);
     }
 
 
@@ -93,7 +93,7 @@ public:
 //            CPPUNIT_ASSERT_EQUAL(static_cast<uint>(1), i.getSize());
 
             auto ev = *i;
-            CPPUNIT_ASSERT_EQUAL(static_cast<ISelectable*>(&write), ev.pollable);
+            CPPUNIT_ASSERT_EQUAL(static_cast<void*>(&write), ev.data);
         }
 
         {

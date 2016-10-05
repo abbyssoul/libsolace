@@ -44,7 +44,8 @@ bool operator== (const epoll_event& a, const epoll_event& b) {
 
 
 
-class EPollSelectorImpl : public Solace::IO::Selector::IPollerImpl {
+class EPollSelectorImpl :
+        public Solace::IO::Selector::IPollerImpl {
 public:
 
     // FIXME: evlist will actually leak if we throw here...
@@ -61,33 +62,52 @@ public:
     }
 
     void add(ISelectable* selectable, int events) override {
-        epoll_event ev;
-        ev.data.ptr = selectable;
-        ev.events = 0;
+        add(selectable->getSelectId(), selectable, events);
+    }
+
+
+    void add(ISelectable::poll_id fd, ISelectable* selectable, int events) override {
+        int nativeEvents = 0;
 
         if (events & Selector::Events::Read)
-            ev.events |= EPOLLIN;
+            nativeEvents |= EPOLLIN;
         if (events & Selector::Events::Write)
-            ev.events |= EPOLLOUT;
+            nativeEvents |= EPOLLOUT;
         if (events & Selector::Events::Error)
-            ev.events |= EPOLLERR;
+            nativeEvents |= EPOLLERR;
         if (events & Selector::Events::Hup)
-            ev.events |= EPOLLHUP;
+            nativeEvents|= EPOLLHUP;
 
-        if (-1 == epoll_ctl(_epfd, EPOLL_CTL_ADD, selectable->getSelectId(), &ev)) {
+        addRaw(fd, nativeEvents, selectable);
+    }
+
+
+    void addRaw(ISelectable::poll_id fd, int nativeEvents, void* data) override {
+        epoll_event ev;
+        ev.data.ptr = data;
+        ev.events = nativeEvents;
+
+        if (-1 == epoll_ctl(_epfd, EPOLL_CTL_ADD, fd, &ev)) {
             Solace::raise<IOException>(errno);
         }
     }
 
+
     void remove(const ISelectable* selectable) override {
+        remove(selectable->getSelectId());
+    }
+
+
+    void remove(ISelectable::poll_id fd) override {
         epoll_event ev;
 
-        ev.data.fd = selectable->getSelectId();
         ev.events = 0;
+        ev.data.fd = fd;
 
-        if (-1 == epoll_ctl(_epfd, EPOLL_CTL_DEL, selectable->getSelectId(), &ev)) {
-            if (errno != ENOENT)
+        if (-1 == epoll_ctl(_epfd, EPOLL_CTL_DEL, fd, &ev)) {
+            if (errno != ENOENT) {
                 Solace::raise<IOException>(errno);
+            }
         }
     }
 
@@ -107,7 +127,7 @@ public:
         const auto& ev = _evlist[i];
 
         Selector::Event event;
-        event.pollable = static_cast<ISelectable*>(ev.data.ptr);
+        event.data = ev.data.ptr;
         event.events = 0;
 
         if (ev.events & EPOLLIN)

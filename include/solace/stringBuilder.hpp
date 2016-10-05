@@ -34,6 +34,7 @@ namespace Solace {
 
 /**
  * String Builder to build a string if you really need mutable strings
+ * FIXME(abbyssoul): This is not yet implemented.
  */
 class StringBuilder : public IFormattable {
 public:
@@ -50,17 +51,17 @@ public:
     StringBuilder(MemoryView&& buffer, const String& str);
 
 
-    /** Initialize a new instance of StringBuilder with a given storage */
-    StringBuilder(const ByteBuffer& buffer);
+//    /** Initialize a new instance of StringBuilder with a given storage */
+//    StringBuilder(const ByteBuffer& buffer);
 
-    /** New StringBuilder with the given storage and initial content */
-    StringBuilder(const ByteBuffer& buffer, const char* str);
+//    /** New StringBuilder with the given storage and initial content */
+//    StringBuilder(const ByteBuffer& buffer, const char* str);
 
-    /** New StringBuilder with the given storage and initial content */
-    StringBuilder(const ByteBuffer& buffer, const String& str);
+//    /** New StringBuilder with the given storage and initial content */
+//    StringBuilder(const ByteBuffer& buffer, const String& str);
 
-    /** New StringBuilder with the given storage and initial content */
-    StringBuilder(const ByteBuffer& buffer, std::initializer_list<String> s);
+//    /** New StringBuilder with the given storage and initial content */
+//    StringBuilder(const ByteBuffer& buffer, std::initializer_list<String> s);
 
     //!< Move construct string builder
     StringBuilder(StringBuilder&& s);

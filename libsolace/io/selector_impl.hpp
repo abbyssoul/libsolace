@@ -22,29 +22,38 @@
 #ifndef SELECTOR_IMPL_H
 #define SELECTOR_IMPL_H
 
+#include <solace/io/selectable.hpp>
 
 #include <tuple>
 
 
-namespace Solace {
+namespace Solace { namespace IO {
 
-
-class IO::Selector::IPollerImpl {
+class Selector::IPollerImpl {
 public:
 
     virtual ~IPollerImpl() = default;
 
     virtual void add(ISelectable* selectable, int events) = 0;
 
+    virtual void add(ISelectable::poll_id fd, ISelectable* selectable, int events) = 0;
+
+    virtual void addRaw(ISelectable::poll_id fd, int events, void* data) = 0;
+
     virtual void remove(const ISelectable* selectable) = 0;
+
+    virtual void remove(ISelectable::poll_id fd) = 0;
 
     virtual std::tuple<uint, uint> poll(uint32 msec) = 0;
 
     virtual Selector::Event getEvent(uint i) = 0;
 
     virtual int advance(uint i) = 0;
+
+//    virtual int toNativeEventFormat() const = 0;
 };
 
 
+}  // End of namespace IO
 }  // End of namespace Solace
 #endif  // SELECTOR_IMPL_H

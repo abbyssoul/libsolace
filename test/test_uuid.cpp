@@ -126,8 +126,7 @@ public:
         CPPUNIT_ASSERT_THROW(auto x = UUID(wrapMemory(bytes, 7)), IllegalArgumentException);
 
 
-        auto mem = _memoryManager.create(16);
-        auto byteBuffer = ByteBuffer(mem);
+        auto byteBuffer = ByteBuffer(_memoryManager.create(16));
         byteBuffer.write(bytes, sizeof(bytes));
 
         CPPUNIT_ASSERT_EQUAL(static_cast<ByteBuffer::size_type>(0), byteBuffer.remaining());
@@ -139,8 +138,7 @@ public:
             CPPUNIT_ASSERT_EQUAL(bytes[i], uid6[i]);
         }
 
-        auto mem2 = _memoryManager.create(6);
-        auto wb = ByteBuffer(mem2);
+        auto wb = ByteBuffer(_memoryManager.create(6));
         CPPUNIT_ASSERT_THROW(auto x = UUID(wb), IllegalArgumentException);
     }
 
