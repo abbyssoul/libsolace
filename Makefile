@@ -134,7 +134,7 @@ codecheck: cpplint flint cppcheck #scan-build
 verify: $(TEST_TAGRET)
 	# > 3.10 (not avaliable on trusty) --expensive-definedness-checks=yes
 	valgrind --trace-children=yes --track-fds=yes --read-var-info=no --redzone-size=128 --error-exitcode=4 \
-	--tool=exp-sgcheck $(TEST_TAGRET) && \
+	--tool=exp-sgcheck $(TEST_TAGRET)
 
 	valgrind --trace-children=yes --track-fds=yes --read-var-info=no --redzone-size=128 --error-exitcode=3 \
 	--tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --partial-loads-ok=no \
