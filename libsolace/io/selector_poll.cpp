@@ -52,10 +52,10 @@ public:
     }
 
     void add(ISelectable* selectable, int events) override {
-        add(selectable->getSelectId(), selectable, events);
+        add(selectable->getSelectId(), events, selectable);
     }
 
-    void add(ISelectable::poll_id fd, ISelectable* selectable, int events) override {
+    void add(ISelectable::poll_id fd, int events, void* data) override {
         int pollEvents = 0;
 
         if (events & Selector::Events::Read)
@@ -65,57 +65,63 @@ public:
         if (events & Selector::Events::Hup)
             pollEvents |= POLLRDHUP;
 
-        addRaw(fd, pollEvents, selectable);
+        addRaw(fd, pollEvents, data);
     }
 
 
     void addRaw(ISelectable::poll_id fd, int nativeEvents, void* data) override {
-        pollfd ev = {
+        pollfd pollEvent = {
             fd,
-            static_cast<short int>(nativeEvents),
+            static_cast<int16>(nativeEvents),
             0
         };
 
-        _selectables.push_back(data);
-        _pollfds.push_back(ev);
+        Selector::Event ev;
+        ev.data = data;
+        ev.fd = fd;
+
+        _selectables.push_back(ev);
+        _pollfds.push_back(pollEvent);
     }
 
 
     void remove(const ISelectable* selectable) override {
-        // Find the index if this selectable in _selectables
-        auto it = std::find(_selectables.begin(), _selectables.end(), selectable);
-
-        if (it == _selectables.end()) {
-            return;
-        } else {
-            const auto index = std::distance(_selectables.begin(), it);
-            _selectables.erase(it);
-            _pollfds.erase(_pollfds.begin() + index);
-        }
+        remove(selectable->getSelectId());
     }
 
 
     void remove(ISelectable::poll_id fd) override {
-        // Find the index if this selectable in _selectables
-        // TODO:!!
+        // FIXME(abbyssoul): Make sure thouse are in order!!!
+
+        _selectables.erase(
+                    std::remove_if(_selectables.begin(), _selectables.end(), [fd](auto x) { return x.fd == fd; }),
+                    _selectables.end());
+        _pollfds.erase(
+                    std::remove_if(_pollfds.begin(), _pollfds.end(), [fd](auto x) { return x.fd == fd; }),
+                    _pollfds.end());
     }
 
 
-    std::tuple<uint, uint> poll(uint32 msec) override {
+    std::tuple<uint, uint> poll(int msec) override {
         const auto r = ::poll(_pollfds.data(), _pollfds.size(), msec);
         if (r < 0) {
             Solace::raise<IOException>(errno);
+        } else if (r == 0) {
+            return std::make_tuple(0, 0);
         }
 
-        return std::make_tuple(advance(0), _pollfds.size());
+        const auto pollCount = _pollfds.size();
+        return std::make_tuple(findFirstReady(0, pollCount), pollCount);
     }
 
 
     Selector::Event getEvent(uint i) override {
         const auto& ev = _pollfds[i];
+        const auto& selected = _selectables[i];
 
         Selector::Event event;
-        event.data = _selectables[i];
+        event.data = selected.data;
+        event.fd = selected.fd;
         event.events = 0;
 
         if ((ev.revents & POLLIN) || (ev.revents & POLLPRI))
@@ -131,7 +137,7 @@ public:
     }
 
 
-    int advance(uint offsetIndex) {
+    uint advance(uint offsetIndex) override {
         const auto pollCount = _pollfds.size();
 
         // Overflow check
@@ -139,6 +145,13 @@ public:
             return pollCount;
         }
 
+
+        return findFirstReady(offsetIndex + 1, pollCount);
+    }
+
+protected:
+
+    uint findFirstReady(uint offsetIndex, uint pollCount) {
         for (uint i = offsetIndex; i < pollCount; ++i) {
             const auto& p = _pollfds[i];
             if (p.revents) {
@@ -149,14 +162,13 @@ public:
         return pollCount;
     }
 
-
 private:
     PollSelectorImpl(const PollSelectorImpl&) = delete;
     PollSelectorImpl& operator= (const PollSelectorImpl&) = delete;
 
     // This two are tightly coupled
-    std::vector<void*>      _selectables;
-    std::vector<pollfd>     _pollfds;
+    std::vector<Selector::Event>    _selectables;
+    std::vector<pollfd>             _pollfds;
 };
 
 

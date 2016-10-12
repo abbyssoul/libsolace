@@ -14,36 +14,48 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Assertion helpers
- *	@file		solace/assert.hpp
+ * libSolace: Async event
+ *	@file		solace/io/async/event.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_ASSERT_HPP
-#define SOLACE_ASSERT_HPP
+#ifndef SOLACE_IO_ASYNC_SIGNALSET_HPP
+#define SOLACE_IO_ASYNC_SIGNALSET_HPP
 
-#include "solace/types.hpp"
+#include "solace/io/selectable.hpp"
+#include "solace/io/async/asyncResult.hpp"
+#include "solace/io/async/channel.hpp"
 
 
-namespace Solace {
-
-/**
- * Throw an error of invalidState
- */
-void raiseInvalidStateError();
+namespace Solace { namespace IO { namespace async {
 
 /**
- * Assert that the give index is within the give range. Throw if it is not.
- * @param index Index value to be asserted.
- * @param from Lower bound (inclusive)
- * @param to Upper value bound (exclusive)
- * @return Index value if the index is in range. Throws otherwise.
+ * An async interface for POSIX signals
  */
-uint64 assertIndexInRange(uint64 index, uint64 from, uint64 to);
+class SignalSet :
+        public Channel {
+public:
+
+    SignalSet(EventLoop& ioContext, std::initializer_list<int> signal);
+
+    SignalSet(SignalSet&& rhs);
+
+    SignalSet& operator = (SignalSet&& rhs);
+
+    ~SignalSet();
+
+    Result<int>& asyncWait();
 
 
+private:
+
+    ISelectable::poll_id    _fd;
+};
+
+
+}  // End of namespace async
+}  // End of namespace IO
 }  // End of namespace Solace
-#endif  // SOLACE_ASSERT_HPP
-
+#endif  // SOLACE_IO_ASYNC_SIGNALSET_HPP

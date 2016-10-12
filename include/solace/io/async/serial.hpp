@@ -33,21 +33,31 @@
 
 namespace Solace { namespace IO { namespace async {
 
-class SerialChannel: public Channel {
+class SerialChannel :
+        public Channel {
 public:
+
     SerialChannel(EventLoop& ioContext,
            const Path& file,
            uint32 baudrate = 9600,
            Serial::Bytesize bytesize = Serial::Bytesize::eightbits,
            Serial::Parity parity = Serial::Parity::none,
            Serial::Stopbits stopbits = Serial::Stopbits::one,
-           Serial::Flowcontrol flowcontrol = Serial::Flowcontrol::none) :
-        Channel(ioContext),
-        _serial(file, baudrate, bytesize, parity, stopbits, flowcontrol)
-    {
-    }
+           Serial::Flowcontrol flowcontrol = Serial::Flowcontrol::none);
 
-    Result& asyncRead(Solace::ByteBuffer& buffer);
+
+    SerialChannel(SerialChannel&& rhs):
+        Channel(std::move(rhs)),
+        _serial(std::move(rhs._serial))
+    {}
+
+    ~SerialChannel();
+
+    // TODO(abbyssoul): implementation
+    SerialChannel& operator = (SerialChannel&& rhs);
+
+    Result<void>& asyncRead(Solace::ByteBuffer& buffer);
+    Result<void>& asyncWrite(Solace::ByteBuffer& buffer);
 
 private:
 

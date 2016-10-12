@@ -14,36 +14,49 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Assertion helpers
- *	@file		solace/assert.hpp
+ * libSolace: Async event
+ *	@file		solace/io/async/pipe.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_ASSERT_HPP
-#define SOLACE_ASSERT_HPP
-
-#include "solace/types.hpp"
+#ifndef SOLACE_IO_ASYNC_PIPE_HPP
+#define SOLACE_IO_ASYNC_PIPE_HPP
 
 
-namespace Solace {
+#include "solace/io/selectable.hpp"
+#include "solace/io/async/asyncResult.hpp"
+#include "solace/io/async/channel.hpp"
+
+#include "solace/io/file.hpp"
+
+
+namespace Solace { namespace IO { namespace async {
 
 /**
- * Throw an error of invalidState
+ * An async wrapper for the POSIX pipe
  */
-void raiseInvalidStateError();
+class Pipe : public Channel {
+public:
 
-/**
- * Assert that the give index is within the give range. Throw if it is not.
- * @param index Index value to be asserted.
- * @param from Lower bound (inclusive)
- * @param to Upper value bound (exclusive)
- * @return Index value if the index is in range. Throws otherwise.
- */
-uint64 assertIndexInRange(uint64 index, uint64 from, uint64 to);
+    Pipe(EventLoop& ioContext);
 
+    Pipe(Pipe&& rhs);
 
+    ~Pipe();
+
+    Pipe& operator = (Pipe&& rhs);
+
+    Result<void>& asyncRead(Solace::ByteBuffer& buffer);
+    Result<void>& asyncWrite(Solace::ByteBuffer& buffer);
+
+private:
+
+    File    _fds[2];
+};
+
+}  // End of namespace async
+}  // End of namespace IO
 }  // End of namespace Solace
-#endif  // SOLACE_ASSERT_HPP
-
+#endif  // SOLACE_IO_ASYNC_PIPE_HPP

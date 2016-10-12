@@ -28,6 +28,21 @@
 
 namespace Solace { namespace IO { namespace async {
 
+/**
+ * An async future.
+ * The Result class is a future that gets resolved once the value has been computed.
+ *
+ * @example
+ * \code{.cpp}
+ * io_object.do_something_async.then([](auto value) {
+ *      ...
+ *      use the value when it become available
+ *      ...
+ *
+ * });
+ * \endcode
+ */
+template <typename T>
 class Result {
 public:
 
@@ -47,6 +62,41 @@ public:
 //    template<typename T>
 //    T then(const std::function<T()>& handler);
 
+    void then(const std::function<void(const T&)>& handler) {
+        _handler = handler;
+    }
+
+    // Resolve this future and call the handler.
+    void resolve(const T& value) {
+        if (_handler) {
+            _handler(value);
+        }
+    }
+
+
+private:
+
+    std::function<void(const T&)> _handler;
+};
+
+
+/** Specialization of AsyncResult for void type
+ *
+ */
+template <>
+class Result<void> {
+public:
+
+    Result() :
+        _handler()
+    {}
+
+    Result(Result&& rhs) :
+        _handler(std::move(rhs._handler))
+    {}
+
+    ~Result() = default;
+
     void then(const std::function<void()>& handler) {
         _handler = handler;
     }
@@ -54,6 +104,7 @@ public:
     // Resolve this future and call the handler.
     void resolve() {
         if (_handler) {
+            // Note: what happenes if _handler throws? Eventloop.run() get intrapted!
             _handler();
         }
     }
@@ -63,6 +114,7 @@ private:
 
     std::function<void()> _handler;
 };
+
 
 }  // End of namespace async
 }  // End of namespace IO

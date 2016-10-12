@@ -47,16 +47,8 @@ namespace Solace { namespace IO { namespace async {
 class EventLoop {
 public:
 
-    class Request :
-            public ISelectable {
+    class Request {
     public:
-
-        Request()
-        {}
-
-        Request(Request&& rhs) :
-            _future(std::move(rhs._future))
-        {}
 
         virtual ~Request() = default;
 
@@ -70,18 +62,9 @@ public:
             return false;
         }
 
-        Result& promiss() noexcept {
-            return _future;
-        }
+        virtual bool isAbout(const Selector::Event& data) const = 0;
 
-        virtual poll_id getSelectId() const = 0;
-
-        virtual void onRead() = 0;
-        virtual void onWrite() = 0;
-        virtual void onError();
-
-    private:
-        Result          _future;
+        virtual void onReady(const Selector::Event& event) = 0;
     };
 
 
@@ -96,7 +79,7 @@ public:
     EventLoop(uint32 backlogCapacity, Selector&& selector);
 
     EventLoop(EventLoop&& rhs);
-    ~EventLoop() = default;
+    ~EventLoop();
 
     EventLoop& operator= (EventLoop&& rhs);
     EventLoop& swap(EventLoop& rhs);
@@ -114,15 +97,13 @@ public:
      *
      * @return True, if there are still more iteration to run
      */
-    bool iterate() {
-        return false;
-    }
+    bool iterate();
 
     void run();
 
-    void stop() noexcept {
-        _keepOnRunning = false;
-    }
+    void runFor(int msec);
+
+    void stop();
 
     bool isStopped() const noexcept {
         return _keepOnRunning;
@@ -135,13 +116,18 @@ public:
      * @param request A request object to execute.
      * @return A promiss that will be called once request has been processed.
      */
-    Result& submit(const std::shared_ptr<Request>& request);
+    void submit(const std::shared_ptr<Request>& request);
+
+protected:
+    void dispatchEvents(const Selector::Iterator& events);
 
 private:
 
-    bool _keepOnRunning;
+    bool                                    _keepOnRunning;
+    ISelectable::poll_id                    _interruptFd;
+
     std::vector<std::shared_ptr<Request>>   _backlog;
-    Selector _selector;
+    Selector                                _selector;
 
 };
 

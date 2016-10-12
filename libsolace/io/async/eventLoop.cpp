@@ -21,8 +21,12 @@
 #include <solace/io/async/eventloop.hpp>
 
 #include <algorithm>
+#include <chrono>
 
-#include <solace/io/file.hpp>
+
+#include <sys/eventfd.h>
+#include <unistd.h>
+
 
 using namespace Solace;
 using namespace Solace::IO;
@@ -32,60 +36,103 @@ using namespace Solace::IO::async;
 
 EventLoop::EventLoop(uint32 backlogCapacity, Selector&& selector) :
     _keepOnRunning(true),
+    _interruptFd { eventfd(0, EFD_NONBLOCK) },
     _backlog(),
     _selector(std::move(selector))
 {
+    if (_interruptFd < 0) {
+        Solace::raise<IOException>(errno);
+    }
+    _selector.add(_interruptFd, Solace::IO::Selector::Events::Read, this);
+
     _backlog.reserve(backlogCapacity);
 }
 
 
-Result& EventLoop::submit(const std::shared_ptr<Request>& request) {
-    _backlog.push_back(request);
-
-    return request->promiss();
+EventLoop::EventLoop(EventLoop&& rhs) :
+    _keepOnRunning(rhs._keepOnRunning),
+    _interruptFd(rhs._interruptFd),
+    _backlog(std::move(rhs._backlog)),
+    _selector(std::move(rhs._selector))
+{
+    rhs._keepOnRunning = false;
+    rhs._interruptFd = -1;
 }
 
 
-void noop(ISelectable* v) {
- (void)v;
+EventLoop::~EventLoop() {
+    if (_interruptFd != -1) {
+        _selector.remove(_interruptFd);
+
+        // TODO(abbyssoul): do check return value
+        close(_interruptFd);
+
+        _interruptFd = -1;
+    }
 }
 
-void EventLoop::run() {
-//    typedef std::vector<std::shared_ptr<Request>>::iterator iter;
+void EventLoop::stop() {
+    if (_keepOnRunning) {
+        _keepOnRunning = false;
 
-    while (_keepOnRunning) {
-        for (auto event : _selector.poll()) {
-
-//            std::shared_ptr<ISelectable> p(event.data, noop);
-
-            auto p = std::find_if(_backlog.begin(), _backlog.end(), [&event](auto i){ return event.data == i.get(); });
-            if (p != _backlog.end()) {
-                auto request = static_cast<Request*>(event.data);
-
-                if (event.events & Solace::IO::Selector::Events::Read) {
-                    request->onRead();
-                }
-
-                if (event.events & Solace::IO::Selector::Events::Write) {
-                    request->onWrite();
-                }
-
-                if (event.events & Solace::IO::Selector::Events::Error) {
-                    request->onError();
-                }
-
-                // Remove completed request
-                if (request->isComplete()) {
-                    _backlog.erase(p);
-//                    _backlog.erase(std::remove(_backlog.begin(), _backlog.end(), p), _backlog.end());
-                }
-            }
+        // Write interaption into interapt event
+        const auto result = eventfd_write(_interruptFd, 1);
+        if (result < 0) {
+            raise<IOException>(errno);
         }
     }
 }
 
 
+void EventLoop::submit(const std::shared_ptr<Request>& request) {
+    _backlog.push_back(request);
 
-void EventLoop::Request::onError() {
+    return;
+}
 
+
+void EventLoop::dispatchEvents(const Selector::Iterator& readyEvents) {
+    for (auto event : readyEvents) {
+        // Make sure that event.data is a request and not something else that was manually added into selector
+        auto p = std::find_if(_backlog.begin(), _backlog.end(), [&event](auto i) { return i->isAbout(event); });
+
+        if (p != _backlog.end()) {
+            auto request = *p;
+            request->onReady(event);
+
+            // Remove completed request
+            if (request->isComplete()) {
+                _backlog.erase(p);
+            }
+        }
+
+        if (_backlog.empty() || !_keepOnRunning) {
+            return;
+        }
+    }
+}
+
+void EventLoop::run() {
+    while (_keepOnRunning && !_backlog.empty()) {
+        dispatchEvents(_selector.poll());
+    }
+}
+
+void EventLoop::runFor(int msec) {
+    auto start = std::chrono::high_resolution_clock::now();
+
+    while (_keepOnRunning && !_backlog.empty()) {
+        auto end = std::chrono::high_resolution_clock::now();
+        auto timeLeft = msec - std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        if (timeLeft < 0) {
+            break;
+        }
+
+        auto readyEvents = _selector.poll(timeLeft);
+        if (readyEvents.size() == 0) {
+            return;  // Timeout
+        }
+
+        dispatchEvents(readyEvents);
+    }
 }

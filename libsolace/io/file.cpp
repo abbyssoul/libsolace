@@ -41,7 +41,7 @@ using Solace::IllegalArgumentException;
 using Solace::IO::IOException;
 
 
-const ISelectable::poll_id File::InvalidFd = -1;
+const ISelectable::poll_id ISelectable::InvalidFd = -1;
 
 
 const int File::Flags::Append = O_APPEND;
@@ -72,6 +72,10 @@ const int File::Mode::IROTH = S_IROTH;
 const int File::Mode::IWOTH = S_IWOTH;
 const int File::Mode::IXOTH = S_IXOTH;
 
+
+File::File() : File(ISelectable::InvalidFd) {
+
+}
 
 File::File(const poll_id fd) noexcept : _fd(fd)
 {

@@ -23,10 +23,8 @@
 #include <solace/memoryView.hpp>  // Class being tested
 #include <solace/memoryManager.hpp>
 
-
 #include <solace/exception.hpp>
 #include <cppunit/extensions/HelperMacros.h>
-
 
 
 using namespace Solace;
@@ -40,11 +38,29 @@ class TestMemoryView: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testRead);
         CPPUNIT_TEST(testWrite);
         CPPUNIT_TEST(testWrapping);
+        CPPUNIT_TEST(testDataAs);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
 
     MemoryManager manager;
+
+public:
+
+    struct SomePodType {
+        int x, y, z;
+
+        SomePodType(int a, int b, int c) : x(a), y(b), z(c)
+        {}
+
+        friend bool operator == (const SomePodType& a, const SomePodType& b) {
+            return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
+        }
+    };
+
+    struct LargePodType {
+        SomePodType i1, i2, i3;
+    };
 
 public:
 
@@ -218,6 +234,47 @@ public:
         }
     }
 
+    void testDataAs() {
+        byte src[sizeof(SomePodType) + 5];
+
+        byte n = 0;
+        for (auto& b : src) {
+            b = ++n;
+        }
+
+        auto buffer = wrapMemory(src);
+
+        int tx, ty, tz;
+
+        tx = 1; ty = 3; tz = 2;
+        buffer.write(wrapMemory(&tx, sizeof(tx)));
+        buffer.write(wrapMemory(&ty, sizeof(tx)), sizeof(tx));
+        buffer.write(wrapMemory(&tz, sizeof(tx)), 2*sizeof(ty));
+
+        SomePodType* uuid1 = buffer.dataAs<SomePodType>();
+        CPPUNIT_ASSERT_EQUAL(SomePodType(1, 3, 2), *uuid1);
+
+        tx = 7; ty = 44; tz = -32;
+        buffer.write(wrapMemory(&tx, sizeof(tx)));
+        buffer.write(wrapMemory(&ty, sizeof(tx)), sizeof(tx));
+        buffer.write(wrapMemory(&tz, sizeof(tx)), 2*sizeof(ty));
+        CPPUNIT_ASSERT_EQUAL(SomePodType(7, 44, -32), *uuid1);
+
+        SomePodType* uuid2 = buffer.dataAs<SomePodType>(4);
+        tx = -91; ty = 12; tz = 0;
+        buffer.write(wrapMemory(&tx, sizeof(tx)), 4);
+        buffer.write(wrapMemory(&ty, sizeof(tx)), 4 + sizeof(tx));
+        buffer.write(wrapMemory(&tz, sizeof(tx)), 4 + 2*sizeof(ty));
+        CPPUNIT_ASSERT_EQUAL(SomePodType(-91, 12, 0), *uuid2);
+
+        CPPUNIT_ASSERT_THROW(buffer.dataAs<SomePodType>(6), IndexOutOfRangeException);
+        CPPUNIT_ASSERT_THROW(buffer.dataAs<LargePodType>(), IndexOutOfRangeException);
+
+
+        byte src2[sizeof(LargePodType)];
+        auto buffer2 = wrapMemory(src2);
+        CPPUNIT_ASSERT_NO_THROW(buffer2.dataAs<LargePodType>());
+    }
 
     void testWrite() {
         MemoryView buffer = manager.create(128);
@@ -288,5 +345,13 @@ public:
         }
     }
 };
+
+
+std::ostream& operator<< (std::ostream& ostr, const TestMemoryView::SomePodType& a) {
+    return ostr << "SomePodType(" <<
+            "'x': " << a.x << ", " <<
+            "'y': " << a.y << ", " <<
+            "'z': " << a.z << ")";
+}
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestMemoryView);

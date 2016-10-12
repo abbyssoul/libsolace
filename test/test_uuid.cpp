@@ -51,7 +51,7 @@ class TestUUID : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE_END();
 
 protected:
-    static constexpr size_t RandomSampleSize = 1000;
+    static constexpr size_t RandomSampleSize = 100;
 
     MemoryManager _memoryManager;
 

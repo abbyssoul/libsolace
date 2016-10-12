@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
                 const auto bytesRead = serial.read(readBuffer);
                 if (bytesRead > 0) {
                     auto dataView = readBuffer.viewWritten();
-                    std::cout.write(dataView.dataAs<const char*>(), dataView.size());
+                    std::cout.write(dataView.dataAs<const char>(), dataView.size());
                     std::cout.flush();
 
                     readBuffer.rewind();

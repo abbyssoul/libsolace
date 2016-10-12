@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
 
     serial.asyncRead(readBuffer).then([&readBuffer]() {
         auto dataView = readBuffer.viewWritten();
-        std::cout.write(dataView.dataAs<const char*>(), dataView.size());
+        std::cout.write(dataView.dataAs<const char>(), dataView.size());
         std::cout.flush();
 
         readBuffer.rewind();

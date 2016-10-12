@@ -103,7 +103,6 @@ public:
 	typedef ssize_t size_type;
 	using ISelectable::poll_id;
 
-    static const poll_id InvalidFd;
 
 public:
 
@@ -117,6 +116,10 @@ public:
 
 public:
 
+    /**
+     * Create a file handle object.
+     */
+    File();
 
     /**
      * Move construct this file object

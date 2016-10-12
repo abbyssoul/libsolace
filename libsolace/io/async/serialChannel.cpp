@@ -29,49 +29,85 @@ class SerialReadRequest :
         public EventLoop::Request {
 public:
 
-    SerialReadRequest(Serial* selectable, ByteBuffer& buffer) :
+    SerialReadRequest(Serial& selectable, ByteBuffer& buffer) :
         Request(),
         _selectable(selectable),
         _buffer(buffer)
     {}
 
-    void onRead() override {
-//        static_cast<Serial*>(_selectable)->read(_buffer);
-        _selectable->read(_buffer);
+    void onReady(const Selector::Event& event) override {
 
-        promiss().resolve();
+        if (event.isSet(Selector::Events::Read)) {
+            const auto r = _selectable.read(_buffer);
+            if (r > 0) {
+                _promise.resolve();
+            }
+        }
+
+        if (event.isSet(Selector::Events::Write)) {
+            const auto r = _selectable.write(_buffer);
+            if (r > 0) {
+                _promise.resolve();
+            }
+        }
+
+        if (event.isSet(Selector::Events::Error)) {
+            // TODO(abbyssoul): _promise.error();
+        }
     }
 
-    void onWrite() override {
-//        static_cast<Serial*>(_selectable)->write(_buffer);
-        _selectable->write(_buffer);
-
-        promiss().resolve();
+    bool isAbout(const Selector::Event& e) const override {
+       return (e.data == &_selectable);
     }
 
-//    virtual ISelectable* getSelectable() {
-//        return _selectable;
-//    }
-
-    poll_id getSelectId() const override {
-        return _selectable->getSelectId();
+    Result<void>& promise() noexcept {
+        return _promise;
     }
 
 private:
-    Serial*     _selectable;
-    ByteBuffer& _buffer;
+    SerialReadRequest(const SerialReadRequest&) = delete;
+    SerialReadRequest(SerialReadRequest&&) = delete;
+    SerialReadRequest& operator =(const SerialReadRequest&) = delete;
+    SerialReadRequest& operator =(SerialReadRequest&&) = delete;
+
+    Serial&         _selectable;
+    ByteBuffer&     _buffer;
+
+    Result<void>    _promise;
 };
 
 
-Solace::IO::async::Result&
-SerialChannel::asyncRead(Solace::ByteBuffer& buffer) {
+Result<void>& SerialChannel::asyncRead(Solace::ByteBuffer& buffer) {
+    auto& iocontext = getIOContext();
+
+    auto request = std::make_shared<SerialReadRequest>(_serial, buffer);
+
+    // Promiss to call back once this request has been resolved
+    iocontext.submit(request);
+
+    return request->promise();
+}
+
+
+
+SerialChannel::SerialChannel(EventLoop& ioContext,
+       const Path& file,
+       uint32 baudrate,
+       Serial::Bytesize bytesize,
+       Serial::Parity parity,
+       Serial::Stopbits stopbits,
+       Serial::Flowcontrol flowcontrol) :
+    Channel(ioContext),
+    _serial(file, baudrate, bytesize, parity, stopbits, flowcontrol)
+{
+    auto& selector = ioContext.getSelector();
+    selector.add(&_serial,
+                 Solace::IO::Selector::Events::Read);
+}
+
+SerialChannel::~SerialChannel() {
     auto& iocontext = getIOContext();
     auto& selector = iocontext.getSelector();
 
-    auto request = std::make_shared<SerialReadRequest>(&_serial, buffer);
-    selector.add(request.get(), Solace::IO::Selector::Events::Read);
-
-    // Promiss to call back once this request has been resolved
-    return iocontext.submit(request);
+    selector.remove(_serial.getSelectId());
 }
-

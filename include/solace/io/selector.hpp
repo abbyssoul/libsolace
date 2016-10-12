@@ -40,12 +40,15 @@ public:
     class IPollerImpl;
 
 
-    static Selector createEPoll(uint eventSize);
-    static Selector createPoll(uint eventSize);
+    static Selector createEPoll(uint maxEvents);
+    static Selector createPoll(uint maxEvents);
 
 
 public:
 
+    /**
+     * Enum of selectable events
+     */
     enum Events {
         Read = 0x001,
         Write = 0x004,
@@ -53,10 +56,22 @@ public:
         Hup = 0x010,
     };
 
+    /**
+     * Event descriptor
+     */
     struct Event {
-        int             events;
-//        ISelectable*    pollable;
-        void*           data;
+        //!< Native fd that event occured on.
+        ISelectable::poll_id    fd;
+
+        //!< Event flags raised. @see Events
+        int                     events;
+
+        //!< User provided data associated with this event.
+        void*                   data;
+
+        bool isSet(Events ev) const noexcept {
+            return (events & ev);
+        }
     };
 
 
@@ -112,7 +127,7 @@ public:
 
         Iterator end() const;
 
-        uint getSize() const noexcept {
+        uint size() const noexcept {
             return _size;
         }
 
@@ -141,7 +156,8 @@ public:
      */
     void add(ISelectable* selectable, int events);
 
-    void add(ISelectable::poll_id fd, ISelectable* selectable, int events);
+    void add(ISelectable::poll_id fd, int events, void* data);
+
     void addRaw(ISelectable::poll_id fd, int events, void* data);
 
     /**
@@ -159,7 +175,7 @@ public:
      * @param msec - The maximum wait time in milliseconds (-1 == infinite) or 0 to return immidiately.
      * @return Iterator to
      */
-    Iterator poll(uint msec = -1);
+    Iterator poll(int msec = -1);
 
 protected:
 

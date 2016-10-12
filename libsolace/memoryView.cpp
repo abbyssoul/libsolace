@@ -35,15 +35,6 @@ using Solace::byte;
 using Solace::MemoryView;
 
 
-
-//MemoryView::MemoryView(const MemoryView& rhs):
-//            _size(rhs._size),
-//            _dataAddress(rhs._dataAddress),
-//            _free(nullptr)  // FIXME(abbyssoul): Huge mistake! This is why memoryView can not be copy-constructible
-//{
-//}
-
-
 MemoryView::MemoryView(MemoryView&& rhs) noexcept :
             _size(rhs._size),
             _dataAddress(rhs._dataAddress),
@@ -124,10 +115,6 @@ MemoryView MemoryView::slice(size_type from, size_type to) const {
     if (to > size()) {
         raise<IndexOutOfRangeException>("to", to, from, size());
     }
-
-//    return (copyData)
-//            ? copy(_dataAddress + from, to - from)
-//            : wrap(_dataAddress + from, to - from, false);
 
     return wrapMemory(dataAddress(from), to - from);
 }

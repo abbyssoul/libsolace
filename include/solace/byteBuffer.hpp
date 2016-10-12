@@ -27,7 +27,6 @@
 
 #include "solace/types.hpp"
 #include "solace/memoryView.hpp"
-//#include "solace/optional.hpp"  // FIXME(abbyssoul): Consider removal
 
 
 namespace Solace {

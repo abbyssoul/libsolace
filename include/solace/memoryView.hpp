@@ -26,6 +26,7 @@
 #define SOLACE_MEMORYVIEW_HPP
 
 #include "solace/types.hpp"
+#include "solace/assert.hpp"
 
 
 #include <functional>
@@ -55,7 +56,7 @@ public:
 
     MemoryView(MemoryView&& rhs) noexcept;
 
-    /** Deallocate memory */
+    /** Deallocate memory.. maybe */
     ~MemoryView();
 
     MemoryView& swap(MemoryView& rhs) noexcept;
@@ -70,8 +71,9 @@ public:
             return true;
         }
 
-        if (_size != other._size)
+        if (_size != other._size) {
             return false;
+        }
 
         for (size_type i = 0; i < _size; ++i) {
             if (_dataAddress[i] != other._dataAddress[i])
@@ -102,11 +104,11 @@ public:
      * Return iterator to beginning of the collection
      * @return iterator to beginning of the collection
      */
-    const_iterator begin() const {
+    const_iterator begin() const noexcept {
         return _dataAddress;
     }
 
-    iterator begin() {
+    iterator begin() noexcept {
         return _dataAddress;
     }
 
@@ -114,11 +116,11 @@ public:
      * Return iterator to end of the collection
      * @return iterator to end of the collection
      */
-    const_iterator end() const {
+    const_iterator end() const noexcept {
         return _dataAddress + _size;
     }
 
-    iterator end() {
+    iterator end() noexcept {
         return _dataAddress + _size;
     }
 
@@ -132,8 +134,11 @@ public:
     byte* dataAddress(size_type offset) const;
 
     template <typename T>
-    T dataAs() const noexcept {
-        return reinterpret_cast<T>(_dataAddress);
+    T* dataAs(size_type offset = 0) const {
+        assertIndexInRange(offset, 0, this->size());
+        assertIndexInRange(offset + sizeof(T), offset, this->size() + 1);
+
+        return reinterpret_cast<T*>(_dataAddress + offset);
     }
 
 
@@ -244,7 +249,7 @@ inline MemoryView wrapMemory(char* data, MemoryView::size_type size,
     return wrapMemory(reinterpret_cast<byte*>(data), size, freeFunc);
 }
 
-template<typename PodType, std::size_t N>
+template<typename PodType, size_t N>
 inline MemoryView wrapMemory(PodType (&data)[N],
                              const std::function<void(MemoryView*)>& freeFunc = 0)
 {

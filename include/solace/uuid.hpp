@@ -193,6 +193,10 @@ private:
 
 bool operator <  (const UUID& lhs, const UUID& rhs) noexcept;
 
+inline bool operator == (const UUID& lhs, const UUID& rhs) noexcept {
+    return lhs.equals(rhs);
+}
+
 inline bool operator != (const UUID& lhs, const UUID& rhs) noexcept {
     return !(lhs == rhs);
 }

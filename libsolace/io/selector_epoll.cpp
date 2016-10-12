@@ -55,6 +55,8 @@ public:
         if (-1 == _epfd) {
             Solace::raise<IOException>(errno);
         }
+
+        _selectables.reserve(maxReportedEvents);
     }
 
     ~EPollSelectorImpl() {
@@ -62,11 +64,11 @@ public:
     }
 
     void add(ISelectable* selectable, int events) override {
-        add(selectable->getSelectId(), selectable, events);
+        add(selectable->getSelectId(), events, selectable);
     }
 
 
-    void add(ISelectable::poll_id fd, ISelectable* selectable, int events) override {
+    void add(ISelectable::poll_id fd, int events, void* data) override {
         int nativeEvents = 0;
 
         if (events & Selector::Events::Read)
@@ -78,16 +80,22 @@ public:
         if (events & Selector::Events::Hup)
             nativeEvents|= EPOLLHUP;
 
-        addRaw(fd, nativeEvents, selectable);
+        addRaw(fd, nativeEvents, data);
     }
 
 
     void addRaw(ISelectable::poll_id fd, int nativeEvents, void* data) override {
-        epoll_event ev;
-        ev.data.ptr = data;
-        ev.events = nativeEvents;
 
-        if (-1 == epoll_ctl(_epfd, EPOLL_CTL_ADD, fd, &ev)) {
+        Selector::Event ev;
+        ev.data = data;
+        ev.fd = fd;
+        _selectables.push_back(ev);
+
+        epoll_event epollEvent;
+        epollEvent.data.ptr = &_selectables.back();
+        epollEvent.events = nativeEvents;
+
+        if (-1 == epoll_ctl(_epfd, EPOLL_CTL_ADD, fd, &epollEvent)) {
             Solace::raise<IOException>(errno);
         }
     }
@@ -109,25 +117,38 @@ public:
                 Solace::raise<IOException>(errno);
             }
         }
+
+        _selectables.erase(
+                    std::remove_if(_selectables.begin(), _selectables.end(), [fd](auto x) { return x.fd == fd; }),
+                    _selectables.end());
     }
 
 
-    std::tuple<uint, uint> poll(uint32 msec) override {
-        const int ready = epoll_wait(_epfd, _evlist.data(), _evlist.size(), msec);
+    std::tuple<uint, uint> poll(int msec) override {
 
-        if (ready < 0) {
-            Solace::raise<IOException>(errno);
+        for (int i = 0; i < 3; ++i) {   // Allow for 3 interapts in a row
+            const int ready = epoll_wait(_epfd, _evlist.data(), _evlist.size(), msec);
+
+            if (ready < 0) {
+                if (errno != EINTR) {
+                    Solace::raise<IOException>(errno);
+                }
+            } else {
+                return std::make_tuple(0, ready);
+            }
         }
 
-        return std::make_tuple(0, ready);
+        return std::make_tuple(0, 0);
     }
 
 
     Selector::Event getEvent(uint i) override {
         const auto& ev = _evlist[i];
+        const auto selected = static_cast<Selector::Event*>(ev.data.ptr);
 
         Selector::Event event;
-        event.data = ev.data.ptr;
+        event.fd = selected->fd;
+        event.data = selected->data;
         event.events = 0;
 
         if (ev.events & EPOLLIN)
@@ -142,7 +163,7 @@ public:
         return event;
     }
 
-    int advance(uint offsetIndex) {
+    uint advance(uint offsetIndex) override {
         return offsetIndex + 1;
     }
 
@@ -151,7 +172,8 @@ private:
     EPollSelectorImpl(const EPollSelectorImpl&) = delete;
     EPollSelectorImpl& operator= (const EPollSelectorImpl&) = delete;
 
-    Solace::Array<epoll_event> _evlist;
+    std::vector<Selector::Event>    _selectables;
+    Solace::Array<epoll_event>      _evlist;
     int _epfd;
 };
 

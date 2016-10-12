@@ -40,6 +40,7 @@ class TestEPollSelector : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testEmptyPolling);
         CPPUNIT_TEST(testRemoval);
         CPPUNIT_TEST(testRemovalOfNotAddedItem);
+        CPPUNIT_TEST(testReadPolling);
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -52,24 +53,63 @@ public:
         File read = File::fromFd(pipe_fds[0]);
         File write = File::fromFd(pipe_fds[1]);
 
-        Selector s = Selector::createEPoll(5);
+        Selector s = Selector::createEPoll(2);
         s.add(&read, Selector::Read);
         s.add(&write, Selector::Write);
 
         auto i = s.poll(1);
         CPPUNIT_ASSERT(i != i.end());
-        CPPUNIT_ASSERT_EQUAL(static_cast<uint>(1), i.getSize());
+        CPPUNIT_ASSERT_EQUAL(static_cast<uint>(1), i.size());
 
         auto ev = *i;
         CPPUNIT_ASSERT_EQUAL(static_cast<void*>(&write), ev.data);
     }
+
+
+    void testReadPolling() {
+        int pipe_fds[2];
+        const int pipeResult = pipe(pipe_fds);
+        CPPUNIT_ASSERT_EQUAL(0, pipeResult);
+
+        File read = File::fromFd(pipe_fds[0]);
+        File write = File::fromFd(pipe_fds[1]);
+
+        auto s = Selector::createEPoll(1);
+        s.add(&read, Selector::Read);
+
+        auto i = s.poll(1);
+
+        // Test that poll times out correctly as nothing has been written so far.
+        CPPUNIT_ASSERT(i == i.end());
+
+        char msg[] = "message";
+        const auto written = write.write(wrapMemory(msg));
+
+        i = s.poll(1);
+        CPPUNIT_ASSERT(i != i.end());
+
+        auto ev = *i;
+        CPPUNIT_ASSERT_EQUAL(static_cast<void*>(&read), ev.data);
+
+        char buff[100];
+        auto m = wrapMemory(buff);
+        const auto bytesRead = read.read(m, written);
+        CPPUNIT_ASSERT_EQUAL(written, bytesRead);
+
+        // There is no more data in the pipe so the next poll must time-out
+        i = s.poll(1);
+
+        // Test that poll times out correctly as nothing has been written so far.
+        CPPUNIT_ASSERT(i == i.end());
+    }
+
 
     void testEmptyPolling() {
         Selector s = Selector::createEPoll(3);
 
         auto i = s.poll(1);
         CPPUNIT_ASSERT(!(i != i.end()));
-        CPPUNIT_ASSERT_EQUAL(static_cast<uint>(0), i.getSize());
+        CPPUNIT_ASSERT_EQUAL(static_cast<uint>(0), i.size());
         CPPUNIT_ASSERT_THROW(++i, IndexOutOfRangeException);
     }
 
@@ -88,7 +128,7 @@ public:
         {
             auto i = s.poll(1);
             CPPUNIT_ASSERT(i != i.end());
-            CPPUNIT_ASSERT_EQUAL(static_cast<uint>(1), i.getSize());
+            CPPUNIT_ASSERT_EQUAL(static_cast<uint>(1), i.size());
 
             auto ev = *i;
             CPPUNIT_ASSERT_EQUAL(static_cast<void*>(&write), ev.data);
@@ -98,7 +138,7 @@ public:
             s.remove(&write);
             auto i = s.poll(1);
             CPPUNIT_ASSERT(i == i.end());
-            CPPUNIT_ASSERT_EQUAL(static_cast<uint>(0), i.getSize());
+            CPPUNIT_ASSERT_EQUAL(static_cast<uint>(0), i.size());
         }
     }
 

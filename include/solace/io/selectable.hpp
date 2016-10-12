@@ -35,6 +35,8 @@ public:
     //!< File Id is defined as int by POSIX
 	typedef int poll_id;
 
+    static const poll_id InvalidFd;
+
 public:
 
     /**

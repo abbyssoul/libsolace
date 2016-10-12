@@ -26,7 +26,10 @@ set(SOURCE_FILES
         io/mappedMemory.cpp
 
         io/async/eventLoop.cpp
+        io/async/event.cpp
+        io/async/pipe.cpp
         io/async/serialChannel.cpp
+        io/async/signalSet.cpp
 
         process/env.cpp
         framework/commandlineParser.cpp

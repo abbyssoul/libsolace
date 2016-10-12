@@ -14,36 +14,49 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Assertion helpers
- *	@file		solace/assert.hpp
+ * libSolace: Async event
+ *	@file		solace/io/async/event.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_ASSERT_HPP
-#define SOLACE_ASSERT_HPP
-
-#include "solace/types.hpp"
+#ifndef SOLACE_IO_ASYNC_EVENT_HPP
+#define SOLACE_IO_ASYNC_EVENT_HPP
 
 
-namespace Solace {
+#include "solace/io/selectable.hpp"
+#include "solace/io/async/asyncResult.hpp"
+#include "solace/io/async/channel.hpp"
 
-/**
- * Throw an error of invalidState
- */
-void raiseInvalidStateError();
+
+namespace Solace { namespace IO { namespace async {
 
 /**
- * Assert that the give index is within the give range. Throw if it is not.
- * @param index Index value to be asserted.
- * @param from Lower bound (inclusive)
- * @param to Upper value bound (exclusive)
- * @return Index value if the index is in range. Throws otherwise.
+ * An async wrapper for the POSIX eventFd
  */
-uint64 assertIndexInRange(uint64 index, uint64 from, uint64 to);
+class Event :
+        public Channel {
+public:
 
+    Event(EventLoop& ioContext);
 
+    Event(Event&& rhs);
+
+    ~Event();
+
+    Event& operator = (Event&& rhs);
+
+    Result<void>& asyncWait();
+
+    void notify();
+
+private:
+
+    ISelectable::poll_id    _fd;
+};
+
+}  // End of namespace async
+}  // End of namespace IO
 }  // End of namespace Solace
-#endif  // SOLACE_ASSERT_HPP
-
+#endif  // SOLACE_IO_ASYNC_EVENT_HPP

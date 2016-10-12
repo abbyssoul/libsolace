@@ -71,11 +71,9 @@ void Selector::add(ISelectable* selectable, int events) {
     _pimpl->add(selectable, events);
 }
 
-
-void Selector::add(ISelectable::poll_id fd, ISelectable* selectable, int events) {
-    _pimpl->add(fd, selectable, events);
+void Selector::add(ISelectable::poll_id fd, int events, void* data) {
+    _pimpl->add(fd, events, data);
 }
-
 
 void Selector::addRaw(ISelectable::poll_id fd, int events, void* data) {
     _pimpl->addRaw(fd, events, data);
@@ -92,7 +90,7 @@ void Selector::remove(ISelectable::poll_id fd) {
 }
 
 
-Selector::Iterator Selector::poll(uint msec) {
+Selector::Iterator Selector::poll(int msec) {
     auto r = _pimpl->poll(msec);
 
     return Selector::Iterator(_pimpl, std::get<0>(r), std::get<1>(r));
