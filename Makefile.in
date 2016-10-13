@@ -85,30 +85,33 @@ $(ANALYZE_DIR):
 ANALYZE_MAKE: ${ANALYZE_DIR}
 	cd ${ANALYZE_DIR} && cmake -DCMAKE_C_COMPILER=$(shell which scan-build) ..
 
-libs/cppcheck:
-	#./libs/dependencies
-	git clone --depth 3 https://github.com/danmar/cppcheck.git libs/cppcheck
+tools/cppcheck:
+	# Getting latest cppcheck
+	git clone --depth 1 https://github.com/danmar/cppcheck.git tools/cppcheck
 
-libs/FlintPlusPlus:
-	git clone --depth 3 https://github.com/L2Program/FlintPlusPlus.git libs/FlintPlusPlus
+tools/FlintPlusPlus:
+	git clone --depth 1 https://github.com/L2Program/FlintPlusPlus.git tools/FlintPlusPlus
 
-libs/cppcheck/cppcheck: libs/cppcheck
-	$(MAKE) -j2 -C libs/cppcheck cppcheck
+tools/cppcheck/cppcheck: tools/cppcheck
+	$(MAKE) -j2 -C tools/cppcheck cppcheck
 
-libs/FlintPlusPlus/flint/flint++: libs/FlintPlusPlus
-	$(MAKE) -j2 -C libs/FlintPlusPlus/flint
+tools/FlintPlusPlus/flint/flint++: tools/FlintPlusPlus
+	$(MAKE) -j2 -C tools/FlintPlusPlus/flint
+
 
 cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
 	cpplint --recursive --exclude=${TEST_DIR}/ci/* ${INCLUDE_DIR} ${SRC_DIR} ${TEST_DIR}
 
+
 # TODO: Extra cppcheck options to consider: --enable=style --inconclusive
-cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) libs/cppcheck/cppcheck
-	libs/cppcheck/cppcheck --std=c++11 --std=posix -D __linux__ --inline-suppr -q --error-exitcode=2 \
+cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) tools/cppcheck/cppcheck
+	tools/cppcheck/cppcheck --std=c++11 --std=posix -D __linux__ --inline-suppr -q --error-exitcode=2 \
 	--enable=warning,performance,portability,missingInclude,information,unusedFunction \
 	-I include -i test/ci ${SRC_DIR} ${TEST_DIR} examples
 
-flint: $(MODULE_HEADERS) $(MODULE_SRC) libs/FlintPlusPlus/flint/flint++
-	libs/FlintPlusPlus/flint/flint++ -v -r ${SRC_DIR} ${TEST_DIR} examples/
+
+flint: $(MODULE_HEADERS) $(MODULE_SRC) tools/FlintPlusPlus/flint/flint++
+	tools/FlintPlusPlus/flint/flint++ -v -r ${SRC_DIR} ${TEST_DIR} examples/
 
 scan-build: ANALYZE_MAKE
 	cd $(ANALYZE_DIR) && scan-build $(MAKE)

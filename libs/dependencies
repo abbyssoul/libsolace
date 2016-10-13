@@ -2,5 +2,4 @@
 # Get external dependencies as part of the build process
 
 # FMT:
-git clone --depth 3 https://github.com/fmtlib/fmt.git libs/fmt
-git clone --depth 3 https://github.com/danmar/cppcheck.git libs/cppcheck
+git clone --depth 1 https://github.com/fmtlib/fmt.git libs/fmt
