@@ -14,49 +14,46 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Async event
- *	@file		solace/io/async/pipe.hpp
+ * libSolace: Unix unnamed pipe wrapper
+ *	@file		solace/io/pipe.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_IO_ASYNC_PIPE_HPP
-#define SOLACE_IO_ASYNC_PIPE_HPP
-
-
-#include "solace/io/selectable.hpp"
-#include "solace/io/async/asyncResult.hpp"
-#include "solace/io/async/channel.hpp"
+#ifndef SOLACE_IO_PIPE_HPP
+#define SOLACE_IO_PIPE_HPP
 
 #include "solace/io/duplex.hpp"
 
 
-namespace Solace { namespace IO { namespace async {
+namespace Solace { namespace IO {
 
 /**
- * An async wrapper for the POSIX pipe
+ * A wrapper for Unix unnamed pipe
  */
-class Pipe : public Channel {
+class Pipe: public Duplex {
+public:
+    using File::poll_id;
+
 public:
 
-    Pipe(EventLoop& ioContext);
+    Pipe();
 
-    Pipe(Pipe&& rhs);
+    /**
+     * Construct a new pipe object from an already opened fds
+     * @param inFid FD to be a read end of the pipe
+     * @param outFid FD to be a write end of the pipe
+     */
+    Pipe(poll_id inFid, poll_id outFid): Duplex(inFid, outFid)
+    {
+    }
 
-    ~Pipe();
+    Pipe(Duplex&& duplex);
+    Pipe(Pipe&& duplex);
 
-    Pipe& operator = (Pipe&& rhs);
-
-    Result<void>& asyncRead(Solace::ByteBuffer& buffer);
-    Result<void>& asyncWrite(Solace::ByteBuffer& buffer);
-
-private:
-
-    Duplex  _duplex;
 };
 
-}  // End of namespace async
 }  // End of namespace IO
 }  // End of namespace Solace
-#endif  // SOLACE_IO_ASYNC_PIPE_HPP
+#endif  // SOLACE_IO_PIPE_HPP

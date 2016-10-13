@@ -44,14 +44,14 @@ public:
         bool isVersionRequested = false;
 
         return Solace::Framework::CommandlineParser("Solace framework example", {
-                    { 'v', "version", "Print application version.", &isVersionRequested}
+                    {'v', "version", "Print application version.", &isVersionRequested}
                 })
                 .parse(argc, argv)
                 .then<Solace::Result<std::function<int()>, Solace::Error>>(
-                        [this, isVersionRequested](const Solace::Framework::CommandlineParser*) {
+                        [this, &isVersionRequested](const Solace::Framework::CommandlineParser*) {
                             return isVersionRequested
-                                        ? Solace::Ok<std::function<int()>, Solace::Error>( [this]() { return run(); })
-                                        : Solace::Ok<std::function<int()>, Solace::Error>( [this]() { return printVersion(); });
+                                        ? Solace::Ok<std::function<int()>, Solace::Error>( [this]() { return printVersion(); })
+                                        : Solace::Ok<std::function<int()>, Solace::Error>( [this]() { return run(); });
                         },
                         [this](Solace::Error e) {
                             return Solace::Err<std::function<int()>, Solace::Error>(std::move(e));
@@ -61,7 +61,7 @@ public:
 
 protected:
 
-    int printVersion() {
+    int printVersion() const {
         std::cout << "Version: " << getVersion() << std::endl;
 
         return EXIT_SUCCESS;

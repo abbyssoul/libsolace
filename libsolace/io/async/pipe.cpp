@@ -86,7 +86,7 @@ public:
 
 private:
 
-    File&    _fd;
+    File&           _fd;
     ByteBuffer&     _buffer;
     Selector::Events _direction;
 
@@ -97,7 +97,7 @@ private:
 
 Pipe::Pipe(Pipe&& rhs):
     Channel(std::move(rhs)),
-    _fds(std::move(rhs._fds))
+    _duplex(std::move(rhs._duplex))
 {
 }
 
@@ -106,37 +106,36 @@ Pipe::~Pipe() {
     auto& iocontext = getIOContext();
     auto& selector = iocontext.getSelector();
 
-    for (auto& fd : _fds) {
-        if (fd.isOpen()) {
-            selector.remove(fd.getSelectId());
-        }
-    }
+    selector.remove(_duplex.getReadEnd().getSelectId());
+    selector.remove(_duplex.getWriteEnd().getSelectId());
 }
 
 
-
-Pipe::Pipe(EventLoop& ioContext) :
-    Channel(ioContext)
-{
+Duplex createNonblockingPipe() {
     int fds[2];
     const auto r = pipe2(fds, O_NONBLOCK);
     if (r < 0) {
         Solace::raise<IOException>(errno, "pipe2");
     }
 
-    _fds[0] = File::fromFd(fds[0]);
-    _fds[1] = File::fromFd(fds[1]);
+    return Duplex(fds[0], fds[1]);
+}
 
+
+Pipe::Pipe(EventLoop& ioContext) :
+    Channel(ioContext),
+    _duplex(createNonblockingPipe())
+{
     auto& selector = ioContext.getSelector();
-    selector.add(fds[0], Selector::Events::Read, this);
-    selector.add(fds[1], Selector::Events::Write, this);
+    selector.add(_duplex.getReadEnd().getSelectId(), Selector::Events::Read, this);
+    selector.add(_duplex.getWriteEnd().getSelectId(), Selector::Events::Write, this);
 }
 
 
 Result<void>& Pipe::asyncRead(Solace::ByteBuffer& buffer) {
     auto& iocontext = getIOContext();
 
-    auto request = std::make_shared<PipeRequest>(_fds[0], buffer, Selector::Events::Read);
+    auto request = std::make_shared<PipeRequest>(_duplex.getReadEnd(), buffer, Selector::Events::Read);
 
     // Promiss to call back once this request has been resolved
     iocontext.submit(request);
@@ -148,7 +147,7 @@ Result<void>& Pipe::asyncRead(Solace::ByteBuffer& buffer) {
 Result<void>& Pipe::asyncWrite(Solace::ByteBuffer& buffer) {
     auto& iocontext = getIOContext();
 
-    auto request = std::make_shared<PipeRequest>(_fds[1], buffer, Selector::Events::Write);
+    auto request = std::make_shared<PipeRequest>(_duplex.getWriteEnd(), buffer, Selector::Events::Write);
 
     // Promiss to call back once this request has been resolved
     iocontext.submit(request);

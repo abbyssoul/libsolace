@@ -15,6 +15,8 @@ set(SOURCE_FILES
 
         io/ioexception.cpp
         io/file.cpp
+        io/duplex.cpp
+        io/pipe.cpp
         io/serial.cpp
         io/serial_list_ports.cpp
         io/signalDispatcher.cpp

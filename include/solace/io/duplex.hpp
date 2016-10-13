@@ -48,8 +48,17 @@ public:
 
     }
 
-    Duplex(File && inFile, File && outFile);
+    Duplex(File && inFile, File && outFile) :
+        _in(std::move(inFile)),
+        _out(std::move(outFile))
+    {}
 
+    Duplex(Duplex&& rhs) :
+        _in(std::move(rhs._in)),
+        _out(std::move(rhs._out))
+    {}
+
+    ~Duplex();
 
     // File read/write interface
     size_type read(MemoryView& buffer, MemoryView::size_type bytesToRead) override {
@@ -60,9 +69,26 @@ public:
         return _out.write(buffer, bytesToWrite);
     }
 
-    size_type seek(size_type offset, Seek type) override;
+//    size_type seek(size_type offset, Seek type) override;
     void close() override;
     void flush() override;
+
+
+    File& getReadEnd() {
+        return _in;
+    }
+
+    const File& getReadEnd() const {
+        return _in;
+    }
+
+    File& getWriteEnd() {
+        return _out;
+    }
+
+    const File& getWriteEnd() const {
+        return _out;
+    }
 
 private:
     File _in;
