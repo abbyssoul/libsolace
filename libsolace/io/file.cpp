@@ -30,10 +30,12 @@
 #include <unistd.h>
 
 
+using Solace::IOObject;
 using Solace::String;
 using Solace::Path;
 using Solace::MemoryView;
 using Solace::ByteBuffer;
+
 using Solace::IO::ISelectable;
 using Solace::IO::File;
 
@@ -118,13 +120,13 @@ File::File(File&& other): _fd(other._fd) {
 File::~File() {
     // FIXME: This can throw! Is there any way to avoid it?
 
-    if (isOpen()) {
+    if (isOpened()) {
         close();
     }
 }
 
 File::poll_id File::validateFd() const {
-    if (!isOpen()) {
+    if (!isOpened()) {
         raise<NotOpen>();
     }
 
@@ -132,77 +134,34 @@ File::poll_id File::validateFd() const {
 }
 
 
-bool File::isOpen() const {
-    return !isClosed();
+bool File::isOpened() const {
+    return (_fd != InvalidFd);
 }
 
 
-bool File::isClosed() const {
-    return (_fd == InvalidFd);
-}
-
-
-File::size_type File::read(MemoryView& buffer) {
-    return read(buffer, buffer.size());
-}
-
-File::size_type File::read(ByteBuffer& buffer) {
-    return read(buffer, buffer.remaining());
-}
-
-File::size_type File::read(MemoryView& buffer, MemoryView::size_type bytesToRead) {
-    if (buffer.size() < bytesToRead) {
-        raise<IllegalArgumentException>("bytesToRead");
-    }
-
+IOObject::IOResult File::read(MemoryView& buffer) {
     const auto fd = validateFd();
-    const auto bytesRead = ::read(fd, buffer.dataAddress(), bytesToRead);
+    const auto bytesRead = ::read(fd, buffer.dataAddress(), buffer.size());
 
     if (bytesRead < 0) {
         raise<IOException>(errno);
     }
 
-    return bytesRead;
-}
-
-File::size_type File::read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead) {
-    auto bufferView = buffer.viewRemaining();
-    const auto bytesRead = read(bufferView, bytesToRead);
-
-    buffer.advance(bytesRead);
-
-    return bytesRead;
+    return IOObject::IOResult(bytesRead);
 }
 
 
-File::size_type File::write(ByteBuffer& buffer) {
-    return write(buffer, buffer.remaining());
-}
-
-
-File::size_type File::write(const MemoryView& buffer, MemoryView::size_type bytesToWrite) {
-    if (buffer.size() < bytesToWrite) {
-        raise<IllegalArgumentException>("bytesToWrite");
-    }
-
+IOObject::IOResult File::write(const MemoryView& buffer) {
     const auto fd = validateFd();
-    const auto bytesWritten = ::write(fd, buffer.dataAddress(), bytesToWrite);
+    const auto bytesWritten = ::write(fd, buffer.dataAddress(), buffer.size());
+
     if (bytesWritten < 0) {
         raise<IOException>(errno);
     }
 
-    return bytesWritten;
+    return IOObject::IOResult(bytesWritten);
 }
 
-
-File::size_type File::write(ByteBuffer& buffer, ByteBuffer::size_type bytesToWrite) {
-    auto bufferView = buffer.viewRemaining();
-    const auto bytesWritten = write(bufferView, bytesToWrite);
-
-    buffer.advance(bytesWritten);
-
-    return bytesWritten;
-}
 
 
 File::size_type File::seek(size_type offset, Seek type) {

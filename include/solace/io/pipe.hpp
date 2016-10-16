@@ -34,7 +34,7 @@ namespace Solace { namespace IO {
  */
 class Pipe: public Duplex {
 public:
-    using File::poll_id;
+    using Duplex::poll_id;
 
 public:
 

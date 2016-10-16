@@ -166,7 +166,7 @@ public:
 
     Result& operator= (const Result& rhs) noexcept = delete;
 
-    operator bool () const noexcept {
+    explicit operator bool () const noexcept {
         return isOk();
     }
 

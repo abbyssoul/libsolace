@@ -73,13 +73,18 @@ public:
             auto f = fs.create(filename);
             CPPUNIT_ASSERT(fs.exists(filename));
 
-            MemoryView::size_type bytesWriten = f->write(fileUIDBytes);
+            const auto written = f->write(fileUIDBytes);
+            CPPUNIT_ASSERT(written.isOk());
+
+            MemoryView::size_type bytesWriten = written.getResult();
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesWriten);
 
             f->seek(0, File::Seek::Set);
 
             ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
-            MemoryView::size_type bytesRead = f->read(readBuffer);
+            const auto read = f->read(readBuffer);
+            CPPUNIT_ASSERT(read.isOk());
+            MemoryView::size_type bytesRead = read.getResult();
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
             readBuffer.flip();
@@ -125,7 +130,10 @@ public:
             auto f = fs.open(filename);
 
             ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
-            MemoryView::size_type bytesRead = f->read(readBuffer);
+            const auto read = f->read(readBuffer);
+            CPPUNIT_ASSERT(read.isOk());
+            MemoryView::size_type bytesRead = read.getResult();
+
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
             readBuffer.flip();
@@ -182,14 +190,18 @@ public:
         {
             auto f = fs.createTemp();
 
-            const MemoryView::size_type  bytesWriten = f->write(fileUIDBytes);
+            const auto written = f->write(fileUIDBytes);
+            CPPUNIT_ASSERT(written.isOk());
+            const MemoryView::size_type bytesWriten = written.getResult();
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesWriten);
             CPPUNIT_ASSERT_EQUAL(bytesWriten, static_cast<decltype(bytesWriten)>(f->tell()));
 
             f->seek(0, File::Seek::Set);
 
             ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
-            const MemoryView::size_type bytesRead = f->read(readBuffer);
+            const auto read = f->read(readBuffer);
+            CPPUNIT_ASSERT(read.isOk());
+            const MemoryView::size_type bytesRead = read.getResult();
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
             readBuffer.flip();

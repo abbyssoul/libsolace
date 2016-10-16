@@ -37,21 +37,24 @@ namespace Solace { namespace IO {
  *
  * TODO(abbyssoul): Most of the methods use real fs and thus should return Result<>
  */
-class PlatformFilesystem: public Filesystem {
+class PlatformFilesystem :
+        public Filesystem {
 public:
 
     //! Type used to represent file sizes
     typedef ByteBuffer::size_type size_type;
 
 
-    class BufferedFile : public File {
+    class BufferedFile :
+            public File {
     public:
 
         using File::read;
         using File::write;
 
-        size_type read(MemoryView& buffer, MemoryView::size_type bytesToRead) override;
-        size_type write(const MemoryView& buffer, MemoryView::size_type bytesToWrite) override;
+        IOObject::IOResult read(MemoryView& buffer) override;
+        IOObject::IOResult write(const MemoryView& buffer) override;
+
         size_type seek(size_type offset, File::Seek type) override;
         void close() override;
 

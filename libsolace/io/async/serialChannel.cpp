@@ -39,14 +39,14 @@ public:
 
         if (event.isSet(Selector::Events::Read)) {
             const auto r = _selectable.read(_buffer);
-            if (r > 0) {
+            if (r) {
                 _promise.resolve();
             }
         }
 
         if (event.isSet(Selector::Events::Write)) {
             const auto r = _selectable.write(_buffer);
-            if (r > 0) {
+            if (r) {
                 _promise.resolve();
             }
         }
@@ -60,7 +60,7 @@ public:
        return (e.data == &_selectable);
     }
 
-    Result<void>& promise() noexcept {
+    async::Result<void>& promise() noexcept {
         return _promise;
     }
 
@@ -73,11 +73,11 @@ private:
     Serial&         _selectable;
     ByteBuffer&     _buffer;
 
-    Result<void>    _promise;
+    async::Result<void>    _promise;
 };
 
 
-Result<void>& SerialChannel::asyncRead(Solace::ByteBuffer& buffer) {
+async::Result<void>& SerialChannel::asyncRead(Solace::ByteBuffer& buffer) {
     auto& iocontext = getIOContext();
 
     auto request = std::make_shared<SerialReadRequest>(_serial, buffer);

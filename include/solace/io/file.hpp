@@ -24,9 +24,11 @@
 #ifndef SOLACE_IO_FILE_HPP
 #define SOLACE_IO_FILE_HPP
 
-
+#include "solace/ioobject.hpp"
 #include "solace/byteBuffer.hpp"
 #include "solace/path.hpp"
+
+
 #include "solace/io/selectable.hpp"
 #include "solace/io/ioexception.hpp"
 
@@ -44,7 +46,9 @@ namespace Solace { namespace IO {
  * (Think of a socket or a pipe)
  * 	not all files can be seek or rewinded.
  */
-class File: public ISelectable {
+class File :
+        public IOObject,
+        public ISelectable {
 public:
 
     /**
@@ -103,6 +107,12 @@ public:
 	typedef ssize_t size_type;
 	using ISelectable::poll_id;
 
+public:
+
+//    using IOObject::operator !;
+    using IOObject::read;
+    using IOObject::write;
+
 
 public:
 
@@ -155,28 +165,23 @@ public:
 
 
 	/** Test to see if file is still opened.
-	 */
-	inline bool operator! () { return !isOpen(); }
-
-	/** Test to see if file is still opened.
 	 * 
 	 * @return True if file is open
 	 */
-    virtual bool isOpen() const;
+    bool isOpened() const override;
 
-	/** Test to see if file is still opened.
-	 * 
-	 * @return True if file has been closed
-	 */
-    virtual bool isClosed() const;
 
-	/** Get underlying OS file descriptor of the file object
-	 *
-	 * @note: Do not copy this FD as this file object close is called from descriptor
-	 **/
-    poll_id getSelectId() const override {
-        return _fd;
-    }
+    /** Close this file if it was opened.
+     * A closed file cannot be read or written to any more.
+     * Any operation which requires that the file be open will raise an error
+     * after the file has been closed.
+     * Calling close() more than once is NOT allowed.
+     *
+     * @see man(2) close for more details
+     *
+     * @throws IOException if close system call failed
+     */
+    void close() override;
 
 
     /** Read data from this file object into the given buffer.
@@ -186,40 +191,8 @@ public:
      * @return Number of bytes actually read.
      * @see File::read()
      */
-    size_type read(MemoryView& buffer);
+    IOResult read(MemoryView& buffer) override;
 
-
-    /** Read data from this file object into the given buffer.
-     *
-     * @param buffer Byte buffer to read data into
-     * @param bytesToRead Number of bytes to be read into the buffer
-     *
-     * @return Number of bytes actually read.
-     * @see File::read()
-     *
-     * @throws IOException if the system call has failed
-     */
-    virtual size_type read(MemoryView& buffer, MemoryView::size_type bytesToRead);
-
-    /** Read data from this file object into the given buffer.
-     *
-     * @param buffer Byte buffer to read data into
-     * @return Number of bytes actually read.
-     * @see File::read()
-     */
-    size_type read(ByteBuffer& buffer);
-
-    /** Read data from this file object into the given buffer.
-     * The read attempts to read as much data as availiable space in the buffer.
-     * @param buffer Byte buffer to read data into
-     * @param bytesToRead Number of bytes to be read into the buffer
-     *
-     * @return Number of bytes actually read.
-     * @see File::read()
-     *
-     * @throws IOException if the system call has failed
-     */
-    size_type read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead);
 
     /** Write data from the given byte buffer into this file object.
      *
@@ -230,64 +203,13 @@ public:
      *
      * @throws IOException if underlaying system call failed
      */
-    size_type write(const MemoryView& buffer) {
-        return write(buffer, buffer.size());
-    }
-
-
-    /** Write data from the given byte buffer into this file object.
-     *
-     * @param data Bytes to be written into this file object.
-     * @param bytesToWrite Number of bytes to write
-
-     * @return Number of bytes actually writen
-     * @see File::write()
-     *
-     * @throws IOException if underlaying system call failed
-     */
-    virtual size_type write(const MemoryView& buffer, MemoryView::size_type bytesToWrite);
-
-    /** Write data from the given byte buffer into this file object.
-     *
-     * @param data Bytes to write into this file object.
-
-     * @return Number of bytes actually writen
-     * @see File::write()
-     *
-     * @throws IOException if underlaying system call failed
-     */
-    size_type write(ByteBuffer& data);
-
-    /** Write data from the given byte buffer into this file object.
-     *
-     * @param data Bytes to write into this file object.
-     * @param bytesToWrite Number of bytes to write
-     *
-     * @return Number of bytes actually writtem
-     * @see File::write()
-     *
-     * @throws IOException if underlaying system call failed
-     */
-    size_type write(ByteBuffer& data, ByteBuffer::size_type bytesToWrite);
+    IOResult write(const MemoryView& buffer) override;
 
 
 	/*
 	 * Attempt to move current position in the file stream
 	*/
     virtual size_type seek(size_type offset, Seek type = Seek::Set);
-
-
-    /** Close this file if it was opened.
-     * A closed file cannot be read or written to any more.
-	 * Any operation which requires that the file be open will raise an error
-	 * after the file has been closed.
-     * Calling close() more than once is NOT allowed.
-     *
-     * @see man(2) close for more details
-     *
-     * @throws IOException if close system call failed
-	 */
-	virtual void close();
 
 
     /** Flush file buffer.
@@ -305,6 +227,13 @@ public:
      */
     virtual void flush();
 
+    /** Get underlying OS file descriptor of the file object
+     *
+     * @note: Do not copy this FD as this file object close is called from descriptor
+     **/
+    poll_id getSelectId() const override {
+        return _fd;
+    }
 
 protected:
 

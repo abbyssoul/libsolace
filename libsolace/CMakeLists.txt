@@ -9,6 +9,7 @@ set(SOURCE_FILES
         string.cpp
         stringBuilder.cpp
         exception.cpp
+        ioobject.cpp
         version.cpp
         path.cpp
         error.cpp

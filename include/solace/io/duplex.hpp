@@ -33,9 +33,13 @@ namespace Solace { namespace IO {
  * Duplex is a simple file based multiplexor
  * Duplex provides full read write file interface agregating two file descriptors.
  */
-class Duplex: public File {
+class Duplex :
+        public IOObject {
 public:
-    using File::poll_id;
+    typedef ISelectable::poll_id poll_id;
+
+    using IOObject::read;
+    using IOObject::write;
 
 public:
 
@@ -60,18 +64,21 @@ public:
 
     ~Duplex();
 
-    // File read/write interface
-    size_type read(MemoryView& buffer, MemoryView::size_type bytesToRead) override {
-        return _in.read(buffer, bytesToRead);
+    // IOObject read/write interface
+    IOObject::IOResult read(MemoryView& buffer) override {
+        return _in.read(buffer);
     }
 
-    size_type write(const MemoryView& buffer, MemoryView::size_type bytesToWrite) override {
-        return _out.write(buffer, bytesToWrite);
+    IOObject::IOResult write(const MemoryView& buffer) override {
+        return _out.write(buffer);
     }
 
-//    size_type seek(size_type offset, Seek type) override;
+    bool isOpened() const override {
+        return (_in.isOpened() || _out.isOpened());
+    }
     void close() override;
-    void flush() override;
+
+    virtual void flush();
 
 
     File& getReadEnd() {

@@ -69,14 +69,14 @@ int main(int argc, char **argv) {
             if (event.events & Solace::IO::Selector::Events::Read &&
                 event.data == &serial) {
                 const auto bytesRead = serial.read(readBuffer);
-                if (bytesRead > 0) {
+                if (bytesRead) {
                     auto dataView = readBuffer.viewWritten();
                     std::cout.write(dataView.dataAs<const char>(), dataView.size());
                     std::cout.flush();
 
                     readBuffer.rewind();
                 } else {
-                    std::cout << "Serial was ready but no bytes read '" << bytesRead << "'. Aborting." << std::endl;
+                    std::cout << "Serial was ready but no bytes read: " << bytesRead.getError() << ". Aborting." << std::endl;
                     keepOnRunning = false;
                 }
             } else {

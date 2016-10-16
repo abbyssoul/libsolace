@@ -45,16 +45,13 @@ PlatformFilesystem::BufferedFile::~BufferedFile() {
     close();
 }
 
-File::size_type PlatformFilesystem::BufferedFile::read(MemoryView& buffer, MemoryView::size_type bytesToRead) {
-    if (buffer.size() < bytesToRead) {
-        raise<IllegalArgumentException>("bytesToRead");
-    }
-
+IOObject::IOResult
+PlatformFilesystem::BufferedFile::read(MemoryView& buffer) {
     if (!_fp) {
         raise<NotOpen>();
     }
 
-    const auto bytesRead = ::fread(buffer.dataAddress(), 1, bytesToRead, _fp);
+    const auto bytesRead = ::fread(buffer.dataAddress(), 1, buffer.size(), _fp);
     // NOTE: Number of bytes read can be less then 'bytesToRead' if there are no more data in the file or end of file
     // has been reached.
 
@@ -62,17 +59,14 @@ File::size_type PlatformFilesystem::BufferedFile::read(MemoryView& buffer, Memor
 }
 
 
-File::size_type PlatformFilesystem::BufferedFile::write(const MemoryView& buffer, MemoryView::size_type bytesToWrite) {
-    if (buffer.size() < bytesToWrite) {
-        raise<IllegalArgumentException>("bytesToWrite");
-    }
-
+IOObject::IOResult
+PlatformFilesystem::BufferedFile::write(const MemoryView& buffer) {
     if (!_fp) {
         raise<NotOpen>();
     }
 
-    const auto bytesWritten = ::fwrite(buffer.dataAddress(), 1, bytesToWrite, _fp);
-    if (bytesWritten != bytesToWrite) {
+    const auto bytesWritten = ::fwrite(buffer.dataAddress(), 1, buffer.size(), _fp);
+    if (bytesWritten != buffer.size()) {
         raise<IOException>(errno);
     }
 

@@ -3,6 +3,7 @@ bin/
 build/
 doc/html
 libs/*/
+tools/*/
 
 ### C++/C ###
 # Compiled Object files

@@ -150,13 +150,13 @@ public:
 
     /** Test to see if file is still opened.
      */
-    inline bool operator! () { return !isOpen(); }
+    explicit inline operator bool() { return isOpened(); }
 
     /** Test to see if file is still opened.
      *
      * @return True if file is open
      */
-    virtual bool isOpen() const;
+    virtual bool isOpened() const;
 
     /** Test to see if file is still opened.
      *

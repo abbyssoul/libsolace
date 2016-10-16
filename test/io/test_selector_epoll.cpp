@@ -22,11 +22,8 @@
 *******************************************************************************/
 #include <solace/io/selector.hpp>  // Class being tested
 
-#include <solace/io/file.hpp>
+#include <solace/io/pipe.hpp>
 #include <cppunit/extensions/HelperMacros.h>
-
-#include <unistd.h>
-#include <fcntl.h>
 
 
 using namespace Solace;
@@ -46,36 +43,27 @@ class TestEPollSelector : public CppUnit::TestFixture  {
 public:
 
     void testSubscription() {
-        int pipe_fds[2];
-        const int pipeResult = pipe(pipe_fds);
-        CPPUNIT_ASSERT_EQUAL(0, pipeResult);
+        Pipe p;
 
-        File read = File::fromFd(pipe_fds[0]);
-        File write = File::fromFd(pipe_fds[1]);
-
-        Selector s = Selector::createEPoll(2);
-        s.add(&read, Selector::Read);
-        s.add(&write, Selector::Write);
+        auto s = Selector::createEPoll(2);
+        s.add(&p.getReadEnd(), Selector::Read);
+        s.add(&p.getWriteEnd(), Selector::Write);
 
         auto i = s.poll(1);
         CPPUNIT_ASSERT(i != i.end());
         CPPUNIT_ASSERT_EQUAL(static_cast<uint>(1), i.size());
 
         auto ev = *i;
-        CPPUNIT_ASSERT_EQUAL(static_cast<void*>(&write), ev.data);
+//        CPPUNIT_ASSERT_EQUAL(static_cast<void*>(&p.getWriteEnd()), ev.data);
+        CPPUNIT_ASSERT_EQUAL(p.getWriteEnd().getSelectId(), ev.fd);
     }
 
 
     void testReadPolling() {
-        int pipe_fds[2];
-        const int pipeResult = pipe(pipe_fds);
-        CPPUNIT_ASSERT_EQUAL(0, pipeResult);
-
-        File read = File::fromFd(pipe_fds[0]);
-        File write = File::fromFd(pipe_fds[1]);
+        Pipe p;
 
         auto s = Selector::createEPoll(1);
-        s.add(&read, Selector::Read);
+        s.add(&p.getReadEnd(), Selector::Read);
 
         auto i = s.poll(1);
 
@@ -83,18 +71,22 @@ public:
         CPPUNIT_ASSERT(i == i.end());
 
         char msg[] = "message";
-        const auto written = write.write(wrapMemory(msg));
+        const auto written = p.write(wrapMemory(msg));
+        CPPUNIT_ASSERT(written.isOk());
 
         i = s.poll(1);
         CPPUNIT_ASSERT(i != i.end());
 
         auto ev = *i;
-        CPPUNIT_ASSERT_EQUAL(static_cast<void*>(&read), ev.data);
+//        CPPUNIT_ASSERT_EQUAL(static_cast<void*>(&p.getReadEnd()), ev.data);
+        CPPUNIT_ASSERT_EQUAL(p.getReadEnd().getSelectId(), ev.fd);
 
         char buff[100];
         auto m = wrapMemory(buff);
-        const auto bytesRead = read.read(m, written);
-        CPPUNIT_ASSERT_EQUAL(written, bytesRead);
+        auto dest = m.slice(0, written.getResult());
+        const auto bytesRead = p.read(dest);
+        CPPUNIT_ASSERT(bytesRead.isOk());
+        CPPUNIT_ASSERT_EQUAL(written.getResult(), bytesRead.getResult());
 
         // There is no more data in the pipe so the next poll must time-out
         i = s.poll(1);
@@ -114,16 +106,11 @@ public:
     }
 
     void testRemoval() {
-        int pipe_fds[2];
-        const int pipeResult = pipe(pipe_fds);
-        CPPUNIT_ASSERT_EQUAL(0, pipeResult);
-
-        File read = File::fromFd(pipe_fds[0]);
-        File write = File::fromFd(pipe_fds[1]);
+        Pipe p;
 
         Selector s = Selector::createEPoll(5);
-        s.add(&read, Selector::Read);
-        s.add(&write, Selector::Write);
+        s.add(&p.getReadEnd(), Selector::Read);
+        s.add(&p.getWriteEnd(), Selector::Write);
 
         {
             auto i = s.poll(1);
@@ -131,11 +118,11 @@ public:
             CPPUNIT_ASSERT_EQUAL(static_cast<uint>(1), i.size());
 
             auto ev = *i;
-            CPPUNIT_ASSERT_EQUAL(static_cast<void*>(&write), ev.data);
+            CPPUNIT_ASSERT_EQUAL(p.getWriteEnd().getSelectId(), ev.fd);
         }
 
         {
-            s.remove(&write);
+            s.remove(&p.getWriteEnd());
             auto i = s.poll(1);
             CPPUNIT_ASSERT(i == i.end());
             CPPUNIT_ASSERT_EQUAL(static_cast<uint>(0), i.size());
@@ -143,16 +130,11 @@ public:
     }
 
     void testRemovalOfNotAddedItem() {
-        int pipe_fds[2];
-        const int pipeResult = pipe(pipe_fds);
-        CPPUNIT_ASSERT_EQUAL(0, pipeResult);
-
-        File read = File::fromFd(pipe_fds[0]);
-        File write = File::fromFd(pipe_fds[1]);
+        Pipe p;
 
         auto s = Selector::createEPoll(5);
-        CPPUNIT_ASSERT_NO_THROW(s.remove(&write));
-        CPPUNIT_ASSERT_NO_THROW(s.remove(&read));
+        CPPUNIT_ASSERT_NO_THROW(s.remove(&p.getReadEnd()));
+        CPPUNIT_ASSERT_NO_THROW(s.remove(&p.getWriteEnd()));
     }
 
 

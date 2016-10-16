@@ -54,13 +54,13 @@ SharedMemory::SharedMemory(SharedMemory&& other): _fd(other._fd) {
 SharedMemory::~SharedMemory() {
     // FIXME: This can throw! Is there any way to avoid it?
 
-    if (isOpen()) {
+    if (isOpened()) {
         close();
     }
 }
 
 SharedMemory::poll_id SharedMemory::validateFd() const {
-    if (!isOpen()) {
+    if (!isOpened()) {
         raise<NotOpen>();
     }
 
@@ -68,7 +68,7 @@ SharedMemory::poll_id SharedMemory::validateFd() const {
 }
 
 
-bool SharedMemory::isOpen() const {
+bool SharedMemory::isOpened() const {
     return !isClosed();
 }
 

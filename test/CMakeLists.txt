@@ -33,6 +33,7 @@ set(TEST_SOURCE_FILES
         io/test_platformfilesystem.cpp
         io/test_sharedMemory.cpp
         io/test_mappedMemory.cpp
+        io/test_pipe.cpp
         io/async/test_event.cpp
         io/async/test_pipe.cpp
         io/async/test_signalSet.cpp

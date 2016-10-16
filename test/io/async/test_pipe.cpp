@@ -76,6 +76,39 @@ protected:
         bool readComplete = false;
         bool writeComplete = false;
 
+        iopipe.asyncWrite(messageBuffer).then([&writeComplete]() {
+            writeComplete = true;
+        });
+
+        iopipe.asyncRead(readBuffer).then([&readComplete, &iocontext]() {
+            readComplete = true;
+        });
+
+        CPPUNIT_ASSERT(!readComplete);
+        CPPUNIT_ASSERT(!writeComplete);
+
+        iocontext.runFor(300);
+
+        // Check that we have read something
+        CPPUNIT_ASSERT_EQUAL(true, writeComplete);
+        CPPUNIT_ASSERT_EQUAL(true, readComplete);
+        // Check that we read as much as was written
+        CPPUNIT_ASSERT_EQUAL(messageBuffer.position(), readBuffer.position());
+    }
+
+
+    void asyncReadWrite(async::EventLoop& iocontext) {
+        async::Pipe iopipe(iocontext);
+
+        char message[] = "Hello there!";
+        auto messageBuffer = ByteBuffer(wrapMemory(message));
+
+        char rcv_buffer[128];
+        auto readBuffer = ByteBuffer(wrapMemory(rcv_buffer));
+
+        bool readComplete = false;
+        bool writeComplete = false;
+
         iopipe.asyncRead(readBuffer).then([&readComplete, &iocontext]() {
             readComplete = true;
         });
@@ -94,11 +127,6 @@ protected:
         CPPUNIT_ASSERT_EQUAL(true, readComplete);
         // Check that we read as much as was written
         CPPUNIT_ASSERT_EQUAL(messageBuffer.position(), readBuffer.position());
-    }
-
-
-    void asyncReadWrite(async::EventLoop& iocontext) {
-
     }
 
 public:
