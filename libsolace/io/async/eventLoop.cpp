@@ -99,17 +99,11 @@ void EventLoop::dispatchEvents(const Selector::Iterator& readyEvents) {
         if (p != _backlog.end()) {
             auto request = *p;
             request->onReady(event);
-
-            // Remove completed request
-            if (request->isComplete()) {
-                _backlog.erase(p);
-            }
-        }
-
-        if (_backlog.empty() || !_keepOnRunning) {
-            return;
         }
     }
+
+    _backlog.erase(std::remove_if(_backlog.begin(), _backlog.end(), [](auto r) { return r->isComplete();}),
+                   _backlog.end());
 }
 
 void EventLoop::run() {
