@@ -29,6 +29,7 @@
 #include "solace/icomparable.hpp"
 #include "solace/iterable.hpp"
 #include "solace/assert.hpp"
+#include "solace/memoryView.hpp"
 
 
 // TODO(abbyssoul): Remove std dependencies!
@@ -195,6 +196,15 @@ public:
 
     const_pointer_type data() const noexcept {
         return _storage.data();
+    }
+
+    // TODO(abbyssoul): should be ImmutableMemoryView
+    const MemoryView view() const noexcept {
+        return wrapMemory(_storage.data(), _storage.size() * sizeof(T));
+    }
+
+    MemoryView view() noexcept {
+        return wrapMemory(_storage.data(), _storage.size() * sizeof(T));
     }
 
     bool contains(const_reference value) {

@@ -60,7 +60,7 @@ public:
     void testCreation() {
         const auto fileUID = UUID::random();
         const auto filename = Path::parse(String::join("-", {"test", fileUID.toString()}));
-        const auto fileUIDBytes = fileUID.toBytes();
+        const auto& fileUIDBytes = fileUID.view();
 
 
         auto fs = PlatformFilesystem();
@@ -101,7 +101,7 @@ public:
     void testCreationAndRemoval() {
         const auto fileUID = UUID::random();
         const auto filename = Path::parse(String::join("-", {"test", fileUID.toString()}));
-        const auto fileUIDBytes = fileUID.toBytes();
+        const auto& fileUIDBytes = fileUID.view();
 
         auto fs = PlatformFilesystem();
         if (fs.exists(filename)) {
@@ -184,7 +184,7 @@ public:
 
     void testTemp() {
         const auto fileUID = UUID::random();
-        const auto fileUIDBytes = fileUID.toBytes();
+        const auto& fileUIDBytes = fileUID.view();
 
         auto fs = PlatformFilesystem();
         {

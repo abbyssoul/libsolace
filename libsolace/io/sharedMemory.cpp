@@ -27,14 +27,8 @@
 #include <unistd.h>
 
 
-using Solace::Path;
-using Solace::IO::MappedMemoryView;
-using Solace::IO::ISelectable;
-using Solace::IO::File;
-using Solace::IO::SharedMemory;
-
-using Solace::IllegalArgumentException;
-using Solace::IO::IOException;
+using namespace Solace;
+using namespace Solace::IO;
 
 
 

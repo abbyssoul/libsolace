@@ -325,6 +325,10 @@ public:  // Basic collection operations:
     String operator() (size_type from, size_type to) const
 	{	return substring(from, to);}
 
+
+    // TODO(abbyssoul): should be ImmutableMemoryView
+    const MemoryView view() const noexcept;
+
 	const char* c_str() const;
 
     // FIXME: Must be conditional to std support mode only

@@ -172,10 +172,12 @@ public:
     value_type operator[] (size_type index) const;
 
     // FIXME(abbyssoul): Unneccesserely with MemoryView
-    const byte* data() const noexcept { return _bytes; }
-    byte* data() noexcept { return _bytes; }
+//    const byte* data() const noexcept { return _bytes; }
+//    byte* data() noexcept { return _bytes; }
 
-    MemoryView toBytes() const;
+    // TODO(abbyssoul): should be ImmutableMemoryView
+    const MemoryView view() const noexcept;
+    MemoryView view() noexcept;
 
     /** @see Iterable::forEach */
     const UUID& forEach(const std::function<void(const_reference)> &f) const override;

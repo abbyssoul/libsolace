@@ -242,7 +242,7 @@ public:
             b = ++n;
         }
 
-        auto buffer = wrapMemory(src);
+        auto&& buffer = wrapMemory(src);
 
         int tx, ty, tz;
 

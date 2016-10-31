@@ -141,6 +141,8 @@ public:
 	size_type length() const;
 	bool empty() const;
 
+    MemoryView view() const noexcept;
+
     /** From IFromattable */
 	String toString() const override;
 

@@ -46,7 +46,7 @@ void* mapMemory(MappedMemoryView::size_type memSize, int protection, MappedMemor
         Solace::raise<IllegalArgumentException>("size");
     }
 
-    int flags = MAP_ANONYMOUS;
+    int flags = (fd == -1) ? MAP_ANONYMOUS : 0;
     switch (mapping) {
     case MappedMemoryView::Access::Private: flags |= MAP_PRIVATE; break;
     case MappedMemoryView::Access::Shared: flags |= MAP_SHARED; break;
@@ -78,13 +78,21 @@ MappedMemoryView::map(int fd, size_type memSize, MappedMemoryView::Access mappin
 MappedMemoryView::MappedMemoryView(size_type newSize, void* data):
     MemoryView(newSize, data, 0)
 {
+    // No-op
+}
+
+MappedMemoryView::MappedMemoryView() : MemoryView()
+{
 
 }
 
 
 MappedMemoryView::~MappedMemoryView() {
     // FIXME(abbyssoul): Some return result check might help.
-    munmap(dataAddress(), size());
-
+    const auto s = size();
+    const auto addr = dataAddress();
+    if (addr && s > 0) {
+        munmap(dataAddress(), size());
+    }
     // raise<IOException>(errno, "munmap");
 }

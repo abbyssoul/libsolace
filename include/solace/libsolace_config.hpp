@@ -52,14 +52,24 @@
  *-----------------------------------------------------------------------*/
 #if defined(_WIN32) || defined(WIN32) || defined(WIN64) || defined(__MINGW32__) || defined(__CYGWIN__)
 #	define SOLACE_PLATFORM_WIN
-#elif defined(__MACOSX__) /* MacOS X Framework build */
-#	define SOLACE_PLATFORM_OSX
-#elif  defined(__FreeBSD__) || defined(__OpenBSD__)
-#	define SOLACE_PLATFORM_BSD
 #elif defined(__linux__)
     #define SOLACE_PLATFORM_LINUX
+#elif defined(__APPLE__)
+    #define SOLACE_PLATFORM_APPLE
+
+    #include "TargetConditionals.h"
+    #if TARGET_OS_IPHONE && TARGET_IPHONE_SIMULATOR
+        #define SOLACE_PLATFORM_IPHONE
+    #elif TARGET_OS_IPHONE
+        #define SOLACE_PLATFORM_IPHONE
+    #else
+        #define SOLACE_PLATFORM_OSX
+    #endif
+#elif  defined(__FreeBSD__) || defined(__OpenBSD__)
+#	define SOLACE_PLATFORM_BSD
 #else
-    #warning Compiling on Unknown platform!
+//    #warning Compiling on Unknown platform!
+    #pragma message("Compiling on Unknown platform!")
 #endif
 
 #if defined(unix) || defined(SOLACE_PLATFORM_BSD) || defined(SOLACE_PLATFORM_LINUX) || defined(SOLACE_PLATFORM_OSX)

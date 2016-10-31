@@ -43,8 +43,8 @@ namespace Solace {
  */
 class MemoryView {
 public:
-    typedef uint32  size_type;
-    typedef byte    value_type;
+    typedef uint32              size_type;
+    typedef byte                value_type;
 
     typedef value_type&         reference;
     typedef const value_type&   const_reference;
@@ -53,6 +53,8 @@ public:
     typedef const value_type*   const_iterator;
 
 public:
+
+    MemoryView() noexcept;
 
     MemoryView(MemoryView&& rhs) noexcept;
 

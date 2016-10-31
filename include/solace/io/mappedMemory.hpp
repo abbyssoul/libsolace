@@ -90,6 +90,7 @@ public:
                                 int protection = Protection::Read | Protection::Write);
 
 public:
+    MappedMemoryView();
 
     MappedMemoryView(MappedMemoryView&& rhs) :
         MemoryView(std::move(rhs))
@@ -109,7 +110,6 @@ public:
     }
 
 private:
-    MappedMemoryView() = delete;
     MappedMemoryView(size_type newSize, void* dataAddress);
 
 };

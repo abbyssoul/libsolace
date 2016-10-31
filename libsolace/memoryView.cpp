@@ -35,6 +35,14 @@ using Solace::byte;
 using Solace::MemoryView;
 
 
+MemoryView::MemoryView() noexcept :
+    _size(),
+    _dataAddress(nullptr),
+    _free()
+{
+}
+
+
 MemoryView::MemoryView(MemoryView&& rhs) noexcept :
             _size(rhs._size),
             _dataAddress(rhs._dataAddress),

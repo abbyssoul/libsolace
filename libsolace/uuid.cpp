@@ -56,12 +56,12 @@ UUID::UUID() noexcept {
 
 
 UUID::UUID(UUID&& rhs) noexcept {
-    memcpy(_bytes, rhs.data(), size());
+    memcpy(_bytes, rhs._bytes, size());
 }
 
 
 UUID::UUID(const UUID& rhs) noexcept {
-    memcpy(_bytes, rhs.data(), size());
+    memcpy(_bytes, rhs._bytes, size());
 }
 
 
@@ -118,7 +118,7 @@ bool UUID::isNull() const noexcept {
 }
 
 bool UUID::equals(const UUID& rhs) const noexcept {
-    return memcmp(data(), rhs.data(), size()) == 0;
+    return memcmp(_bytes, rhs._bytes, size()) == 0;
 }
 
 
@@ -140,11 +140,20 @@ UUID::value_type UUID::operator[] (size_type index) const {
 
 
 bool operator < (const UUID& lhs, const UUID& rhs) noexcept {
-    return memcmp(lhs.data(), rhs.data(), lhs.size()) < 0;
+    const auto& l = lhs.view();
+    const auto& r = rhs.view();
+
+    return memcmp(l.dataAddress(), r.dataAddress(), lhs.size()) < 0;
+//    return memcmp(lhs._bytes, rhs._bytes, lhs.size()) < 0;
 }
 
 
-MemoryView UUID::toBytes() const {
+const MemoryView UUID::view() const noexcept {
+    return wrapMemory(const_cast<byte*>(_bytes), size());
+}
+
+
+MemoryView UUID::view() noexcept {
     return wrapMemory(const_cast<byte*>(_bytes), size());
 }
 
