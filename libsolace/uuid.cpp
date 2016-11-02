@@ -144,16 +144,15 @@ bool operator < (const UUID& lhs, const UUID& rhs) noexcept {
     const auto& r = rhs.view();
 
     return memcmp(l.dataAddress(), r.dataAddress(), lhs.size()) < 0;
-//    return memcmp(lhs._bytes, rhs._bytes, lhs.size()) < 0;
 }
 
 
-const MemoryView UUID::view() const noexcept {
+const MemoryView UUID::view() const {
     return wrapMemory(const_cast<byte*>(_bytes), size());
 }
 
 
-MemoryView UUID::view() noexcept {
+MemoryView UUID::view() {
     return wrapMemory(const_cast<byte*>(_bytes), size());
 }
 

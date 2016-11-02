@@ -176,8 +176,8 @@ public:
 //    byte* data() noexcept { return _bytes; }
 
     // TODO(abbyssoul): should be ImmutableMemoryView
-    const MemoryView view() const noexcept;
-    MemoryView view() noexcept;
+    const MemoryView view() const;
+    MemoryView view();
 
     /** @see Iterable::forEach */
     const UUID& forEach(const std::function<void(const_reference)> &f) const override;
