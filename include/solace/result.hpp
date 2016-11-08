@@ -312,15 +312,15 @@ Result<ValueType, ErrorType> Ok(V&& value)
     return Result<ValueType, ErrorType>(std::forward<V>(value));
 }
 
+
 template <typename V,
           typename E,
-          typename ValueType = typename std::remove_reference<V>::type,
           typename ErrorType = typename std::remove_reference<E>::type
           >
 __attribute__((warn_unused_result))
-Result<ValueType, ErrorType> Err(E&& value)
+Result<V, ErrorType> Err(E&& value)
 {
-    return Result<ValueType, ErrorType>(nullptr, std::forward<E>(value));
+    return Result<V, ErrorType>(nullptr, std::forward<E>(value));
 }
 
 

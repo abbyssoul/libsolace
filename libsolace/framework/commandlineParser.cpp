@@ -65,7 +65,7 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
                 : None();
     }),
 
-    _expectsArgument(true)
+    _expectsArgument(OptionArgument::Required)
 {
 }
 
@@ -82,7 +82,7 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
                                                   context.value))  // No conversion was done!
                 : None();
     }),
-    _expectsArgument(true)
+    _expectsArgument(OptionArgument::Required)
 {
 }
 
@@ -100,7 +100,7 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
                                                   context.value))  // No conversion was done!
             : None();
     }),
-    _expectsArgument(true)
+    _expectsArgument(OptionArgument::Required)
 {
 }
 
@@ -117,7 +117,7 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
                                                   context.value))  // No conversion was done!
                 : None();
     }),
-    _expectsArgument(false)
+    _expectsArgument(OptionArgument::Optional)
 {
 }
 
@@ -131,13 +131,13 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
 
         return None();
     }),
-    _expectsArgument(true)
+    _expectsArgument(OptionArgument::Required)
 {
 }
 
 CommandlineParser::Option::Option(char shortName, const char* longName, const char* description,
                                   const std::function<Optional<Error> (Context& context)>& callback,
-                                  bool expectsArgument) :
+                                  OptionArgument expectsArgument) :
     _shortName(shortName),
     _longName(longName),
     _description(description),
@@ -308,9 +308,9 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
         const char* arg = argv[i];
 
         if (arg[0] == prefix) {
-
             int numberMatched = 0;
             bool valueConsumed = false;
+
             for (auto& option : _options) {
 
                 if (option.isMatch(arg, prefix)) {
@@ -320,7 +320,8 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
 
                         const char* value = nullptr;
                         if (argv[i + 1][0] == prefix) {
-                            if (option.isExpectsArgument()) {
+                            if (option.getArgumentExpectations() == OptionArgument::Required) {
+                                // Argument is required but none was given, error out!
                                 return fail(fmt::format("Option '{}' expected one argument", argv[i]));
                             } else {
                                 value = "true";
@@ -333,6 +334,7 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
                         Context c {arg, value, *this};
                         auto r = option.match(c);
                         if (r.isSome()) {
+//                            return Err(std::move(r.get()));
                             return Err<const CommandlineParser*, Error>(std::move(r.get()));
                         }
 
@@ -342,7 +344,8 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
                         }
 
                     } else {
-                        if (option.isExpectsArgument()) {
+                        if (option.getArgumentExpectations() == OptionArgument::Required) {
+                            // Argument is required but none was given, error out!
                             return fail(fmt::format("Option '{}' expected an argument and non was given.", argv[i]));
                         } else {
                             Context c {arg, "true", *this};

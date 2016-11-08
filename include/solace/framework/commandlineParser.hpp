@@ -101,6 +101,15 @@ public:
         }
     };
 
+    /**
+     * Argument proccessing policy for custom callbacks
+     */
+    enum class OptionArgument {
+        Required,          //!< Argument is required. It is an error if the option is given without an argument.
+        Optional,          //!< Argument is optional. It is not an error to have option with or without an agrument.
+        NotRequired        //!< Argument is not expected. It is an error to give an option with an agrument.
+    };
+
 
     /**
      * An optional argument / flag object used by command line parser.
@@ -114,7 +123,7 @@ public:
         Option(char shortName, const char* longName, const char* description, String* value);
         Option(char shortName, const char* longName, const char* description,
                const std::function<Optional<Error> (Context&)>& callback,
-               bool expectsArgument = true);
+               OptionArgument expectsArgument = OptionArgument::Required);
 
         Option(const Option& rhs) noexcept :
             _shortName(rhs._shortName),
@@ -157,7 +166,7 @@ public:
 
 
         bool isMatch(const char* name, char shortPrefix) const noexcept;
-        bool isExpectsArgument() const noexcept { return _expectsArgument; }
+        OptionArgument getArgumentExpectations() const noexcept { return _expectsArgument; }
         Optional<Error> match(Context& c) const;
 
     private:
@@ -166,7 +175,7 @@ public:
         const char*                         _description;
         std::function<Optional<Error> (Context&)>    _callback;
 
-        bool                                _expectsArgument;
+        OptionArgument                      _expectsArgument;
     };
 
 
@@ -220,8 +229,8 @@ public:
         Optional<Error> match(Context& c) const;
 
     private:
-        const char*                         _name;
-        const char*                         _description;
+        const char*                                 _name;
+        const char*                                 _description;
         std::function<Optional<Error>(Context&)>    _callback;
     };
 

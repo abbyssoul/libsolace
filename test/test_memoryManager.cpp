@@ -75,8 +75,10 @@ public:
     void testNativePageCount() {
         MemoryManager test(1024);
 
-        CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(sysconf(_SC_AVPHYS_PAGES)), test.getNbAvailablePages());
         CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(sysconf(_SC_PHYS_PAGES)), test.getNbPages());
+        // NOTE: This is a pretty stupid test as number of avaliable pages changes all the time!
+        CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(sysconf(_SC_AVPHYS_PAGES)) / 1000,
+                             test.getNbAvailablePages() / 1000);
     }
 
     void testAllocation() {

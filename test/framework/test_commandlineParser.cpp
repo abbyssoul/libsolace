@@ -391,7 +391,7 @@ public:
                                    zValue = c.value;
 
                                    return None();
-                               }}
+                               }, CommandlineParser::OptionArgument::Required }
                           })
                 .parse(argc, argv)
                 .then<void>(
@@ -421,7 +421,7 @@ public:
                                    customCalled = true;
 
                                    return None();
-                               }, false }
+                               }, CommandlineParser::OptionArgument::NotRequired }
                           })
                 .parse(argc, argv)
                 .then<void>(

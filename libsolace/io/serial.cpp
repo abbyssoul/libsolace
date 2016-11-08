@@ -203,7 +203,7 @@ void reconfigurePort(int fd, uint32 baudrate, Serial::Bytesize bytesize,
     // and output speed.
     speed_t new_baud = static_cast<speed_t> (baudrate_);
     if (-1 == ioctl(fd, IOSSIOSPEED, &new_baud, 1)) {
-      raise<IOException>(errno);
+      Solace::raise<IOException>(errno);
     }
     // Linux Support
 #elif defined(__linux__) && defined(TIOCSSERIAL)
@@ -224,7 +224,7 @@ void reconfigurePort(int fd, uint32 baudrate, Serial::Bytesize bytesize,
             Solace::raise<IOException>(errno, "ioctl::TIOCSSERIAL");
         }
 #else
-        raise<IllegalArgumentException>("OS does not currently support custom bauds");
+        Solace::raise<IllegalArgumentException>("OS does not currently support custom bauds");
 #endif
     }
 
@@ -284,7 +284,7 @@ void reconfigurePort(int fd, uint32 baudrate, Serial::Bytesize bytesize,
 #else
         // CMSPAR is not defined on OSX. So do not support mark or space parity.
     if (parity_ == parity_mark || parity_ == parity_space) {
-        raise<IllegalArgumentException>("OS does not support mark or space parity");
+        Solace::raise<IllegalArgumentException>("OS does not support mark or space parity");
     }
 #endif  // ifdef CMSPAR
     }
@@ -404,11 +404,11 @@ void Serial::setBreak(bool level) {
 
     if (level) {
         if (-1 == ioctl(fd, TIOCSBRK)) {
-            raise<IOException>(errno, "ioctl(fd, TIOCSBRK)");
+            Solace::raise<IOException>(errno, "ioctl(fd, TIOCSBRK)");
         }
     } else {
         if (-1 == ioctl(fd, TIOCCBRK)) {
-            raise<IOException>(errno, "ioctl(fd, TIOCCBRK)");
+            Solace::raise<IOException>(errno, "ioctl(fd, TIOCCBRK)");
         }
     }
 }
@@ -420,11 +420,11 @@ void Serial::setRTS(bool level) {
     int command = TIOCM_RTS;
     if (level) {
         if (-1 == ioctl(fd, TIOCMBIS, &command)) {
-            raise<IOException>(errno, "ioctl(TIOCMBIS)");
+            Solace::raise<IOException>(errno, "ioctl(TIOCMBIS)");
         }
     } else {
         if (-1 == ioctl(fd, TIOCMBIC, &command)) {
-            raise<IOException>(errno, "ioctl(TIOCMBIC)");
+            Solace::raise<IOException>(errno, "ioctl(TIOCMBIC)");
         }
     }
 }
@@ -435,11 +435,11 @@ void Serial::setDTR(bool level) {
     int command = TIOCM_DTR;
     if (level) {
         if (-1 == ioctl(fd, TIOCMBIS, &command)) {
-            raise<IOException>(errno, "ioctl(TIOCMBIS)");
+            Solace::raise<IOException>(errno, "ioctl(TIOCMBIS)");
         }
     } else {
         if (-1 == ioctl(fd, TIOCMBIC, &command)) {
-            raise<IOException>(errno, "ioctl(TIOCMBIC)");
+            Solace::raise<IOException>(errno, "ioctl(TIOCMBIC)");
         }
     }
 }
@@ -449,7 +449,7 @@ bool Serial::getCTS() {
 
     int status;
     if (-1 == ioctl(fd, TIOCMGET, &status)) {
-        raise<IOException>(errno, "ioctl(TIOCMGET)");
+        Solace::raise<IOException>(errno, "ioctl(TIOCMGET)");
     }
 
     return 0 != (status & TIOCM_CTS);
@@ -461,7 +461,7 @@ bool Serial::getDSR() {
 
     int status;
     if (-1 == ioctl(fd, TIOCMGET, &status)) {
-        raise<IOException>(errno, "ioctl(TIOCMGET)");
+        Solace::raise<IOException>(errno, "ioctl(TIOCMGET)");
     }
 
     return 0 != (status & TIOCM_DSR);
@@ -473,7 +473,7 @@ bool Serial::getRI() {
 
     int status;
     if (-1 == ioctl(fd, TIOCMGET, &status)) {
-        raise<IOException>(errno, "ioctl(TIOCMGET)");
+        Solace::raise<IOException>(errno, "ioctl(TIOCMGET)");
     }
 
     return 0 != (status & TIOCM_RI);
@@ -485,7 +485,7 @@ bool Serial::getCD() {
 
     int status;
     if (-1 == ioctl(fd, TIOCMGET, &status)) {
-        raise<IOException>(errno);
+        Solace::raise<IOException>(errno);
     }
 
     return 0 != (status & TIOCM_CD);
@@ -500,7 +500,7 @@ bool Serial::waitForChange() {
         int status;
 
         if (-1 == ioctl(fd, TIOCMGET, &status)) {
-            raise<IOException>(errno);
+            Solace::raise<IOException>(errno);
         } else {
             if (0 != (status & TIOCM_CTS)
              || 0 != (status & TIOCM_DSR)
@@ -519,7 +519,7 @@ bool Serial::waitForChange() {
   int command = (TIOCM_CD | TIOCM_DSR | TIOCM_RI | TIOCM_CTS);
 
   if (-1 == ioctl(fd, TIOCMIWAIT, &command)) {
-      raise<IOException>(errno, "ioctl(TIOCMIWAIT)");
+      Solace::raise<IOException>(errno, "ioctl(TIOCMIWAIT)");
   }
 
   return true;
@@ -544,7 +544,7 @@ bool Serial::waitReadable(uint32 timeout) {
         }
 
         // Otherwise there was some error
-        raise<IOException>(errno, "pselect");
+        Solace::raise<IOException>(errno, "pselect");
     }
 
     // Timeout occurred
@@ -554,7 +554,7 @@ bool Serial::waitReadable(uint32 timeout) {
 
     // This shouldn't happen, if r > 0 our fd has to be in the list!
     if (!FD_ISSET(fd, &readfds)) {
-        raise<IOException>("pselect reported ready, but our fd isn't in the list, Not suppose to happen!");
+        Solace::raise<IOException>("pselect reported ready, but our fd isn't in the list, Not suppose to happen!");
     }
 
     // Data available to read.
@@ -567,7 +567,7 @@ Serial::size_type Serial::available() const {
 
     int count = 0;
     if (-1 == ioctl(fd, TIOCINQ, &count)) {
-        raise<IOException>(errno, "ioctl(TIOCINQ)");
+        Solace::raise<IOException>(errno, "ioctl(TIOCINQ)");
     }
 
     return static_cast<size_type>(count);

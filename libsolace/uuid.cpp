@@ -108,6 +108,7 @@ UUID& UUID::swap(UUID& rhs) noexcept {
     return (*this);
 }
 
+
 bool UUID::isNull() const noexcept {
     int summ = 0;
     for (auto v : _bytes) {
@@ -124,7 +125,7 @@ bool UUID::equals(const UUID& rhs) const noexcept {
 
 UUID::reference UUID::operator[] (size_type index) {
     if (index >= size()) {
-        raise<IndexOutOfRangeException>(index, 0, size());
+        Solace::raise<IndexOutOfRangeException>(index, 0, size());
     }
 
     return _bytes[index];
@@ -132,18 +133,15 @@ UUID::reference UUID::operator[] (size_type index) {
 
 UUID::value_type UUID::operator[] (size_type index) const {
     if (index >= size()) {
-        raise<IndexOutOfRangeException>(index, 0, size());
+        Solace::raise<IndexOutOfRangeException>(index, 0, size());
     }
 
     return _bytes[index];
 }
 
 
-bool operator < (const UUID& lhs, const UUID& rhs) noexcept {
-    const auto& l = lhs.view();
-    const auto& r = rhs.view();
-
-    return memcmp(l.dataAddress(), r.dataAddress(), lhs.size()) < 0;
+bool Solace::operator < (const UUID& lhs, const UUID& rhs) noexcept {
+    return memcmp(lhs._bytes, rhs._bytes, lhs.size()) < 0;
 }
 
 

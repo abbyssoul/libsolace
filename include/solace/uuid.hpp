@@ -186,6 +186,8 @@ public:
     String toString() const override;
 
 
+    friend bool operator < (const UUID& lhs, const UUID& rhs) noexcept;
+
 private:
 
     byte _bytes[StaticSize];
@@ -193,7 +195,8 @@ private:
 };
 
 
-bool operator <  (const UUID& lhs, const UUID& rhs) noexcept;
+bool operator< (const UUID& lhs, const UUID& rhs) noexcept;
+
 
 inline bool operator == (const UUID& lhs, const UUID& rhs) noexcept {
     return lhs.equals(rhs);
