@@ -41,17 +41,17 @@ public:
     Solace::Result<std::function<int()>, Solace::Error>
     init(int argc, const char *argv[]) override {
 
-        bool isVersionRequested = false;
+        int someParam = 0;
 
         return Solace::Framework::CommandlineParser("Solace framework example", {
-                    {'v', "version", "Print application version.", &isVersionRequested}
+                    Solace::Framework::CommandlineParser::printHelp(),
+                    Solace::Framework::CommandlineParser::printVersion("sol_example", getVersion()),
+                    { 0, "some-param", "Some useless parameter for the demo", &someParam}
                 })
                 .parse(argc, argv)
                 .then<Solace::Result<std::function<int()>, Solace::Error>>(
-                        [this, &isVersionRequested](const Solace::Framework::CommandlineParser*) {
-                            return isVersionRequested
-                                        ? Solace::Ok<std::function<int()>, Solace::Error>( [this]() { return printVersion(); })
-                                        : Solace::Ok<std::function<int()>, Solace::Error>( [this]() { return run(); });
+                        [this](const Solace::Framework::CommandlineParser*) {
+                            return Solace::Ok<std::function<int()>, Solace::Error>( [this]() { return run(); });
                         },
                         [this](Solace::Error e) {
                             return Solace::Err<std::function<int()>, Solace::Error>(std::move(e));
@@ -60,12 +60,6 @@ public:
     }
 
 protected:
-
-    int printVersion() const {
-        std::cout << "Version: " << getVersion() << std::endl;
-
-        return EXIT_SUCCESS;
-    }
 
     int run() {
         std::cout << "Hello world" << std::endl;

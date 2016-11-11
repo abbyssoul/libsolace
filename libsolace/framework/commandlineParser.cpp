@@ -20,11 +20,16 @@
 *******************************************************************************/
 
 #include "solace/framework/commandlineParser.hpp"
+#include "solace/framework/commandlineUtils.hpp"
+#include "solace/path.hpp"
 
 #include <fmt/format.h>
 
 #include <cstring>
 #include <cstdlib>
+
+#include <iomanip>
+#include <iostream>
 
 
 using namespace Solace;
@@ -331,7 +336,7 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
                             valueConsumed = true;
                         }
 
-                        Context c {arg, value, *this};
+                        Context c {argc, argv, arg, value, *this};
                         auto r = option.match(c);
                         if (r.isSome()) {
 //                            return Err(std::move(r.get()));
@@ -348,7 +353,7 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
                             // Argument is required but none was given, error out!
                             return fail(fmt::format("Option '{}' expected an argument and non was given.", argv[i]));
                         } else {
-                            Context c {arg, "true", *this};
+                            Context c {argc, argv, arg, "true", *this};
                             auto r = option.match(c);
                             if (r.isSome()) {
                                 return Err<const CommandlineParser*, Error>(std::move(r.get()));
@@ -395,7 +400,8 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
     }
 
     for (uint32 i = 0; i < nbPositionalArgument; ++i) {
-        Context c {_arguments[i].name(),
+        Context c {argc, argv,
+                    _arguments[i].name(),
                     argv[firstPositionalArgument + i],
                     *this};
 
@@ -404,4 +410,69 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
 
 
     return Ok<const CommandlineParser*, Error>(this);
+}
+
+
+Optional<Error> HelpFormatter::operator() (CommandlineParser::Context& c) {
+    _output << "Usage: " << Path::parse(c.argv[0]).getBasename();
+    if (!c.parser.options().empty()) {
+        _output << " [options]";
+    }
+
+    if (!c.parser.arguments().empty()) {
+        for (const auto& arg : c.parser.arguments()) {
+            _output << " " << arg.name();
+        }
+    }
+    _output << std::endl;
+    _output << c.parser.description() << std::endl;
+
+    if (!c.parser.options().empty()) {
+        _output << "Options:" << std::endl;
+        for (const auto& opt : c.parser.options()) {
+            formatOption(c.parser.optionPrefix(), opt);
+        }
+    }
+
+    c.stopParsing();
+    return None();
+}
+
+
+void HelpFormatter::formatOption(char prefixChar, const CommandlineParser::Option& option) {
+    std::stringstream s;
+    s << "  ";
+
+    if (option.shortName()) {
+        s << prefixChar << option.shortName();
+
+        if (option.name()) {
+            s << ", " << prefixChar << prefixChar << option.name();
+        }
+    } else {
+        s << prefixChar << prefixChar << option.name();
+    }
+
+    _output << std::left << std::setw(26) << s.str() << option.description() << std::endl;
+}
+
+
+CommandlineParser::Option CommandlineParser::printVersion(const char* appName, const Version& appVersion) {
+    return {
+        'v',
+        "version",
+        "Print version",
+        VersionPrinter(appName, appVersion, std::cout),
+        CommandlineParser::OptionArgument::NotRequired
+    };
+}
+
+CommandlineParser::Option CommandlineParser::CommandlineParser::printHelp() {
+    return {
+        'h',
+        "help",
+        "Print help",
+        HelpFormatter(std::cout),
+        CommandlineParser::OptionArgument::NotRequired
+    };
 }

@@ -48,7 +48,8 @@ namespace Solace { namespace Framework {
   CommandlineParser("My application",
             {
                 // Custom handler example:
-                { 'v', "version", "Print version", [this]() { return printVersionAndExit(); } },
+                CommandlineParser::printVersion("my_app", Version(1, 2, 3, "dev")),
+                CommandlineParser::printHelp("my application", Version(1, 2, 3, "dev")),
                 // Regular argument of integal type
                 { 's', "size", "Buffer size", &settings.bufferSize },
                 { 'u', "userName", "User name", &settings.userName }
@@ -75,9 +76,18 @@ class CommandlineParser {
 public:
 
     /**
-     * Context used by callback function to get the state of the pasring.
+     * Command line parsing context.
+     * This object represents the state of current parsing.
+     * It designed to be used by a callback function to get access to the parameters and parser object itself.
+     * It also can be used to communicate back to the parser an interaption.
      */
     struct Context {
+        /// Number of arguments passed to parse method.
+        const int argc;
+
+        /// Individual command line arguments the parse method has been given.
+        const char** argv;
+
         /// Name of the option / argument being parsed.
         const char* const name;
 
@@ -89,7 +99,10 @@ public:
 
         bool isStopRequired;
 
-        Context(const char* inName, const char* inValue, const CommandlineParser& self) :
+        Context(int inArgc, const char *inArgv[],
+                const char* inName, const char* inValue, const CommandlineParser& self) :
+            argc(inArgc),
+            argv(inArgv),
             name(inName),
             value(inValue),
             parser(self),
@@ -166,8 +179,13 @@ public:
 
 
         bool isMatch(const char* name, char shortPrefix) const noexcept;
-        OptionArgument getArgumentExpectations() const noexcept { return _expectsArgument; }
         Optional<Error> match(Context& c) const;
+
+        char  shortName() const noexcept { return _shortName; }
+        const char* name() const noexcept { return _longName; }
+        const char* description() const noexcept { return _description; }
+
+        OptionArgument getArgumentExpectations() const noexcept { return _expectsArgument; }
 
     private:
         char                                _shortName;
@@ -282,15 +300,32 @@ public:
 
 
     // TODO(abbyssoul):
-    // printVersion() const
+    static Option printVersion(const char* appName, const Version& appVersion);
+    static Option printHelp();
+
     // printUsage() const
-    // printHelp() const
+
+    char optionPrefix() const noexcept { return prefix; }
+    CommandlineParser& optionPrefix(char prefixChar) noexcept {
+        prefix = prefixChar;
+        return *this;
+    }
+
+    const char* description() const noexcept { return _description; }
+    CommandlineParser& description(const char* desc) noexcept {
+        _description = desc;
+
+        return *this;
+    }
+
+    const Array<Option>& options() const noexcept { return _options; }
+    const Array<Argument>& arguments() const noexcept { return _arguments; }
 
 public:
 
-    char prefix;
-
 private:
+
+    char prefix;
 
     /// Human readable description of the application.
     const char*     _description;
