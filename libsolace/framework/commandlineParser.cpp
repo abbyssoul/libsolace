@@ -300,7 +300,7 @@ Optional<Error> CommandlineParser::Argument::match(Context& c) const {
 
 Result<const CommandlineParser*, Error>
 fail(const std::string& message) {
-    return Err<const CommandlineParser*, Error>(Error(message));
+    return Err(Error(message));
 }
 
 
@@ -339,13 +339,11 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
                         Context c {argc, argv, arg, value, *this};
                         auto r = option.match(c);
                         if (r.isSome()) {
-//                            return Err(std::move(r.get()));
-                            return Err<const CommandlineParser*, Error>(std::move(r.get()));
+                            return Err(r.get());
                         }
 
                         if (c.isStopRequired) {
-                            Error e("", 0);
-                            return Err<const CommandlineParser*, Error>(std::move(e));
+                            return Err(Error("", 0));
                         }
 
                     } else {
@@ -356,12 +354,11 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
                             Context c {argc, argv, arg, "true", *this};
                             auto r = option.match(c);
                             if (r.isSome()) {
-                                return Err<const CommandlineParser*, Error>(std::move(r.get()));
+                                return Err(r.get());
                             }
 
                             if (c.isStopRequired) {
-                                Error e("", 0);
-                                return Err<const CommandlineParser*, Error>(std::move(e));
+                                return Err(Error("", 0));
                             }
                         }
                     }
@@ -409,7 +406,7 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
     }
 
 
-    return Ok<const CommandlineParser*, Error>(this);
+    return Ok(this);
 }
 
 

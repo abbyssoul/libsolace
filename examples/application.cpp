@@ -49,14 +49,19 @@ public:
                     { 0, "some-param", "Some useless parameter for the demo", &someParam}
                 })
                 .parse(argc, argv)
-                .then<Solace::Result<std::function<int()>, Solace::Error>>(
-                        [this](const Solace::Framework::CommandlineParser*) {
-                            return Solace::Ok<std::function<int()>, Solace::Error>( [this]() { return run(); });
-                        },
-                        [this](Solace::Error e) {
-                            return Solace::Err<std::function<int()>, Solace::Error>(std::move(e));
-                    });
+                .then([this](const Solace::Framework::CommandlineParser*) -> std::function<int()> {
+                            return [this]() { return run(); };
+//                            return Solace::Ok([this]() { return run(); });
+                        }
+                );
 
+//                .then<Solace::Result<std::function<int()>, Solace::Error>>(
+//                        [this](const Solace::Framework::CommandlineParser*) -> Solace::Result<std::function<int()>, Solace::Error>{
+//                            return Solace::Ok([this]() { return run(); });
+//                        },
+//                        [this](Solace::Error e) -> Solace::Result<std::function<int()>, Solace::Error> {
+//                            return Solace::Err(std::move(e));
+//                    });
     }
 
 protected:

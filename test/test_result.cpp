@@ -43,6 +43,8 @@ class TestResult : public CppUnit::TestFixture  {
         CPPUNIT_TEST(getErrorOnOkThrows);
 
         CPPUNIT_TEST(testThen);
+        CPPUNIT_TEST(testTypeConvertion);
+
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -87,6 +89,14 @@ public:
         }
     };
 
+
+    class SimpleType {
+    public:
+        SimpleType(int x): x_(x) {}
+
+        int x_;
+    };
+
 public:
 
 
@@ -98,30 +108,46 @@ public:
         CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
     }
 
+    void testTypeConvertion() {
+        {
+            const Result<int, Unit> r = Ok(10);
+            CPPUNIT_ASSERT(r.isOk());
+        }
+
+        {
+            const Result<SimpleType, Unit> r = Ok<SimpleType>(10);
+            CPPUNIT_ASSERT(r.isOk());
+        }
+
+        {
+            const Result<SimpleType, Unit> r = Result<int, Unit>(Ok(10));
+            CPPUNIT_ASSERT(r.isOk());
+        }
+    }
 
     void testConstructionIntegrals() {
         {
             Unit x;
-            const auto& v = Ok<Unit, int>(std::move(x));
+            const Result<Unit, int> v = Ok(std::move(x));
             CPPUNIT_ASSERT(v.isOk());
         }
         {
             int x = 675;
-            const auto& v = Err<Unit, int>(std::move(x));
+            const Result<Unit, int> v = Err(x);
             CPPUNIT_ASSERT(v.isError());
             CPPUNIT_ASSERT_EQUAL(x, v.getError());
         }
 
         {
             int x = 8832;
-            const auto& v = Ok<int, int>(std::move(x));
+            const Result<int, Unit> v = Ok(std::move(x));
             CPPUNIT_ASSERT(v.isOk());
             CPPUNIT_ASSERT_EQUAL(x, v.getResult());
         }
 
         {
-            int x = 543;
-            const auto& v = Err<int, int>(std::move(x));
+            char x = 'x';
+            const Result<int, char> v = Err(x);
             CPPUNIT_ASSERT(v.isError());
             CPPUNIT_ASSERT_EQUAL(x, v.getError());
         }
@@ -132,7 +158,7 @@ public:
         {  // Unit result
             {
                 const auto& v = []() -> Result<Unit, int> {
-                    return Ok<Unit, int>(Unit());
+                    return Ok(Unit());
                 } ();
 
                 CPPUNIT_ASSERT(v.isOk());
@@ -140,7 +166,7 @@ public:
 
             {
                 const auto& v = []() -> Result<Unit, int> {
-                    return Err<Unit, int>(-1);
+                    return Err(-1);
                 } ();
 
                 CPPUNIT_ASSERT(v.isError());
@@ -150,9 +176,9 @@ public:
         {  // Integral result
             {
                 int x = 321;
-                const auto& v = [](int y) -> Result<int, int> {
+                const auto& v = [](int y) -> Result<int, float> {
 
-                    return Ok<int, int>(std::move(y));
+                    return Ok(std::move(y));
                 } (x);
 
                 CPPUNIT_ASSERT(v.isOk());
@@ -160,9 +186,9 @@ public:
             }
 
             {
-                const int x = 6431;
-                const auto& v = [](int t) -> Result<int, int> {
-                    return Err<int, int>(std::move(t));
+                const char x = 'x';
+                const auto& v = [](char t) -> Result<int, char> {
+                    return Err(std::move(t));
                 } (x);
 
                 CPPUNIT_ASSERT(v.isError());
@@ -175,7 +201,8 @@ public:
             {
                 const auto& v = []() -> Result<SomeTestType, int> {
                     auto r = SomeTestType{321, 3.1415f, "Somethere"};
-                    return Ok<SomeTestType, int>(std::move(r));
+
+                    return Ok(std::move(r));
                 } ();
 
                 CPPUNIT_ASSERT(v.isOk());
@@ -186,7 +213,7 @@ public:
             CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
             {
                 const auto& v = []() -> Result<SomeTestType, int> {
-                    return Err<SomeTestType, int>(-998);
+                    return Err(-998);
                 } ();
 
                 CPPUNIT_ASSERT(v.isError());
@@ -198,8 +225,8 @@ public:
 
     void testMoveAssignment() {
         {
-            auto v1 = Err<SomeTestType, int>(321);
-            auto v2 = Ok<SomeTestType, int>({3, 2.718f, "Test value"});
+            Result<SomeTestType, int> v1 = Err(321);
+            Result<SomeTestType, int> v2 = Ok<SomeTestType>({3, 2.718f, "Test value"});
 
             CPPUNIT_ASSERT(v1.isError());
             CPPUNIT_ASSERT(v2.isOk());
@@ -221,23 +248,23 @@ public:
 
 
     void getResultOnErrorThrows() {
-        const auto v = Err<int, int>(32);
+        const Result<int, char> v = Err('e');
 
         CPPUNIT_ASSERT_THROW(v.getResult(), Exception);
     }
 
     void getErrorOnOkThrows() {
-        const auto v = Ok<int, int>(32);
+        const Result<int, char> v = Ok(32);
 
         CPPUNIT_ASSERT_THROW(v.getError(), Exception);
     }
 
 
     void testThen() {
-        auto f = [](bool isOk) -> Result<int, int> {
+        auto f = [](bool isOk) -> Result<int, float> {
             return isOk
-                    ? Ok<int, int>(42)
-                    : Err<int, int>(24);
+                    ? Result<int, float>(Ok(42))
+                    : Result<int, float>(Err(240.f));
         };
 
         {  // Test that success handler is called on success
@@ -275,10 +302,10 @@ public:
 
             // Make sure that errback handler was called
             CPPUNIT_ASSERT_EQUAL(-776, cValue);
-            CPPUNIT_ASSERT_EQUAL(24, thenValue);
+            CPPUNIT_ASSERT_EQUAL(240, thenValue);
         }
-
     }
+
 
 };
 

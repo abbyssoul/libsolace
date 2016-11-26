@@ -34,6 +34,45 @@
 namespace Solace {
 
 
+
+namespace types {
+    template<typename T>
+    struct Ok {
+        Ok(const T& val) : val_(val) { }
+        Ok(T&& val) : val_(std::move(val)) { }
+
+        T val_;
+    };
+
+    template<>
+    struct Ok<void> { };
+
+    template<typename E>
+    struct Err {
+        Err(const E& val) : val_(val) { }
+        Err(E&& val) : val_(std::move(val)) { }
+
+        E val_;
+    };
+}
+
+
+
+template<typename T, typename CleanT = typename std::decay<T>::type>
+inline types::Ok<CleanT> Ok(T&& val) {
+    return types::Ok<CleanT>(std::forward<T>(val));
+}
+
+inline types::Ok<void> Ok() {
+    return types::Ok<void>();
+}
+
+template<typename E, typename CleanE = typename std::decay<E>::type>
+inline types::Err<CleanE> Err(E&& val) {
+    return types::Err<CleanE>(std::forward<E>(val));
+}
+
+
 /**
  * Result is function wrapping for function execution result and an alternative to exception throwing.
  *
@@ -46,23 +85,51 @@ public:
     typedef V value_type;
     typedef E error_type;
 
+//    static_assert(!std::is_same<V, E>::value,
+//            "Result must have distinct types for value and error");
+
+    static_assert(!std::is_same<E, void>::value,
+            "Error type must be non-void");
+
 public:
 
-    Result(const V& value):
+//    Result(const V& value):
+//        _state( ::new (_stateBuffer.okSpace) OkState(value) )
+//    {}
+
+//    Result(V&& value):
+//        _state( ::new (_stateBuffer.okSpace) OkState(std::move(value)) )
+//    {}
+
+//    Result(const V*, const E& err):
+//        _state( ::new (_stateBuffer.errSpace) ErrorState(err) )
+//    {}
+
+//    Result(const V*, E && err):
+//        _state( ::new (_stateBuffer.errSpace) ErrorState(std::move(err)) )
+//    {}
+
+    Result(const types::Ok<V>& value):
         _state( ::new (_stateBuffer.okSpace) OkState(value) )
     {}
 
-    Result(V&& value):
+    Result(types::Ok<V>&& value):
         _state( ::new (_stateBuffer.okSpace) OkState(std::move(value)) )
     {}
 
-    Result(const V*, const E& err):
+    template<typename DV>
+    Result(types::Ok<DV>&& value):
+        _state( ::new (_stateBuffer.okSpace) OkState(std::move(value.val_)) )
+    {}
+
+    Result(const types::Err<E>& err):
         _state( ::new (_stateBuffer.errSpace) ErrorState(err) )
     {}
 
-    Result(const V*, E && err):
+    Result(types::Err<E>&& err):
         _state( ::new (_stateBuffer.errSpace) ErrorState(std::move(err)) )
     {}
+
 
     Result(const Result& rhs) noexcept :
         _state(rhs.isOk()
@@ -78,6 +145,15 @@ public:
     {
     }
 
+    template<typename DV>
+    Result(const Result<DV, E>& rhs) noexcept :
+        _state(rhs.isOk()
+               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.getResult()))
+               : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(rhs.getError())))
+    {
+    }
+
+
     ~Result() {
         clear();
     }
@@ -92,6 +168,15 @@ public:
                 : failure(getError());
     }
 
+    template<typename F,
+             typename F_result = typename std::result_of<F(V)>::type>
+    Result<F_result, E>
+    then(F success) {
+        if (isOk())
+            return Ok<F_result>(success(getResult()));
+
+        return Err(getError());
+    }
 
 //    template<typename D>
 //    auto then(const std::function<D(const V&)>& success,
@@ -232,12 +317,20 @@ private:
 
     class OkState: public IState {
     public:
-        OkState(const V& val) {
-            ::new (_storage.address()) V(val);
+        OkState(const types::Ok<V>& val) {
+            ::new (_storage.address()) V(val.val_);
+        }
+
+        OkState(types::Ok<V>&& val) {
+            ::new (_storage.address()) V(std::move(val.val_));
         }
 
         OkState(V&& val) {
             ::new (_storage.address()) V(std::move(val));
+        }
+
+        OkState(const V& val) {
+            ::new (_storage.address()) V(val);
         }
 
         ~OkState() {
@@ -262,12 +355,12 @@ private:
     class ErrorState: public IState {
     public:
 
-        ErrorState(const E& val) {
-            ::new (_storage.address()) E(val);
+        ErrorState(const types::Err<E>& val) {
+            ::new (_storage.address()) E(val.val_);
         }
 
-        ErrorState(E&& val) {
-            ::new (_storage.address()) E(std::move(val));
+        ErrorState(types::Err<E>&& val) {
+            ::new (_storage.address()) E(std::move(val.val_));
         }
 
         ~ErrorState() {
@@ -300,28 +393,28 @@ private:
 };
 
 
-template <typename V,
-          typename E,
-//          typename ValueT = std::decay<V>::type,
-          typename ValueType = typename std::remove_reference<V>::type,
-          typename ErrorType = typename std::remove_reference<E>::type
-          >
-__attribute__((warn_unused_result))
-Result<ValueType, ErrorType> Ok(V&& value)
-{
-    return Result<ValueType, ErrorType>(std::forward<V>(value));
-}
+//template <typename V,
+//          typename E,
+////          typename ValueT = std::decay<V>::type,
+//          typename ValueType = typename std::remove_reference<V>::type,
+//          typename ErrorType = typename std::remove_reference<E>::type
+//          >
+//__attribute__((warn_unused_result))
+//Result<ValueType, ErrorType> Ok(V&& value)
+//{
+//    return Result<ValueType, ErrorType>(std::forward<V>(value));
+//}
 
 
-template <typename V,
-          typename E,
-          typename ErrorType = typename std::remove_reference<E>::type
-          >
-__attribute__((warn_unused_result))
-Result<V, ErrorType> Err(E&& value)
-{
-    return Result<V, ErrorType>(nullptr, std::forward<E>(value));
-}
+//template <typename V,
+//          typename E,
+//          typename ErrorType = typename std::remove_reference<E>::type
+//          >
+//__attribute__((warn_unused_result))
+//Result<V, ErrorType> Err(E&& value)
+//{
+//    return Result<V, ErrorType>(nullptr, std::forward<E>(value));
+//}
 
 
 }  // End of namespace Solace

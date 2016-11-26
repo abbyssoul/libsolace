@@ -55,7 +55,7 @@ PlatformFilesystem::BufferedFile::read(MemoryView& buffer) {
     // NOTE: Number of bytes read can be less then 'bytesToRead' if there are no more data in the file or end of file
     // has been reached.
 
-    return bytesRead;
+    return Ok(bytesRead);
 }
 
 
@@ -70,7 +70,7 @@ PlatformFilesystem::BufferedFile::write(const MemoryView& buffer) {
         raise<IOException>(errno);
     }
 
-    return bytesWritten;
+    return Ok(bytesWritten);
 }
 
 
