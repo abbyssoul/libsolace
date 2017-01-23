@@ -51,17 +51,8 @@ public:
                 .parse(argc, argv)
                 .then([this](const Solace::Framework::CommandlineParser*) -> std::function<int()> {
                             return [this]() { return run(); };
-//                            return Solace::Ok([this]() { return run(); });
                         }
                 );
-
-//                .then<Solace::Result<std::function<int()>, Solace::Error>>(
-//                        [this](const Solace::Framework::CommandlineParser*) -> Solace::Result<std::function<int()>, Solace::Error>{
-//                            return Solace::Ok([this]() { return run(); });
-//                        },
-//                        [this](Solace::Error e) -> Solace::Result<std::function<int()>, Solace::Error> {
-//                            return Solace::Err(std::move(e));
-//                    });
     }
 
 protected:

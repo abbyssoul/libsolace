@@ -4,10 +4,22 @@ libSolace
 [![Coverity Scan](https://scan.coverity.com/projects/9728/badge.svg)](https://scan.coverity.com/projects/abbyssoul-libsolace)
 [![Coverage Status](https://coveralls.io/repos/github/abbyssoul/libsolace/badge.svg?branch=master)](https://coveralls.io/github/abbyssoul/libsolace?branch=master)
 
-libSolace is a simple library for building mission critical application.
+libSolace is a 'simple' library for building mission critical application.
 Idea of this library is inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).
 The library aims to provide building blocks for fast and reliable applications using Modern C++ dialect.
 The implementation attempts to respect P10 rules to practically possible extent, but it is an ongoing effort.
+
+### Simple
+In this context simple means that it provides minimal nessessery set of tools to solve a problem.
+
+### Motivation
+Solace is intended the development of systems of communicating process that solve a problem collaboratively. Thus
+it feautures an async IO framework. The main difference from other similar frameworks is that solace focuses on
+performance and gives fire grain control. As such it will never spawn a thread or allocate memory after initialization.
+
+### Async
+
+
 Please fill free to contribute.
 
 
