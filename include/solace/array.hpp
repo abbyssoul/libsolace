@@ -26,8 +26,9 @@
 #define SOLACE_ARRAY_HPP
 
 #include "solace/types.hpp"
-#include "solace/icomparable.hpp"
-#include "solace/iterable.hpp"
+#include "solace/traits/icomparable.hpp"
+#include "solace/traits/iterable.hpp"
+
 #include "solace/assert.hpp"
 #include "solace/memoryView.hpp"
 

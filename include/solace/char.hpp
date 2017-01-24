@@ -26,7 +26,7 @@
 #define SOLACE_CHAR_HPP
 
 #include "solace/types.hpp"
-#include "solace/icomparable.hpp"
+#include "solace/traits/icomparable.hpp"
 #include "solace/memoryView.hpp"
 
 

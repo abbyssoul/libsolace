@@ -23,7 +23,7 @@
 #include <solace/optional.hpp>			// Class being tested
 #include <solace/string.hpp>
 #include <solace/exception.hpp>
-
+#include <cmath>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -255,18 +255,25 @@ public:
             return SomeTestType(test.x * content, test.f, test.somethingElse);
         };
 
+        // Test mapping using lambda
         const auto v1 = Optional<int>::of(18)
-                                        .map<SomeTestType>(f);
+                                        .map(f);
         CPPUNIT_ASSERT(v1.isSome());
         CPPUNIT_ASSERT_EQUAL(SomeTestType(test.x * 18, test.f, test.somethingElse), v1.get());
 
         const auto v2 = Optional<SomeTestType>::none()
-                                        .map<int>([](const SomeTestType& value) {
+                                        .map([](const SomeTestType& value) {
                                             return value.x;
                                         });
 
         CPPUNIT_ASSERT(v2.isNone());
         CPPUNIT_ASSERT_EQUAL(48, v2.orElse(48));
+
+        // Test mapping using regular C-function
+        const auto meaningOfLife = Optional<const char*>::of("42")
+                                        .map(atoi);
+        CPPUNIT_ASSERT(meaningOfLife.isSome());
+        CPPUNIT_ASSERT_EQUAL(42, meaningOfLife.get());
     }
 
     void testFlatMap() {

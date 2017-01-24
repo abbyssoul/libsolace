@@ -26,7 +26,7 @@
 #define SOLACE_ERROR_HPP_
 
 #include "solace/types.hpp"
-#include "solace/iformattable.hpp"
+#include "solace/traits/iformattable.hpp"
 #include "solace/string.hpp"
 
 namespace Solace {

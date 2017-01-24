@@ -25,7 +25,7 @@
 #define SOLACE_OPTIONAL_HPP
 
 #include "solace/types.hpp"
-#include "solace/icomparable.hpp"
+#include "solace/traits/icomparable.hpp"
 #include "solace/assert.hpp"
 
 
@@ -164,8 +164,9 @@ public:
         return _state->orElse(t);
     }
 
-    template <typename U>
-    Optional<U> map(const std::function<U(const T&)>& f) const {
+    template <typename F,
+              typename U = typename std::result_of<F(T)>::type>
+    Optional<U> map(F f) const {
         return (isSome()) ? Optional<U>::of(f(_state->ref())) : Optional<U>::none();
     }
 

@@ -26,7 +26,10 @@
 #include <iostream>
 
 
-class ExampleApp : public Solace::Framework::Application {
+using namespace Solace::Framework;
+
+
+class ExampleApp : public Application {
 public:
     ExampleApp() :
         _version(1, 0, 0, "Demo")
@@ -43,13 +46,14 @@ public:
 
         int someParam = 0;
 
-        return Solace::Framework::CommandlineParser("Solace framework example", {
-                    Solace::Framework::CommandlineParser::printHelp(),
-                    Solace::Framework::CommandlineParser::printVersion("sol_example", getVersion()),
-                    { 0, "some-param", "Some useless parameter for the demo", &someParam}
+        return CommandlineParser("Solace framework example", {
+                    CommandlineParser::printHelp(),
+                    CommandlineParser::printVersion("sol_example", getVersion()),
+                    { 0, "some-param", "Some useless parameter for the demo", &someParam},
+                    { 'u', "name", "Name to great", &name}
                 })
                 .parse(argc, argv)
-                .then([this](const Solace::Framework::CommandlineParser*) -> std::function<int()> {
+                .then([this](const CommandlineParser*) -> std::function<int()> {
                             return [this]() { return run(); };
                         }
                 );
@@ -58,7 +62,14 @@ public:
 protected:
 
     int run() {
-        std::cout << "Hello world" << std::endl;
+        std::cout << "Hello ";
+
+        if (name.empty())
+            std::cout << "world";
+        else
+            std::cout << name;
+
+        std::cout << std::endl;
 
         return EXIT_SUCCESS;
     }
@@ -66,6 +77,7 @@ protected:
 private:
 
     const Solace::Version _version;
+    Solace::String name;
 };
 
 
@@ -74,13 +86,13 @@ int main(int argc, char **argv) {
     ExampleApp app;
 
     return app.init(argc, argv)
-            .then<int>(
-                [](const std::function<int()>& runner) { return runner(); },
-                [](const Solace::Error& error) {
+            .then([](const std::function<int()>& runner) { return runner(); })
+            .orElse([](const Solace::Error& error) {
                     if (error) {
                         std::cerr << "Error: " << error << std::endl;
                     }
 
                     return EXIT_FAILURE;
-                });
+                })
+            .getResult();
 }

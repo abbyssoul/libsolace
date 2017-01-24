@@ -27,8 +27,8 @@
 
 
 #include "solace/char.hpp"
-#include "solace/iformattable.hpp"
-#include "solace/iterable.hpp"
+#include "solace/traits/iformattable.hpp"
+#include "solace/traits/iterable.hpp"
 #include "solace/byteBuffer.hpp"
 #include "solace/array.hpp"
 #include "solace/optional.hpp"

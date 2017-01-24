@@ -25,6 +25,7 @@
 #include <solace/unit.hpp>
 #include <solace/string.hpp>
 #include <solace/exception.hpp>
+#include <cmath>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -43,6 +44,7 @@ class TestResult : public CppUnit::TestFixture  {
         CPPUNIT_TEST(getErrorOnOkThrows);
 
         CPPUNIT_TEST(testThen);
+        CPPUNIT_TEST(testThenChaining);
         CPPUNIT_TEST(testTypeConvertion);
 
     CPPUNIT_TEST_SUITE_END();
@@ -306,6 +308,35 @@ public:
         }
     }
 
+
+    void testThenChaining() {
+
+        // Good chain
+        Result<int, SimpleType> goodResult = Ok<int>(42);
+
+        auto alsoGood = goodResult.then([](int r) { return r / 2; });
+        CPPUNIT_ASSERT(alsoGood.isOk());
+        CPPUNIT_ASSERT_EQUAL(42/2, alsoGood.getResult());
+
+        auto lessGood = alsoGood.then([](int r) { return r - 2; });
+        CPPUNIT_ASSERT(lessGood.isOk());
+        CPPUNIT_ASSERT_EQUAL(42/2 - 2, lessGood.getResult());
+
+
+        // Error chain
+        Result<int, SimpleType> badResult = Err<SimpleType>(18);
+
+        auto alsoNotGood = badResult.then([](int r) { return r / 2; });
+        CPPUNIT_ASSERT(alsoNotGood.isError());
+
+        auto stillNotGood = alsoNotGood.then([](int r) { return r + 21; });
+        CPPUNIT_ASSERT(stillNotGood.isError());
+
+        auto recovered = stillNotGood.orElse([](const SimpleType& x) { return x.x_ + 2; });
+
+        CPPUNIT_ASSERT(recovered.isOk());
+        CPPUNIT_ASSERT_EQUAL(20, recovered.getResult());
+    }
 
 };
 

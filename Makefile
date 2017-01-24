@@ -1,4 +1,4 @@
-# Generated Makefile for libsolace: Friday 14 October  00:26:09 AEDT 2016
+# Generated Makefile for libsolace: Monday 23 January  23:36:55 AEDT 2017
 PREFIX = /usr
 dbg = -g
 
@@ -135,7 +135,7 @@ codecheck: cpplint flint cppcheck #scan-build
 #-------------------------------------------------------------------------------
 
 verify: $(TEST_TAGRET)
-	# > 3.10 (not avaliable on trusty) --expensive-definedness-checks=yes
+	# > 3.10 (not avaliable on trusty) --expensive-definedness-checks=yes --read-var-info=yes
 	valgrind --trace-children=yes --track-fds=yes --redzone-size=128 --error-exitcode=4 \
 	--tool=exp-sgcheck $(TEST_TAGRET)
 

@@ -14,39 +14,38 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Base interface for all classes with collection semantic
- *	@file		solace/iterable.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	@brief		Defines interface tag for all iterable types
- *	ID:			$Id$
+ * libSolace: Base interface for all classes that can be converted to the string
+ *	@file		solace/traits/iformattable.hpp
+ *	@author		$LastChangedBy: $
+ *	@date		$LastChangedDate: $
+ *	@brief		Interface of a class that can be converted into a string
+ *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_ITERABLE_HPP
-#define SOLACE_ITERABLE_HPP
-
-#include <functional>
-
+#ifndef SOLACE_TRAITS_IFORMATTABLE_HPP
+#define SOLACE_TRAITS_IFORMATTABLE_HPP
 
 namespace Solace {
 
+
+// Forward declaration, as it is not really instantiated
+class String;
+
+
 /**
-* Base interface for all classes that has collection semantics
-*
-* Any class implementing iterable trait should publicly inherit this interface
+ * Base interface for all classes that can be converted into a string.
 */
-template <
-        typename C,  // Type of the collection
-        typename T   // Type of the item in the collection
->
-class Iterable {
+class IFormattable {
 public:
 
-    virtual ~Iterable() noexcept = default;
+	virtual ~IFormattable() = default;
 
-    virtual const C& forEach(const std::function<void(const T&)> &f) const = 0;
-
+	/**
+	 * Return string representation of the object
+     * @return String 'representation' of this object
+	 */
+	virtual String toString() const = 0;
 };
 
 }  // namespace Solace
-#endif  // SOLACE_ITERABLE_HPP
+#endif  // SOLACE_TRAITS_IFORMATTABLE_HPP

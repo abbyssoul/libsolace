@@ -26,7 +26,7 @@
 #define SOLACE_PROCESS_ENV
 
 #include "solace/string.hpp"
-#include "solace/iterable.hpp"
+#include "solace/traits/iterable.hpp"
 
 
 namespace Solace { namespace Process {

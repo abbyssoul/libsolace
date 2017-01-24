@@ -26,8 +26,8 @@
 #define SOLACE_VERSION_HPP
 
 
-#include "solace/iformattable.hpp"
-#include "solace/icomparable.hpp"
+#include "solace/traits/iformattable.hpp"
+#include "solace/traits/icomparable.hpp"
 #include "solace/string.hpp"
 
 

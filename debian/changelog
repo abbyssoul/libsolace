@@ -1,5 +1,5 @@
-libsolace (1.0.1) unstable; urgency=medium
+libsolace (1.0.1) unstable; urgency=low
 
-  * Initial package.
+  * Initial package release.
 
  -- Ivan Ryabov <abbyssoul@gmail.com>  Thu, 19 Nov 2015 12:43:38 +1100

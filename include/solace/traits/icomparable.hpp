@@ -15,15 +15,15 @@
 */
 /*******************************************************************************
  * libSolace: Base class for all classes with comparable semantic
- *	@file		solace/icomparable.hpp
+ *	@file		solace/traits/icomparable.hpp
  *	@author		soultaker
  *	@date		Created on: 22 Apr 2015
  *	@brief		Base exectpion types used by core library
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_ICOMPARABLE_HPP
-#define SOLACE_ICOMPARABLE_HPP
+#ifndef SOLACE_TRAITS_ICOMPARABLE_HPP
+#define SOLACE_TRAITS_ICOMPARABLE_HPP
 
 
 namespace Solace {
@@ -70,4 +70,4 @@ public:
 };
 
 }  // namespace Solace
-#endif  // SOLACE_ICOMPARABLE_HPP
+#endif  // SOLACE_TRAITS_ICOMPARABLE_HPP

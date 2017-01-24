@@ -26,7 +26,7 @@
 #define SOLACE_EXCEPTION_HPP
 
 #include "solace/types.hpp"
-#include "solace/iformattable.hpp"
+#include "solace/traits/iformattable.hpp"
 
 /* TODO(abbyssoul):
 #if defined(SOLACE_DEBUG)

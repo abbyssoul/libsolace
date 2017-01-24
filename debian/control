@@ -1,10 +1,12 @@
 Source: libsolace
-Section: contrib/libdevel
+Section: libs
 Priority: optional
 Maintainer: Ivan Ryabov <abbyssoul@gmail.com>
-Build-Depends: cmake, libtool,
-				debhelper (>= 9)
-Standards-Version: 3.9.7
+Build-Depends: debhelper (>= 9),
+ dh-autoreconf,
+ cmake,
+ libtool
+Standards-Version: 3.9.8
 Vcs-Browser: https://github.com/abbyssoul/libsolace
 Vcs-Git: https://github.com/abbyssoul/libsolace.git
 Homepage: https://github.com/abbyssoul/libsolace
@@ -12,9 +14,11 @@ Homepage: https://github.com/abbyssoul/libsolace
 
 Package: libsolace-dev
 Architecture: any
+Section: libdevel
+Multi-Arch: same
 Depends: ${shlibs:Depends}, ${misc:Depends}
+    libc6-dev
 Description: C++ framework for high performance/reliable applications -- development files
- The libsolace is an open source component for high performance reliable applications.
+ The libsolace is an open source framework for HPC applications.
  .
- This package contains the static library and the C++ header files that are 
- required for applications to use libsolace.
+ This package contains the development library and header files.

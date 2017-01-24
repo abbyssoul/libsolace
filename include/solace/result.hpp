@@ -33,40 +33,59 @@
 
 namespace Solace {
 
-
-
+// Implementation types
 namespace types {
-    template<typename T>
-    struct Ok {
-        Ok(const T& val) : val_(val) { }
-        Ok(T&& val) : val_(std::move(val)) { }
-
-        T val_;
-    };
-
-    template<>
-    struct Ok<void> { };
-
-    template<typename E>
-    struct Err {
-        Err(const E& val) : val_(val) { }
-        Err(E&& val) : val_(std::move(val)) { }
-
-        E val_;
-    };
-}
 
 
+template<typename T>
+struct Ok {
+    Ok(const T& val) : val_(val) { }
+    Ok(T&& val) : val_(std::move(val)) { }
 
-template<typename T, typename CleanT = typename std::decay<T>::type>
+    T val_;
+};
+
+template<>
+struct Ok<void> { };
+
+template<typename E>
+struct Err {
+    Err(const E& val) : val_(val) { }
+    Err(E&& val) : val_(std::move(val)) { }
+
+    E val_;
+};
+
+}  // End of namespace types
+
+
+/**
+ * Syntactic sugar to return successful Result
+ * Note: this function is a producer / constructor of type T
+ *
+ * @return type::Ok<T> that can be converted into a successful Result<T, E>
+ */
+template<typename T,
+         typename CleanT = typename std::decay<T>::type>
 inline types::Ok<CleanT> Ok(T&& val) {
     return types::Ok<CleanT>(std::forward<T>(val));
 }
 
+/**
+ * A specialisation of Ok helper function to construct successful Result<Void, E>
+ * @return type::Ok<T> that can be converted into a successful Result<T, E>
+ */
 inline types::Ok<void> Ok() {
     return types::Ok<void>();
 }
 
+
+/**
+ * Syntactic sugar to produce error Result<T, E>
+ * Note: this function is a producer / constructor of type E
+ *
+ * @return type::Err<T> that can be converted into a failed Result<T, E>
+ */
 template<typename E, typename CleanE = typename std::decay<E>::type>
 inline types::Err<CleanE> Err(E&& val) {
     return types::Err<CleanE>(std::forward<E>(val));
@@ -169,24 +188,21 @@ public:
     }
 
     template<typename F,
-             typename F_result = typename std::result_of<F(V)>::type>
-    Result<F_result, E>
-    then(F success) {
+             typename U = typename std::result_of<F(V)>::type>
+    Result<U, E> then(F f) {
         if (isOk())
-            return Ok<F_result>(success(getResult()));
+            return Ok<U>(f(getResult()));
 
         return Err(getError());
     }
 
-//    template<typename D>
-//    auto then(const std::function<D(const V&)>& success,
-//              const std::function<D(const E&)>& failure) -> D {
-
-//        return isOk()
-//                ? success(getResult())
-//                : failure(getError());
-//    }
-
+    template<typename F,
+             typename U = typename std::result_of<F(E)>::type>
+    Result<U, E> orElse(F f) {
+        return (isOk())
+                ? *this
+                : Ok<U>(f(getError()));
+    }
 
     Result& swap(Result& rhs) noexcept {
 
@@ -392,31 +408,5 @@ private:
     IState* _state;
 };
 
-
-//template <typename V,
-//          typename E,
-////          typename ValueT = std::decay<V>::type,
-//          typename ValueType = typename std::remove_reference<V>::type,
-//          typename ErrorType = typename std::remove_reference<E>::type
-//          >
-//__attribute__((warn_unused_result))
-//Result<ValueType, ErrorType> Ok(V&& value)
-//{
-//    return Result<ValueType, ErrorType>(std::forward<V>(value));
-//}
-
-
-//template <typename V,
-//          typename E,
-//          typename ErrorType = typename std::remove_reference<E>::type
-//          >
-//__attribute__((warn_unused_result))
-//Result<V, ErrorType> Err(E&& value)
-//{
-//    return Result<V, ErrorType>(nullptr, std::forward<E>(value));
-//}
-
-
 }  // End of namespace Solace
 #endif  // SOLACE_RESULT_HPP
-
