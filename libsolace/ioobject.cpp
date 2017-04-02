@@ -33,13 +33,13 @@ IOObject::IOResult IOObject::read(ByteBuffer& destBuffer) {
 
 IOObject::IOResult IOObject::read(ByteBuffer& destBuffer, size_type bytesToRead) {
     auto destSlice = destBuffer.viewRemaining().slice(0, bytesToRead);
-    auto result = read(destSlice);
 
-    if (result) {
-        destBuffer.advance(result.getResult());
-    }
+    return read(destSlice)
+            .map([&destBuffer](auto bytesRead) {
+                destBuffer.advance(bytesRead);
 
-    return result;
+                return bytesRead;
+            });
 }
 
 IOObject::IOResult IOObject::write(ByteBuffer& srcBuffer) {
@@ -48,11 +48,10 @@ IOObject::IOResult IOObject::write(ByteBuffer& srcBuffer) {
 
 
 IOObject::IOResult IOObject::write(ByteBuffer& srcBuffer, size_type bytesToWrite) {
-    auto result = write(srcBuffer.viewRemaining().slice(0, bytesToWrite));
+    return write(srcBuffer.viewRemaining().slice(0, bytesToWrite))
+            .map([&srcBuffer](auto bytesRead) {
+                srcBuffer.advance(bytesRead);
 
-    if (result) {
-        srcBuffer.advance(result.getResult());
-    }
-
-    return result;
+                return (bytesRead);
+            });
 }

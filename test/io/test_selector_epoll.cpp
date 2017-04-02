@@ -83,10 +83,10 @@ public:
 
         char buff[100];
         auto m = wrapMemory(buff);
-        auto dest = m.slice(0, written.getResult());
+        auto dest = m.slice(0, written.unwrap());
         const auto bytesRead = p.read(dest);
         CPPUNIT_ASSERT(bytesRead.isOk());
-        CPPUNIT_ASSERT_EQUAL(written.getResult(), bytesRead.getResult());
+        CPPUNIT_ASSERT_EQUAL(written.unwrap(), bytesRead.unwrap());
 
         // There is no more data in the pipe so the next poll must time-out
         i = s.poll(1);

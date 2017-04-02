@@ -131,6 +131,8 @@ public:
      */
     File();
 
+    File(const File&) = delete;
+
     /**
      * Move construct this file object
      * @param other A file object to move from
@@ -153,6 +155,8 @@ public:
 
         return *this;
     }
+
+    File& operator= (const File&) = delete;
 
     /**
      * Move assignment operator

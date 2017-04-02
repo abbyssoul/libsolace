@@ -25,6 +25,7 @@
 #ifndef SOLACE_FRAMEWORK_APPLICATION_HPP
 #define SOLACE_FRAMEWORK_APPLICATION_HPP
 
+#include "solace/unit.hpp"
 #include "solace/result.hpp"
 #include "solace/error.hpp"
 #include "solace/version.hpp"
@@ -56,7 +57,7 @@ public:
      * @return Initialization result which can be either runnable action that resulted from given command line or
      * an error if application failed to initialized.
      */
-    virtual Result<std::function<int()>, Error>
+    virtual Result<void, Error>
     init(int argc, const char *argv[]) = 0;
 
     /**
@@ -68,7 +69,7 @@ public:
      * @return Initialization result which can be either runnable action that resulted from given command line or
      * an error if application failed to initialized.
      */
-    Result<std::function<int()>, Error> init(int argc, char *argv[]) {
+    Result<void, Error> init(int argc, char *argv[]) {
         return init(argc, const_cast<const char**>(argv));
     }
 

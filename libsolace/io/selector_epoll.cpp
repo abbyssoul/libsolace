@@ -35,8 +35,9 @@ using namespace Solace::IO;
 
 
 bool operator== (const epoll_data_t& a, const epoll_data_t& b) {
-    return ((a.fd == b.fd) && (a.ptr == b.ptr) && (a.u32 == b.u32) && (a.u64 == b.u64));
+    return (a.fd == b.fd);
 }
+
 
 bool operator== (const epoll_event& a, const epoll_event& b) {
     return ((a.events == b.events) && (a.data == b.data));

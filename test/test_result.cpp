@@ -14,7 +14,7 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace Unit Test Suit
+ * libSolace Unit Test Suit for Result<>
  * @file: test/test_result.cpp
  * @author: soultaker
  *
@@ -43,8 +43,10 @@ class TestResult : public CppUnit::TestFixture  {
         CPPUNIT_TEST(getResultOnErrorThrows);
         CPPUNIT_TEST(getErrorOnOkThrows);
 
+        CPPUNIT_TEST(testVoidResult);
         CPPUNIT_TEST(testThen);
         CPPUNIT_TEST(testThenChaining);
+        CPPUNIT_TEST(testThenComposition);
         CPPUNIT_TEST(testTypeConvertion);
 
     CPPUNIT_TEST_SUITE_END();
@@ -60,7 +62,7 @@ public:
 
         const char* somethingElse;
 
-        SomeTestType(): x(), f(), somethingElse("THIS IS ERROR") {
+        SomeTestType(): x(), f(), somethingElse("THIS IS AN ERROR") {
             ++InstanceCount;
         }
 
@@ -79,22 +81,51 @@ public:
             ++InstanceCount;
         }
 
-        ~SomeTestType()
-        {
+        ~SomeTestType() {
             --InstanceCount;
         }
 
+        SomeTestType& operator = (const SomeTestType& rhs) {
+            x = rhs.x;
+            f = rhs.f;
+            somethingElse = rhs.somethingElse;
+
+            return (*this);
+        }
+
         bool operator== (const SomeTestType& rhs) const {
-            return  x == rhs.x &&
-                    std::abs(f - rhs.f) < 1e-4f &&
-                    somethingElse == rhs.somethingElse;
+            return ((x == rhs.x) &&
+                    (std::abs(f - rhs.f) < 1e-4f) &&
+                    (somethingElse == rhs.somethingElse));
         }
     };
 
 
     class SimpleType {
     public:
-        SimpleType(int x): x_(x) {}
+        static int InstanceCount;
+
+        SimpleType(int x): x_(x) {
+            ++InstanceCount;
+        }
+
+        SimpleType(const SimpleType& rhs): x_(rhs.x_) {
+            ++InstanceCount;
+        }
+
+        SimpleType(SimpleType&& rhs): x_(rhs.x_) {
+            ++InstanceCount;
+        }
+
+        ~SimpleType() {
+            --InstanceCount;
+        }
+
+        SimpleType& operator = (const SimpleType& rhs) {
+            x_ = rhs.x_;
+
+            return (*this);
+        }
 
         int x_;
     };
@@ -103,10 +134,12 @@ public:
 
 
     void setUp() override {
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
         CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
     }
 
     void tearDown() override {
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
         CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
     }
 
@@ -129,6 +162,10 @@ public:
 
     void testConstructionIntegrals() {
         {
+            const Result<void, int> v = Ok();
+            CPPUNIT_ASSERT(v.isOk());
+        }
+        {
             Unit x;
             const Result<Unit, int> v = Ok(std::move(x));
             CPPUNIT_ASSERT(v.isOk());
@@ -144,7 +181,7 @@ public:
             int x = 8832;
             const Result<int, Unit> v = Ok(std::move(x));
             CPPUNIT_ASSERT(v.isOk());
-            CPPUNIT_ASSERT_EQUAL(x, v.getResult());
+            CPPUNIT_ASSERT_EQUAL(x, v.unwrap());
         }
 
         {
@@ -184,7 +221,7 @@ public:
                 } (x);
 
                 CPPUNIT_ASSERT(v.isOk());
-                CPPUNIT_ASSERT_EQUAL(x, v.getResult());
+                CPPUNIT_ASSERT_EQUAL(x, v.unwrap());
             }
 
             {
@@ -208,7 +245,7 @@ public:
                 } ();
 
                 CPPUNIT_ASSERT(v.isOk());
-                CPPUNIT_ASSERT_EQUAL(321, v.getResult().x);
+                CPPUNIT_ASSERT_EQUAL(321, v.unwrap().x);
                 CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
             }
 
@@ -232,27 +269,62 @@ public:
 
             CPPUNIT_ASSERT(v1.isError());
             CPPUNIT_ASSERT(v2.isOk());
-            CPPUNIT_ASSERT_EQUAL(3, v2.getResult().x);
+            CPPUNIT_ASSERT_EQUAL(3, v2.unwrap().x);
             CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
 
             v1 = std::move(v2);
             CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
             CPPUNIT_ASSERT(v1.isOk());
             CPPUNIT_ASSERT(v2.isError());
-            CPPUNIT_ASSERT_EQUAL(3, v1.getResult().x);
+            CPPUNIT_ASSERT_EQUAL(3, v1.unwrap().x);
 
 //            v1 = v2;
 //            CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
 //            CPPUNIT_ASSERT(v1.isError());
 //            CPPUNIT_ASSERT(v2.isError());
         }
+
+        // Check preconditions
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
+        CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
+        {
+            auto mover = [] (bool isOk) -> Result<SimpleType, SomeTestType> {
+                if (isOk)
+                    return Ok<SimpleType>(321);
+                else
+                    return Err<SomeTestType>({ 3, 2.3f, "Bad things happend" });
+            };
+
+
+            Result<SimpleType, SomeTestType> v = mover(true);
+            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
+
+            const SimpleType& res = v.unwrap();
+            CPPUNIT_ASSERT_EQUAL(321, res.x_);      // Needed to keep compiler happy
+            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
+
+            Result<SimpleType, SomeTestType> nak = mover(false);
+            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
+
+            const SomeTestType& errRes = nak.getError();
+            CPPUNIT_ASSERT_EQUAL(3, errRes.x);      // Needed to keep compiler happy
+            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
+        }
+
+        // Check post condition
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
+        CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
     }
 
 
     void getResultOnErrorThrows() {
         const Result<int, char> v = Err('e');
 
-        CPPUNIT_ASSERT_THROW(v.getResult(), Exception);
+        CPPUNIT_ASSERT_THROW(v.unwrap(), Exception);
     }
 
     void getErrorOnOkThrows() {
@@ -261,27 +333,48 @@ public:
         CPPUNIT_ASSERT_THROW(v.getError(), Exception);
     }
 
+    void testVoidResult() {
+        const Result<void, int> v = Ok();
+
+        CPPUNIT_ASSERT(v.isOk());
+
+        bool thenCalled = false;
+        const auto derivedOk = v.then([&thenCalled]() {
+            thenCalled = true;
+            return Ok<int>(312);
+        });
+
+        CPPUNIT_ASSERT(thenCalled);
+        CPPUNIT_ASSERT(derivedOk.isOk());
+        CPPUNIT_ASSERT_EQUAL(312, derivedOk.unwrap());
+
+        const auto derivedErr = v.then([]() -> Result<const char*, int> { return Err<int>(-5); });
+        CPPUNIT_ASSERT(derivedErr.isError());
+        CPPUNIT_ASSERT_EQUAL(-5, derivedErr.getError());
+    }
 
     void testThen() {
         auto f = [](bool isOk) -> Result<int, float> {
-            return isOk
-                    ? Result<int, float>(Ok(42))
-                    : Result<int, float>(Err(240.f));
+            if (isOk)
+                return Ok(42);
+            else
+                return Err(240.f);
         };
 
         {  // Test that success handler is called on success
             int thenValue = 0;
-            int cValue = f(true).then<int>(
-                        [&thenValue](const int& value) {
-                            thenValue = value;
+            const int cValue = f(true)
+                    .then([&thenValue](const int& value) {
+                        thenValue = value;
 
-                            return 998;
-                        },
-                        [&thenValue](const int& errCode) {
-                            thenValue = errCode;
+                        return Ok<int>(998);
+                    })
+                    .orElse([&thenValue](const int& errCode) {
+                        thenValue = errCode;
 
-                            return -776;
-                        });
+                        return -776;
+                    })
+                    .unwrap();
 
             // Make sure that success handler was called
             CPPUNIT_ASSERT_EQUAL(998, cValue);
@@ -290,17 +383,18 @@ public:
 
         {  // Make sure that errback is called on failure
             int thenValue = 0;
-            int cValue = f(false)
-                    .then<int>(
-                        [&thenValue](int value) {
-                            thenValue = value;
+            const int cValue = f(false)
+                    .then([&thenValue](int value) {
+                        thenValue = value;
 
-                            return 998;
-                        },
-                        [&thenValue](int errCode) {
-                            thenValue = errCode;
-                            return -776;
-                        });
+                        return Ok<int>(-198);
+                    })
+                    .orElse([&thenValue](int errCode) {
+                        thenValue = errCode;
+
+                        return -776;
+                    })
+                    .unwrap();
 
             // Make sure that errback handler was called
             CPPUNIT_ASSERT_EQUAL(-776, cValue);
@@ -312,32 +406,44 @@ public:
     void testThenChaining() {
 
         // Good chain
-        Result<int, SimpleType> goodResult = Ok<int>(42);
+        const Result<int, SimpleType> goodResult = Ok<int>(42);
 
-        auto alsoGood = goodResult.then([](int r) { return r / 2; });
+        auto alsoGood = goodResult.then([](int r) { return Ok<int>(r / 2); });
         CPPUNIT_ASSERT(alsoGood.isOk());
-        CPPUNIT_ASSERT_EQUAL(42/2, alsoGood.getResult());
+        CPPUNIT_ASSERT_EQUAL(42/2, alsoGood.unwrap());
 
-        auto lessGood = alsoGood.then([](int r) { return r - 2; });
+        auto lessGood = alsoGood.then([](int r) { return Ok<int>(r - 2); });
         CPPUNIT_ASSERT(lessGood.isOk());
-        CPPUNIT_ASSERT_EQUAL(42/2 - 2, lessGood.getResult());
+        CPPUNIT_ASSERT_EQUAL(42/2 - 2, lessGood.unwrap());
 
 
         // Error chain
-        Result<int, SimpleType> badResult = Err<SimpleType>(18);
+        const Result<int, SimpleType> badResult = Err<SimpleType>(18);
 
-        auto alsoNotGood = badResult.then([](int r) { return r / 2; });
+        auto alsoNotGood = badResult.then([](int r) { return Ok<float>(r / 2); });
         CPPUNIT_ASSERT(alsoNotGood.isError());
 
-        auto stillNotGood = alsoNotGood.then([](int r) { return r + 21; });
+        auto stillNotGood = alsoNotGood.then([](int r) { return Ok<int>(r + 21); });
         CPPUNIT_ASSERT(stillNotGood.isError());
 
         auto recovered = stillNotGood.orElse([](const SimpleType& x) { return x.x_ + 2; });
 
         CPPUNIT_ASSERT(recovered.isOk());
-        CPPUNIT_ASSERT_EQUAL(20, recovered.getResult());
+        CPPUNIT_ASSERT_EQUAL(20, recovered.unwrap());
     }
 
+
+    void testThenComposition() {
+        const Result<int, SimpleType> initialResult = Ok<int>(112);
+
+        const Result<std::function<int()>, SimpleType> finalResult = initialResult
+                .then([](int x)     { return Ok<float32>(x / 10); })
+                .then([](float32 x) { return Ok<int>(x + 30); })
+                .then([](int x)     { return Ok<std::function<int()>>([x]() { return (1 + x); }); });
+
+        CPPUNIT_ASSERT(finalResult.isOk());
+        CPPUNIT_ASSERT_EQUAL(42, finalResult.unwrap()());
+    }
 };
 
 
@@ -346,6 +452,8 @@ std::ostream& operator<<(std::ostream& ostr, const TestResult::SomeTestType& t) 
 }
 
 int TestResult::SomeTestType::InstanceCount = 0;
+int TestResult::SimpleType::InstanceCount = 0;
+
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestResult);
 

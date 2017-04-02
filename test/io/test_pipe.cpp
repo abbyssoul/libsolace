@@ -57,7 +57,7 @@ public:
 
         const auto written = pipe.write(msgBuffer);
         CPPUNIT_ASSERT(written.isOk());
-        CPPUNIT_ASSERT_EQUAL(msgBuffer.size(), static_cast<MemoryView::size_type>(written.getResult()));
+        CPPUNIT_ASSERT_EQUAL(msgBuffer.size(), static_cast<MemoryView::size_type>(written.unwrap()));
     }
 
     void testWriteRead() {
@@ -67,13 +67,13 @@ public:
         auto msgBuffer = wrapMemory(message);
         const auto written = pipe.write(msgBuffer);
         CPPUNIT_ASSERT(written.isOk());
-        CPPUNIT_ASSERT_EQUAL(msgBuffer.size(), static_cast<MemoryView::size_type>(written.getResult()));
+        CPPUNIT_ASSERT_EQUAL(msgBuffer.size(), static_cast<MemoryView::size_type>(written.unwrap()));
 
         byte rcv[48];
         auto rcvBuffer = wrapMemory(rcv);
         const auto read = pipe.read(rcvBuffer);
         CPPUNIT_ASSERT(read.isOk());
-        CPPUNIT_ASSERT_EQUAL(msgBuffer.size(), static_cast<MemoryView::size_type>(read.getResult()));
+        CPPUNIT_ASSERT_EQUAL(msgBuffer.size(), static_cast<MemoryView::size_type>(read.unwrap()));
     }
 };
 

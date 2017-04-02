@@ -74,9 +74,8 @@ public:
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT_EQUAL(321, xValue);
@@ -97,9 +96,8 @@ public:
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT_EQUAL(756, xValue);
@@ -120,9 +118,8 @@ public:
                               {'V', "vvv", "Something else", &vValue}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error e){
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error e) {
                         parsedSuccessully = false;
                         CPPUNIT_FAIL(e.toString().c_str());
                     });
@@ -145,9 +142,8 @@ public:
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -167,9 +163,8 @@ public:
                               {'v', "vvv", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) {parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -190,9 +185,8 @@ public:
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) {parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -213,9 +207,8 @@ public:
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -236,9 +229,8 @@ public:
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -256,9 +248,8 @@ public:
         const char* appDesc = "Something awesome";
         CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -276,9 +267,8 @@ public:
         const char* appDesc = "Something awesome";
         CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -296,9 +286,8 @@ public:
         const char* appDesc = "Something awesome";
         CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -328,9 +317,8 @@ public:
                                }}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(parsedSuccessully);
@@ -362,9 +350,8 @@ public:
                                }}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(parsedSuccessully);
@@ -394,9 +381,8 @@ public:
                                }, CommandlineParser::OptionArgument::Required }
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -424,9 +410,8 @@ public:
                                }, CommandlineParser::OptionArgument::NotRequired }
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
         CPPUNIT_ASSERT(parsedSuccessully);
@@ -450,9 +435,8 @@ public:
                               {"manarg", "Mandatory argument", &mandatoryArg}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(parsedSuccessully);
@@ -474,9 +458,8 @@ public:
                               {"manarg", "Mandatory argument", &mandatoryArg}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
         CPPUNIT_ASSERT(parsedSuccessully);
@@ -499,9 +482,8 @@ public:
                               {"manarg", "Mandatory argument", &mandatoryArg}
                           })
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
         CPPUNIT_ASSERT(parsedSuccessully);
@@ -527,9 +509,8 @@ public:
                           }
                           )
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -556,9 +537,8 @@ public:
                           }
                           )
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -582,9 +562,8 @@ public:
                           }
                           )
                 .parse(argc, argv)
-                .then<void>(
-                    [&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; },
-                    [&parsedSuccessully](Error){parsedSuccessully = false;});
+                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);

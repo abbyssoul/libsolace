@@ -82,6 +82,14 @@ public:
             --InstanceCount;
         }
 
+        SomeTestType& operator= (const SomeTestType& rhs) {
+            x = rhs.x;
+            f = rhs.f;
+            somethingElse = rhs.somethingElse;
+
+            return (*this);
+        }
+
         bool operator== (const SomeTestType& rhs) const {
             return  x == rhs.x &&
                     std::abs(f - rhs.f) < 1e-4f &&

@@ -64,7 +64,11 @@ public:
         BufferedFile(FILE* fp);
         ~BufferedFile();
 
+        BufferedFile(const BufferedFile&) = delete;
+
         BufferedFile(BufferedFile&& that);
+
+        BufferedFile& operator= (const BufferedFile&) = delete;
 
         BufferedFile& operator= (BufferedFile&& rhs) noexcept {
             return swap(rhs);

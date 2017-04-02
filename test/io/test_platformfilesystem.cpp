@@ -76,7 +76,7 @@ public:
             const auto written = f->write(fileUIDBytes);
             CPPUNIT_ASSERT(written.isOk());
 
-            MemoryView::size_type bytesWriten = written.getResult();
+            const MemoryView::size_type bytesWriten = written.unwrap();
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesWriten);
 
             f->seek(0, File::Seek::Set);
@@ -84,7 +84,7 @@ public:
             ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
             const auto read = f->read(readBuffer);
             CPPUNIT_ASSERT(read.isOk());
-            MemoryView::size_type bytesRead = read.getResult();
+            const MemoryView::size_type bytesRead = read.unwrap();
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
             readBuffer.flip();
@@ -116,8 +116,8 @@ public:
             f->close();
 
             ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
-            CPPUNIT_ASSERT_THROW(auto x = f->seek(0, File::Seek::Set), NotOpen);
-            CPPUNIT_ASSERT_THROW(auto x = f->read(readBuffer), NotOpen);
+            CPPUNIT_ASSERT_THROW(f->seek(0, File::Seek::Set), NotOpen);
+            CPPUNIT_ASSERT_THROW(f->read(readBuffer), NotOpen);
         }
 
         // Attempt to 'create' already existing file
@@ -132,7 +132,7 @@ public:
             ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
             const auto read = f->read(readBuffer);
             CPPUNIT_ASSERT(read.isOk());
-            MemoryView::size_type bytesRead = read.getResult();
+            const MemoryView::size_type bytesRead = read.unwrap();
 
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
@@ -192,7 +192,7 @@ public:
 
             const auto written = f->write(fileUIDBytes);
             CPPUNIT_ASSERT(written.isOk());
-            const MemoryView::size_type bytesWriten = written.getResult();
+            const MemoryView::size_type bytesWriten = written.unwrap();
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesWriten);
             CPPUNIT_ASSERT_EQUAL(bytesWriten, static_cast<decltype(bytesWriten)>(f->tell()));
 
@@ -201,7 +201,7 @@ public:
             ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
             const auto read = f->read(readBuffer);
             CPPUNIT_ASSERT(read.isOk());
-            const MemoryView::size_type bytesRead = read.getResult();
+            const MemoryView::size_type bytesRead = read.unwrap();
             CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
             readBuffer.flip();

@@ -26,73 +26,71 @@
 #include <iostream>
 
 
+using namespace Solace;
 using namespace Solace::Framework;
 
 
 class ExampleApp : public Application {
 public:
-    ExampleApp() :
-        _version(1, 0, 0, "Demo")
+    ExampleApp(const String& name) :
+        _version(1, 0, 0, "Demo"),
+        _name(name)
     {}
 
-    Solace::Version getVersion() const noexcept override {
+    Version getVersion() const noexcept override {
         return _version;
     }
 
     using Application::init;
 
-    Solace::Result<std::function<int()>, Solace::Error>
-    init(int argc, const char *argv[]) override {
+    Result<void, Error> init(int argc, const char *argv[]) override {
 
         int someParam = 0;
 
         return CommandlineParser("Solace framework example", {
                     CommandlineParser::printHelp(),
                     CommandlineParser::printVersion("sol_example", getVersion()),
-                    { 0, "some-param", "Some useless parameter for the demo", &someParam},
-                    { 'u', "name", "Name to great", &name}
+                    {0, "some-param", "Some useless parameter for the demo", &someParam},
+                    {'u', "name", "Name to call", &_name}
                 })
                 .parse(argc, argv)
-                .then([this](const CommandlineParser*) -> std::function<int()> {
-                            return [this]() { return run(); };
-                        }
-                );
+                .map([this](const CommandlineParser*) {
+                    return;
+                });
     }
 
-protected:
-
-    int run() {
+    Solace::Result<int, Solace::Error> run() {
         std::cout << "Hello ";
 
-        if (name.empty())
+        if (_name.empty())
             std::cout << "world";
         else
-            std::cout << name;
+            std::cout << _name;
 
         std::cout << std::endl;
 
-        return EXIT_SUCCESS;
+        return Solace::Ok<int>(EXIT_SUCCESS);
     }
 
 private:
 
     const Solace::Version _version;
-    Solace::String name;
+    Solace::String _name;
 };
 
 
 int main(int argc, char **argv) {
 
-    ExampleApp app;
+    ExampleApp app("Demo App");
 
     return app.init(argc, argv)
-            .then([](const std::function<int()>& runner) { return runner(); })
+            .then([&app]() { return app.run(); })
             .orElse([](const Solace::Error& error) {
-                    if (error) {
-                        std::cerr << "Error: " << error << std::endl;
-                    }
+                if (error) {
+                    std::cerr << "Error: " << error << std::endl;
+                }
 
-                    return EXIT_FAILURE;
-                })
-            .getResult();
+                return EXIT_FAILURE;
+            })
+            .unwrap();
 }

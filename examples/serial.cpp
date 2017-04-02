@@ -18,10 +18,14 @@
 #include <solace/io/selector.hpp>
 #include <solace/io/serial.hpp>
 #include <solace/version.hpp>
+#include <solace/framework/commandlineParser.hpp>
 
 #include <iostream>
 
-using Solace::uint32;
+
+
+using namespace Solace;
+using namespace Solace::Framework;
 
 
 void enumerateDevices() {
@@ -33,23 +37,34 @@ void enumerateDevices() {
 }
 
 
-int main(int argc, char **argv) {
-    std::cout << "libsolace: " << Solace::getBuildVersion() << std::endl;
-
+int main(int argc, const char **argv) {
     if (argc < 2) { // No-arg call: list ports and exit
         enumerateDevices();
-		return 0; 
+        return 0;
 	}
 
-    const uint32 boudRate = (argc > 2)
-        ? atoi(argv[2])
-        : 115200;
+    uint32 boudRate = 115200;
+    uint32 bufferSize = 120;
+    String fileName;
 
-	const uint32 bufferSize = (argc > 3) 
-		? atoi(argv[3])
-        : 120;
+    const auto parseResult = CommandlineParser("Serial port example",
+                        {
+                          CommandlineParser::printHelp(),
+                          CommandlineParser::printVersion("serial", getBuildVersion()),
+                          {'b', "boudRate",     "COM port boud rate",   &boudRate},
+                          {0,   "bufferSize",   "Read buffer size",     &bufferSize}
+                        },
+                        {{ "fileName", "Name of the file/device to open", &fileName}}
+                      )
+            .parse(argc, argv);
 
-	const auto file = Solace::Path::parse(argv[1]);
+    if (!parseResult) {
+        std::cerr << parseResult.getError() << std::endl;
+
+        return EXIT_FAILURE;
+    }
+
+    const auto file = Solace::Path::parse(fileName);
     std::cout << "Opening port: " << file << std::endl
               << "boudrate: " << boudRate << std::endl
               << "press ^C to quit" << std::endl;

@@ -83,6 +83,7 @@ public:
             _pimpl(p)
         {}
 
+        Iterator(const Iterator&) = delete;
 
         Iterator(Iterator&& rhs):
             _index(rhs._index),
@@ -99,6 +100,7 @@ public:
             return *this;
         }
 
+        Iterator& operator= (const Iterator&) = delete;
 
         Iterator& operator= (Iterator&& rhs) noexcept  {
             return swap(rhs);

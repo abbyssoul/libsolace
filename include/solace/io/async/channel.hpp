@@ -42,13 +42,15 @@ public:
     {
     }
 
+    Channel(const Channel&) = delete;
+
     Channel(Channel&& rhs) :
         _ioContext(&rhs.getIOContext())
     {}
 
     virtual ~Channel() = default;
 
-    Channel& operator = (Channel&& rhs) noexcept {
+    Channel& operator= (Channel&& rhs) noexcept {
 //        _ioContext = std::move(rhs._ioContext);
         _ioContext = rhs._ioContext;
 //        rhs._ioContext = nullptr;

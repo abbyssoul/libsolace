@@ -244,7 +244,9 @@ Array<String> String::split(const String& expr) const {
         splits.emplace_back(s);
     }
 
-    return splits.empty() ? Array<String>({*this}) : Array<String>(splits);
+    return splits.empty()
+            ? Array<String>({*this})
+            : Array<String>(splits);
 }
 
 

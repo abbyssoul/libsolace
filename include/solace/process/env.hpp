@@ -46,6 +46,8 @@ public:
         Var(const String& inName, const String& inValue): name(inName), value(inValue)
         {}
 
+        Var(const Var&) = delete;
+
         Var(Var&& other): name(std::move(other.name)), value(std::move(other.value))
         {}
 
@@ -55,6 +57,8 @@ public:
 
             return *this;
         }
+
+        Var& operator= (const Var&) = delete;
 
         Var& operator= (Var&& rhs) noexcept {
             return swap(rhs);

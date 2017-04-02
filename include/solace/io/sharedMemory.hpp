@@ -92,6 +92,9 @@ public:
 
 public:
 
+    // Deleted as no point in copying shared memory handle.
+    SharedMemory(const SharedMemory&) = delete;
+
     /**
      * Move construct this file object
      * @param other A file object to move from
@@ -114,6 +117,8 @@ public:
 
         return *this;
     }
+
+    SharedMemory& operator= (const SharedMemory&) = delete;
 
     /**
      * Move assignment operator

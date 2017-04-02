@@ -121,6 +121,22 @@ public:  // Object construction
     }
 
     /**
+     * Construct the path object from a collection of String components
+     * @param array A collection of string components forming the path
+     */
+    Path(const Array<String>& array): _components(array) {
+        // No-op
+    }
+
+    /**
+     * Move-Construct the path object from a collection of String components
+     * @param array A collection of string components forming the path
+     */
+    Path(Array<String>&& array): _components(std::move(array)) {
+        // No-op
+    }
+
+    /**
      * Construct the path object from a single string component
      *
      * @note The string is is parsed into component, please use Path::parse
@@ -138,10 +154,6 @@ public:  // Object construction
     }
 
     Path(const std::initializer_list<String>& components): _components(components) {
-        // No-op
-    }
-
-    Path(const Array<String>& array): _components(array) {
         // No-op
     }
 
@@ -269,9 +281,7 @@ public:  // Operation
      * Returns the name of the object this path leads to
      * @return The last element of the name sequence
      */
-    String getBasename() const {
-        return last();
-    }
+    const String& getBasename() const;
 
     /** Get number of components this path includes
      * @brief getComponentsCount
@@ -283,7 +293,7 @@ public:  // Operation
      * @brief getComponentsCount
      * @return Number of path elements in this path
      */
-    String getComponent(size_type index) const;
+    const String& getComponent(size_type index) const;
 
     const_iterator begin() const {
         return _components.begin();
@@ -299,7 +309,7 @@ public:  // Operation
      *
      * TODO: Should be Option<String> as components collection can be empty
      */
-    String first() const;
+    const String& first() const;
 
     /**
      * Returns last component of this path
@@ -307,7 +317,7 @@ public:  // Operation
      *
      * TODO: Should be Option<String> as components collection can be empty
      */
-    String last() const;
+    const String& last() const;
 
     /** Returns sub path of this path
      * Splice of this path object

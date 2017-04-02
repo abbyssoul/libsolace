@@ -26,7 +26,7 @@
 
 #include "solace/types.hpp"
 #include "solace/assert.hpp"
-
+#include "solace/optional.hpp"
 
 #include <functional>
 
@@ -39,6 +39,8 @@ namespace types {
 
 template<typename T>
 struct Ok {
+    typedef T value_type;
+
     Ok(const T& val) : val_(val) { }
     Ok(T&& val) : val_(std::move(val)) { }
 
@@ -46,7 +48,11 @@ struct Ok {
 };
 
 template<>
-struct Ok<void> { };
+struct Ok<void> {
+    typedef void value_type;
+};
+
+
 
 template<typename E>
 struct Err {
@@ -66,7 +72,7 @@ struct Err {
  * @return type::Ok<T> that can be converted into a successful Result<T, E>
  */
 template<typename T,
-         typename CleanT = typename std::decay<T>::type>
+         typename CleanT = typename std::decay<T>::type >
 inline types::Ok<CleanT> Ok(T&& val) {
     return types::Ok<CleanT>(std::forward<T>(val));
 }
@@ -86,14 +92,21 @@ inline types::Ok<void> Ok() {
  *
  * @return type::Err<T> that can be converted into a failed Result<T, E>
  */
-template<typename E, typename CleanE = typename std::decay<E>::type>
+template<typename E,
+         typename CleanE = typename std::decay<E>::type >
 inline types::Err<CleanE> Err(E&& val) {
     return types::Err<CleanE>(std::forward<E>(val));
 }
 
 
 /**
- * Result is function wrapping for function execution result and an alternative to exception throwing.
+ * Result class is an 'enum' of two values V and E with V being 'expected'.
+ * It is very similar to Either<> monad in some functional languages and
+ * is ispired by std::Result<> class from Rust lang.
+ *
+ * Result class is similar in concept to Future in the sense that it can represent result of the computition or an error
+ * with the difference that it is not design for async use case.
+ * That is why result is always 'set'.
  *
  * Note: Result<void, Error> is technically equivalent of Optional<Error>
  */
@@ -104,62 +117,71 @@ public:
     typedef V value_type;
     typedef E error_type;
 
-//    static_assert(!std::is_same<V, E>::value,
-//            "Result must have distinct types for value and error");
-
     static_assert(!std::is_same<E, void>::value,
             "Error type must be non-void");
 
 public:
 
-//    Result(const V& value):
-//        _state( ::new (_stateBuffer.okSpace) OkState(value) )
-//    {}
-
-//    Result(V&& value):
-//        _state( ::new (_stateBuffer.okSpace) OkState(std::move(value)) )
-//    {}
-
-//    Result(const V*, const E& err):
-//        _state( ::new (_stateBuffer.errSpace) ErrorState(err) )
-//    {}
-
-//    Result(const V*, E && err):
-//        _state( ::new (_stateBuffer.errSpace) ErrorState(std::move(err)) )
-//    {}
-
+    /**
+     * Construct Ok result by copying value
+     * @param value Ok value to copy
+     */
     Result(const types::Ok<V>& value):
         _state( ::new (_stateBuffer.okSpace) OkState(value) )
     {}
 
+    /**
+     * Move-Construct Ok result
+     * @param value Ok value to move from
+     */
     Result(types::Ok<V>&& value):
         _state( ::new (_stateBuffer.okSpace) OkState(std::move(value)) )
     {}
 
+    /**
+     * Type convertion Copy-Construct Ok result
+     * @param value Ok value to move value from
+     */
     template<typename DV>
     Result(types::Ok<DV>&& value):
         _state( ::new (_stateBuffer.okSpace) OkState(std::move(value.val_)) )
     {}
 
+    /**
+     * Construct Err result by copying error value
+     * @param err Err value to copy from
+     */
     Result(const types::Err<E>& err):
         _state( ::new (_stateBuffer.errSpace) ErrorState(err) )
     {}
 
+    /**
+     * Move-Construct Err result by moving error value
+     * @param err Err value to move from
+     */
     Result(types::Err<E>&& err):
         _state( ::new (_stateBuffer.errSpace) ErrorState(std::move(err)) )
     {}
 
 
+    /**
+     * Copy construct Result of the same type
+     * @param rhs Source to copy values from
+     */
     Result(const Result& rhs) noexcept :
         _state(rhs.isOk()
-               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.getResult()))
+               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.unwrap()))
                : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(rhs.getError())))
     {
     }
 
+    /**
+     * Move-Construct Result of the same type
+     * @param rhs Source to move values from
+     */
     Result(Result&& rhs) noexcept :
         _state(rhs.isOk()
-               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.getResult()))
+               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.unwrap()))
                : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(rhs.getError())))
     {
     }
@@ -167,98 +189,113 @@ public:
     template<typename DV>
     Result(const Result<DV, E>& rhs) noexcept :
         _state(rhs.isOk()
-               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.getResult()))
+               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.unwrap()))
                : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(rhs.getError())))
     {
     }
 
 
     ~Result() {
-        clear();
-    }
-
-
-    template<typename D>
-    auto then(const std::function<D(V)>& success,
-              const std::function<D(E)>& failure) -> D {
-
-        return isOk()
-                ? success(getResult())
-                : failure(getError());
-    }
-
-    template<typename F,
-             typename U = typename std::result_of<F(V)>::type>
-    Result<U, E> then(F f) {
-        if (isOk())
-            return Ok<U>(f(getResult()));
-
-        return Err(getError());
-    }
-
-    template<typename F,
-             typename U = typename std::result_of<F(E)>::type>
-    Result<U, E> orElse(F f) {
-        return (isOk())
-                ? *this
-                : Ok<U>(f(getError()));
-    }
-
-    Result& swap(Result& rhs) noexcept {
-
-        if (isOk()) {
-            V v{ std::move(this->getResult()) };
-
-            if (rhs.isOk())
-                _state = ::new (_stateBuffer.okSpace) OkState(std::move(rhs.getResult()));
-            else
-                _state = ::new (_stateBuffer.errSpace) ErrorState(std::move(rhs.getError()));
-
-            rhs.assign(v);
-        } else {
-            E e{ std::move(getError()) };
-
-            if (rhs.isOk())
-                _state = ::new (_stateBuffer.okSpace) OkState(std::move(rhs.getResult()));
-            else
-                _state = ::new (_stateBuffer.errSpace) ErrorState(std::move(rhs.getError()));
-
-            rhs.assign(nullptr, e);
-        }
-
-        return (*this);
-    }
-
-
-    void assign(const V& v) {
-        clear();
-
-        _state = ::new (_stateBuffer.okSpace) OkState(v);
-    }
-
-    void assign(V&& v) {
-        clear();
-
-        _state = ::new (_stateBuffer.okSpace) OkState(std::move(v));
-    }
-
-    void assign(const V*, const E& v) {
-        clear();
-
-        _state = ::new (_stateBuffer.errSpace) ErrorState(v);
-    }
-
-    void assign(const V*, E && v) {
-        clear();
-
-        _state = ::new (_stateBuffer.errSpace) ErrorState(std::move(v));
-    }
-
-    void clear() {
+//        clear();
         if (_state) {
             _state->~IState();
             _state = nullptr;
         }
+    }
+
+public:
+
+
+    template <typename F,
+              typename U = typename std::result_of<F(V)>::type,
+              typename R = typename std::enable_if<!std::is_same<U, void>::value, U>::type
+              >
+    Result<U, E> map(F f) const {
+
+        if (isOk()) {
+            // TODO(abbyssoul): We probably should handle exeptions here
+            return Ok<U>(f(unwrap()));
+        }
+
+        return Err(getError());
+    }
+
+    template <typename F,
+              typename U = typename std::result_of<F(V)>::type
+              >
+    Result<typename std::enable_if<std::is_same<U, void>::value, U>::type, E> map(F f) const {
+
+        if (isOk()) {
+            // TODO(abbyssoul): We probably should handle exeptions here
+            f(unwrap());
+
+            return Ok();
+        }
+
+        return Err(getError());
+    }
+
+
+    /**
+     * Then combinator.
+     * Calls 'f' on the Ok value if the result is Ok, otherwise returns the Err value of self.
+     * This is an equivalent of flatMap for Optional value for 'f' returning Result<V, E>
+     *
+     * @param f callable object to call on the success value. It is only called if this::isOk() is true
+     * @return Result<U, E> of the call of 'f' if this::isOk(), Err(this->getError()) otherwise
+     */
+    template<typename F,
+             typename U = typename std::result_of<F(value_type)>::type::value_type>
+    Result<U, E> then(F f) const {
+
+        if (isOk()) {
+            // TODO(abbyssoul): We probably should handle exeptions here
+
+            return f(unwrap());
+        }
+
+        return Err(getError());
+    }
+
+
+    template<typename F,
+             typename U = typename std::result_of<F(E)>::type>
+    Result<U, E> orElse(F f) const {
+        if (isOk()) {
+            return *this;
+        }
+
+        return Ok<U>(f(getError()));
+    }
+
+
+    Result& swap(Result& rhs) noexcept {
+
+        if (isOk()) {
+            V v{ std::move(unwrap()) };
+
+            if (rhs.isOk())
+                _state = ::new (_stateBuffer.okSpace) OkState(std::move(rhs.unwrap()));
+            else
+                _state = ::new (_stateBuffer.errSpace) ErrorState(std::move(rhs.getError()));
+
+//            rhs.assign(v);
+            rhs._state->~IState();
+            rhs._state = ::new (rhs._stateBuffer.okSpace) OkState(v);
+        } else {
+            E e{ std::move(getError()) };
+
+            if (rhs.isOk())
+                _state = ::new (_stateBuffer.okSpace) OkState(std::move(rhs.unwrap()));
+            else
+                _state = ::new (_stateBuffer.errSpace) ErrorState(std::move(rhs.getError()));
+
+//            rhs.assign(nullptr, e);
+            rhs._state->~IState();
+            rhs._state = ::new (rhs._stateBuffer.errSpace) ErrorState(e);
+        }
+
+        return (*this);
     }
 
     Result& operator= (Result&& rhs) noexcept {
@@ -279,11 +316,14 @@ public:
         return _state->isError();
     }
 
-    V& getResult() {
+
+//    template<typename U = V>
+//    typename std::enable_if<!std::is_same<U, void>::value, const U&>::type
+    const V& unwrap() const {
         return _state->getResult();
     }
 
-    const V& getResult() const {
+    V& unwrap() {
         return _state->getResult();
     }
 
@@ -407,6 +447,183 @@ private:
 
     IState* _state;
 };
+
+
+
+template <typename E>
+// TODO(c++17): [[nodiscard]]
+class Result<void, E> {
+public:
+    typedef void value_type;
+    typedef E error_type;
+
+    static_assert(!std::is_same<E, void>::value,
+            "Error type must be non-void");
+
+public:
+
+    /**
+     * Construct Ok result by copying value
+     * @param value Ok value to copy
+     */
+    Result(const types::Ok<void>& value):
+        _maybeError(Optional<E>::none())
+    {}
+
+    /**
+     * Move-Construct Ok result
+     * @param value Ok value to move from
+     */
+    Result(types::Ok<void>&&):
+        _maybeError(Optional<E>::none())
+    {}
+
+    /**
+     * Construct Err result by copying error value
+     * @param err Err value to copy from
+     */
+    Result(const types::Err<E>& err):
+        _maybeError(Optional<E>::of(err.val_))
+    {}
+
+    /**
+     * Move-Construct Err result by moving error value
+     * @param err Err value to move from
+     */
+    Result(types::Err<E>&& err):
+        _maybeError(Optional<E>::of(std::move(err.val_)))
+    {}
+
+
+    /**
+     * Copy construct Result of the same type
+     * @param rhs Source to copy values from
+     */
+    Result(const Result& rhs) noexcept :
+        _maybeError(rhs._maybeError)
+    {
+    }
+
+    /**
+     * Move-Construct Result of the same type
+     * @param rhs Source to move values from
+     */
+    Result(Result&& rhs) noexcept :
+        _maybeError(std::move(rhs._maybeError))
+    {
+    }
+
+
+    ~Result() = default;
+
+
+public:
+
+
+    template <typename F,
+              typename U = typename std::result_of<F(void)>::type>
+    Result<U, E> map(F f) const {
+
+        if (isOk()) {
+            // TODO(abbyssoul): We probably should handle exeptions here
+            return Ok<U>(f());
+        }
+
+        return Err(getError());
+    }
+
+
+    /**
+     * Then combinator.
+     * Calls 'f' on the Ok value if the result is Ok, otherwise returns the Err value of self.
+     * This is an equivalent of flatMap for Optional value for 'f' returning Result<V, E>
+     *
+     * @param f callable object to call on the success value. It is only called if this::isOk() is true
+     * @return Result<U, E> of the call of 'f' if this::isOk(), Err(this->getError()) otherwise
+     */
+    template<typename F,
+             typename U = typename std::result_of<F(void)>::type::value_type
+             >
+    Result<U, E> then(F f) const {
+
+        if (isOk()) {
+            // TODO(abbyssoul): We probably should handle exeptions here
+
+            return f();
+        }
+
+        return Err(getError());
+    }
+
+
+    template<typename F,
+             typename U = typename std::result_of<F(E)>::type,
+             typename R = typename std::enable_if<!std::is_same<U, void>::value, U>::type>
+    Result<U, E> orElse(F f) const {
+
+        if (isOk()) {
+            return *this;
+        }
+
+        return Ok<U>(f(getError()));
+    }
+
+    template<typename F,
+             typename U = typename std::result_of<F(E)>::type>
+    Result<typename std::enable_if<std::is_same<U, void>::value, U>::type, E> orElse(F f) const {
+
+        if (isOk()) {
+            return *this;
+        }
+
+        f(getError());
+        return Ok();
+    }
+
+
+    Result& swap(Result& rhs) noexcept {
+        _maybeError.swap(rhs._maybeError);
+
+        return (*this);
+    }
+
+    Result& operator= (Result&& rhs) noexcept {
+        return swap(rhs);
+    }
+
+    Result& operator= (const Result& rhs) noexcept = delete;
+
+    explicit operator bool () const noexcept {
+        return isOk();
+    }
+
+    bool isOk() const noexcept {
+        return _maybeError.isNone();
+    }
+
+    bool isError() const noexcept {
+        return _maybeError.isSome();
+    }
+
+protected:
+
+    const E& getError() const {
+        return _maybeError.get();
+    }
+
+    E& getError() {
+        return _maybeError.get();
+    }
+
+private:
+
+    /**
+     * Well, honestly it should have been called Schrodinger's Cat State 0_0
+     */
+    Optional<error_type> _maybeError;
+
+};
+
 
 }  // End of namespace Solace
 #endif  // SOLACE_RESULT_HPP

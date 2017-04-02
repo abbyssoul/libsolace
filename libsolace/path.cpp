@@ -47,11 +47,14 @@ bool Path::isRelative() const noexcept {
 
 Path Path::join(std::initializer_list<Path> paths) {
     size_type numberOfComponents = 0;
+    // Count number of components
     for (const auto& p : paths) {
         numberOfComponents += p.getComponentsCount();
     }
 
+    // Now we can preallocate storage for components
     Array<String> components(numberOfComponents);
+
     size_type i = 0;
     for (const auto& path : paths) {
         for (const auto& component : path) {
@@ -59,19 +62,34 @@ Path Path::join(std::initializer_list<Path> paths) {
         }
     }
 
-    return Path(components);
+    return Path(std::move(components));
 }
+
 
 Path Path::join(std::initializer_list<String> paths) {
     Array<String> components(paths);
 
-    return Path(components);
+    return Path(std::move(components));
 }
 
-Path Path::parse(const String& str, const String& delim) {
-    const auto components = str.split(delim);
 
-    return {components};
+Path Path::parse(const String& str, const String& delim) {
+    auto components = str.split(delim);
+    const auto nbOfComponents = components.size();
+
+    std::vector<String> nonEmptryComponents;
+    nonEmptryComponents.reserve(nbOfComponents);
+
+    for (decltype(components)::size_type i = 0; i < components.size(); ++i) {
+        if (i == components.size() - 1 && components[i].empty())
+            continue;
+
+        nonEmptryComponents.push_back(std::move(components[i]));
+    }
+
+    return nonEmptryComponents.empty()
+            ? Path::Root
+            : Path(std::move(nonEmptryComponents));
 }
 
 
@@ -199,7 +217,7 @@ bool Path::contains(const Path& path) const {
 }
 
 Path Path::normalize() const {
-    // FIXME: Dynamic memory re-allocation!!!
+    // FIXME(abbyssoul): Dynamic memory re-allocation!!!
     std::vector<String> components;
 
     for (const auto& c : _components) {
@@ -212,7 +230,7 @@ Path Path::normalize() const {
         }
     }
 
-    return Path(components);
+    return Path(std::move(components));
 }
 
 Path Path::getParent() const {
@@ -227,14 +245,21 @@ Path Path::getParent() const {
         basePath[i] = _components[i];
     }
 
-    return Path(basePath);
+    return Path(std::move(basePath));
 }
+
+const String& Path::getBasename() const {
+    return (isAbsolute() && _components.size() == 1)
+            ? Delimiter
+            : last();
+}
+
 
 Path::size_type Path::getComponentsCount() const noexcept {
     return _components.size();
 }
 
-String Path::getComponent(size_type index) const {
+const Solace::String& Path::getComponent(size_type index) const {
     return _components[index];
 }
 
@@ -257,7 +282,7 @@ Path Path::subpath(size_type beginIndex, size_type endIndex) const {
         components[i] = _components[beginIndex + i];
     }
 
-    return Path(components);
+    return Path(std::move(components));
 }
 
 Path Path::join(const Path& rhs) const {
@@ -273,7 +298,7 @@ Path Path::join(const String& rhs) const {
     }
     components[i++] = rhs;
 
-    return Path(components);
+    return Path(std::move(components));
 }
 
 
@@ -282,14 +307,14 @@ bool Path::equals(const Path& rhv) const noexcept {
 }
 
 
-String Path::first() const {
+const String& Path::first() const {
     return empty()
             ? String::Empty
             : _components.first();
 }
 
 
-String Path::last() const {
+const String& Path::last() const {
     return empty()
             ? String::Empty
             : _components.last();

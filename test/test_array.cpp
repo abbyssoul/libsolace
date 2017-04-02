@@ -87,6 +87,11 @@ protected:
 			++TotalCount;
 		}
 
+        NonPodStruct(NonPodStruct&& other) : iValue(other.iValue), str(std::move(other.str))
+        {
+            ++TotalCount;
+        }
+
         NonPodStruct(const NonPodStruct& other) : iValue(other.iValue), str(other.str)
         {
             ++TotalCount;
@@ -96,10 +101,18 @@ protected:
 			--TotalCount;
 		}
 
+        NonPodStruct& operator= (const NonPodStruct& rhs) {
+            iValue = rhs.iValue;
+            str = rhs.str;
+
+            return (*this);
+        }
+
         bool operator== (const NonPodStruct& other) const {
             return iValue == other.iValue && str == other.str;
         }
 	};
+
 
 	struct DerivedNonPodStruct  : public NonPodStruct {
 		float fValue;
@@ -118,19 +131,66 @@ protected:
 
 	};
 
+    struct SometimesConstructable {
+        static int InstanceCount;
+        static int BlowUpEveryInstance;
+
+        int someValue;
+
+        SometimesConstructable(): someValue(3) {
+            if ((InstanceCount + 1) % BlowUpEveryInstance) {
+                throw Exception("Blowing up");
+            }
+
+            ++InstanceCount;
+        }
+
+        ~SometimesConstructable() {
+            --InstanceCount;
+        }
+
+        SometimesConstructable(const SometimesConstructable& rhs): someValue(rhs.someValue)
+        {
+            ++InstanceCount;
+        }
+
+        SometimesConstructable(SometimesConstructable&& rhs): someValue(rhs.someValue)
+        {
+            ++InstanceCount;
+        }
+
+        SometimesConstructable& operator= (const SometimesConstructable& rhs) {
+            someValue = rhs.someValue;
+
+            return *this;
+        }
+
+        SometimesConstructable& operator= (SometimesConstructable&& rhs) {
+            someValue = rhs.someValue;
+            return *this;
+        }
+
+        bool operator == (const SometimesConstructable& rhs) const {
+            return someValue == rhs.someValue;
+        }
+    };
+
+
 public:
 
     // cppcheck-suppress unusedFunction
     void setUp() override {
         // TODO(abbyssoul): Debug::BeginMemCheck();
         CPPUNIT_ASSERT_EQUAL(ZERO, NonPodStruct::TotalCount);
+        CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
 	}
 
     // cppcheck-suppress unusedFunction
     void tearDown() override {
         // TODO(abbyssoul): Debug::EndMemCheck();
         CPPUNIT_ASSERT_EQUAL(ZERO, NonPodStruct::TotalCount);
-	}
+        CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
+    }
 
 	void testEmpty() {
         {
@@ -659,37 +719,6 @@ public:
 
         }
     }
-
-    struct SometimesConstructable {
-        static int InstanceCount;
-        static int BlowUpEveryInstance;
-
-        int someValue;
-
-        SometimesConstructable(): someValue(3) {
-            if ((InstanceCount + 1) % BlowUpEveryInstance) {
-                throw Exception("Blowing up");
-            }
-
-            ++InstanceCount;
-        }
-
-        ~SometimesConstructable() {
-            --InstanceCount;
-        }
-
-        SometimesConstructable(SometimesConstructable&& rhs): someValue(rhs.someValue)
-        {}
-
-        SometimesConstructable& operator = (SometimesConstructable&& rhs) {
-            someValue = rhs.someValue;
-            return *this;
-        }
-
-        bool operator == (const SometimesConstructable& rhs) const {
-            return someValue == rhs.someValue;
-        }
-    };
 
     void testDeallocationWhenElementConstructorThrows() {
 

@@ -56,12 +56,16 @@ public:
 
     MemoryView() noexcept;
 
+    MemoryView(const MemoryView&) = delete;
+
     MemoryView(MemoryView&& rhs) noexcept;
 
     /** Deallocate memory.. maybe */
     ~MemoryView();
 
     MemoryView& swap(MemoryView& rhs) noexcept;
+
+    MemoryView& operator= (const MemoryView&) = delete;
 
     MemoryView& operator= (MemoryView&& rhs) noexcept {
         return swap(rhs);

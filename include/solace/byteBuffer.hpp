@@ -44,6 +44,8 @@ public:
 
 public:
 
+    ByteBuffer(const ByteBuffer& other) = delete;
+
     /**
      * Construct the byte buffer by moving content from the other buffer
      * @param other Other buffer to take over from
@@ -81,6 +83,8 @@ public:
         return *this;
     }
 
+
+    ByteBuffer& operator= (const ByteBuffer&) = delete;
 
     ByteBuffer& operator= (ByteBuffer&& rhs) noexcept {
         return swap(rhs);
