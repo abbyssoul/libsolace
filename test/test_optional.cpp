@@ -44,6 +44,7 @@ class TestOptional : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testOrElse);
         CPPUNIT_TEST(testMap);
         CPPUNIT_TEST(testFlatMap);
+        CPPUNIT_TEST(testFilter);
     CPPUNIT_TEST_SUITE_END();
 
 private:
@@ -304,6 +305,19 @@ public:
         CPPUNIT_ASSERT_EQUAL(42, v2.orElse(42));
     }
 
+    void testFilter() {
+        CPPUNIT_ASSERT(Optional<SomeTestType>::none()
+                        .filter([](const SomeTestType& t) { return t.x != 0;})
+                        .isNone());
+
+        CPPUNIT_ASSERT(Optional<int>::of(4412)
+                        .filter([](int t) { return t > 20;})
+                        .isSome());
+
+        CPPUNIT_ASSERT(Optional<SomeTestType>::of({32, 72.4f, "Test string"})
+                        .filter([](const SomeTestType& t) { return t.x != 0;})
+                        .isSome());
+    }
 };
 
 

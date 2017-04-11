@@ -37,13 +37,17 @@ namespace Solace {
 
 
 /** Optional monad
+ * One can think of optional as a list that contains at most 1 item but can be empty as well.
+ * This concept allows for a better expression of situation when value might not be present.
+ * That it why using Optional should be prefered to returning null.
+ *
  * Optional is a monad that represent a optionality of value returned by a function.
     Parameterized type: Optional<T>
     unit: Optional.of()
     bind: Optional.flatMap()
  */
 template<typename T>
-class Optional: public IComparable<Optional<T>> {
+class Optional {
 public:
     typedef T value_type;
 
@@ -64,9 +68,15 @@ public:
 public:
 
 
+    /**
+     * Construct an new empty optional value.
+     */
     Optional() : _state(::new (_stateBuffer.noneSpace) NoneState())
     {}
 
+    /**
+     * Construct an non-empty optional value moving value.
+     */
     Optional(T&& t) noexcept(std::is_nothrow_copy_constructible<T>::value)
         : _state(::new (_stateBuffer.someSpace) SomeState(std::move(t)))
     {}
@@ -127,23 +137,6 @@ public:
         return swap(rhs);
     }
 
-    bool equals(const Optional<T>& other) const noexcept override {
-
-        if (&other == this) {
-            return true;
-        }
-
-        if (isNone() && other.isNone()) {
-            return true;
-        }
-
-        if (isSome() && other.isSome()) {
-            return get() == other.get();
-        }
-
-        return false;
-    }
-
     explicit operator bool() const {
       return isSome();
     }
@@ -173,6 +166,13 @@ public:
     template <typename U>
     Optional<U> flatMap(const std::function<Optional<U> (const T&)>& f) const {
         return (isSome()) ? f(_state->ref()) : Optional<U>::none();
+    }
+
+    template <typename F>
+    Optional<T> filter(F predicate) const {
+        return (isSome())
+                ? (predicate(_state->ref()) ? *this : Optional<T>::none())
+                : Optional<T>::none();
     }
 
 protected:
@@ -296,6 +296,24 @@ public:
     }
 
 };
+
+
+template<typename T>
+bool operator == (const Optional<T>& a, const Optional<T>& b) {
+    if (&a == &b) {
+        return true;
+    }
+
+    if (a.isNone() && b.isNone()) {
+        return true;
+    }
+
+    if (a.isSome() && b.isSome()) {
+        return a.get() == b.get();
+    }
+
+    return false;
+}
 
 
 }  // namespace Solace

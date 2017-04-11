@@ -40,13 +40,19 @@ namespace Solace { namespace Framework {
 class Application {
 public:
 
+    Application(const Version& version): _version(version) {
+
+    }
+
     virtual ~Application() = default;
 
     /**
-     * Get Application version
-     * @return Build time version of this application
+     * Get Application's version
+     * @return Run-time version of the application
      */
-    virtual Version getVersion() const noexcept = 0;
+    virtual Version getVersion() const noexcept {
+        return _version;
+    }
 
     /**
      * Initialise application instance.
@@ -54,6 +60,7 @@ public:
      *
      * @param argc Number of command line options
      * @param argv Vector of command line arguments
+     *
      * @return Initialization result which can be either runnable action that resulted from given command line or
      * an error if application failed to initialized.
      */
@@ -66,6 +73,7 @@ public:
      *
      * @param argc Number of command line options
      * @param argv Vector of command line arguments
+     *
      * @return Initialization result which can be either runnable action that resulted from given command line or
      * an error if application failed to initialized.
      */
@@ -73,6 +81,8 @@ public:
         return init(argc, const_cast<const char**>(argv));
     }
 
+private:
+    const Solace::Version _version;
 };
 
 }  // End of namespace Framework

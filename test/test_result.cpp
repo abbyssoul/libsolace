@@ -48,6 +48,7 @@ class TestResult : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testThenChaining);
         CPPUNIT_TEST(testThenComposition);
         CPPUNIT_TEST(testTypeConvertion);
+        CPPUNIT_TEST(testMapError);
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -354,11 +355,11 @@ public:
     }
 
     void testThen() {
-        auto f = [](bool isOk) -> Result<int, float> {
+        auto f = [](bool isOk) -> Result<int, const char*> {
             if (isOk)
                 return Ok(42);
             else
-                return Err(240.f);
+                return Err("somthing wrong");
         };
 
         {  // Test that success handler is called on success
@@ -368,11 +369,6 @@ public:
                         thenValue = value;
 
                         return Ok<int>(998);
-                    })
-                    .orElse([&thenValue](const int& errCode) {
-                        thenValue = errCode;
-
-                        return -776;
                     })
                     .unwrap();
 
@@ -389,10 +385,10 @@ public:
 
                         return Ok<int>(-198);
                     })
-                    .orElse([&thenValue](int errCode) {
-                        thenValue = errCode;
+                    .orElse([&thenValue](const char*) {
+                        thenValue = 240;
 
-                        return -776;
+                        return Ok<int>(-776);
                     })
                     .unwrap();
 
@@ -426,7 +422,7 @@ public:
         auto stillNotGood = alsoNotGood.then([](int r) { return Ok<int>(r + 21); });
         CPPUNIT_ASSERT(stillNotGood.isError());
 
-        auto recovered = stillNotGood.orElse([](const SimpleType& x) { return x.x_ + 2; });
+        auto recovered = stillNotGood.orElse([](const SimpleType& x) { return Ok<int>(x.x_ + 2); });
 
         CPPUNIT_ASSERT(recovered.isOk());
         CPPUNIT_ASSERT_EQUAL(20, recovered.unwrap());
@@ -443,6 +439,25 @@ public:
 
         CPPUNIT_ASSERT(finalResult.isOk());
         CPPUNIT_ASSERT_EQUAL(42, finalResult.unwrap()());
+
+        auto sq =  [](int x) -> Result<int, int> { return Ok<int>(x * x); };
+        auto err = [](int x) -> Result<int, int> { return Err(x); };
+
+        const Result<int, int> ok2 = Ok(2);
+        const Result<int, int> err3 = Err(3);
+        CPPUNIT_ASSERT(Ok(2) == ok2.orElse(sq).orElse(sq));
+        CPPUNIT_ASSERT(Ok(2) == ok2.orElse(err).orElse(sq));
+        CPPUNIT_ASSERT(Ok(9) == err3.orElse(sq).orElse(err));
+        CPPUNIT_ASSERT(Err(3) == err3.orElse(err).orElse(err));
+    }
+
+
+    void testMapError() {
+        const Result<int, SimpleType> res = Err<SimpleType>({112});
+
+        CPPUNIT_ASSERT(Err<String>("Error is 112") == res.mapError([](const SimpleType& x){
+            return String("Error is ").concat(String::valueOf(x.x_));
+        }) );
     }
 };
 

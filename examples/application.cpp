@@ -32,14 +32,9 @@ using namespace Solace::Framework;
 
 class ExampleApp : public Application {
 public:
-    ExampleApp(const String& name) :
-        _version(1, 0, 0, "Demo"),
+    ExampleApp(const String& name) : Application(Version(1, 0, 0, "Demo")),
         _name(name)
     {}
-
-    Version getVersion() const noexcept override {
-        return _version;
-    }
 
     using Application::init;
 
@@ -54,9 +49,7 @@ public:
                     {'u', "name", "Name to call", &_name}
                 })
                 .parse(argc, argv)
-                .map([this](const CommandlineParser*) {
-                    return;
-                });
+                .map([](const CommandlineParser*) { return; });
     }
 
     Solace::Result<int, Solace::Error> run() {
@@ -74,7 +67,6 @@ public:
 
 private:
 
-    const Solace::Version _version;
     Solace::String _name;
 };
 
@@ -90,7 +82,7 @@ int main(int argc, char **argv) {
                     std::cerr << "Error: " << error << std::endl;
                 }
 
-                return EXIT_FAILURE;
+                return Ok(EXIT_FAILURE);
             })
             .unwrap();
 }

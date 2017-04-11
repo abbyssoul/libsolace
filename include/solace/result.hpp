@@ -259,13 +259,30 @@ public:
 
 
     template<typename F,
-             typename U = typename std::result_of<F(E)>::type>
+             typename U = typename std::result_of<F(E)>::type::value_type>
     Result<U, E> orElse(F f) const {
         if (isOk()) {
             return *this;
         }
 
-        return Ok<U>(f(getError()));
+        return f(getError());
+    }
+
+
+    /**
+     * Pass through a Ok result but applies a given function to an error value.
+     * This can be used to handle errors.
+     *
+     * @param f - An error mapping function to map Err value.
+     */
+    template<typename F,
+             typename U = typename std::result_of<F(E)>::type>
+    Result<V, U> mapError(F f) const {
+        if (isOk()) {
+            return Ok(unwrap());
+        }
+
+        return Err(f(getError()));
     }
 
 
@@ -316,9 +333,6 @@ public:
         return _state->isError();
     }
 
-
-//    template<typename U = V>
-//    typename std::enable_if<!std::is_same<U, void>::value, const U&>::type
     const V& unwrap() const {
         return _state->getResult();
     }
@@ -624,6 +638,26 @@ private:
 
 };
 
+
+template<typename V, typename E>
+bool operator == (const types::Ok<V>& okValue, const Result<V, E>& res) {
+    return res.isOk() && (res.unwrap() == okValue.val_);
+}
+
+template<typename V, typename E>
+bool operator == (const Result<V, E>& res, const types::Ok<V>& okValue) {
+    return res.isOk() && (res.unwrap() == okValue.val_);
+}
+
+template<typename V, typename E>
+bool operator == (const types::Err<E>& errValue, const Result<V, E>& res) {
+    return res.isError() && (res.getError() == errValue.val_);
+}
+
+template<typename V, typename E>
+bool operator == (const Result<V, E>& res, const types::Err<E>& errValue) {
+    return res.isError() && (res.getError() == errValue.val_);
+}
 
 }  // End of namespace Solace
 #endif  // SOLACE_RESULT_HPP
