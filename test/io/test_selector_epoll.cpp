@@ -23,6 +23,8 @@
 #include <solace/io/selector.hpp>  // Class being tested
 
 #include <solace/io/pipe.hpp>
+#include <solace/exception.hpp>
+
 #include <cppunit/extensions/HelperMacros.h>
 
 

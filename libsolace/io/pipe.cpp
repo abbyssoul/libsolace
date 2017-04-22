@@ -19,7 +19,7 @@
  *  Created by soultaker on 10/10/16.
 *******************************************************************************/
 #include <solace/io/pipe.hpp>
-#include <solace/io/ioexception.hpp>
+#include <solace/exception.hpp>
 
 
 #include <unistd.h>

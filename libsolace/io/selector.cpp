@@ -19,7 +19,7 @@
  *  Created by soultaker on 27/04/16.
 *******************************************************************************/
 #include <solace/io/selector.hpp>
-#include <solace/io/ioexception.hpp>
+#include <solace/exception.hpp>
 #include <solace/array.hpp>
 
 #include "selector_impl.hpp"

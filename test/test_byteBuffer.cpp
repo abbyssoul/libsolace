@@ -79,14 +79,30 @@ public:
     }
 
     void testWrite() {
-        byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
-
-        constexpr ByteBuffer::size_type testSize = sizeof(bytes);
+        constexpr ByteBuffer::size_type testSize = 7;
         ByteBuffer buffer(_memoryManager.create(testSize));
 
-        CPPUNIT_ASSERT_NO_THROW(buffer.write(bytes, sizeof(bytes)));
-        CPPUNIT_ASSERT_EQUAL(buffer.limit(), buffer.position());
+        {  // Happy path
+            byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
+
+            CPPUNIT_ASSERT_NO_THROW(buffer.write(bytes, sizeof(bytes)));
+            CPPUNIT_ASSERT_EQUAL(buffer.limit(), buffer.position());
+
+            buffer.rewind();
+        }
+
+        {  // Error cases
+            byte tracLoadOfData[] = {'a', 'b', 'c', 0, 'd', 'e', 'f', 'g'};
+            auto viewBytes = wrapMemory(tracLoadOfData);
+
+            // Attempt to write more bytes then fit into the dest buffer
+            CPPUNIT_ASSERT_THROW(buffer.write(viewBytes), OverflowException);
+
+            // Attempt to write more bytes then availible in the source buffer
+            CPPUNIT_ASSERT_THROW(buffer.write(viewBytes, 128), OverflowException);
+        }
     }
+
 
     void testGetByte() {
         byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};

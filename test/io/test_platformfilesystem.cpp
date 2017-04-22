@@ -23,7 +23,7 @@
 #include <solace/io/platformFilesystem.hpp>  // Class being tested
 
 #include <solace/memoryManager.hpp>
-#include <solace/io/ioexception.hpp>
+#include <solace/exception.hpp>
 #include <solace/uuid.hpp>
 
 #include <cppunit/extensions/HelperMacros.h>

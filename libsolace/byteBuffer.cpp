@@ -34,7 +34,7 @@ using Solace::ByteBuffer;
 
 
 ByteBuffer& ByteBuffer::limit(size_type newLimit) {
-    if (!(newLimit <= capacity())) {
+    if (capacity() < newLimit) {
         raise<IllegalArgumentException>("newLimit");
     }
 
@@ -45,7 +45,7 @@ ByteBuffer& ByteBuffer::limit(size_type newLimit) {
 
 
 ByteBuffer& ByteBuffer::position(size_type newPosition) {
-    if (!(newPosition <= limit())) {
+    if (limit() < newPosition) {
         raise<IllegalArgumentException>("newPosition");
     }
 
@@ -55,7 +55,7 @@ ByteBuffer& ByteBuffer::position(size_type newPosition) {
 }
 
 ByteBuffer& ByteBuffer::advance(size_type positionIncrement) {
-    if (!(position() + positionIncrement <= limit())) {
+    if (remaining() < positionIncrement) {
         raise<IllegalArgumentException>("positionIncrement");
     }
 
@@ -66,7 +66,7 @@ ByteBuffer& ByteBuffer::advance(size_type positionIncrement) {
 
 
 byte ByteBuffer::get() {
-    if ( !(_position + 1 <= _limit) ) {
+    if (remaining() < 1) {
         raise<OverflowException>(_position + 1, _position, _limit);
     }
 
@@ -74,7 +74,7 @@ byte ByteBuffer::get() {
 }
 
 byte ByteBuffer::get(size_type pos) const {
-    if ( !(pos < _limit) ) {
+    if (limit() <= pos) {
         raise<IllegalArgumentException>("pos");
     }
 
@@ -87,19 +87,12 @@ ByteBuffer& ByteBuffer::read(MemoryView& buffer, size_type bytesToRead) {
         raise<IllegalArgumentException>("bytesToRead");
     }
 
-    if ( !(_position + bytesToRead <= _limit) ) {
-        raise<OverflowException>(_position + bytesToRead, _position, _limit);
-    }
-
-    memcpy(buffer.dataAddress(), _storage.dataAddress(_position), bytesToRead);
-    _position += bytesToRead;
-
-    return (*this);
+    return read(buffer.dataAddress(), bytesToRead);
 }
 
 
 ByteBuffer& ByteBuffer::read(void* bytes, size_type count) {
-    if ( !(_position + count <= _limit) ) {
+    if (remaining() < count) {
         raise<OverflowException>(_position + count, _position, _limit);
     }
 
@@ -111,7 +104,7 @@ ByteBuffer& ByteBuffer::read(void* bytes, size_type count) {
 
 
 const ByteBuffer& ByteBuffer::read(size_type offset, byte* bytes, size_type count) const {
-    if ( !(offset + count <= _limit) ) {
+    if (_limit < (offset + count)) {
         raise<OverflowException>(offset + count, 0, _limit);
     }
 
@@ -131,11 +124,15 @@ const ByteBuffer& ByteBuffer::read(size_type offset, MemoryView* bytes) const {
 
 
 const ByteBuffer& ByteBuffer::read(size_type offset, MemoryView* bytes, size_type count) const {
-    if ( !(offset + count <= _limit) ) {
+    if (_limit < (offset + count)) {
         raise<OverflowException>(offset + count, 0, _limit);
     }
 
-    if ( !(bytes->size() < count) ) {
+    if (!bytes) {
+        raise<IllegalArgumentException>("bytes");
+    }
+
+    if (count < bytes->size()) {
         raise<OverflowException>(count, 0, bytes->size());
     }
 
@@ -145,29 +142,22 @@ const ByteBuffer& ByteBuffer::read(size_type offset, MemoryView* bytes, size_typ
 }
 
 
-ByteBuffer& ByteBuffer::write(const MemoryView& buffer, size_type bytesToWrite) {
-    if ( !(bytesToWrite <= remaining()) ) {
-         raise<OverflowException>(_position + bytesToWrite, _position, remaining());
+ByteBuffer& ByteBuffer::write(const MemoryView& src, size_type bytesToWrite) {
+    if (src.size() < bytesToWrite) {
+         raise<OverflowException>("bytesToWrite", bytesToWrite, 0, src.size());
     }
 
-    memcpy(_storage.dataAddress(_position), buffer.dataAddress(), bytesToWrite);
-    return advance(bytesToWrite);
+    return write(src.dataAddress(), bytesToWrite);
 }
 
 
 ByteBuffer& ByteBuffer::write(const byte* bytes, size_type count) {
-    if ( !(count <= remaining()) ) {
-         raise<OverflowException>(_position + count, _position, remaining());
-    }
-
-    memcpy(_storage.dataAddress(_position), bytes, count);
-
-    return advance(count);
+    return write(reinterpret_cast<const void*>(bytes), count);
 }
 
 
 ByteBuffer& ByteBuffer::write(const void* bytes, size_type count) {
-    if ( !(count <= remaining()) ) {
+    if (remaining() < count) {
          raise<OverflowException>(_position + count, _position, remaining());
     }
 

@@ -22,7 +22,7 @@
 *******************************************************************************/
 #include <solace/io/pipe.hpp>  // Class being tested
 
-#include <solace/io/ioexception.hpp>
+#include <solace/exception.hpp>
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <cstring>

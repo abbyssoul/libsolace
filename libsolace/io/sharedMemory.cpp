@@ -19,6 +19,7 @@
  *  Created by soultaker on 03/07/16.
 *******************************************************************************/
 #include <solace/io/sharedMemory.hpp>
+#include <solace/exception.hpp>
 
 
 #include <sys/mman.h>

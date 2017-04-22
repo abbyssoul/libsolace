@@ -146,6 +146,39 @@ public:
 };
 
 
+
+/**
+ * Exception during IO operations
+ */
+class IOException: public Exception {
+public:
+
+    IOException(int errorCode) noexcept;
+
+    IOException(int errorCode, const std::string& msg) noexcept;
+
+    IOException(const std::string& msg) noexcept;
+
+    virtual ~IOException() noexcept = default;
+
+    int getErrorCode() const noexcept {
+        return _errorCode;
+    }
+
+private:
+    int _errorCode;
+};
+
+
+/**
+ * Special case of IOException for attemping to access not yet opened file
+ */
+class NotOpen: public IOException {
+public:
+    NotOpen() noexcept;
+};
+
+
 template <typename ExceptionType, typename... Args>
 void raise(Args&&... args) {
     throw ExceptionType(std::forward<Args>(args)...);

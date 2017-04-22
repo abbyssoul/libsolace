@@ -19,9 +19,12 @@
  *  Created by soultaker on 01/10/16.
 *******************************************************************************/
 #include <solace/io/async/event.hpp>
+#include <solace/exception.hpp>
+
 
 #include <sys/eventfd.h>
 #include <unistd.h>
+
 
 using namespace Solace;
 using namespace Solace::IO;

@@ -25,7 +25,7 @@
 #define SOLACE_IO_SELECTOR_HPP
 
 #include "solace/io/selectable.hpp"
-#include "solace/io/ioexception.hpp"
+
 
 #include <memory>  // std::shared_ptr<>
 

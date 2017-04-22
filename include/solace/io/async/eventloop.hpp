@@ -97,7 +97,7 @@ public:
      *
      * @return True, if there are still more iteration to run
      */
-    bool iterate();
+    bool poll();
 
     void run();
 

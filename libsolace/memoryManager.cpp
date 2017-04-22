@@ -23,7 +23,6 @@
  ******************************************************************************/
 #include "solace/memoryManager.hpp"
 #include "solace/exception.hpp"
-#include "solace/io/ioexception.hpp"  // FIXME(abbyssoul): Errno should be a reg error
 
 
 #include <cstring>  // memcpy
@@ -35,7 +34,7 @@ using Solace::MemoryManager;
 
 using Solace::IllegalArgumentException;
 using Solace::OverflowException;
-using Solace::IO::IOException;
+using Solace::IOException;
 
 
 MemoryManager::MemoryManager(size_type allowedCapacity) :

@@ -19,7 +19,7 @@
  *  Created by soultaker on 03/06/16.
 *******************************************************************************/
 #include "solace/io/signalDispatcher.hpp"
-#include "solace/io/ioexception.hpp"
+#include "solace/exception.hpp"
 
 
 #include <map>

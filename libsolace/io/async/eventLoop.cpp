@@ -19,6 +19,8 @@
  *  Created by soultaker on 01/10/16.
 *******************************************************************************/
 #include <solace/io/async/eventloop.hpp>
+#include <solace/exception.hpp>
+
 
 #include <algorithm>
 #include <chrono>
@@ -104,6 +106,15 @@ void EventLoop::dispatchEvents(const Selector::Iterator& readyEvents) {
 
     _backlog.erase(std::remove_if(_backlog.begin(), _backlog.end(), [](auto r) { return r->isComplete();}),
                    _backlog.end());
+}
+
+
+bool EventLoop::poll() {
+    if (_keepOnRunning && !_backlog.empty()) {
+        dispatchEvents(_selector.poll(0));
+    }
+
+    return _keepOnRunning;
 }
 
 void EventLoop::run() {

@@ -30,7 +30,6 @@
 
 
 #include "solace/io/selectable.hpp"
-#include "solace/io/ioexception.hpp"
 
 
 namespace Solace { namespace IO {

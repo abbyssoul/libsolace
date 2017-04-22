@@ -19,7 +19,7 @@
  *  Created by soultaker on 10/10/16.
 *******************************************************************************/
 #include <solace/io/duplex.hpp>
-#include <solace/io/ioexception.hpp>
+
 
 
 using namespace Solace;

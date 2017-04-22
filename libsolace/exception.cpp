@@ -34,6 +34,26 @@ using Solace::IndexOutOfRangeException;
 using Solace::OverflowException;
 using Solace::NoSuchElementException;
 using Solace::InvalidMarkException;
+using Solace::IOException;
+using Solace::NotOpen;
+
+
+const char* IOExceptionType = "IOException";
+
+
+
+std::string formatErrono(int errorCode) {
+    const auto s = String::join(":", {IOExceptionType, String::valueOf(errorCode), strerror(errorCode)});
+
+    return s.to_str();
+}
+
+std::string formatErrono(int errorCode, const std::string& msg) {
+    const auto s = String::join(":", {IOExceptionType, String::valueOf(errorCode), msg, strerror(errorCode)});
+
+    return s.to_str();
+}
+
 
 
 
@@ -150,3 +170,29 @@ InvalidMarkException::InvalidMarkException() noexcept:
 {
     // Nothing else to do here
 }
+
+
+IOException::IOException(const std::string& msg) noexcept: Exception(msg), _errorCode(-1) {
+}
+
+
+IOException::IOException(int errorCode) noexcept:
+    Exception(formatErrono(errorCode)),
+    _errorCode(errorCode)
+{
+}
+
+
+IOException::IOException(int errorCode, const std::string& msg) noexcept:
+    Exception(formatErrono(errorCode, msg)),
+    _errorCode(errorCode)
+{
+}
+
+
+NotOpen::NotOpen() noexcept:
+    IOException("File descriptor not opened")
+{
+    // No-op
+}
+

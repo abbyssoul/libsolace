@@ -20,6 +20,7 @@
 *******************************************************************************/
 #include <solace/io/file.hpp>
 #include <solace/byteBuffer.hpp>
+#include <solace/exception.hpp>
 
 #include <memory>   // std::unique_ptr<>
 #include <cstring>  // memcpy (should review)
@@ -40,7 +41,7 @@ using Solace::IO::ISelectable;
 using Solace::IO::File;
 
 using Solace::IllegalArgumentException;
-using Solace::IO::IOException;
+using Solace::IOException;
 
 
 const ISelectable::poll_id ISelectable::InvalidFd = -1;

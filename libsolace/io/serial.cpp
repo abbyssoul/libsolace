@@ -39,7 +39,7 @@ using Solace::uint32;
 using Solace::Path;
 using Solace::ByteBuffer;
 using Solace::IO::Serial;
-using Solace::IO::IOException;
+using Solace::IOException;
 
 
 

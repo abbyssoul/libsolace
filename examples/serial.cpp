@@ -18,7 +18,9 @@
 #include <solace/io/selector.hpp>
 #include <solace/io/serial.hpp>
 #include <solace/version.hpp>
+#include <solace/exception.hpp>
 #include <solace/framework/commandlineParser.hpp>
+
 
 #include <iostream>
 
@@ -45,7 +47,7 @@ int main(int argc, const char **argv) {
 
     uint32 boudRate = 115200;
     uint32 bufferSize = 120;
-    String fileName;
+    Solace::Path file;
 
     const auto parseResult = CommandlineParser("Serial port example",
                         {
@@ -54,7 +56,12 @@ int main(int argc, const char **argv) {
                           {'b', "boudRate",     "COM port boud rate",   &boudRate},
                           {0,   "bufferSize",   "Read buffer size",     &bufferSize}
                         },
-                        {{ "fileName", "Name of the file/device to open", &fileName}}
+                        {{ "fileName", "Name of the file/device to open", [&file](CommandlineParser::Context& c) {
+                               file = Solace::Path::parse(c.value);
+
+                               return None();
+                           }
+                         }}
                       )
             .parse(argc, argv);
 
@@ -64,43 +71,50 @@ int main(int argc, const char **argv) {
         return EXIT_FAILURE;
     }
 
-    const auto file = Solace::Path::parse(fileName);
     std::cout << "Opening port: " << file << std::endl
-              << "boudrate: " << boudRate << std::endl
-              << "press ^C to quit" << std::endl;
+              << "boudrate: " << boudRate << std::endl;
 
-    Solace::MemoryManager memManager(2048);
+    try {
+        Solace::IO::Serial serial(file, boudRate);
 
-    Solace::ByteBuffer readBuffer(memManager.create(bufferSize));
-	Solace::IO::Serial serial(file, boudRate);
-    auto selector = Solace::IO::Selector::createEPoll(2);
-    selector.add(&serial,   Solace::IO::Selector::Events::Read ||
-                            Solace::IO::Selector::Events::Error);
+        std::cout << "press ^C to quit" << std::endl;
 
-    bool keepOnRunning = true;
-    while (keepOnRunning) {
-        for (auto event : selector.poll()) {
+        Solace::MemoryManager memManager(2048);
 
-            if (event.events & Solace::IO::Selector::Events::Read &&
-                event.data == &serial) {
-                const auto bytesRead = serial.read(readBuffer);
-                if (bytesRead) {
-                    auto dataView = readBuffer.viewWritten();
-                    std::cout.write(dataView.dataAs<const char>(), dataView.size());
-                    std::cout.flush();
+        Solace::ByteBuffer readBuffer(memManager.create(bufferSize));
+        auto selector = Solace::IO::Selector::createEPoll(2);
+        selector.add(&serial,   Solace::IO::Selector::Events::Read ||
+                                Solace::IO::Selector::Events::Error);
 
-                    readBuffer.rewind();
+        bool keepOnRunning = true;
+        while (keepOnRunning) {
+            for (auto event : selector.poll()) {
+
+                if (event.events & Solace::IO::Selector::Events::Read &&
+                    event.data == &serial) {
+                    const auto bytesRead = serial.read(readBuffer);
+                    if (bytesRead) {
+                        auto dataView = readBuffer.viewWritten();
+                        std::cout.write(dataView.dataAs<const char>(), dataView.size());
+                        std::cout.flush();
+
+                        readBuffer.rewind();
+                    } else {
+                        std::cout << "Serial was ready but no bytes read: " << bytesRead.getError() << ". Aborting." << std::endl;
+                        keepOnRunning = false;
+                    }
                 } else {
-                    std::cout << "Serial was ready but no bytes read: " << bytesRead.getError() << ". Aborting." << std::endl;
+                    std::cout << "Serial fid reported odd events: '" << event.events << "'. Aborting." << std::endl;
                     keepOnRunning = false;
                 }
-            } else {
-                std::cout << "Serial fid reported odd events: '" << event.events << "'. Aborting." << std::endl;
-                keepOnRunning = false;
             }
         }
+
+
+        return EXIT_SUCCESS;
+    } catch (IOException& e) {
+        std::cerr << e.toString() << std::endl;
+
+        return EXIT_FAILURE;
     }
-
-
-    return EXIT_SUCCESS;
 }

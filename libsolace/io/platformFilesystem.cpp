@@ -19,7 +19,7 @@
  *  Created by soultaker on 16/06/16.
 *******************************************************************************/
 #include "solace/io/platformFilesystem.hpp"
-#include "solace/io/ioexception.hpp"
+#include "solace/exception.hpp"
 
 
 #include <memory>   // std::unique_ptr<>

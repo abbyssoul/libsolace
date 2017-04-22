@@ -19,6 +19,7 @@
  *  Created by soultaker on 10/10/16.
 *******************************************************************************/
 #include <solace/io/async/signalSet.hpp>
+#include <solace/exception.hpp>
 
 
 #include <sys/signalfd.h>

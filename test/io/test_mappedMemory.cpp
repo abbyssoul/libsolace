@@ -22,7 +22,7 @@
 *******************************************************************************/
 #include <solace/io/mappedMemory.hpp>  // Class being tested
 
-#include <solace/io/ioexception.hpp>
+#include <solace/exception.hpp>
 #include <solace/string.hpp>
 #include <cppunit/extensions/HelperMacros.h>
 

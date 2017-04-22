@@ -19,7 +19,7 @@
  *  Created by soultaker on 03/07/16.
 *******************************************************************************/
 #include <solace/io/mappedMemory.hpp>
-#include <solace/io/ioexception.hpp>
+#include <solace/exception.hpp>
 
 
 #include <sys/mman.h>
@@ -31,7 +31,7 @@ using Solace::ByteBuffer;
 using Solace::IO::MappedMemoryView;
 
 using Solace::IllegalArgumentException;
-using Solace::IO::IOException;
+using Solace::IOException;
 
 
 const int MappedMemoryView::Protection::None = PROT_NONE;

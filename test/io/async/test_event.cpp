@@ -21,6 +21,7 @@
  * Created on: 10/10/2016
 *******************************************************************************/
 #include <solace/io/async/event.hpp>  // Class being tested
+#include <solace/exception.hpp>
 
 #include <cppunit/extensions/HelperMacros.h>
 

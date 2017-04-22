@@ -14,7 +14,6 @@ set(SOURCE_FILES
         path.cpp
         error.cpp
 
-        io/ioexception.cpp
         io/file.cpp
         io/duplex.cpp
         io/pipe.cpp

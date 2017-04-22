@@ -24,7 +24,8 @@
 
 #include <solace/uuid.hpp>
 #include <solace/io/file.hpp>
-#include <solace/io/ioexception.hpp>
+#include <solace/exception.hpp>
+
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <cstring>

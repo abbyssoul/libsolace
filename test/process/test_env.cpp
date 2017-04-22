@@ -22,7 +22,7 @@
 *******************************************************************************/
 #include <solace/process/env.hpp>  // Class being tested
 
-#include <solace/io/ioexception.hpp>
+#include <solace/exception.hpp>
 #include <solace/uuid.hpp>
 
 #include <cppunit/extensions/HelperMacros.h>
