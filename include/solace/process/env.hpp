@@ -32,13 +32,16 @@
 namespace Solace { namespace Process {
 
 /**
- * This class incapsulates access to runtime environment variable for the process.
+ * This class incapsulates access to the processes runtime environment variables.
  */
 class Env : public Iterable<Env, String> {
 public:
 
     typedef size_t size_type;
 
+    /**
+     * Object representing environment variable.
+     */
     struct Var {
         String name;
         String value;
@@ -52,8 +55,10 @@ public:
         {}
 
         Var& swap(Var& other) noexcept {
-            std::swap(name, other.name);
-            std::swap(value, other.value);
+            using std::swap;
+
+            swap(name, other.name);
+            swap(value, other.value);
 
             return *this;
         }
@@ -186,6 +191,12 @@ public:
     const Env& forEach(const std::function<void(const String&)> &f) const override;
 
 };
+
+
+inline void swap(Env::Var& lhs, Env::Var& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
 
 }  // End of namespace Process
 }  // End of namespace Solace

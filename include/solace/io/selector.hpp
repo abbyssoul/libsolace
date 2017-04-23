@@ -27,7 +27,7 @@
 #include "solace/io/selectable.hpp"
 
 
-#include <memory>  // std::shared_ptr<>
+#include <memory>       // std::shared_ptr<>
 
 
 namespace Solace { namespace IO {
@@ -93,9 +93,11 @@ public:
 
 
         Iterator& swap(Iterator& rhs) noexcept {
-            std::swap(_index, rhs._index);
-            std::swap(_size, rhs._size);
-            std::swap(_pimpl, rhs._pimpl);
+            using std::swap;
+
+            swap(_index, rhs._index);
+            swap(_size, rhs._size);
+            swap(_pimpl, rhs._pimpl);
 
             return *this;
         }
@@ -146,6 +148,24 @@ public:
 
     virtual ~Selector() = default;
 
+    Selector(const Selector& rhs) = delete;
+
+    Selector(Selector&& rhs) :
+        _pimpl(std::move(rhs._pimpl))
+    {}
+
+    Selector& swap(Selector& rhs) noexcept {
+        using std::swap;
+
+        swap(_pimpl, rhs._pimpl);
+
+        return (*this);
+    }
+
+    Selector& operator= (Selector&& rhs) noexcept {
+        return swap(rhs);
+    }
+
     //--------------------------------------------------------------------------
     // Pollable object management:
     //--------------------------------------------------------------------------
@@ -185,10 +205,15 @@ protected:
     Selector(std::shared_ptr<IPollerImpl>&& impl);
 
 private:
+
     std::shared_ptr<IPollerImpl> _pimpl;
 
 };
 
+
+inline void swap(Selector& lhs, Selector& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // End of namespace IO
 }  // End of namespace Solace

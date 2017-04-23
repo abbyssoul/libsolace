@@ -70,6 +70,17 @@ public:
 
 public:
 
+    ~EventLoop();
+
+    EventLoop(const EventLoop& rhs) = delete;
+
+    /**
+     * Construct a new event loop/io context using default selector for the platform
+     *
+     * @param backlogCapacity Maximum number of concurent request in flight.
+     */
+    EventLoop(uint32 backlogCapacity);
+
     /**
      * Construct a new event loop/io context.
      *
@@ -78,11 +89,14 @@ public:
      */
     EventLoop(uint32 backlogCapacity, Selector&& selector);
 
-    EventLoop(EventLoop&& rhs);
-    ~EventLoop();
+    //!< Move-construct an object
+    EventLoop(EventLoop&& rhs) noexcept;
 
-    EventLoop& operator= (EventLoop&& rhs);
-    EventLoop& swap(EventLoop& rhs);
+    EventLoop& swap(EventLoop& rhs) noexcept;
+
+    EventLoop& operator= (EventLoop&& rhs) noexcept {
+        return swap(rhs);
+    }
 
     Selector& getSelector() noexcept {
         return _selector;
@@ -130,6 +144,10 @@ private:
     Selector                                _selector;
 
 };
+
+inline void swap(Solace::IO::async::EventLoop& lhs, Solace::IO::async::EventLoop& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // End of namespace async
 }  // End of namespace IO

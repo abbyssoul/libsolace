@@ -281,6 +281,10 @@ private:
 };
 
 
+inline void swap(File& lhs, File& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
 }  // End of namespace IO
 }  // End of namespace Solace
 #endif  // SOLACE_IO_FILE_HPP

@@ -112,6 +112,7 @@ public:
         void stopParsing() noexcept {
             isStopRequired = true;
         }
+
     };
 
     /**
@@ -166,11 +167,12 @@ public:
         }
 
         Option& swap(Option& rhs) noexcept {
-            std::swap(_shortName, rhs._shortName);
-            std::swap(_longName, rhs._longName);
-            std::swap(_description, rhs._description);
-            std::swap(_callback, rhs._callback);
-            std::swap(_expectsArgument, rhs._expectsArgument);
+            using std::swap;
+            swap(_shortName, rhs._shortName);
+            swap(_longName, rhs._longName);
+            swap(_description, rhs._description);
+            swap(_callback, rhs._callback);
+            swap(_expectsArgument, rhs._expectsArgument);
 
             return (*this);
         }
@@ -288,10 +290,11 @@ public:
     }
 
     CommandlineParser& swap(CommandlineParser& rhs) noexcept {
-        std::swap(prefix, rhs.prefix);
-        std::swap(_description, rhs._description);
-        std::swap(_options, rhs._options);
-        std::swap(_arguments, rhs._arguments);
+        using std::swap;
+        swap(prefix, rhs.prefix);
+        swap(_description, rhs._description);
+        swap(_options, rhs._options);
+        swap(_arguments, rhs._arguments);
 
         return (*this);
     }
@@ -336,6 +339,21 @@ private:
     /// Mandatory arguments application requires.
     Array<Argument> _arguments;
 };
+
+
+
+
+inline void swap(CommandlineParser::Option& lhs, CommandlineParser::Option& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
+inline void swap(CommandlineParser::Argument& lhs, CommandlineParser::Argument& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
+inline void swap(CommandlineParser& lhs, CommandlineParser& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // End of namespace Framework
 }  // End of namespace Solace

@@ -462,6 +462,11 @@ inline bool operator< (const String& lhs, const String& rhs) {
 }
 
 
+inline void swap(String& lhs, String& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
+
 // FIXME: std dependence, used for Unit Testing only
 inline std::ostream& operator<<(std::ostream& ostr, const String& str) {
     return ostr << str.c_str();

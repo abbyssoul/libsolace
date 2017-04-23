@@ -41,6 +41,9 @@ public:
     typedef String::size_type	size_type;
 
 public:
+
+    virtual ~StringBuilder() = default;
+
     /** Initialize a new instance of StringBuilder with a given storage */
     StringBuilder(MemoryView&& buffer);
 
@@ -66,7 +69,19 @@ public:
     //!< Move construct string builder
     StringBuilder(StringBuilder&& s);
 
-	virtual ~StringBuilder() = default;
+    StringBuilder& swap(StringBuilder& rhs) noexcept {
+        using std::swap;
+
+        swap(_buffer, rhs._buffer);
+
+        return *this;
+    }
+
+    StringBuilder& operator= (const StringBuilder&) = delete;
+
+    StringBuilder& operator= (StringBuilder&& rhs) noexcept {
+        return swap(rhs);
+    }
 
 public:
 
@@ -150,6 +165,11 @@ private:
 
     ByteBuffer  _buffer;
 };
+
+
+inline void swap(StringBuilder& lhs, StringBuilder& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // namespace Solace
 #endif  // SOLACE_STRINGBUILDER_HPP

@@ -132,11 +132,13 @@ public:
     using IComparable::operator==;
 
 	Version& swap(Version& rhs) noexcept {
-        std::swap(majorNumber, rhs.majorNumber);
-        std::swap(minorNumber, rhs.minorNumber);
-        std::swap(patchNumber, rhs.patchNumber);
-        std::swap(preRelease, rhs.preRelease);
-        std::swap(build, rhs.build);
+        using std::swap;
+
+        swap(majorNumber, rhs.majorNumber);
+        swap(minorNumber, rhs.minorNumber);
+        swap(patchNumber, rhs.patchNumber);
+        swap(preRelease, rhs.preRelease);
+        swap(build, rhs.build);
 
         return (*this);
     }
@@ -158,6 +160,10 @@ public:
 
 Version getBuildVersion();
 
+
+inline void swap(Version& lhs, Version& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // namespace Solace
 #endif  // SOLACE_VERSION_HPP

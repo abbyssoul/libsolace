@@ -35,6 +35,11 @@ using namespace Solace::IO;
 using namespace Solace::IO::async;
 
 
+EventLoop::EventLoop(uint32 backlogCapacity) :
+    EventLoop(backlogCapacity, std::move(Selector::createEPoll(backlogCapacity)))
+{
+}
+
 
 EventLoop::EventLoop(uint32 backlogCapacity, Selector&& selector) :
     _keepOnRunning(true),
@@ -51,7 +56,7 @@ EventLoop::EventLoop(uint32 backlogCapacity, Selector&& selector) :
 }
 
 
-EventLoop::EventLoop(EventLoop&& rhs) :
+EventLoop::EventLoop(EventLoop&& rhs) noexcept :
     _keepOnRunning(rhs._keepOnRunning),
     _interruptFd(rhs._interruptFd),
     _backlog(std::move(rhs._backlog)),
@@ -72,6 +77,19 @@ EventLoop::~EventLoop() {
         _interruptFd = -1;
     }
 }
+
+
+EventLoop& EventLoop::swap(EventLoop& rhs) noexcept {
+    using std::swap;
+
+    swap(_keepOnRunning, rhs._keepOnRunning);
+    swap(_interruptFd, rhs._interruptFd);
+    swap(_backlog, rhs._backlog);
+    swap(_selector, rhs._selector);
+
+    return (*this);
+}
+
 
 void EventLoop::stop() {
     if (_keepOnRunning) {

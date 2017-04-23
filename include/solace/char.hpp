@@ -264,5 +264,10 @@ private:
 
 };
 
+
+inline void swap(Char& lhs, Char& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
 }  // End of namespace Solace
 #endif  // SOLACE_CHAR_HPP

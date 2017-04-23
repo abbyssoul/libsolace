@@ -149,5 +149,9 @@ private:
 
 };
 
+inline void swap(MemoryManager& lhs, MemoryManager& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
 }  // End of namespace Solace
 #endif  // SOLACE_MEMORYMANAGER_HPP

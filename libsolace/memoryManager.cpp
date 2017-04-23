@@ -51,9 +51,11 @@ MemoryManager::MemoryManager(size_type allowedCapacity) :
 
 
 MemoryManager& MemoryManager::swap(MemoryManager& rhs) noexcept {
-    std::swap(_capacity, rhs._capacity);
-    std::swap(_size, rhs._size);
-    std::swap(_isLocked, rhs._isLocked);
+    using std::swap;
+
+    swap(_capacity, rhs._capacity);
+    swap(_size, rhs._size);
+    swap(_isLocked, rhs._isLocked);
 
     return (*this);
 }

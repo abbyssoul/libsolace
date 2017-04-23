@@ -69,8 +69,9 @@ public:
     }
 
     Error& swap(Error& rhs) noexcept {
-        std::swap(_code, rhs._code);
-        std::swap(_message, rhs._message);
+        using std::swap;
+        swap(_code, rhs._code);
+        swap(_message, rhs._message);
 
         return (*this);
     }
@@ -88,6 +89,10 @@ private:
     int             _code;
     std::string     _message;		//!< Message of the exception.
 };
+
+inline void swap(Error& lhs, Error& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // End of namespace Solace
 #endif  // SOLACE_ERROR_HPP_

@@ -54,14 +54,14 @@ public:
 
 public:
 
+    /** Deallocate memory.. maybe */
+    ~MemoryView();
+
     MemoryView() noexcept;
 
     MemoryView(const MemoryView&) = delete;
 
     MemoryView(MemoryView&& rhs) noexcept;
-
-    /** Deallocate memory.. maybe */
-    ~MemoryView();
 
     MemoryView& swap(MemoryView& rhs) noexcept;
 

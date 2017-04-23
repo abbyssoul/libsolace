@@ -107,7 +107,8 @@ public:
 public:
 
     Array<T>& swap(Array<T>& rhs) noexcept {
-        std::swap(_storage, rhs._storage);
+        using std::swap;
+        swap(_storage, rhs._storage);
 
         return (*this);
     }
@@ -266,8 +267,13 @@ private:
     Storage _storage;
 };
 
-}  // End of namespace Solace
 
+template<typename T>
+void swap(Array<T>& lhs, Array<T>& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
+}  // End of namespace Solace
 
 // FIXME(abbyssoul): std dependence, used for Unit Testing only
 template <typename T>

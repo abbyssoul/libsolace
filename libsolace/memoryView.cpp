@@ -103,9 +103,11 @@ byte* MemoryView::dataAddress(size_type offset) const {
 
 
 MemoryView& MemoryView::swap(MemoryView& rhs) noexcept {
-    std::swap(_size, rhs._size);
-    std::swap(_dataAddress, rhs._dataAddress);
-    std::swap(_free, rhs._free);
+    using std::swap;
+
+    swap(_size, rhs._size);
+    swap(_dataAddress, rhs._dataAddress);
+    swap(_free, rhs._free);
 
     return (*this);
 }

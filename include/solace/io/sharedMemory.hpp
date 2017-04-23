@@ -222,6 +222,11 @@ private:
 };
 
 
+
+inline void swap(SharedMemory& lhs, SharedMemory& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
 }  // End of namespace IO
 }  // End of namespace Solace
 #endif  // SOLACE_IO_SHAREDMEMORY_HPP

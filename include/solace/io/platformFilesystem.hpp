@@ -75,7 +75,9 @@ public:
         }
 
         BufferedFile& swap(BufferedFile& rhs) noexcept {
-            std::swap(_fp, rhs._fp);
+            using std::swap;
+
+            swap(_fp, rhs._fp);
             File::swap(rhs);
 
             return *this;
@@ -210,6 +212,11 @@ public:
     void setWorkingDirectory(const Path& value);
 
 };
+
+inline void swap(PlatformFilesystem::BufferedFile& lhs, PlatformFilesystem::BufferedFile& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
 
 }  // End of namespace IO
 }  // End of namespace Solace

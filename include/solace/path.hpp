@@ -368,5 +368,10 @@ inline Path operator / (const Path& lhs, const String& rhs) {
     return Path::join(lhs, rhs);
 }
 
+
+inline void swap(Path& lhs, Path& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
 }  // namespace Solace
 #endif  // SOLACE_PATH_HPP

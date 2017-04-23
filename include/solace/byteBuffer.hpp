@@ -44,7 +44,14 @@ public:
 
 public:
 
+    /**
+     * Default destructor
+     */
+    ~ByteBuffer() = default;
+
+
     ByteBuffer(const ByteBuffer& other) = delete;
+
 
     /**
      * Construct the byte buffer by moving content from the other buffer
@@ -69,20 +76,14 @@ public:
     }
 
 
-    /**
-     * Default destructor
-     */
-    ~ByteBuffer() = default;
-
-
     ByteBuffer& swap(ByteBuffer& rhs) noexcept {
-        std::swap(_position, rhs._position);
-        std::swap(_limit, rhs._limit);
-        Solace::swap(_storage, rhs._storage);
+        using std::swap;
+        swap(_position, rhs._position);
+        swap(_limit, rhs._limit);
+        swap(_storage, rhs._storage);
 
         return *this;
     }
-
 
     ByteBuffer& operator= (const ByteBuffer&) = delete;
 
@@ -254,6 +255,10 @@ private:
 
     Storage             _storage;
 };
+
+inline void swap(ByteBuffer& lhs, ByteBuffer& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // End of namespace Solace
 #endif  // SOLACE_BYTEBUFFER_HPP

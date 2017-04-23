@@ -315,6 +315,11 @@ bool operator == (const Optional<T>& a, const Optional<T>& b) {
     return false;
 }
 
+template<typename T>
+void swap(Optional<T>& lhs, Optional<T>& rhs) noexcept {
+    lhs.swap(rhs);
+}
+
 
 }  // namespace Solace
 
