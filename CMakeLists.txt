@@ -7,7 +7,6 @@ include(CheckCXXCompilerFlag)
 # Custom build target to generate code coverage:
 # We probably don't want this to run on every build.
 option(COVERALLS "Generate coveralls data" OFF)
-option(COVERALLS_UPLOAD "Upload the generated coveralls json" ON)
 
 
 # libsolace requires at least C++14
@@ -67,21 +66,10 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG") # -fw
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
 
-
+# If generation of coverage information is required
 if (COVERALLS)
-    include(Coveralls)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0") # debug, no optimisation
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage") # enabling coverage
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fprofile-arcs -ftest-coverage")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -O0 -fprofile-arcs -ftest-coverage")
-
-    set(COVERAGE_SRCS awesome.c code.c files.c)
-
-    # Create the coveralls target.
-    coveralls_setup(
-        "${SOURCE_FILES}" # The source files.
-        ON                 # If we should upload.
-        "${PROJECT_SOURCE_DIR}/CMakeModules/") # (Optional) Alternate project cmake module path.
 endif()
 
 

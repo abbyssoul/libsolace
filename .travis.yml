@@ -38,8 +38,10 @@ addons:
 before_install:
   - pip install --user cpp-coveralls
   - pip install --user cpplint
+  - gem install coveralls-lcov
 install:
   - gcov --version
+  - lcov --version
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-4.9
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
   - sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 120 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-3.8
@@ -51,4 +53,7 @@ script:
   - make -j2 codecheck
   - make -j2 && make test && make verify
 after_success:
-  - coveralls --exclude build --exclude libs --exclude tests --gcov-options '\-lp'
+  - make clean && make build_coverage
+  - make test && make verify
+  - make coverage_report
+  - coveralls-lcov --repo-token ${COVERALLS_TOKEN} coverage.info # uploads to coveralls

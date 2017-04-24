@@ -27,7 +27,7 @@ TEST_TAGRET = $(BUILD_DIR)/$(TEST_DIR)/$(TESTNAME)
 DOC_DIR = doc
 DOC_TARGET = $(DOC_DIR)/html
 
-COVERAGE_REPORT = coverage.json
+COVERAGE_REPORT = coverage.info
 
 # First tagret that starts not with '.'' - is a default target to run
 .PHONY: codecheck verify ANALYZE_MAKE
@@ -52,6 +52,10 @@ debug: ${BUILD_DIR}
 	cd ${BUILD_DIR} && cmake -DCMAKE_BUILD_TYPE=Debug ..
 	$(MAKE) -C ${BUILD_DIR}
 
+${BUILD_DIR}/build_coverage: ${BUILD_DIR}
+	cd ${BUILD_DIR} && cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug ..
+	$(MAKE) -C ${BUILD_DIR}
+	$(shell touch ${BUILD_DIR}/build_coverage)
 
 #-------------------------------------------------------------------------------
 # Build the project
@@ -60,6 +64,9 @@ $(LIB_TAGRET): $(GENERATED_MAKE)
 	$(MAKE) -C ${BUILD_DIR} $(PROJECT)
 
 lib: $(LIB_TAGRET)
+
+# Build the project with coverage
+build_coverage: $(BUILD_DIR)/build_coverage
 
 #-------------------------------------------------------------------------------
 # Build unit tests
@@ -143,10 +150,18 @@ verify: $(TEST_TAGRET)
 	--tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --partial-loads-ok=no \
 	$(TEST_TAGRET)
 
-$(COVERAGE_REPORT):
-	coveralls --exclude build --exclude libs --exclude tests --gcov-options '\-lp' --dump $(COVERAGE_REPORT)
+
+$(COVERAGE_REPORT): $(BUILD_DIR)/build_coverage
+	# capture coverage info
+	lcov --directory . --capture --output-file $@
+	# filter out system and test code
+	lcov --remove coverage.info 'test/*' '/usr/*' --output-file $@
 
 coverage: $(COVERAGE_REPORT)
+
+
+coverage_report: $(COVERAGE_REPORT)
+	lcov --list $(COVERAGE_REPORT)
 
 
 #-------------------------------------------------------------------------------
@@ -186,4 +201,4 @@ debian-clean:
 
 .PHONY: clean
 clean:
-	$(RM) -rf $(DOC_TARGET) $(BUILD_DIR)
+	$(RM) -rf $(DOC_TARGET) $(BUILD_DIR) $(COVERAGE_REPORT)

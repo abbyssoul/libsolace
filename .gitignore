@@ -4,6 +4,7 @@ build/
 doc/html
 libs/*/
 tools/*/
+coverage.info
 
 ### C++/C ###
 # Compiled Object files
