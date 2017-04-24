@@ -155,7 +155,7 @@ $(COVERAGE_REPORT): $(BUILD_DIR)/build_coverage
 	# capture coverage info
 	lcov --directory . --capture --output-file $@
 	# filter out system and test code
-	lcov --remove coverage.info 'test/*' '/usr/*' --output-file $@
+	lcov --remove coverage.info 'test/*' '/usr/*' 'libs/*' --output-file $@
 
 coverage: $(COVERAGE_REPORT)
 
