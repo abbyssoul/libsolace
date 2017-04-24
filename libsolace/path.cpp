@@ -23,9 +23,8 @@
 #include "solace/exception.hpp"
 
 
-using Solace::Path;
-using Solace::String;
-using Solace::Array;
+using namespace Solace;
+
 
 const String Path::Delimiter("/");
 const String SelfRef(".");

@@ -39,6 +39,8 @@ class TestMemoryView: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testWrite);
         CPPUNIT_TEST(testWrapping);
         CPPUNIT_TEST(testDataAs);
+        CPPUNIT_TEST(testReadingPastTheSize);
+        CPPUNIT_TEST(testSlice);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -234,6 +236,15 @@ public:
         }
     }
 
+    void testReadingPastTheSize() {
+        byte src[15];
+
+        auto&& buffer = wrapMemory(src);
+        CPPUNIT_ASSERT_THROW(buffer[1042], IndexOutOfRangeException);
+        CPPUNIT_ASSERT_THROW(buffer.dataAddress(15), IndexOutOfRangeException);
+    }
+
+
     void testDataAs() {
         byte src[sizeof(SomePodType) + 5];
 
@@ -344,6 +355,28 @@ public:
             }
         }
     }
+
+    void testSlice() {
+        byte src[64];
+
+        byte i = 0;
+        for (auto& a : src) {
+            a = i++;
+        }
+
+        auto&& buffer = wrapMemory(src);
+
+        auto slice = buffer.slice(32, buffer.size());
+        CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(32), slice.size());
+        CPPUNIT_ASSERT_EQUAL(static_cast<byte>(32), slice[0]);
+        CPPUNIT_ASSERT_EQUAL(static_cast<byte>(63), slice[31]);
+
+        CPPUNIT_ASSERT_THROW(buffer.slice(120, 152), IndexOutOfRangeException);
+        CPPUNIT_ASSERT_THROW(buffer.slice(31, 18), IndexOutOfRangeException);
+        CPPUNIT_ASSERT_THROW(buffer.slice(31, 939), IndexOutOfRangeException);
+    }
+
+
 };
 
 

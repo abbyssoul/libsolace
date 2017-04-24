@@ -262,6 +262,13 @@ public:
 			CPPUNIT_ASSERT_EQUAL(source, result[0]);
 		}
 
+        {   // No splitting token in the string and wrong RegExp
+            auto result = source.split("1");
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(1), result.size());
+            CPPUNIT_ASSERT_EQUAL(source, result[0]);
+        }
+
         {   // No splitting token in the string
             auto result = String(":foo").split(":");
 
@@ -468,6 +475,7 @@ public:
 		const String overlong("Hello, world out there! And here!");
 
         CPPUNIT_ASSERT(!String::Empty.startsWith('H'));
+        CPPUNIT_ASSERT(!String::Empty.startsWith("Something"));
         CPPUNIT_ASSERT(!source.startsWith(String::Empty));
         CPPUNIT_ASSERT(source.startsWith('H'));
         CPPUNIT_ASSERT(source.startsWith(hello));
@@ -486,6 +494,7 @@ public:
 		const String overlong("Hello, world out there ! And here!");
 
         CPPUNIT_ASSERT(!String::Empty.endsWith('x'));
+        CPPUNIT_ASSERT(!String::Empty.endsWith("Something"));
         CPPUNIT_ASSERT(!source.endsWith(String::Empty));
         CPPUNIT_ASSERT(source.endsWith('!'));
         CPPUNIT_ASSERT(source.endsWith(source));

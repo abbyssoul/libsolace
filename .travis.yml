@@ -54,6 +54,5 @@ script:
   - make -j2 && make test && make verify
 after_success:
   - make clean && make build_coverage
-  - make test && make verify
-  - make coverage_report
+  - make test && make coverage_report
   - coveralls-lcov --repo-token ${COVERALLS_TOKEN} coverage.info # uploads to coveralls

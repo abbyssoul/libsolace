@@ -230,6 +230,11 @@ public:
 
         CPPUNIT_ASSERT_EQUAL(false, p1.contains(p3));
         CPPUNIT_ASSERT_EQUAL(false, p2.contains(p3));
+
+        // Shorter path can not contain a longer one!
+        CPPUNIT_ASSERT_EQUAL(false, p2.contains(p1));
+
+        CPPUNIT_ASSERT_EQUAL(false, p1.contains(Path({"1", "2", "5"})));
     }
 
     void testGetParent() {
