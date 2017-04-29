@@ -29,6 +29,7 @@ set(SOURCE_FILES
 
         io/async/eventLoop.cpp
         io/async/event.cpp
+        io/async/timer.cpp
         io/async/pipe.cpp
         io/async/serialChannel.cpp
         io/async/signalSet.cpp

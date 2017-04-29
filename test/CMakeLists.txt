@@ -37,6 +37,7 @@ set(TEST_SOURCE_FILES
         io/async/test_event.cpp
         io/async/test_pipe.cpp
         io/async/test_signalSet.cpp
+        io/async/test_timer.cpp
 
         process/test_env.cpp
         framework/test_commandlineParser.cpp

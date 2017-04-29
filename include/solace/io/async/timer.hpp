@@ -15,48 +15,61 @@
 */
 /*******************************************************************************
  * libSolace: Async event
- *	@file		solace/io/async/pipe.hpp
+ *	@file		solace/io/async/event.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_IO_ASYNC_PIPE_HPP
-#define SOLACE_IO_ASYNC_PIPE_HPP
+#ifndef SOLACE_IO_ASYNC_TIMER_HPP
+#define SOLACE_IO_ASYNC_TIMER_HPP
 
 
 #include "solace/io/selectable.hpp"
 #include "solace/io/async/asyncResult.hpp"
 #include "solace/io/async/channel.hpp"
 
-#include "solace/io/duplex.hpp"
+#include <chrono>
 
 
 namespace Solace { namespace IO { namespace async {
 
 /**
- * An async wrapper for the POSIX pipe
+ * An async wrapper for the POSIX eventFd
  */
-class Pipe : public Channel {
+class Timer :
+        public Channel {
 public:
 
-    ~Pipe();
+    using time_type = std::chrono::milliseconds;
 
-    Pipe(EventLoop& ioContext);
+public:
+    ~Timer();
 
-    Pipe(Pipe&& rhs);
+    Timer(EventLoop& ioContext);
 
-    Pipe& operator= (Pipe&& rhs);
+    Timer(EventLoop& ioContext, const time_type& d);
 
-    Result<void>& asyncRead(Solace::ByteBuffer& buffer);
-    Result<void>& asyncWrite(Solace::ByteBuffer& buffer);
+    Timer(Timer&& rhs);
+
+    Timer& operator= (Timer&& rhs);
+
+    Result<int64_t>& asyncWait();
+
+    Timer& setTimeout(const time_type& d);
+    Timer& setTimeoutInterval(const time_type& initialDelay, const time_type& period);
+
+    time_type getTimeout();
+
+    Timer& cancel();
 
 private:
 
-    Duplex  _duplex;
+    ISelectable::poll_id    _fd;
+
 };
 
 }  // End of namespace async
 }  // End of namespace IO
 }  // End of namespace Solace
-#endif  // SOLACE_IO_ASYNC_PIPE_HPP
+#endif  // SOLACE_IO_ASYNC_TIMER_HPP

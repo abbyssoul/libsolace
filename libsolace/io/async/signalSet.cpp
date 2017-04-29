@@ -99,7 +99,6 @@ SignalSet::SignalSet(SignalSet&& rhs):
 
 
 SignalSet::~SignalSet() {
-
     if (_fd != ISelectable::InvalidFd) {
         auto& iocontext = getIOContext();
         auto& selector = iocontext.getSelector();

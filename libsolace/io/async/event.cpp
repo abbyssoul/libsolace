@@ -93,7 +93,7 @@ Event::Event(Event&& rhs):
 
 Event::Event(EventLoop& ioContext) :
     Channel(ioContext),
-    _fd(eventfd(0, EFD_NONBLOCK))
+    _fd(eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC))
 {
     if (_fd < 0) {
         Solace::raise<IOException>(errno);

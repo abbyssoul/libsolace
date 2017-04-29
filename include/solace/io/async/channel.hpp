@@ -37,6 +37,9 @@ namespace Solace { namespace IO { namespace async {
  */
 class Channel {
 public:
+
+    virtual ~Channel() = default;
+
     Channel(EventLoop& ioContext) :
         _ioContext(&ioContext)
     {
@@ -47,8 +50,6 @@ public:
     Channel(Channel&& rhs) :
         _ioContext(&rhs.getIOContext())
     {}
-
-    virtual ~Channel() = default;
 
     Channel& operator= (Channel&& rhs) noexcept {
 //        _ioContext = std::move(rhs._ioContext);
