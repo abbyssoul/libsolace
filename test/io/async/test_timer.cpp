@@ -240,13 +240,13 @@ public:
 
             const auto timeout = timer.getTimeout();
             // Hopefully it's not flaky!
-            CPPUNIT_ASSERT(std::abs(timeout.count()) < 4L);
+            CPPUNIT_ASSERT(std::abs(timeout.count()) < 5L);
         });
 
         CPPUNIT_ASSERT_EQUAL(0, nbTimesCalled);
 
         const auto timeout = timer.getTimeout();
-        CPPUNIT_ASSERT(std::abs(timeout.count() - std::chrono::milliseconds(20).count()) < 5L);
+        CPPUNIT_ASSERT(std::abs(timeout.count() - std::chrono::milliseconds(20).count()) < 20L);
 
         std::thread watchdog([&iocontext]() {
             using namespace std::chrono_literals;
