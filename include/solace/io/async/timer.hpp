@@ -26,7 +26,7 @@
 
 
 #include "solace/io/selectable.hpp"
-#include "solace/io/async/asyncResult.hpp"
+#include "solace/io/async/future.hpp"
 #include "solace/io/async/channel.hpp"
 
 #include <chrono>
@@ -44,6 +44,7 @@ public:
     using time_type = std::chrono::milliseconds;
 
 public:
+
     ~Timer();
 
     Timer(EventLoop& ioContext);
@@ -52,9 +53,20 @@ public:
 
     Timer(Timer&& rhs);
 
-    Timer& operator= (Timer&& rhs);
+    Timer& operator= (Timer&& rhs) noexcept {
+        return swap(rhs);
+    }
 
-    Result<int64_t>& asyncWait();
+    Timer& swap(Timer& rhs) noexcept {
+        using std::swap;
+
+        Channel::swap(rhs);
+        swap(_fd, rhs._fd);
+
+        return *this;
+    }
+
+    Future<int64_t>& asyncWait();
 
     Timer& setTimeout(const time_type& d);
     Timer& setTimeoutInterval(const time_type& initialDelay, const time_type& period);
@@ -68,6 +80,11 @@ private:
     ISelectable::poll_id    _fd;
 
 };
+
+
+inline void swap(Timer& lhs, Timer& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // End of namespace async
 }  // End of namespace IO

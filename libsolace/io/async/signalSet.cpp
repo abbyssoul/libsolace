@@ -76,7 +76,7 @@ public:
        return (e.fd == _fd);
     }
 
-    Result<int>& promise() noexcept {
+    Future<int>& promise() noexcept {
         return _promise;
     }
 
@@ -86,7 +86,7 @@ private:
     bool                    _isComplete;
     const SignalSet*        _sigs;
 
-    Result<int>             _promise;
+    Future<int>             _promise;
 };
 
 
@@ -139,7 +139,7 @@ SignalSet::SignalSet(EventLoop& ioContext, std::initializer_list<int> sigs) :
 }
 
 
-Result<int>& SignalSet::asyncWait() {
+Future<int>& SignalSet::asyncWait() {
     auto& iocontext = getIOContext();
 
     auto request = std::make_shared<SignalReadRequest>(_fd, this);

@@ -80,14 +80,14 @@ public:
         return (e.fd == _fd);
      }
 
-     Result<int64_t>& promise() noexcept {
+     Future<int64_t>& promise() noexcept {
          return _promise;
      }
 
 private:
     ISelectable::poll_id    _fd;
     bool                    _isComplete;
-    Result<int64_t>         _promise;
+    Future<int64_t>         _promise;
 };
 
 
@@ -132,7 +132,7 @@ Timer::~Timer() {
 }
 
 
-Result<int64_t>& Timer::asyncWait() {
+Future<int64_t>& Timer::asyncWait() {
     auto& iocontext = getIOContext();
 
     // FIXME(abbyssoul): WTF?! Don't register fd with selector for each read/write!

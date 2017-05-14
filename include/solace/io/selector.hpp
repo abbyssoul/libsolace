@@ -24,8 +24,8 @@
 #ifndef SOLACE_IO_SELECTOR_HPP
 #define SOLACE_IO_SELECTOR_HPP
 
+#include "solace/types.hpp"
 #include "solace/io/selectable.hpp"
-
 
 #include <memory>       // std::shared_ptr<>
 
@@ -38,10 +38,22 @@ namespace Solace { namespace IO {
 class Selector {
 public:
     class IPollerImpl;
+    typedef uint32 size_type;
 
 
-    static Selector createEPoll(uint maxEvents);
-    static Selector createPoll(uint maxEvents);
+    /**
+     * Create a Selector that backed by native epoll system.
+     * @param maxEvents Maximun number of events expected at the same time.
+     * @return An instance of a selector object.
+     */
+    static Selector createEPoll(size_type maxEvents);
+
+    /**
+     * Create a Selector that backed by posix poll system-call.
+     * @param maxEvents Maximun number of events expected at the same time.
+     * @return An instance of a selector object.
+     */
+    static Selector createPoll(size_type maxEvents);
 
 
 public:
@@ -77,7 +89,7 @@ public:
 
     class Iterator {
     public:
-        Iterator(const std::shared_ptr<IPollerImpl>& p, uint index, uint size):
+        Iterator(const std::shared_ptr<IPollerImpl>& p, size_type index, size_type size):
             _index(index),
             _size(size),
             _pimpl(p)
@@ -137,8 +149,8 @@ public:
 
 
     private:
-        uint _index;
-        uint _size;
+        size_type _index;
+        size_type _size;
 
         std::shared_ptr<IPollerImpl> _pimpl;
     };

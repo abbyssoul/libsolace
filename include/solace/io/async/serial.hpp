@@ -27,7 +27,7 @@
 #include "solace/byteBuffer.hpp"
 #include "solace/io/serial.hpp"
 #include "solace/io/selectable.hpp"
-#include "solace/io/async/asyncResult.hpp"
+#include "solace/io/async/future.hpp"
 #include "solace/io/async/channel.hpp"
 
 
@@ -36,6 +36,8 @@ namespace Solace { namespace IO { namespace async {
 class SerialChannel :
         public Channel {
 public:
+
+    ~SerialChannel();
 
     SerialChannel(EventLoop& ioContext,
            const Path& file,
@@ -51,18 +53,32 @@ public:
         _serial(std::move(rhs._serial))
     {}
 
-    ~SerialChannel();
+    SerialChannel& operator= (SerialChannel&& rhs) noexcept {
+        return swap(rhs);
+    }
 
-    // TODO(abbyssoul): implementation
-    SerialChannel& operator = (SerialChannel&& rhs);
+    SerialChannel& swap(SerialChannel& rhs) noexcept {
+        using std::swap;
 
-    Result<void>& asyncRead(Solace::ByteBuffer& buffer);
-    Result<void>& asyncWrite(Solace::ByteBuffer& buffer);
+        Channel::swap(rhs);
+        swap(_serial, rhs._serial);
+
+        return *this;
+    }
+
+
+    Future<void>& asyncRead(Solace::ByteBuffer& buffer);
+    Future<void>& asyncWrite(Solace::ByteBuffer& buffer);
 
 private:
 
     Serial  _serial;
 };
+
+
+inline void swap(SerialChannel& lhs, SerialChannel& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // End of namespace async
 }  // End of namespace IO

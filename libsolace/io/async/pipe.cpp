@@ -81,7 +81,7 @@ public:
        return (e.fd == _fd.getSelectId());
     }
 
-    async::Result<void>& promise() noexcept {
+    async::Future<void>& promise() noexcept {
         return _promise;
     }
 
@@ -92,7 +92,7 @@ private:
     Selector::Events _direction;
 
     bool                    _isComplete;
-    async::Result<void>             _promise;
+    async::Future<void>             _promise;
 };
 
 
@@ -133,7 +133,7 @@ Pipe::Pipe(EventLoop& ioContext) :
 }
 
 
-async::Result<void>& Pipe::asyncRead(Solace::ByteBuffer& buffer) {
+async::Future<void>& Pipe::asyncRead(Solace::ByteBuffer& buffer) {
     auto& iocontext = getIOContext();
 
     auto request = std::make_shared<PipeRequest>(_duplex.getReadEnd(), buffer, Selector::Events::Read);
@@ -145,7 +145,7 @@ async::Result<void>& Pipe::asyncRead(Solace::ByteBuffer& buffer) {
 }
 
 
-async::Result<void>& Pipe::asyncWrite(Solace::ByteBuffer& buffer) {
+async::Future<void>& Pipe::asyncWrite(Solace::ByteBuffer& buffer) {
     auto& iocontext = getIOContext();
 
     auto request = std::make_shared<PipeRequest>(_duplex.getWriteEnd(), buffer, Selector::Events::Write);

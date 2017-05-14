@@ -27,7 +27,7 @@
 
 #include "solace/byteBuffer.hpp"
 #include "solace/io/selector.hpp"
-#include "solace/io/async/asyncResult.hpp"
+#include "solace/io/async/future.hpp"
 
 
 #include <memory>
@@ -46,6 +46,9 @@ namespace Solace { namespace IO { namespace async {
  */
 class EventLoop {
 public:
+
+    typedef Selector::size_type size_type;
+
 
     class Request {
     public:
@@ -79,7 +82,7 @@ public:
      *
      * @param backlogCapacity Maximum number of concurent request in flight.
      */
-    EventLoop(uint32 backlogCapacity);
+    EventLoop(size_type backlogCapacity);
 
     /**
      * Construct a new event loop/io context.
@@ -87,7 +90,7 @@ public:
      * @param backlogCapacity Maximum number of concurent request in flight.
      * @param selector Selector service to use to dispatch requests.
      */
-    EventLoop(uint32 backlogCapacity, Selector&& selector);
+    EventLoop(size_type backlogCapacity, Selector&& selector);
 
     //!< Move-construct an object
     EventLoop(EventLoop&& rhs) noexcept;

@@ -49,7 +49,8 @@ namespace Solace { namespace Framework {
             {
                 // Custom handler example:
                 CommandlineParser::printVersion("my_app", Version(1, 2, 3, "dev")),
-                CommandlineParser::printHelp("my application", Version(1, 2, 3, "dev")),
+                CommandlineParser::printHelp(),
+
                 // Regular argument of integal type
                 { 's', "size", "Buffer size", &settings.bufferSize },
                 { 'u', "userName", "User name", &settings.userName }
@@ -58,7 +59,6 @@ namespace Solace { namespace Framework {
                 // Mandatory arguments support:
                 { "Mandatory argument", &settings.param },
             })
-            .verion({1, 2, 18, "Dev"})
             .parse(argc, argv)
             .then(...consume parsing results...
                   ...handle errors...);

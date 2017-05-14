@@ -34,7 +34,7 @@ namespace Solace { namespace IO { namespace async {
  *
  * @example
  * \code{.cpp}
- * io_object.do_something_async.then([](auto value) {
+ * io_object.do_something_async().then([](auto value) {
  *      ...
  *      use the value when it become available
  *      ...
@@ -43,40 +43,46 @@ namespace Solace { namespace IO { namespace async {
  * \endcode
  */
 template <typename T>
-class Result {
+class Future {
 public:
 
-    Result() :
-        _handler()
+    typedef T value_type;
+
+public:
+
+    ~Future() = default;
+
+    Future(const Future& ) = delete;
+    Future& operator= (const Future& rhs) = delete;
+
+    Future() :
+        _completionHandler()
     {}
 
-    Result(Result&& rhs) :
-        _handler(std::move(rhs._handler))
+    Future(Future&& rhs) :
+        _completionHandler(std::move(rhs._handler))
     {}
 
-    ~Result() = default;
-
-//    template<typename T>
-//    typename std::result_of<T()>::type then(const T& handler);
-
-//    template<typename T>
-//    T then(const std::function<T()>& handler);
-
-    void then(const std::function<void(const T&)>& handler) {
-        _handler = handler;
+    /**
+     * FIXME(abbyssoul): then must return Future<std::result<F(value_type)>> to support chainning.
+     * Attach completion handler aka callback to this future to call when it's ready.
+     *
+     * @param completionHandler A completion handler to attach to this futuure.
+     */
+    void then(std::function<void(const T&)>&& completionHandler) {
+        _completionHandler = std::move(completionHandler);
     }
 
     // Resolve this future and call the handler.
     void resolve(const T& value) {
-        if (_handler) {
-            _handler(value);
+        if (_completionHandler) {
+            _completionHandler(value);
         }
     }
 
-
 private:
 
-    std::function<void(const T&)> _handler;
+    std::function<void(const T&)> _completionHandler;
 };
 
 
@@ -84,18 +90,24 @@ private:
  *
  */
 template <>
-class Result<void> {
+class Future<void> {
+public:
+    typedef void value_type;
+
 public:
 
-    Result() :
+    ~Future() = default;
+
+    Future(const Future& ) = delete;
+    Future& operator= (const Future& rhs) = delete;
+
+    Future() :
         _handler()
     {}
 
-    Result(Result&& rhs) :
+    Future(Future&& rhs) :
         _handler(std::move(rhs._handler))
     {}
-
-    ~Result() = default;
 
     void then(const std::function<void()>& handler) {
         _handler = handler;
@@ -115,6 +127,50 @@ private:
     std::function<void()> _handler;
 };
 
+
+/**
+ * Promise is the 'push' side of a future
+ */
+template<typename T>
+class Promise {
+public:
+    typedef T value_type;
+
+public:
+    ~Promise() = default;
+
+    Promise(const Promise& ) = delete;
+    Promise& operator= (const Promise& rhs) = delete;
+
+    /**
+     * Construct an empty promise
+     */
+    Promise();
+
+    /**
+     * Get future associated with this Promise.
+     * Note: this is mean to be called only once, thereafter
+     * an exception will be raised.
+     *
+     * @return A Future assocciated with this promise
+     */
+    Future<T> getFuture();
+
+    /**
+     * Resolve this promise with a value.
+     * (use perfect forwarding for both move and copy)
+    */
+    template <typename V>
+    void setValue(V&& value);
+
+    /**
+     * Resolve this promise with a call to a given function
+     * (use perfect forwarding for both move and copy)
+    */
+    template <typename F>
+    void setWith(F& func);
+
+};
 
 }  // End of namespace async
 }  // End of namespace IO

@@ -42,6 +42,7 @@ public:
     using IOObject::write;
 
 public:
+    ~Duplex();
 
     /**
      * Initialize a duplix aggregating two opened file descriptors
@@ -62,7 +63,30 @@ public:
         _out(std::move(rhs._out))
     {}
 
-    ~Duplex();
+
+    /**
+     * Move assignment operator
+     * @param rhs Other file to move data from
+     * @return reference to this
+     */
+    Duplex& operator= (Duplex&& rhs) noexcept {
+        return swap(rhs);
+    }
+
+    /**
+     * Swap content of this file with an other
+     * @param rhs A file handle to swap with
+     * @return Reference to this
+     */
+    Duplex& swap(Duplex& rhs) noexcept {
+        using std::swap;
+
+        swap(_in, rhs._in);
+        swap(_out, rhs._out);
+
+        return *this;
+    }
+
 
     // IOObject read/write interface
     IOObject::IOResult read(MemoryView& buffer) override {
@@ -101,6 +125,11 @@ private:
     File _in;
     File _out;
 };
+
+
+inline void swap(Duplex& lhs, Duplex& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // End of namespace IO
 }  // End of namespace Solace

@@ -25,7 +25,7 @@
 #define SOLACE_IO_ASYNC_SIGNALSET_HPP
 
 #include "solace/io/selectable.hpp"
-#include "solace/io/async/asyncResult.hpp"
+#include "solace/io/async/future.hpp"
 #include "solace/io/async/channel.hpp"
 
 
@@ -38,22 +38,37 @@ class SignalSet :
         public Channel {
 public:
 
+    ~SignalSet();
+
     SignalSet(EventLoop& ioContext, std::initializer_list<int> signal);
 
     SignalSet(SignalSet&& rhs);
 
-    SignalSet& operator = (SignalSet&& rhs);
+    SignalSet& operator= (SignalSet&& rhs) noexcept {
+        return swap(rhs);
+    }
 
-    ~SignalSet();
+    SignalSet& swap(SignalSet& rhs) noexcept {
+        using std::swap;
 
-    Result<int>& asyncWait();
+        Channel::swap(rhs);
+        swap(_fd, rhs._fd);
 
+        return *this;
+    }
+
+    Future<int>& asyncWait();
 
 private:
 
     ISelectable::poll_id    _fd;
 };
 
+
+
+inline void swap(SignalSet& lhs, SignalSet& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // End of namespace async
 }  // End of namespace IO

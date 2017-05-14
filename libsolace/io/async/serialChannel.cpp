@@ -60,7 +60,7 @@ public:
        return (e.data == &_selectable);
     }
 
-    async::Result<void>& promise() noexcept {
+    async::Future<void>& promise() noexcept {
         return _promise;
     }
 
@@ -73,11 +73,11 @@ private:
     Serial&         _selectable;
     ByteBuffer&     _buffer;
 
-    async::Result<void>    _promise;
+    async::Future<void>    _promise;
 };
 
 
-async::Result<void>& SerialChannel::asyncRead(Solace::ByteBuffer& buffer) {
+async::Future<void>& SerialChannel::asyncRead(Solace::ByteBuffer& buffer) {
     auto& iocontext = getIOContext();
 
     auto request = std::make_shared<SerialReadRequest>(_serial, buffer);

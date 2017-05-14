@@ -52,9 +52,11 @@ public:
     {}
 
     Channel& operator= (Channel&& rhs) noexcept {
-//        _ioContext = std::move(rhs._ioContext);
-        _ioContext = rhs._ioContext;
-//        rhs._ioContext = nullptr;
+        return swap(rhs);
+    }
+
+    Channel& swap(Channel& rhs) noexcept {
+        std::swap(_ioContext, rhs._ioContext);
 
         return *this;
     }
@@ -69,8 +71,13 @@ public:
 
 private:
 
-    Solace::IO::async::EventLoop*   _ioContext;
+    EventLoop*   _ioContext;
 };
+
+
+inline void swap(Channel& lhs, Channel& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // End of namespace async
 }  // End of namespace IO

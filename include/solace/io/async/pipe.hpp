@@ -26,7 +26,7 @@
 
 
 #include "solace/io/selectable.hpp"
-#include "solace/io/async/asyncResult.hpp"
+#include "solace/io/async/future.hpp"
 #include "solace/io/async/channel.hpp"
 
 #include "solace/io/duplex.hpp"
@@ -46,15 +46,32 @@ public:
 
     Pipe(Pipe&& rhs);
 
-    Pipe& operator= (Pipe&& rhs);
+    Pipe& operator= (Pipe&& rhs) noexcept {
+        return swap(rhs);
+    }
 
-    Result<void>& asyncRead(Solace::ByteBuffer& buffer);
-    Result<void>& asyncWrite(Solace::ByteBuffer& buffer);
+    Pipe& swap(Pipe& rhs) noexcept {
+        using std::swap;
+
+        Channel::swap(rhs);
+        swap(_duplex, rhs._duplex);
+
+        return *this;
+    }
+
+    async::Future<void>& asyncRead(Solace::ByteBuffer& buffer);
+    async::Future<void>& asyncWrite(Solace::ByteBuffer& buffer);
 
 private:
 
     Duplex  _duplex;
 };
+
+
+
+inline void swap(Pipe& lhs, Pipe& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // End of namespace async
 }  // End of namespace IO

@@ -71,7 +71,7 @@ public:
         return (e.fd == _fd);
      }
 
-     Result<void>& promise() noexcept {
+     Future<void>& promise() noexcept {
          return _promise;
      }
 
@@ -79,7 +79,7 @@ private:
     ISelectable::poll_id    _fd;
     bool                    _isComplete;
     const Event*            _event;
-    Result<void>            _promise;
+    Future<void>            _promise;
 };
 
 
@@ -119,7 +119,7 @@ Event::~Event() {
 }
 
 
-Result<void>& Event::asyncWait() {
+Future<void>& Event::asyncWait() {
     auto& iocontext = getIOContext();
 
     // FIXME(abbyssoul): WTF?! Don't register fd with selector for each read/write!
@@ -134,7 +134,7 @@ Result<void>& Event::asyncWait() {
 
 void Event::notify() {
 
-    auto result = eventfd_write(_fd, 1);
+    const auto result = eventfd_write(_fd, 1);
     if (result < 0) {
         raise<IOException>(errno);
     }

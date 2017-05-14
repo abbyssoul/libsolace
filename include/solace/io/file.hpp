@@ -143,6 +143,17 @@ public:
      */
 	virtual ~File();
 
+    File& operator= (const File&) = delete;
+
+
+    /**
+     * Move assignment operator
+     * @param rhs Other file to move data from
+     * @return reference to this
+     */
+    File& operator= (File&& rhs) noexcept {
+        return swap(rhs);
+    }
 
     /**
      * Swap content of this file with an other
@@ -153,17 +164,6 @@ public:
         std::swap(_fd, rhs._fd);
 
         return *this;
-    }
-
-    File& operator= (const File&) = delete;
-
-    /**
-     * Move assignment operator
-     * @param rhs Other file to move data from
-     * @return reference to this
-     */
-    File& operator= (File&& rhs) noexcept {
-        return swap(rhs);
     }
 
 

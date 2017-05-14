@@ -26,7 +26,7 @@
 
 
 #include "solace/io/selectable.hpp"
-#include "solace/io/async/asyncResult.hpp"
+#include "solace/io/async/future.hpp"
 #include "solace/io/async/channel.hpp"
 
 
@@ -39,15 +39,24 @@ class Event :
         public Channel {
 public:
 
+    ~Event();
+
     Event(EventLoop& ioContext);
 
     Event(Event&& rhs);
 
-    ~Event();
+    Event& operator= (Event&& rhs) noexcept {
+        return swap(rhs);
+    }
 
-    Event& operator = (Event&& rhs);
+    Event& swap(Event& rhs) noexcept {
+        Channel::swap(rhs);
+        std::swap(_fd, rhs._fd);
 
-    Result<void>& asyncWait();
+        return *this;
+    }
+
+    Future<void>& asyncWait();
 
     void notify();
 
@@ -55,6 +64,11 @@ private:
 
     ISelectable::poll_id    _fd;
 };
+
+
+inline void swap(Event& lhs, Event& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
 }  // End of namespace async
 }  // End of namespace IO
