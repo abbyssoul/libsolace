@@ -21,38 +21,30 @@
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_IO_ASYNC_PIPE_HPP
-#define SOLACE_IO_ASYNC_PIPE_HPP
-
+#ifndef SOLACE_IO_ASYNC_UNIXSOCKET_HPP
+#define SOLACE_IO_ASYNC_UNIXSOCKET_HPP
 
 #include "solace/io/selectable.hpp"
 #include "solace/io/async/future.hpp"
 #include "solace/io/async/channel.hpp"
 
-#include "solace/io/duplex.hpp"
-
 
 namespace Solace { namespace IO { namespace async {
 
-/**
- * An async wrapper for the POSIX pipe
- */
-class Pipe : public Channel {
+class UnixSocket: public Channel {
 public:
 
-    ~Pipe();
-    Pipe(const Pipe& rhs) = delete;
-    Pipe& operator= (const Pipe& rhs) = delete;
+    ~UnixSocket();
 
-    Pipe(EventLoop& ioContext);
+    UnixSocket(EventLoop& ioContext);
 
-    Pipe(Pipe&& rhs);
+    UnixSocket(UnixSocket&& rhs);
 
-    Pipe& operator= (Pipe&& rhs) noexcept {
+    UnixSocket& operator= (UnixSocket&& rhs) noexcept {
         return swap(rhs);
     }
 
-    Pipe& swap(Pipe& rhs) noexcept {
+    UnixSocket& UnixSocket(UnixSocket& rhs) noexcept {
         using std::swap;
 
         Channel::swap(rhs);
@@ -66,16 +58,15 @@ public:
 
 private:
 
-    Duplex  _duplex;
+    ISelectable::poll_id _fd;
 };
 
 
-
-inline void swap(Pipe& lhs, Pipe& rhs) noexcept {
+inline void swap(UnixSocket& lhs, UnixSocket& rhs) noexcept {
     lhs.swap(rhs);
 }
 
 }  // End of namespace async
 }  // End of namespace IO
 }  // End of namespace Solace
-#endif  // SOLACE_IO_ASYNC_PIPE_HPP
+#endif  // SOLACE_IO_ASYNC_UNIXSOCKET_HPP

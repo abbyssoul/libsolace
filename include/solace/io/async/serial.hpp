@@ -39,6 +39,9 @@ public:
 
     ~SerialChannel();
 
+    SerialChannel(const SerialChannel& rhs) = delete;
+    SerialChannel& operator= (const SerialChannel& rhs) = delete;
+
     SerialChannel(EventLoop& ioContext,
            const Path& file,
            uint32 baudrate = 9600,
@@ -46,7 +49,6 @@ public:
            Serial::Parity parity = Serial::Parity::none,
            Serial::Stopbits stopbits = Serial::Stopbits::one,
            Serial::Flowcontrol flowcontrol = Serial::Flowcontrol::none);
-
 
     SerialChannel(SerialChannel&& rhs):
         Channel(std::move(rhs)),

@@ -41,6 +41,9 @@ public:
 
     ~Event();
 
+    Event(const Event& rhs) = delete;
+    Event& operator= (const Event& rhs) = delete;
+
     Event(EventLoop& ioContext);
 
     Event(Event&& rhs);

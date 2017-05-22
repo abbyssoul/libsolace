@@ -44,6 +44,9 @@ public:
 public:
     ~Duplex();
 
+    Duplex(const Duplex& rhs) = delete;
+    Duplex& operator= (const Duplex& rhs) = delete;
+
     /**
      * Initialize a duplix aggregating two opened file descriptors
      * @param inFid File descriptor opened for read

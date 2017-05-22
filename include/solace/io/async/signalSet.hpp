@@ -39,6 +39,8 @@ class SignalSet :
 public:
 
     ~SignalSet();
+    SignalSet(const SignalSet& rhs) = delete;
+    SignalSet& operator= (const SignalSet& rhs) = delete;
 
     SignalSet(EventLoop& ioContext, std::initializer_list<int> signal);
 

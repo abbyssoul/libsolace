@@ -49,8 +49,12 @@ public:
      */
     ~ByteBuffer() = default;
 
+    ByteBuffer() noexcept {
+    }
+
 
     ByteBuffer(const ByteBuffer& other) = delete;
+    ByteBuffer& operator= (const ByteBuffer&) = delete;
 
 
     /**
@@ -85,7 +89,6 @@ public:
         return *this;
     }
 
-    ByteBuffer& operator= (const ByteBuffer&) = delete;
 
     ByteBuffer& operator= (ByteBuffer&& rhs) noexcept {
         return swap(rhs);
@@ -231,19 +234,26 @@ public:
     }
 
     ByteBuffer& operator<< (char c)     { return write(&c, sizeof(char)); }
-    ByteBuffer& operator<< (byte c)     { return write(&c, sizeof(byte)); }
     ByteBuffer& operator<< (int8 c)     { return write(&c, sizeof(int8)); }
+    ByteBuffer& operator<< (uint8 c)     { return write(&c, sizeof(uint8)); }
     ByteBuffer& operator<< (int16 c)    { return write(&c, sizeof(int16)); }
+    ByteBuffer& operator<< (uint16 c)    { return write(&c, sizeof(uint16)); }
     ByteBuffer& operator<< (int32 c)    { return write(&c, sizeof(int32)); }
+    ByteBuffer& operator<< (uint32 c)    { return write(&c, sizeof(uint32)); }
     ByteBuffer& operator<< (int64 c)    { return write(&c, sizeof(int64)); }
+    ByteBuffer& operator<< (uint64 c)    { return write(&c, sizeof(uint64)); }
     ByteBuffer& operator<< (float32 c)  { return write(&c, sizeof(float32)); }
     ByteBuffer& operator<< (float64 c)  { return write(&c, sizeof(float64)); }
 
     ByteBuffer& operator>> (char& c)     { return read(&c, sizeof(char)); }
     ByteBuffer& operator>> (int8& c)     { return read(&c, sizeof(int8)); }
+    ByteBuffer& operator>> (uint8& c)     { return read(&c, sizeof(uint8)); }
     ByteBuffer& operator>> (int16& c)    { return read(&c, sizeof(int16)); }
+    ByteBuffer& operator>> (uint16& c)    { return read(&c, sizeof(uint16)); }
     ByteBuffer& operator>> (int32& c)    { return read(&c, sizeof(int32)); }
+    ByteBuffer& operator>> (uint32& c)    { return read(&c, sizeof(uint32)); }
     ByteBuffer& operator>> (int64& c)    { return read(&c, sizeof(int64)); }
+    ByteBuffer& operator>> (uint64& c)    { return read(&c, sizeof(uint64)); }
     ByteBuffer& operator>> (float32& c)  { return read(&c, sizeof(float32)); }
     ByteBuffer& operator>> (float64& c)  { return read(&c, sizeof(float64)); }
 

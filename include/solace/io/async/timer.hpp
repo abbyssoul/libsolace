@@ -47,6 +47,9 @@ public:
 
     ~Timer();
 
+    Timer(const Timer& rhs) = delete;
+    Timer& operator= (const Timer& rhs) = delete;
+
     Timer(EventLoop& ioContext);
 
     Timer(EventLoop& ioContext, const time_type& d);
