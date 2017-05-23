@@ -37,6 +37,9 @@ namespace Solace { namespace IO { namespace async {
  */
 class Channel {
 public:
+    typedef EventLoop::size_type size_type;
+
+public:
 
     virtual ~Channel() = default;
 

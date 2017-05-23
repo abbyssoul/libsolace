@@ -38,6 +38,9 @@ namespace Solace { namespace IO { namespace async {
 class Event :
         public Channel {
 public:
+    using Channel::size_type;
+
+public:
 
     ~Event();
 

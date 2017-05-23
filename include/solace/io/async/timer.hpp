@@ -41,6 +41,7 @@ class Timer :
         public Channel {
 public:
 
+    using Channel::size_type;
     using time_type = std::chrono::milliseconds;
 
 public:

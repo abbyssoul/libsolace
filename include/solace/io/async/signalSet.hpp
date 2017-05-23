@@ -37,6 +37,9 @@ namespace Solace { namespace IO { namespace async {
 class SignalSet :
         public Channel {
 public:
+    using Channel::size_type;
+
+public:
 
     ~SignalSet();
     SignalSet(const SignalSet& rhs) = delete;

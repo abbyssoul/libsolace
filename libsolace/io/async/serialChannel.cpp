@@ -29,38 +29,59 @@ class SerialReadRequest :
         public EventLoop::Request {
 public:
 
-    SerialReadRequest(Serial& selectable, ByteBuffer& buffer) :
+    SerialReadRequest(Serial& selectable, ByteBuffer& buffer, SerialChannel::size_type size, Selector::Events dir) :
         Request(),
         _selectable(selectable),
-        _buffer(buffer)
+        _buffer(buffer),
+        _size(size),
+        _bytesPassed(0),
+        _direction(dir),
+        _isComplete(false)
     {}
 
     void onReady(const Selector::Event& event) override {
 
-        if (event.isSet(Selector::Events::Read)) {
-            const auto r = _selectable.read(_buffer);
-            if (r) {
-                _promise.resolve();
-            }
-        }
+        if (event.isSet(_direction)) {
+            if (_direction == Selector::Events::Read) {
+                const auto r = _selectable.read(_buffer, _size - _bytesPassed);
+                if (r) {
+                    _bytesPassed += r.unwrap();
+                    _isComplete = (_size >= _bytesPassed) || (r.unwrap() == 0);
 
-        if (event.isSet(Selector::Events::Write)) {
-            const auto r = _selectable.write(_buffer);
-            if (r) {
-                _promise.resolve();
+                    if (_isComplete) {
+                        _promise.resolve();
+                    }
+                }
+            }
+
+            if (_direction == Selector::Events::Write) {
+                const auto r = _selectable.write(_buffer, _size - _bytesPassed);
+                if (r) {
+                    _bytesPassed += r.unwrap();
+                    _isComplete = (_size >= _bytesPassed) || (r.unwrap() == 0);
+
+                    if (_isComplete) {
+                        _promise.resolve();
+                    }
+                }
             }
         }
 
         if (event.isSet(Selector::Events::Error)) {
+            _isComplete = true;
             // TODO(abbyssoul): _promise.error();
         }
+    }
+
+    bool isComplete() const noexcept override {
+        return _isComplete;
     }
 
     bool isAbout(const Selector::Event& e) const override {
        return (e.data == &_selectable);
     }
 
-    async::Future<void>& promise() noexcept {
+    Future<void>& promise() noexcept {
         return _promise;
     }
 
@@ -72,21 +93,14 @@ private:
 
     Serial&         _selectable;
     ByteBuffer&     _buffer;
+    SerialChannel::size_type     _size;
+    SerialChannel::size_type     _bytesPassed;
+    Selector::Events    _direction;
+    bool                    _isComplete;
 
-    async::Future<void>    _promise;
+    Future<void>    _promise;
 };
 
-
-async::Future<void>& SerialChannel::asyncRead(Solace::ByteBuffer& buffer) {
-    auto& iocontext = getIOContext();
-
-    auto request = std::make_shared<SerialReadRequest>(_serial, buffer);
-
-    // Promiss to call back once this request has been resolved
-    iocontext.submit(request);
-
-    return request->promise();
-}
 
 
 
@@ -110,4 +124,28 @@ SerialChannel::~SerialChannel() {
     auto& selector = iocontext.getSelector();
 
     selector.remove(_serial.getSelectId());
+}
+
+
+
+Future<void>& SerialChannel::asyncRead(Solace::ByteBuffer& buffer, size_type bytesToRead) {
+    auto& iocontext = getIOContext();
+
+    auto request = std::make_shared<SerialReadRequest>(_serial, buffer, bytesToRead, Selector::Events::Read);
+
+    // Promiss to call back once this request has been resolved
+    iocontext.submit(request);
+
+    return request->promise();
+}
+
+Future<void>& SerialChannel::asyncWrite(Solace::ByteBuffer& buffer, size_type bytesToWrite) {
+    auto& iocontext = getIOContext();
+
+    auto request = std::make_shared<SerialReadRequest>(_serial, buffer, bytesToWrite, Selector::Events::Write);
+
+    // Promiss to call back once this request has been resolved
+    iocontext.submit(request);
+
+    return request->promise();
 }

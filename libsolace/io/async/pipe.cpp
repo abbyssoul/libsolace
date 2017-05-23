@@ -36,10 +36,12 @@ using namespace Solace::IO::async;
 class PipeRequest : public EventLoop::Request {
 public:
 
-    explicit PipeRequest(File& fd, Solace::ByteBuffer& buffer, Selector::Events direction) :
+    explicit PipeRequest(File& fd, Solace::ByteBuffer& buffer, Pipe::size_type size, Selector::Events direction) :
         Request(),
         _fd(fd),
         _buffer(buffer),
+        _size(size),
+        _bytesPassed(0),
         _direction(direction),
         _isComplete(false)
     {}
@@ -50,18 +52,26 @@ public:
         if (event.isSet(_direction)) {
 
             if (_direction == Selector::Events::Read) {
-                const auto r = _fd.read(_buffer);
+                const auto r = _fd.read(_buffer, _size - _bytesPassed);
                 if (r) {
-                    _promise.resolve();
-                    _isComplete = !_buffer.hasRemaining();
+                    _bytesPassed += r.unwrap();
+                    _isComplete = (_size >= _bytesPassed) || (r.unwrap() == 0);
+
+                    if (_isComplete) {
+                        _promise.resolve();
+                    }
                 }
             }
 
             if (_direction == Selector::Events::Write) {
-                const auto r = _fd.write(_buffer);
+                const auto r = _fd.write(_buffer, _size - _bytesPassed);
                 if (r) {
-                    _promise.resolve();
-                    _isComplete = !_buffer.hasRemaining();
+                    _bytesPassed += r.unwrap();
+                    _isComplete = (_size >= _bytesPassed) || (r.unwrap() == 0);
+
+                    if (_isComplete) {
+                        _promise.resolve();
+                    }
                 }
             }
         }
@@ -81,18 +91,20 @@ public:
        return (e.fd == _fd.getSelectId());
     }
 
-    async::Future<void>& promise() noexcept {
+    Future<void>& promise() noexcept {
         return _promise;
     }
 
 private:
 
-    File&           _fd;
-    ByteBuffer&     _buffer;
-    Selector::Events _direction;
+    File&               _fd;
+    ByteBuffer&         _buffer;
+    Pipe::size_type     _size;
+    Pipe::size_type     _bytesPassed;
+    Selector::Events    _direction;
 
     bool                    _isComplete;
-    async::Future<void>             _promise;
+    Future<void>             _promise;
 };
 
 
@@ -133,10 +145,11 @@ Pipe::Pipe(EventLoop& ioContext) :
 }
 
 
-async::Future<void>& Pipe::asyncRead(Solace::ByteBuffer& buffer) {
+Future<void>&
+Pipe::asyncRead(ByteBuffer& dest, size_type bytesToRead) {
     auto& iocontext = getIOContext();
 
-    auto request = std::make_shared<PipeRequest>(_duplex.getReadEnd(), buffer, Selector::Events::Read);
+    auto request = std::make_shared<PipeRequest>(_duplex.getReadEnd(), dest, bytesToRead, Selector::Events::Read);
 
     // Promiss to call back once this request has been resolved
     iocontext.submit(request);
@@ -145,10 +158,11 @@ async::Future<void>& Pipe::asyncRead(Solace::ByteBuffer& buffer) {
 }
 
 
-async::Future<void>& Pipe::asyncWrite(Solace::ByteBuffer& buffer) {
+Future<void>&
+Pipe::asyncWrite(ByteBuffer& src, size_type bytesToWrite) {
     auto& iocontext = getIOContext();
 
-    auto request = std::make_shared<PipeRequest>(_duplex.getWriteEnd(), buffer, Selector::Events::Write);
+    auto request = std::make_shared<PipeRequest>(_duplex.getWriteEnd(), src, bytesToWrite, Selector::Events::Write);
 
     // Promiss to call back once this request has been resolved
     iocontext.submit(request);
