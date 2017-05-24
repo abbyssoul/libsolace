@@ -63,7 +63,7 @@ public:
      * @param dest The provided destination buffer to read data into.
      * @return A future that will be resolved one the buffer has been filled.
      */
-    async::Future<void>& asyncRead(Solace::ByteBuffer& dest) {
+    Future<void>& asyncRead(ByteBuffer& dest) {
         return asyncRead(dest, dest.remaining());
     }
 
@@ -76,7 +76,7 @@ public:
      *
      * @note If the provided destination buffer is too small to hold requested amount of data - an exception is raised.
      */
-    async::Future<void>& asyncRead(Solace::ByteBuffer& dest, size_type bytesToRead);
+    Future<void>& asyncRead(ByteBuffer& dest, size_type bytesToRead);
 
     /**
      * Post an async write request to write specified amount of data into this IO object.
@@ -85,7 +85,7 @@ public:
      * @param src The provided source buffer to read data from.
      * @return A future that will be resolved one the scpecified number of bytes has been written into the IO object.
      */
-    async::Future<void>& asyncWrite(Solace::ByteBuffer& src) {
+    Future<void>& asyncWrite(ByteBuffer& src) {
         return asyncWrite(src, src.remaining());
     }
 
@@ -98,8 +98,7 @@ public:
      *
      * @note If the provided source buffer does not have requested amount of data - an exception is raised.
      */
-    async::Future<void>& asyncWrite(Solace::ByteBuffer& src, size_type bytesToRead);
-
+    Future<void>& asyncWrite(ByteBuffer& src, size_type bytesToRead);
 
 private:
 

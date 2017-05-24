@@ -62,9 +62,9 @@ public:
      * @param other Other buffer to take over from
      */
     ByteBuffer(ByteBuffer&& other) :
-            _position(other._position),
-            _limit(other._limit),
-            _storage(std::move(other._storage))
+        _storage(std::move(other._storage)),
+        _position(other._position),
+        _limit(_storage.size())
     {
     }
 
@@ -73,18 +73,19 @@ public:
      * @param other Other buffer to copy data from
      */
     ByteBuffer(MemoryView&& memView) :
-            _position(0),
-            _limit(memView.size()),
-            _storage(std::move(memView))
+        _storage(std::move(memView)),
+        _position(0),
+        _limit(_storage.size())
     {
     }
 
 
     ByteBuffer& swap(ByteBuffer& rhs) noexcept {
         using std::swap;
+
+        swap(_storage, rhs._storage);
         swap(_position, rhs._position);
         swap(_limit, rhs._limit);
-        swap(_storage, rhs._storage);
 
         return *this;
     }
@@ -100,7 +101,7 @@ public:
      * @return True if position is zero and buffer has no data.
      */
     bool empty() const noexcept {
-        return _position == 0;
+        return (_position == 0);
     }
 
     /**
@@ -157,28 +158,47 @@ public:
      */
     ByteBuffer& limit(size_type newLimit);
 
-    size_type mark() const noexcept {
-        return _position;
-    }
-
     /**
      * Set position back to the previously saved mark
-     * TODO(abbyssoul): Don't store a mark internally, but make it a paramenter of this method
-     * @return Reference to this
+     * @return Reference to this buffer.
      */
     ByteBuffer& reset(size_type savedMark) {
         return position(savedMark);
     }
 
-
+    /**
+     * Get current position in the buffer.
+     * It can be stored to later return to it using @see reset
+     * @return Current position in the buffer
+     */
     size_type position() const noexcept { return _position; }
 
+    /**
+     * Set current position to the given one.
+     *
+     * @return Reference to this buffer for fluent interface.
+     * @note It is illigal to set position beyond the limit(), and exception will be raised in that case.
+     */
     ByteBuffer& position(size_type newPosition);
 
-    ByteBuffer& advance(size_type newPosition);
+    /**
+     * Increment current position by the given amount.
+     * @param increment Amount to advance current position by.
+     * @return Reference to this buffer for fluent interface.
+     * @note It is illigal to advance position beyond the limit(), and exception will be raised in that case.
+     */
+    ByteBuffer& advance(size_type increment);
 
+    /**
+     * Get remaining number of bytes in the buffer (Up to the limit)
+     * @return Remaining number of bytes in the buffer.
+     */
     size_type remaining() const noexcept { return limit() - position(); }
 
+    /**
+     * Check if there are bytes left in the buffer (Up to the limit)
+     * @return True if there are still some data before the limit is reached.
+     */
     bool hasRemaining() const noexcept { return remaining() > 0; }
 
     /**
@@ -195,11 +215,11 @@ public:
     byte get(size_type position) const;
 
     // Read content back
-    ByteBuffer& read(MemoryView& buffer)  {
-        return read(buffer, buffer.size());
+    ByteBuffer& read(MemoryView& from)  {
+        return read(from, from.size());
     }
 
-    ByteBuffer& read(MemoryView& buffer, ByteBuffer::size_type bytesToRead);
+    ByteBuffer& read(MemoryView& from, size_type bytesToRead);
 
     ByteBuffer& read(void* bytes, size_type count);
     ByteBuffer& read(byte* bytes, size_type count) {
@@ -209,20 +229,25 @@ public:
         return read(reinterpret_cast<void*>(bytes), count);
     }
     const ByteBuffer& read(size_type offset, byte* bytes, size_type count) const;
-    const ByteBuffer& read(size_type offset, MemoryView* bytes) const;
-    const ByteBuffer& read(size_type offset, MemoryView* bytes, size_type count) const;
-
-
-    ByteBuffer& write(const MemoryView& memView) {
-        return write(memView.dataAddress(), memView.size());
+    const ByteBuffer& read(size_type offset, MemoryView& from, size_type count) const;
+    const ByteBuffer& read(size_type offset, MemoryView& from) const  {
+        return read(offset, from, from.size());
     }
 
-    ByteBuffer& write(const MemoryView& buffer, size_type bytesToWrite);
+
+    ByteBuffer& write(const MemoryView& dest) {
+        return write(dest.dataAddress(), dest.size());
+    }
+
+    ByteBuffer& write(const MemoryView& dest, size_type bytesToWrite);
 
     ByteBuffer& write(const void* bytes, size_type count);
-    ByteBuffer& write(const byte* bytes, size_type count);
+    ByteBuffer& write(const byte* bytes, size_type count) {
+        return write(reinterpret_cast<const void*>(bytes), count);
+    }
+
     ByteBuffer& write(const char* bytes, size_type count) {
-        return write(reinterpret_cast<const byte*>(bytes), count);
+        return write(reinterpret_cast<const void*>(bytes), count);
     }
 
     MemoryView viewRemaining() const {
@@ -233,37 +258,38 @@ public:
         return _storage.slice(0, position());
     }
 
-    ByteBuffer& operator<< (char c)     { return write(&c, sizeof(char)); }
-    ByteBuffer& operator<< (int8 c)     { return write(&c, sizeof(int8)); }
-    ByteBuffer& operator<< (uint8 c)     { return write(&c, sizeof(uint8)); }
-    ByteBuffer& operator<< (int16 c)    { return write(&c, sizeof(int16)); }
-    ByteBuffer& operator<< (uint16 c)    { return write(&c, sizeof(uint16)); }
-    ByteBuffer& operator<< (int32 c)    { return write(&c, sizeof(int32)); }
-    ByteBuffer& operator<< (uint32 c)    { return write(&c, sizeof(uint32)); }
-    ByteBuffer& operator<< (int64 c)    { return write(&c, sizeof(int64)); }
-    ByteBuffer& operator<< (uint64 c)    { return write(&c, sizeof(uint64)); }
-    ByteBuffer& operator<< (float32 c)  { return write(&c, sizeof(float32)); }
-    ByteBuffer& operator<< (float64 c)  { return write(&c, sizeof(float64)); }
+    ByteBuffer& operator<< (char c)     { return write(&c, sizeof(char));   }
+    ByteBuffer& operator<< (int8 c)     { return write(&c, sizeof(int8));   }
+    ByteBuffer& operator<< (uint8 c)    { return write(&c, sizeof(uint8));  }
+    ByteBuffer& operator<< (int16 c)    { return write(&c, sizeof(int16));  }
+    ByteBuffer& operator<< (uint16 c)   { return write(&c, sizeof(uint16)); }
+    ByteBuffer& operator<< (int32 c)    { return write(&c, sizeof(int32));  }
+    ByteBuffer& operator<< (uint32 c)   { return write(&c, sizeof(uint32)); }
+    ByteBuffer& operator<< (int64 c)    { return write(&c, sizeof(int64));  }
+    ByteBuffer& operator<< (uint64 c)   { return write(&c, sizeof(uint64)); }
+    ByteBuffer& operator<< (float32 c)  { return write(&c, sizeof(float32));}
+    ByteBuffer& operator<< (float64 c)  { return write(&c, sizeof(float64));}
 
-    ByteBuffer& operator>> (char& c)     { return read(&c, sizeof(char)); }
-    ByteBuffer& operator>> (int8& c)     { return read(&c, sizeof(int8)); }
-    ByteBuffer& operator>> (uint8& c)     { return read(&c, sizeof(uint8)); }
-    ByteBuffer& operator>> (int16& c)    { return read(&c, sizeof(int16)); }
-    ByteBuffer& operator>> (uint16& c)    { return read(&c, sizeof(uint16)); }
-    ByteBuffer& operator>> (int32& c)    { return read(&c, sizeof(int32)); }
-    ByteBuffer& operator>> (uint32& c)    { return read(&c, sizeof(uint32)); }
-    ByteBuffer& operator>> (int64& c)    { return read(&c, sizeof(int64)); }
-    ByteBuffer& operator>> (uint64& c)    { return read(&c, sizeof(uint64)); }
+    ByteBuffer& operator>> (char& c)     { return read(&c, sizeof(char));   }
+    ByteBuffer& operator>> (int8& c)     { return read(&c, sizeof(int8));   }
+    ByteBuffer& operator>> (uint8& c)    { return read(&c, sizeof(uint8));  }
+    ByteBuffer& operator>> (int16& c)    { return read(&c, sizeof(int16));  }
+    ByteBuffer& operator>> (uint16& c)   { return read(&c, sizeof(uint16)); }
+    ByteBuffer& operator>> (int32& c)    { return read(&c, sizeof(int32));  }
+    ByteBuffer& operator>> (uint32& c)   { return read(&c, sizeof(uint32)); }
+    ByteBuffer& operator>> (int64& c)    { return read(&c, sizeof(int64));  }
+    ByteBuffer& operator>> (uint64& c)   { return read(&c, sizeof(uint64)); }
     ByteBuffer& operator>> (float32& c)  { return read(&c, sizeof(float32)); }
     ByteBuffer& operator>> (float64& c)  { return read(&c, sizeof(float64)); }
 
 
 private:
 
+    Storage             _storage;
+
     size_type           _position;
     size_type           _limit;
 
-    Storage             _storage;
 };
 
 inline void swap(ByteBuffer& lhs, ByteBuffer& rhs) noexcept {

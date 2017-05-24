@@ -64,7 +64,7 @@ public:
     {}
 
     /**
-     * FIXME(abbyssoul): then must return Future<std::result<F(value_type)>> to support chainning.
+     * FIXME(abbyssoul): then must return Future<std::result_of<F(value_type)>> to support chainning.
      * Attach completion handler aka callback to this future to call when it's ready.
      *
      * @param completionHandler A completion handler to attach to this futuure.

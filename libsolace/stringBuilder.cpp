@@ -106,7 +106,7 @@ Optional<StringBuilder::size_type> StringBuilder::indexOf(const Char& ch, size_t
 
 
     for (size_type i = fromIndex; i + ch.getBytesCount() < _buffer.position(); ++i) {
-        _buffer.read(i, &b, ch.getBytesCount());
+        _buffer.read(i, b, ch.getBytesCount());
 
         if (ch.equals(b)) {
             return Optional<size_type>::of(i);
