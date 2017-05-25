@@ -203,7 +203,7 @@ String String::concat(const char* str) const {
 
 String String::replace(const value_type& what, const value_type& with) const {
     std::string subject(_str);
-    size_t pos = 0;
+    std::string::size_type pos = 0;
 
     const Char::size_type whatSize = what.getBytesCount();
     const Char::size_type withSize = with.getBytesCount();
@@ -218,7 +218,7 @@ String String::replace(const value_type& what, const value_type& with) const {
 
 String String::replace(const String& what, const String& by) const {
     std::string subject(_str);
-    size_t pos = 0;
+    std::string::size_type pos = 0;
 
     while ((pos = subject.find(what._str, pos)) != std::string::npos) {
         subject.replace(pos, what._str.length(), by._str);

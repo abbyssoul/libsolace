@@ -108,10 +108,14 @@ private:
 };
 
 
-Pipe::Pipe(Pipe&& rhs):
-    Channel(std::move(rhs)),
-    _duplex(std::move(rhs._duplex))
-{
+Duplex createNonblockingPipe() {
+    int fds[2];
+    const auto r = pipe2(fds, O_NONBLOCK);
+    if (r < 0) {
+        Solace::raise<IOException>(errno, "pipe2");
+    }
+
+    return Duplex(fds[0], fds[1]);
 }
 
 
@@ -124,14 +128,10 @@ Pipe::~Pipe() {
 }
 
 
-Duplex createNonblockingPipe() {
-    int fds[2];
-    const auto r = pipe2(fds, O_NONBLOCK);
-    if (r < 0) {
-        Solace::raise<IOException>(errno, "pipe2");
-    }
-
-    return Duplex(fds[0], fds[1]);
+Pipe::Pipe(Pipe&& rhs):
+    Channel(std::move(rhs)),
+    _duplex(std::move(rhs._duplex))
+{
 }
 
 

@@ -28,6 +28,8 @@
 #include "solace/io/async/future.hpp"
 #include "solace/io/async/channel.hpp"
 
+#include "solace/string.hpp"
+
 
 namespace Solace { namespace IO { namespace async {
 
@@ -35,9 +37,14 @@ class UnixSocket: public Channel {
 public:
     using Channel::size_type;
 
+    typedef String endpoint_type;
+
 public:
 
     ~UnixSocket();
+
+    UnixSocket(const UnixSocket& rhs) = delete;
+    UnixSocket& operator= (const UnixSocket& rhs) = delete;
 
     UnixSocket(EventLoop& ioContext);
 
@@ -47,14 +54,29 @@ public:
         return swap(rhs);
     }
 
-    UnixSocket& UnixSocket(UnixSocket& rhs) noexcept {
+    UnixSocket& swap(UnixSocket& rhs) noexcept {
         using std::swap;
 
         Channel::swap(rhs);
-        swap(_duplex, rhs._duplex);
+        swap(_fd, rhs._fd);
 
         return *this;
     }
+
+
+    /**
+     * Start an syncronous connection to the given endpoint.
+     * This call will block until a connection is complete (either successfully or in an error)
+     * @param endpoint An endpoint to connect to.
+     */
+    void connect(const endpoint_type& endpoint);
+
+    /**
+     * Start an asynchronous connection to the given endpoint.
+     * @param endpoint An endpoint to connect to.
+     * @return Future that is resolved when connection is establised or an error occured.
+     */
+    Future<void>& asyncConnect(const endpoint_type& endpoint);
 
     /**
      * Post an async read request to read data from this IO object into the given buffer.

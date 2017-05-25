@@ -102,17 +102,6 @@ byte* MemoryView::dataAddress(size_type offset) const {
 }
 
 
-MemoryView& MemoryView::swap(MemoryView& rhs) noexcept {
-    using std::swap;
-
-    swap(_size, rhs._size);
-    swap(_dataAddress, rhs._dataAddress);
-    swap(_free, rhs._free);
-
-    return (*this);
-}
-
-
 MemoryView MemoryView::slice(size_type from, size_type to) const {
     if (from >= size()) {
         raise<IndexOutOfRangeException>("from", from, 0, size());

@@ -49,6 +49,7 @@ public:
      */
     ~ByteBuffer() = default;
 
+    /** Construct an empty buffer of size zero */
     ByteBuffer() noexcept {
     }
 

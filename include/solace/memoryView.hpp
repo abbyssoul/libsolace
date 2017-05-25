@@ -57,15 +57,24 @@ public:
     /** Deallocate memory.. maybe */
     ~MemoryView();
 
+    /** Construct an empty memory view */
     MemoryView() noexcept;
 
     MemoryView(const MemoryView&) = delete;
 
     MemoryView(MemoryView&& rhs) noexcept;
-
-    MemoryView& swap(MemoryView& rhs) noexcept;
-
     MemoryView& operator= (const MemoryView&) = delete;
+
+    MemoryView& swap(MemoryView& rhs) noexcept {
+        using std::swap;
+
+        swap(_size, rhs._size);
+        swap(_dataAddress, rhs._dataAddress);
+        swap(_free, rhs._free);
+
+        return (*this);
+    }
+
 
     MemoryView& operator= (MemoryView&& rhs) noexcept {
         return swap(rhs);
@@ -219,7 +228,6 @@ public:
 protected:
 
     MemoryView(size_type size, void* data, const std::function<void(MemoryView*)>& freeFunc);
-
 
 private:
 

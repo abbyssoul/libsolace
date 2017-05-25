@@ -33,6 +33,7 @@ set(SOURCE_FILES
         io/async/pipe.cpp
         io/async/serialChannel.cpp
         io/async/signalSet.cpp
+        io/async/unixSocket.cpp
 
         process/env.cpp
         framework/commandlineParser.cpp
