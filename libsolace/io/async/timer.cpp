@@ -36,7 +36,7 @@ class TimeEventReadRequest :
         public EventLoop::Request {
 public:
 
-    TimeEventReadRequest(ISelectable::poll_id fd) :
+    explicit TimeEventReadRequest(ISelectable::poll_id fd) :
         Request(),
         _fd(fd),
         _isComplete(false)
@@ -72,7 +72,7 @@ public:
         return ((newValue.it_interval.tv_sec != 0) || (newValue.it_interval.tv_nsec != 0));
     }
 
-    bool isComplete() const noexcept  {
+    bool isComplete() const noexcept override {
         return _isComplete;
     }
 

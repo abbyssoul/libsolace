@@ -32,7 +32,8 @@ using namespace Solace::Framework;
 
 class ExampleApp : public Application {
 public:
-    ExampleApp(const String& name) : Application(Version(1, 0, 0, "Demo")),
+
+    explicit ExampleApp(const String& name) : Application(Version(1, 0, 0, "Demo")),
         _name(name)
     {}
 

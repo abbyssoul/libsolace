@@ -181,8 +181,8 @@ public:
      */
     Result(Result&& rhs) noexcept :
         _state(rhs.isOk()
-               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.unwrap()))
-               : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(rhs.getError())))
+               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(std::move(rhs.unwrap())))
+               : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(std::move(rhs.getError()))))
     {
     }
 
@@ -333,11 +333,15 @@ public:
         return _state->isError();
     }
 
-    const V& unwrap() const {
+    const V& unwrap() const& {
         return _state->getResult();
     }
 
-    V& unwrap() {
+    V& unwrap() & {
+        return _state->getResult();
+    }
+
+    V& unwrap() && {
         return _state->getResult();
     }
 
@@ -364,8 +368,10 @@ private:
 
         T const* ptr_ref() const { return static_cast<T const*>(address()); }
         T *      ptr_ref()       { return static_cast<T *>     (address()); }
-        T const& ref() const { return *ptr_ref(); }
-        T &      ref()       { return *ptr_ref(); }
+        T const& ref() const&   { return *ptr_ref(); }
+
+        T&       ref() &        { return *ptr_ref(); }
+        T&&      ref() &&       { return std::move(*ptr_ref()); }
     };
 
 private:
@@ -377,8 +383,8 @@ private:
         virtual bool isOk() const = 0;
         virtual bool isError() const = 0;
 
-        virtual const V& getResult() const = 0;
-        virtual V&       getResult()       = 0;
+        virtual const V&  getResult() const = 0;
+        virtual V&        getResult()       = 0;
 
         virtual const E& getError() const = 0;
         virtual E&       getError()       = 0;

@@ -23,6 +23,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 
 
 using namespace Solace;
@@ -56,6 +57,19 @@ UnixSocket::UnixSocket(EventLoop& ioContext) :
     Channel(ioContext),
     _fd(createNonblockingSocket())
 {
-
 }
 
+void UnixSocket::connect(const endpoint_type& endpoint) {
+    sockaddr_un remote;
+    socklen_t nameBufferSize = sizeof(remote.sun_path);
+
+    remote.sun_family = AF_UNIX;
+    strncpy(remote.sun_path, endpoint.c_str(), nameBufferSize);
+
+    // It's safe size_t (64bit) to socklen_t (32 bit) conversion as len of sun_path is always less then max<size_t>
+    const socklen_t len = static_cast<socklen_t>(strlen(remote.sun_path)) + nameBufferSize;
+    const auto r = ::connect(_fd, reinterpret_cast<sockaddr*>(&remote), len);
+    if (r < 0) {
+        Solace::raise<IOException>(errno, "connect");
+    }
+}

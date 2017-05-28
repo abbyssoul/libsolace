@@ -49,6 +49,7 @@ class TestResult : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testThenComposition);
         CPPUNIT_TEST(testTypeConvertion);
         CPPUNIT_TEST(testMapError);
+        CPPUNIT_TEST(testMoveOnlyObjects);
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -62,6 +63,10 @@ public:
         float f;
 
         const char* somethingElse;
+
+        ~SomeTestType() {
+            --InstanceCount;
+        }
 
         SomeTestType(): x(), f(), somethingElse("THIS IS AN ERROR") {
             ++InstanceCount;
@@ -82,14 +87,18 @@ public:
             ++InstanceCount;
         }
 
-        ~SomeTestType() {
-            --InstanceCount;
-        }
-
-        SomeTestType& operator = (const SomeTestType& rhs) {
+        SomeTestType& operator= (const SomeTestType& rhs) {
             x = rhs.x;
             f = rhs.f;
             somethingElse = rhs.somethingElse;
+
+            return (*this);
+        }
+
+        SomeTestType& operator= (SomeTestType&& rhs) {
+            std::swap(x, rhs.x);
+            std::swap(f, rhs.f);
+            std::swap(somethingElse, rhs.somethingElse);
 
             return (*this);
         }
@@ -106,6 +115,10 @@ public:
     public:
         static int InstanceCount;
 
+        ~SimpleType() {
+            --InstanceCount;
+        }
+
         SimpleType(int x): x_(x) {
             ++InstanceCount;
         }
@@ -118,12 +131,14 @@ public:
             ++InstanceCount;
         }
 
-        ~SimpleType() {
-            --InstanceCount;
+        SimpleType& operator= (const SimpleType& rhs) {
+            x_ = rhs.x_;
+
+            return (*this);
         }
 
-        SimpleType& operator = (const SimpleType& rhs) {
-            x_ = rhs.x_;
+        SimpleType& operator= (SimpleType&& rhs) {
+            std::swap(x_, rhs.x_);
 
             return (*this);
         }
@@ -131,17 +146,49 @@ public:
         int x_;
     };
 
+
+    struct MoveOnlyType {
+        static int InstanceCount;
+
+        ~MoveOnlyType() {
+            --InstanceCount;
+        }
+
+        MoveOnlyType(int x): x_(x) {
+            ++InstanceCount;
+        }
+
+        MoveOnlyType(const MoveOnlyType& rhs) = delete;
+        MoveOnlyType& operator= (const MoveOnlyType& rhs) = delete;
+
+        MoveOnlyType(MoveOnlyType&& rhs): x_(rhs.x_) {
+            ++InstanceCount;
+        }
+
+        MoveOnlyType& operator= (MoveOnlyType&& rhs) {
+            x_ = rhs.x_;
+            rhs.x_ = -1;
+
+            return (*this);
+        }
+
+        int x_;
+    };
+
+
 public:
 
 
     void setUp() override {
         CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
         CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
+        CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
     }
 
     void tearDown() override {
         CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
         CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
+        CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
     }
 
     void testTypeConvertion() {
@@ -291,7 +338,7 @@ public:
         {
             auto mover = [] (bool isOk) -> Result<SimpleType, SomeTestType> {
                 if (isOk)
-                    return Ok<SimpleType>(321);
+                    return Ok<SimpleType>({321});
                 else
                     return Err<SomeTestType>({ 3, 2.3f, "Bad things happend" });
             };
@@ -459,6 +506,33 @@ public:
             return String("Error is ").concat(String::valueOf(x.x_));
         }) );
     }
+
+    void testMoveOnlyObjects() {
+        {
+            const Result<MoveOnlyType, SimpleType> res = Err<SimpleType>({112});
+            CPPUNIT_ASSERT(res.isError());
+        }
+
+        {
+            const Result<MoveOnlyType, SimpleType> res = [] () {
+                MoveOnlyType t(123);
+
+                return Ok(std::move(t));
+            } ();
+
+            CPPUNIT_ASSERT(res.isOk());
+        }
+
+        {
+            const Result<int, MoveOnlyType> res = [] () {
+                MoveOnlyType t(123);
+
+                return Err(std::move(t));
+            } ();
+
+            CPPUNIT_ASSERT(res.isError());
+        }
+    }
 };
 
 
@@ -468,6 +542,7 @@ std::ostream& operator<<(std::ostream& ostr, const TestResult::SomeTestType& t) 
 
 int TestResult::SomeTestType::InstanceCount = 0;
 int TestResult::SimpleType::InstanceCount = 0;
+int TestResult::MoveOnlyType::InstanceCount = 0;
 
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestResult);
