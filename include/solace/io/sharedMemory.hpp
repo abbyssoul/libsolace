@@ -92,8 +92,11 @@ public:
 
 public:
 
-    // Deleted as no point in copying shared memory handle.
+    /// Deleted as no point in copying shared memory handle.
     SharedMemory(const SharedMemory&) = delete;
+
+    /// Deleted copy-assingment to prevent copying of shared memory handle.
+    SharedMemory& operator= (const SharedMemory&) = delete;
 
     /**
      * Move construct this file object
@@ -113,12 +116,13 @@ public:
      * @return Reference to this
      */
     SharedMemory& swap(SharedMemory& rhs) noexcept {
-        std::swap(_fd, rhs._fd);
+        using std::swap;
+
+        swap(_fd, rhs._fd);
+        swap(_linkedPath, rhs._linkedPath);
 
         return *this;
     }
-
-    SharedMemory& operator= (const SharedMemory&) = delete;
 
     /**
      * Move assignment operator
@@ -200,6 +204,16 @@ protected:
      */
     SharedMemory(const poll_id fd) noexcept;
 
+    /**
+     * Create a shared memory object using file id
+     * This doesn't call 'open' on the file id provided
+     * as it is assumed that file already has been opened.
+     *
+     * @param fd - Id of the opened file.
+     * @param path Path to the shared memory object.
+     * Note in this form the object will be unlinked automatically when the object goes out of scope.
+     */
+    SharedMemory(const poll_id fd, const Path& path) noexcept;
 
     /**
      * Validate that file descriptor was opened and return it if it valid
@@ -219,6 +233,7 @@ protected:
 private:
 
     poll_id     _fd;
+    Path        _linkedPath;
 };
 
 

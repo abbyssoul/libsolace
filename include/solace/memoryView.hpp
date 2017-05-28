@@ -61,9 +61,9 @@ public:
     MemoryView() noexcept;
 
     MemoryView(const MemoryView&) = delete;
+    MemoryView& operator= (const MemoryView&) = delete;
 
     MemoryView(MemoryView&& rhs) noexcept;
-    MemoryView& operator= (const MemoryView&) = delete;
 
     MemoryView& swap(MemoryView& rhs) noexcept {
         using std::swap;

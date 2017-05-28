@@ -84,6 +84,7 @@ public:
         bool isChild = false;
         {
             auto mem = SharedMemory::create(Path("/somename"), memSize);
+            CPPUNIT_ASSERT(mem);
 
             auto view = mem.map(MappedMemoryView::Access::Shared);
             CPPUNIT_ASSERT_EQUAL(memSize, mem.size());
@@ -96,15 +97,19 @@ public:
                 return;
 
             case 0: {                     /* Child: increment shared integer and exit */
+                CPPUNIT_ASSERT_EQUAL(memSize, mem.size());
+                CPPUNIT_ASSERT_EQUAL(memSize, view.size());
+
                 isChild = true;
                 ByteBuffer sb(view.viewShallow());
                 sb << getpid();
                 sb.write("child", 5);
+
             } break;
 
             default: {  /* Parent: wait for child to terminate */
-                if (wait(nullptr) == -1) {
-                    const auto msg = String::join(": ", {"wait", strerror(errno)});
+                if (waitpid(childPid, nullptr, 0) == -1) {
+                    const auto msg = String::join(": ", {"waitpid", strerror(errno)});
                     CPPUNIT_FAIL(msg.c_str());
                 }
 
@@ -126,7 +131,6 @@ public:
 
         if (isChild) {
             throw InterruptTest();
-//            exit(EXIT_SUCCESS);
         }
     }
 

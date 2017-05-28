@@ -32,14 +32,29 @@ using namespace Solace;
 using namespace Solace::IO;
 
 
+static constexpr size_t NAME_MAX = 255;
 
-SharedMemory::SharedMemory(const poll_id fd) noexcept : _fd(fd)
+
+SharedMemory::SharedMemory(const poll_id fd) noexcept :
+    _fd(fd),
+    _linkedPath()
 {
 
 }
 
 
-SharedMemory::SharedMemory(SharedMemory&& other): _fd(other._fd) {
+SharedMemory::SharedMemory(const poll_id fd, const Path& path) noexcept :
+    _fd(fd),
+    _linkedPath(path)
+{
+
+}
+
+
+SharedMemory::SharedMemory(SharedMemory&& other):
+    _fd(other._fd),
+    _linkedPath(std::move(other._linkedPath))
+{
     other.invalidateFd();
 
     // Note: It's ok if we have moved content from a closed file to have this->_fd == InvalidFd
@@ -51,6 +66,11 @@ SharedMemory::~SharedMemory() {
 
     if (isOpened()) {
         close();
+    }
+
+    if (_linkedPath) {
+        // Unlinking quietly - if the file has been unlinked alredy - we don't care.
+        shm_unlink(_linkedPath.toString().c_str());
     }
 }
 
@@ -71,8 +91,6 @@ bool SharedMemory::isOpened() const {
 bool SharedMemory::isClosed() const {
     return (_fd == File::InvalidFd);
 }
-
-
 
 
 void SharedMemory::close() {
@@ -119,6 +137,10 @@ SharedMemory SharedMemory::create(const Path& pathname, size_type memSize, File:
         raise<IOException>("Invalid size");
     }
 
+    if (pathname.length() >= NAME_MAX) {
+        raise<IOException>("Name too long");
+    }
+
     int oflags = 0;
     switch (mode) {
     case File::AccessMode::ReadOnly:
@@ -145,11 +167,15 @@ SharedMemory SharedMemory::create(const Path& pathname, size_type memSize, File:
         raise<IOException>(errno, "ftruncate");
     }
 
-    return { fd };
+    return { fd, pathname };
 }
 
 
 SharedMemory SharedMemory::open(const Path& pathname, File::AccessMode mode) {
+    if (pathname.length() >= NAME_MAX) {
+        raise<IOException>("Name too long");
+    }
+
     int oflags = 0;
     switch (mode) {
     case File::AccessMode::ReadOnly:

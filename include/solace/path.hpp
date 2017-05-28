@@ -105,6 +105,8 @@ public:  // Static methods
 
 public:  // Object construction
 
+    virtual ~Path() noexcept = default;
+
 	/** Construct an empty path */
     Path(): _components() {
         // No-op
@@ -157,8 +159,6 @@ public:  // Object construction
         // No-op
     }
 
-	virtual ~Path() noexcept = default;
-
 public:  // Operation
 
     Path& swap(Path& rhs) noexcept {
@@ -167,18 +167,31 @@ public:  // Operation
         return (*this);
     }
 
+    /**
+     * Move assignement.
+     * @param rhs An object to move content from.
+     * @return A reference to this.
+     */
     Path& operator= (Path&& rhs) noexcept {
         return swap(rhs);
     }
 
-    /** Test if the path is empty
+    /** Test if the path is empty.
      *
      * Path is empty only when it has no components.
-     * @return True if the path object is empty
+     * @return True if the path object is empty.
      */
     bool empty() const noexcept {
         return _components.empty();
     }
+
+    /** Test if path is not empty.
+     * @return True if this path is not an empty object.
+     */
+    explicit operator bool() const {
+      return !empty();
+    }
+
 
     /**
      * Test if the path is absolute.

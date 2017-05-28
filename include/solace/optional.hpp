@@ -137,7 +137,7 @@ public:
         return swap(rhs);
     }
 
-    explicit operator bool() const {
+    explicit operator bool() const noexcept {
       return isSome();
     }
 
