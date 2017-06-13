@@ -26,6 +26,7 @@
 #include <cmath>
 
 #include <cppunit/extensions/HelperMacros.h>
+#include "mockTypes.hpp"
 
 
 using namespace Solace;
@@ -45,11 +46,12 @@ class TestOptional : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testMap);
         CPPUNIT_TEST(testFlatMap);
         CPPUNIT_TEST(testFilter);
+        CPPUNIT_TEST(testMoveOnlyResult);
     CPPUNIT_TEST_SUITE_END();
 
 private:
 public:
-
+/*
     class SomeTestType {
     public:
         static int InstanceCount;
@@ -97,17 +99,16 @@ public:
                     somethingElse == rhs.somethingElse;
         }
     };
-
+*/
     void setUp() override {
-        CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
     }
 
     void tearDown() override {
-        CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
     }
 
     void testConstructionIntegrals() {
-
         {
             {
                 const Optional<int> v;
@@ -143,17 +144,17 @@ public:
         return Optional<String>::of(str);
     }
 
-    SomeTestType moveSomeTestType(int x, float y, const char* z) {
-        return SomeTestType{x, y, z};
+    SimpleType moveSimpleType(int x, int y, int z) {
+        return SimpleType{x, y, z};
     }
 
     void testConstruction() {
         {
-            const Optional<SomeTestType> v;
+            const Optional<SimpleType> v;
             CPPUNIT_ASSERT(v.isNone());
 
-            SomeTestType t(1, 32.1f, "Xuy");
-            auto v2 = Optional<SomeTestType>::of(t);
+            SimpleType t(1, -32, 3);
+            auto v2 = Optional<SimpleType>::of(t);
             CPPUNIT_ASSERT(v2.isSome());
         }
 
@@ -184,31 +185,31 @@ public:
 
     void testAssignment() {
         {
-            auto v1 = Optional<SomeTestType>::none();
-            auto v2 = Optional<SomeTestType>::of(SomeTestType(3, 2.718f, "Test value"));
+            auto v1 = Optional<SimpleType>::none();
+            auto v2 = Optional<SimpleType>::of({3, 2, -123});
 
             CPPUNIT_ASSERT(v1.isNone());
-            CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
             v1 = v2;
-            CPPUNIT_ASSERT_EQUAL(2, SomeTestType::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(2, SimpleType::InstanceCount);
             CPPUNIT_ASSERT(v1.isSome());
-            v2 = Optional<SomeTestType>::none();
-            CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
+            v2 = Optional<SimpleType>::none();
+            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
             v1 = v2;
-            CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
         }
 
-        CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
         {
-            auto v2 = Optional<SomeTestType>::of(moveSomeTestType(3, 2.718f, "Test value"));
-            Optional<SomeTestType> v1 = None();
+            auto v2 = Optional<SimpleType>::of(moveSimpleType(3, 2718, 321));
+            Optional<SimpleType> v1 = None();
 
             CPPUNIT_ASSERT(v1.isNone());
-            CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
             v1 = v2;
-            CPPUNIT_ASSERT_EQUAL(2, SomeTestType::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(2, SimpleType::InstanceCount);
         }
-        CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
     }
 
     /**
@@ -220,7 +221,7 @@ public:
         CPPUNIT_ASSERT(v1.isNone());
         CPPUNIT_ASSERT(!v1.isSome());
 
-        auto v2 = Optional<SomeTestType>::none();
+        auto v2 = Optional<SimpleType>::none();
 
         CPPUNIT_ASSERT(v2.isNone());
         CPPUNIT_ASSERT(!v2.isSome());
@@ -244,11 +245,11 @@ public:
     }
 
     void testOrElse() {
-        const SomeTestType test(2, 0.0f, "hello");
-        const SomeTestType testElse(321, -1.0f, "world");
+        const SimpleType test(2, 0.0f, 2);
+        const SimpleType testElse(321, -1, 5);
 
-        auto v1 = Optional<SomeTestType>::of(test);
-        auto v2 = Optional<SomeTestType>::none();
+        auto v1 = Optional<SimpleType>::of(test);
+        auto v2 = Optional<SimpleType>::none();
 
         CPPUNIT_ASSERT(v1.isSome());
         CPPUNIT_ASSERT(v2.isNone());
@@ -258,20 +259,20 @@ public:
     }
 
     void testMap() {
-        SomeTestType test(32, 2.4f, "Test string");
+        SimpleType test(32, 24, -3212);
 
-        auto f = [&test](const int& content) -> SomeTestType {
-            return SomeTestType(test.x * content, test.f, test.somethingElse);
+        auto f = [&test](const int& content) -> SimpleType {
+            return SimpleType(test.x * content, test.y, test.z);
         };
 
         // Test mapping using lambda
         const auto v1 = Optional<int>::of(18)
                                         .map(f);
         CPPUNIT_ASSERT(v1.isSome());
-        CPPUNIT_ASSERT_EQUAL(SomeTestType(test.x * 18, test.f, test.somethingElse), v1.get());
+        CPPUNIT_ASSERT_EQUAL(SimpleType(test.x * 18, test.y, test.z), v1.get());
 
-        const auto v2 = Optional<SomeTestType>::none()
-                                        .map([](const SomeTestType& value) {
+        const auto v2 = Optional<SimpleType>::none()
+                                        .map([](const SimpleType& value) {
                                             return value.x;
                                         });
 
@@ -286,19 +287,19 @@ public:
     }
 
     void testFlatMap() {
-        SomeTestType test(32, 72.4f, "Test string");
+        SimpleType test(32, 72, -312);
 
-        auto f = [](const SomeTestType& content) {
+        auto f = [](const SimpleType& content) {
             return Optional<int>::of(content.x * 2);
         };
 
-        const auto v1 = Optional<SomeTestType>::of(test)
+        const auto v1 = Optional<SimpleType>::of(test)
                 .flatMap<int>(f);
 
         CPPUNIT_ASSERT(v1.isSome());
         CPPUNIT_ASSERT_EQUAL(test.x*2, v1.get());
 
-        const auto v2 = Optional<SomeTestType>::none()
+        const auto v2 = Optional<SimpleType>::none()
                 .flatMap<int>(f);
 
         CPPUNIT_ASSERT(v2.isNone());
@@ -306,25 +307,31 @@ public:
     }
 
     void testFilter() {
-        CPPUNIT_ASSERT(Optional<SomeTestType>::none()
-                        .filter([](const SomeTestType& t) { return t.x != 0;})
+        CPPUNIT_ASSERT(Optional<SimpleType>::none()
+                        .filter([](const SimpleType& t) { return t.x != 0;})
                         .isNone());
 
         CPPUNIT_ASSERT(Optional<int>::of(4412)
                         .filter([](int t) { return t > 20;})
                         .isSome());
 
-        CPPUNIT_ASSERT(Optional<SomeTestType>::of({32, 72.4f, "Test string"})
-                        .filter([](const SomeTestType& t) { return t.x != 0;})
+        CPPUNIT_ASSERT(Optional<SimpleType>::of({32, 72, -858})
+                        .filter([](const SimpleType& t) { return t.x != 0;})
                         .isSome());
+    }
+
+    void testMoveOnlyResult() {
+        /*
+        CPPUNIT_ASSERT(Optional<MoveOnlyType>::none().isNone());
+
+        Optional<MoveOnlyType> r =  [] (int v) {
+            return MoveOnlyType(v);
+        } (321);
+
+        CPPUNIT_ASSERT(r.isSome());
+        CPPUNIT_ASSERT_EQUAL(321, r.get().x_);*/
     }
 };
 
-
-std::ostream& operator<<(std::ostream& ostr, const TestOptional::SomeTestType& t) {
-    return ostr << "SomeTestType(" << t.x << ", " << t.f << ", \"" << t.somethingElse << "\"";
-}
-
-int TestOptional::SomeTestType::InstanceCount = 0;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestOptional);

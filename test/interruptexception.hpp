@@ -13,9 +13,10 @@
 *  See the License for the specific language governing permissions and
 *  limitations under the License.
 */
-#ifndef TEST_INTERRUPTEXCEPTION_HPP_
-#define TEST_INTERRUPTEXCEPTION_HPP_
+#pragma once
+#ifndef SOLACE_TEST_INTERRUPTEXCEPTION_HPP_
+#define SOLACE_TEST_INTERRUPTEXCEPTION_HPP_
 
 class InterruptTest {};
 
-#endif  // TEST_INTERRUPTEXCEPTION_HPP_
+#endif  // SOLACE_TEST_INTERRUPTEXCEPTION_HPP_

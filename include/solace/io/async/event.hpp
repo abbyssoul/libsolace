@@ -62,7 +62,7 @@ public:
         return *this;
     }
 
-    Future<void>& asyncWait();
+    Future<void> asyncWait();
 
     void notify();
 

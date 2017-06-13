@@ -73,8 +73,7 @@ public:
      * @param str A string representation of the UUID to parse
      * @return Parsed UUID object
      *
-     * TODO:
-     *  * Should return Result<Path, ParseError>
+     * TODO: Parse family of functions should return Result<UUID, ParseError>
      */
     static UUID parse(const String& str);
 

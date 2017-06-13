@@ -52,7 +52,7 @@ public:
                 raise<IOException>(errno);
             } else {
                 _isComplete = true;
-                _promise.resolve();
+                _promise.setValue();
             }
         }
 
@@ -71,15 +71,15 @@ public:
         return (e.fd == _fd);
      }
 
-     Future<void>& promise() noexcept {
-         return _promise;
+     Future<void> promise() noexcept {
+         return _promise.getFuture();
      }
 
 private:
     ISelectable::poll_id    _fd;
     bool                    _isComplete;
     const Event*            _event;
-    Future<void>            _promise;
+    Promise<void>           _promise;
 };
 
 
@@ -119,7 +119,7 @@ Event::~Event() {
 }
 
 
-Future<void>& Event::asyncWait() {
+Future<void> Event::asyncWait() {
     auto& iocontext = getIOContext();
 
     // FIXME(abbyssoul): WTF?! Don't register fd with selector for each read/write!

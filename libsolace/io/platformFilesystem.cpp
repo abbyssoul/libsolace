@@ -302,7 +302,7 @@ Path PlatformFilesystem::getExecPath() const {
 
 
 Path PlatformFilesystem::getWorkingDirectory() const {
-    char buf[1024];  // FIXME(abbyssoul) Shouldn't it be max_path or something?
+    char buf[1024];  // FIXME(abbyssoul): Shouldn't it be max_path or something?
 
     char* buffer = getcwd(buf, sizeof(buf));
     if (!buffer) {

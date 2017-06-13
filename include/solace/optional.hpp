@@ -67,6 +67,11 @@ public:
 
 public:
 
+    ~Optional() {
+        // TODO(abbysoul): If this is optional is error and error was not handled - it must throw
+        _state->~IState();
+    }
+
 
     /**
      * Construct an new empty optional value.
@@ -77,12 +82,12 @@ public:
     /**
      * Construct an non-empty optional value moving value.
      */
-    Optional(T&& t) noexcept(std::is_nothrow_copy_constructible<T>::value)
-        : _state(::new (_stateBuffer.someSpace) SomeState(std::move(t)))
+    Optional(T&& t) noexcept(std::is_nothrow_copy_constructible<T>::value) :
+        _state(::new (_stateBuffer.someSpace) SomeState(std::move(t)))
     {}
 
-    Optional(Optional<T>&& that)
-        noexcept(std::is_nothrow_copy_constructible<T>::value) : Optional() {
+    Optional(Optional<T>&& that) noexcept(std::is_nothrow_copy_constructible<T>::value) :
+        Optional() {
 
         swap(that);
     }
@@ -92,10 +97,6 @@ public:
             _state = ::new (_stateBuffer.someSpace) SomeState(that.get());
         else
             _state = ::new (_stateBuffer.noneSpace) NoneState();
-    }
-
-    virtual ~Optional() noexcept {
-        _state->~IState();
     }
 
     Optional<T>& swap(Optional<T>& rhs) noexcept {
@@ -282,6 +283,7 @@ private:
     IState* _state;
 };
 
+// TODO(abbyssoul): Specialization of Optional<T&> and Optional<T*>
 
 
 /** "None" is a syntactic sugar for options
@@ -309,7 +311,7 @@ bool operator == (const Optional<T>& a, const Optional<T>& b) {
     }
 
     if (a.isSome() && b.isSome()) {
-        return a.get() == b.get();
+        return (a.get() == b.get());
     }
 
     return false;

@@ -58,7 +58,7 @@ public:
                     _isComplete = (_size >= _bytesPassed) || (r.unwrap() == 0);
 
                     if (_isComplete) {
-                        _promise.resolve();
+                        _promise.setValue();
                     }
                 }
             }
@@ -70,7 +70,7 @@ public:
                     _isComplete = (_size >= _bytesPassed) || (r.unwrap() == 0);
 
                     if (_isComplete) {
-                        _promise.resolve();
+                        _promise.setValue();
                     }
                 }
             }
@@ -91,8 +91,8 @@ public:
        return (e.fd == _fd.getSelectId());
     }
 
-    Future<void>& promise() noexcept {
-        return _promise;
+    Future<void> promise() noexcept {
+        return _promise.getFuture();
     }
 
 private:
@@ -104,7 +104,7 @@ private:
     Selector::Events    _direction;
 
     bool                    _isComplete;
-    Future<void>             _promise;
+    Promise<void>       _promise;
 };
 
 
@@ -145,7 +145,7 @@ Pipe::Pipe(EventLoop& ioContext) :
 }
 
 
-Future<void>&
+Future<void>
 Pipe::asyncRead(ByteBuffer& dest, size_type bytesToRead) {
     auto& iocontext = getIOContext();
 
@@ -158,7 +158,7 @@ Pipe::asyncRead(ByteBuffer& dest, size_type bytesToRead) {
 }
 
 
-Future<void>&
+Future<void>
 Pipe::asyncWrite(ByteBuffer& src, size_type bytesToWrite) {
     auto& iocontext = getIOContext();
 

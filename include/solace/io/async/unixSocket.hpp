@@ -76,7 +76,7 @@ public:
      * @param endpoint An endpoint to connect to.
      * @return Future that is resolved when connection is establised or an error occured.
      */
-    Future<void>& asyncConnect(const endpoint_type& endpoint);
+    Future<void> asyncConnect(const endpoint_type& endpoint);
 
     /**
      * Post an async read request to read data from this IO object into the given buffer.
@@ -85,7 +85,7 @@ public:
      * @param dest The provided destination buffer to read data into.
      * @return A future that will be resolved one the buffer has been filled.
      */
-    Future<void>& asyncRead(ByteBuffer& dest) {
+    Future<void> asyncRead(ByteBuffer& dest) {
         return asyncRead(dest, dest.remaining());
     }
 
@@ -98,7 +98,7 @@ public:
      *
      * @note If the provided destination buffer is too small to hold requested amount of data - an exception is raised.
      */
-    Future<void>& asyncRead(ByteBuffer& dest, size_type bytesToRead);
+    Future<void> asyncRead(ByteBuffer& dest, size_type bytesToRead);
 
     /**
      * Post an async write request to write specified amount of data into this IO object.
@@ -107,7 +107,7 @@ public:
      * @param src The provided source buffer to read data from.
      * @return A future that will be resolved one the scpecified number of bytes has been written into the IO object.
      */
-    Future<void>& asyncWrite(ByteBuffer& src) {
+    Future<void> asyncWrite(ByteBuffer& src) {
         return asyncWrite(src, src.remaining());
     }
 
@@ -120,7 +120,7 @@ public:
      *
      * @note If the provided source buffer does not have requested amount of data - an exception is raised.
      */
-    Future<void>& asyncWrite(ByteBuffer& src, size_type bytesToRead);
+    Future<void> asyncWrite(ByteBuffer& src, size_type bytesToRead);
 
 private:
 

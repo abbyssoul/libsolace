@@ -29,6 +29,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
+#include "mockTypes.hpp"
 
 using namespace Solace;
 
@@ -47,6 +48,7 @@ class TestResult : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testThen);
         CPPUNIT_TEST(testThenChaining);
         CPPUNIT_TEST(testThenComposition);
+        CPPUNIT_TEST(testThenComposition_cv);
         CPPUNIT_TEST(testTypeConvertion);
         CPPUNIT_TEST(testMapError);
         CPPUNIT_TEST(testMoveOnlyObjects);
@@ -111,71 +113,6 @@ public:
     };
 
 
-    class SimpleType {
-    public:
-        static int InstanceCount;
-
-        ~SimpleType() {
-            --InstanceCount;
-        }
-
-        SimpleType(int x): x_(x) {
-            ++InstanceCount;
-        }
-
-        SimpleType(const SimpleType& rhs): x_(rhs.x_) {
-            ++InstanceCount;
-        }
-
-        SimpleType(SimpleType&& rhs): x_(rhs.x_) {
-            ++InstanceCount;
-        }
-
-        SimpleType& operator= (const SimpleType& rhs) {
-            x_ = rhs.x_;
-
-            return (*this);
-        }
-
-        SimpleType& operator= (SimpleType&& rhs) {
-            std::swap(x_, rhs.x_);
-
-            return (*this);
-        }
-
-        int x_;
-    };
-
-
-    struct MoveOnlyType {
-        static int InstanceCount;
-
-        ~MoveOnlyType() {
-            --InstanceCount;
-        }
-
-        MoveOnlyType(int x): x_(x) {
-            ++InstanceCount;
-        }
-
-        MoveOnlyType(const MoveOnlyType& rhs) = delete;
-        MoveOnlyType& operator= (const MoveOnlyType& rhs) = delete;
-
-        MoveOnlyType(MoveOnlyType&& rhs): x_(rhs.x_) {
-            ++InstanceCount;
-        }
-
-        MoveOnlyType& operator= (MoveOnlyType&& rhs) {
-            x_ = rhs.x_;
-            rhs.x_ = -1;
-
-            return (*this);
-        }
-
-        int x_;
-    };
-
-
 public:
 
 
@@ -198,12 +135,12 @@ public:
         }
 
         {
-            const Result<SimpleType, Unit> r = Ok<SimpleType>(10);
+            const Result<PimitiveType, Unit> r = Ok<PimitiveType>(10);
             CPPUNIT_ASSERT(r.isOk());
         }
 
         {
-            const Result<SimpleType, Unit> r = Result<int, Unit>(Ok(10));
+            const Result<PimitiveType, Unit> r = Result<int, Unit>(Ok(10));
             CPPUNIT_ASSERT(r.isOk());
         }
     }
@@ -336,30 +273,30 @@ public:
         CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
         CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
         {
-            auto mover = [] (bool isOk) -> Result<SimpleType, SomeTestType> {
+            auto mover = [] (bool isOk) -> Result<PimitiveType, SomeTestType> {
                 if (isOk)
-                    return Ok<SimpleType>({321});
+                    return Ok<PimitiveType>({321});
                 else
                     return Err<SomeTestType>({ 3, 2.3f, "Bad things happend" });
             };
 
 
-            Result<SimpleType, SomeTestType> v = mover(true);
-            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
+            Result<PimitiveType, SomeTestType> v = mover(true);
+            CPPUNIT_ASSERT_EQUAL(1, PimitiveType::InstanceCount);
             CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
 
-            const SimpleType& res = v.unwrap();
-            CPPUNIT_ASSERT_EQUAL(321, res.x_);      // Needed to keep compiler happy
-            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
+            const PimitiveType& res = v.unwrap();
+            CPPUNIT_ASSERT_EQUAL(321, res.x);      // Needed to keep compiler happy
+            CPPUNIT_ASSERT_EQUAL(1, PimitiveType::InstanceCount);
             CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
 
-            Result<SimpleType, SomeTestType> nak = mover(false);
-            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
+            Result<PimitiveType, SomeTestType> nak = mover(false);
+            CPPUNIT_ASSERT_EQUAL(1, PimitiveType::InstanceCount);
             CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
 
             const SomeTestType& errRes = nak.getError();
             CPPUNIT_ASSERT_EQUAL(3, errRes.x);      // Needed to keep compiler happy
-            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(1, PimitiveType::InstanceCount);
             CPPUNIT_ASSERT_EQUAL(1, SomeTestType::InstanceCount);
         }
 
@@ -449,7 +386,7 @@ public:
     void testThenChaining() {
 
         // Good chain
-        const Result<int, SimpleType> goodResult = Ok<int>(42);
+        Result<int, SimpleType> goodResult = Ok<int>(42);
 
         auto alsoGood = goodResult.then([](int r) { return Ok<int>(r / 2); });
         CPPUNIT_ASSERT(alsoGood.isOk());
@@ -461,7 +398,7 @@ public:
 
 
         // Error chain
-        const Result<int, SimpleType> badResult = Err<SimpleType>(18);
+        Result<int, PimitiveType> badResult = Err<PimitiveType>(18);
 
         auto alsoNotGood = badResult.then([](int r) { return Ok<float>(r / 2); });
         CPPUNIT_ASSERT(alsoNotGood.isError());
@@ -469,7 +406,7 @@ public:
         auto stillNotGood = alsoNotGood.then([](int r) { return Ok<int>(r + 21); });
         CPPUNIT_ASSERT(stillNotGood.isError());
 
-        auto recovered = stillNotGood.orElse([](const SimpleType& x) { return Ok<int>(x.x_ + 2); });
+        auto recovered = stillNotGood.orElse([](const PimitiveType& x) { return Ok<int>(x.x + 2); });
 
         CPPUNIT_ASSERT(recovered.isOk());
         CPPUNIT_ASSERT_EQUAL(20, recovered.unwrap());
@@ -477,11 +414,33 @@ public:
 
 
     void testThenComposition() {
+        Result<int, SimpleType> initialResult = Ok<int>(112);
+
+        Result<std::function<int()>, SimpleType> finalResult = initialResult
+                .then([](int x)     { return Ok<float32>(x / 10); })
+                .then([](float32 x) { return Ok<int>( floor(x) + 30); })
+                .then([](int x)     { return Ok<std::function<int()>>([x]() { return (1 + x); }); });
+
+        CPPUNIT_ASSERT(finalResult.isOk());
+        CPPUNIT_ASSERT_EQUAL(42, finalResult.unwrap()());
+
+        auto sq =  [](int x) -> Result<int, int> { return Ok<int>(x * x); };
+        auto err = [](int x) -> Result<int, int> { return Err(x); };
+
+        Result<int, int> ok2 = Ok(2);
+        Result<int, int> err3 = Err(3);
+        CPPUNIT_ASSERT(Ok(2) == ok2.orElse(sq).orElse(sq));
+        CPPUNIT_ASSERT(Ok(2) == ok2.orElse(err).orElse(sq));
+        CPPUNIT_ASSERT(Ok(9) == err3.orElse(sq).orElse(err));
+        CPPUNIT_ASSERT(Err(3) == err3.orElse(err).orElse(err));
+    }
+
+    void testThenComposition_cv() {
         const Result<int, SimpleType> initialResult = Ok<int>(112);
 
         const Result<std::function<int()>, SimpleType> finalResult = initialResult
                 .then([](int x)     { return Ok<float32>(x / 10); })
-                .then([](float32 x) { return Ok<int>(x + 30); })
+                .then([](float32 x) { return Ok<int>(floor(x) + 30); })
                 .then([](int x)     { return Ok<std::function<int()>>([x]() { return (1 + x); }); });
 
         CPPUNIT_ASSERT(finalResult.isOk());
@@ -500,16 +459,16 @@ public:
 
 
     void testMapError() {
-        const Result<int, SimpleType> res = Err<SimpleType>({112});
+        const Result<int, PimitiveType> res = Err<PimitiveType>(112);
 
-        CPPUNIT_ASSERT(Err<String>("Error is 112") == res.mapError([](const SimpleType& x){
-            return String("Error is ").concat(String::valueOf(x.x_));
+        CPPUNIT_ASSERT(Err<String>("Error is 112") == res.mapError([](const PimitiveType& x){
+            return String("Error is ").concat(String::valueOf(x.x));
         }) );
     }
 
     void testMoveOnlyObjects() {
         {
-            const Result<MoveOnlyType, SimpleType> res = Err<SimpleType>({112});
+            const Result<MoveOnlyType, SimpleType> res = Err<SimpleType>({112, 2, -1});
             CPPUNIT_ASSERT(res.isError());
         }
 
@@ -533,6 +492,7 @@ public:
             CPPUNIT_ASSERT(res.isError());
         }
     }
+
 };
 
 
@@ -541,8 +501,6 @@ std::ostream& operator<<(std::ostream& ostr, const TestResult::SomeTestType& t) 
 }
 
 int TestResult::SomeTestType::InstanceCount = 0;
-int TestResult::SimpleType::InstanceCount = 0;
-int TestResult::MoveOnlyType::InstanceCount = 0;
 
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestResult);

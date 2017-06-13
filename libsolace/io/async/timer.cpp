@@ -51,13 +51,13 @@ public:
                 raise<IOException>(errno);
             } else if (expCount > 0) {
                 _isComplete = !isPeriodic();
-                _promise.resolve(expCount);
+                _promise.setValue(expCount);
             }
         }
 
         if (event.isSet(Solace::IO::Selector::Events::Write)) {
             _isComplete = true;
-//            _promise.error();
+//            _promise.setError();
         }
 
     }
@@ -80,14 +80,14 @@ public:
         return (e.fd == _fd);
      }
 
-     Future<int64_t>& promise() noexcept {
-         return _promise;
+     Future<int64_t> promise() noexcept {
+         return _promise.getFuture();
      }
 
 private:
     ISelectable::poll_id    _fd;
     bool                    _isComplete;
-    Future<int64_t>         _promise;
+    Promise<int64_t>         _promise;
 };
 
 
@@ -132,7 +132,7 @@ Timer::~Timer() {
 }
 
 
-Future<int64_t>& Timer::asyncWait() {
+Future<int64_t> Timer::asyncWait() {
     auto& iocontext = getIOContext();
 
     // FIXME(abbyssoul): WTF?! Don't register fd with selector for each read/write!

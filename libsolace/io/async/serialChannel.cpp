@@ -49,7 +49,7 @@ public:
                     _isComplete = (_size >= _bytesPassed) || (r.unwrap() == 0);
 
                     if (_isComplete) {
-                        _promise.resolve();
+                        _promise.setValue(_bytesPassed);
                     }
                 }
             }
@@ -61,7 +61,7 @@ public:
                     _isComplete = (_size >= _bytesPassed) || (r.unwrap() == 0);
 
                     if (_isComplete) {
-                        _promise.resolve();
+                        _promise.setValue(_bytesPassed);
                     }
                 }
             }
@@ -81,8 +81,8 @@ public:
        return (e.data == &_selectable);
     }
 
-    Future<void>& promise() noexcept {
-        return _promise;
+    Future<int> promise() noexcept {
+        return _promise.getFuture();
     }
 
 private:
@@ -98,7 +98,7 @@ private:
     Selector::Events    _direction;
     bool                    _isComplete;
 
-    Future<void>    _promise;
+    Promise<int>    _promise;
 };
 
 
@@ -128,7 +128,8 @@ SerialChannel::~SerialChannel() {
 
 
 
-Future<void>& SerialChannel::asyncRead(Solace::ByteBuffer& buffer, size_type bytesToRead) {
+Future<int>
+SerialChannel::asyncRead(Solace::ByteBuffer& buffer, size_type bytesToRead) {
     auto& iocontext = getIOContext();
 
     auto request = std::make_shared<SerialReadRequest>(_serial, buffer, bytesToRead, Selector::Events::Read);
@@ -139,7 +140,8 @@ Future<void>& SerialChannel::asyncRead(Solace::ByteBuffer& buffer, size_type byt
     return request->promise();
 }
 
-Future<void>& SerialChannel::asyncWrite(Solace::ByteBuffer& buffer, size_type bytesToWrite) {
+Future<int>
+SerialChannel::asyncWrite(Solace::ByteBuffer& buffer, size_type bytesToWrite) {
     auto& iocontext = getIOContext();
 
     auto request = std::make_shared<SerialReadRequest>(_serial, buffer, bytesToWrite, Selector::Events::Write);

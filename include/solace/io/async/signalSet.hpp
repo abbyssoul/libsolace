@@ -62,7 +62,7 @@ public:
         return *this;
     }
 
-    Future<int>& asyncWait();
+    Future<int> asyncWait();
 
 private:
 

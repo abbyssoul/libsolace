@@ -50,7 +50,7 @@ protected:
         async::Event event(iocontext);
 
         bool eventWasCalled = false;
-        event.asyncWait().then([&eventWasCalled, &iocontext](){
+        event.asyncWait().then([&eventWasCalled, &iocontext] () {
             eventWasCalled = true;
         });
 

@@ -74,7 +74,7 @@ public:
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false;});
 
 
@@ -96,7 +96,7 @@ public:
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -118,7 +118,7 @@ public:
                               {'V', "vvv", "Something else", &vValue}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error e) {
                         parsedSuccessully = false;
                         CPPUNIT_FAIL(e.toString().c_str());
@@ -142,7 +142,7 @@ public:
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -163,7 +163,7 @@ public:
                               {'v', "vvv", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) {parsedSuccessully = false;});
 
 
@@ -185,7 +185,7 @@ public:
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) {parsedSuccessully = false;});
 
 
@@ -207,7 +207,7 @@ public:
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -229,7 +229,7 @@ public:
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -248,7 +248,7 @@ public:
         const char* appDesc = "Something awesome";
         CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -267,7 +267,7 @@ public:
         const char* appDesc = "Something awesome";
         CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -286,7 +286,7 @@ public:
         const char* appDesc = "Something awesome";
         CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -317,7 +317,7 @@ public:
                                }}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -350,7 +350,7 @@ public:
                                }}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
 
 
@@ -381,7 +381,7 @@ public:
                                }, CommandlineParser::OptionArgument::Required }
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
@@ -410,7 +410,7 @@ public:
                                }, CommandlineParser::OptionArgument::NotRequired }
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
@@ -435,7 +435,7 @@ public:
                               {"manarg", "Mandatory argument", &mandatoryArg}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false;});
 
 
@@ -458,7 +458,7 @@ public:
                               {"manarg", "Mandatory argument", &mandatoryArg}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
@@ -482,7 +482,7 @@ public:
                               {"manarg", "Mandatory argument", &mandatoryArg}
                           })
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
@@ -509,7 +509,7 @@ public:
                           }
                           )
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
@@ -537,7 +537,7 @@ public:
                           }
                           )
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
@@ -562,7 +562,7 @@ public:
                           }
                           )
                 .parse(argc, argv)
-                .map([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 

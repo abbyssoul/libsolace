@@ -205,17 +205,21 @@ public:
         std::thread canceler([&iocontext, &timer, &nbTimesCalledWhenCanceled, &nbTimesCalled]() {
             using namespace std::chrono_literals;
 
-            std::this_thread::sleep_for(120ms);
-            timer.cancel();
-            nbTimesCalledWhenCanceled = nbTimesCalled;
+            try {
+                std::this_thread::sleep_for(120ms);
+                timer.cancel();
+                nbTimesCalledWhenCanceled = nbTimesCalled;
 
-            std::this_thread::sleep_for(30ms);
-            timer.setTimeout(std::chrono::milliseconds(10))
-                    .asyncWait()
-                    .then([&nbTimesCalled, &iocontext](int64_t numberOfExpirations) {
+                std::this_thread::sleep_for(30ms);
+                timer.setTimeout(std::chrono::milliseconds(10))
+                        .asyncWait()
+                        .then([&nbTimesCalled, &iocontext](int64_t numberOfExpirations) {
 
-                nbTimesCalled += numberOfExpirations;
-            });
+                    nbTimesCalled += numberOfExpirations;
+                });
+            } catch (const std::exception& ex) {
+                CPPUNIT_FAIL("Unhandeled expection ");
+            }
         });
 
         // Should block untill event is triggered

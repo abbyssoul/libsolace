@@ -50,7 +50,7 @@ public:
                     {'u', "name", "Name to call", &_name}
                 })
                 .parse(argc, argv)
-                .map([](const CommandlineParser*) { return; });
+                .then([](const CommandlineParser*) { return; });
     }
 
     Solace::Result<int, Solace::Error> run() {

@@ -99,6 +99,122 @@ inline types::Err<CleanE> Err(E&& val) {
 }
 
 
+template <typename V, typename E>
+class Result;
+
+template <typename TV, typename TE, typename T>
+struct isResult : std::false_type {
+    using std::false_type::value;
+
+    typedef T value_type;
+};
+
+
+
+template <typename T>
+struct isSomeResult : std::false_type {
+    using std::false_type::value;
+
+    typedef T value_type;
+};
+
+template <typename V, typename E>
+struct isSomeResult<Result<V, E>> : std::true_type {
+    using std::true_type::value;
+
+    using type = Result<V, E>;
+
+    typedef typename type::value_type value_type;
+    typedef typename type::error_type error_type;
+};
+
+/*
+template <typename T>
+struct isOkResult : std::false_type {
+    using std::false_type::value;
+
+    typedef T value_type;
+};
+
+
+template <typename T>
+struct isErrorResult : std::false_type {
+    using std::false_type::value;
+
+    typedef T value_type;
+};
+
+
+template <typename V, typename E>
+struct isResult<Result<V, E>> : std::true_type {
+    using std::true_type::value;
+
+    using type = Result<V, E>;
+
+    typedef typename type::value_type value_type;
+    typedef typename type::error_type error_type;
+};
+*/
+
+
+template <
+        typename OV, typename OE,
+        typename V, typename E>
+struct isResult<OV, OE, Result<V, E>> : std::true_type {
+    using std::true_type::value;
+
+    using type = Result<V, E>;
+
+    typedef typename type::value_type value_type;
+    typedef typename type::error_type error_type;
+};
+
+
+template <
+        typename OV, typename OE,
+        typename V>
+struct isResult<OV, OE, types::Ok<V>> : std::true_type {
+    using std::true_type::value;
+
+    using type = Result<V, OE>;
+
+    typedef typename type::value_type value_type;
+    typedef typename type::error_type error_type;
+};
+
+template <
+        typename OV, typename OE,
+        typename E>
+struct isResult<OV, OE, types::Err<E>> : std::true_type {
+    using std::true_type::value;
+
+    using type = Result<OV, E>;
+
+    typedef typename type::value_type value_type;
+    typedef typename type::error_type error_type;
+};
+
+
+/*
+template <typename V>
+struct isOkResult<types::Ok<V>> : std::true_type {
+    using std::true_type::value;
+
+    using type = types::Ok<V>;
+
+    typedef typename type::value_type value_type;
+};
+
+template <typename E>
+struct isErrorResult<types::Err<E>> : std::true_type {
+    using std::true_type::value;
+
+    using type = types::Err<E>;
+    typedef typename type::error_type error_type;
+};
+*/
+
+
 /**
  * Result class is an 'enum' of two values V and E with V being 'expected'.
  * It is very similar to Either<> monad in some functional languages and
@@ -196,7 +312,6 @@ public:
 
 
     ~Result() {
-//        clear();
         if (_state) {
             _state->~IState();
             _state = nullptr;
@@ -204,37 +319,6 @@ public:
     }
 
 public:
-
-
-    template <typename F,
-              typename U = typename std::result_of<F(V)>::type,
-              typename R = typename std::enable_if<!std::is_same<U, void>::value, U>::type
-              >
-    Result<U, E> map(F f) const {
-
-        if (isOk()) {
-            // TODO(abbyssoul): We probably should handle exeptions here
-            return Ok<U>(f(unwrap()));
-        }
-
-        return Err(getError());
-    }
-
-    template <typename F,
-              typename U = typename std::result_of<F(V)>::type
-              >
-    Result<typename std::enable_if<std::is_same<U, void>::value, U>::type, E> map(F f) const {
-
-        if (isOk()) {
-            // TODO(abbyssoul): We probably should handle exeptions here
-            f(unwrap());
-
-            return Ok();
-        }
-
-        return Err(getError());
-    }
-
 
     /**
      * Then combinator.
@@ -245,27 +329,174 @@ public:
      * @return Result<U, E> of the call of 'f' if this::isOk(), Err(this->getError()) otherwise
      */
     template<typename F,
-             typename U = typename std::result_of<F(value_type)>::type::value_type>
-    Result<U, E> then(F f) const {
+             typename R = typename std::result_of<F(V)>::type>
+    std::enable_if_t<isResult<V, E, R>::value, typename isResult<V, E, R>::type>
+    then(F&& f) {
 
         if (isOk()) {
             // TODO(abbyssoul): We probably should handle exeptions here
-
             return f(unwrap());
         }
 
         return Err(getError());
     }
 
+    template<typename F,
+             typename R = typename std::result_of<F(V)>::type>
+    std::enable_if_t<isResult<V, E, R>::value, typename isResult<V, E, R>::type>
+    then(F&& f) const {
+
+        if (isOk()) {
+            // TODO(abbyssoul): We probably should handle exeptions here
+            return f(unwrap());
+        }
+
+        return Err(getError());
+    }
+
+//    template<typename F,
+//             typename R = typename std::result_of<F(V)>::type>
+//    std::enable_if_t<isOkResult<R>::value, Result<typename R::value_type, E>>
+//    then(F&& f) {
+//        if (isOk()) {
+//            // TODO(abbyssoul): We probably should handle exeptions here
+//            return f(unwrap());
+//        }
+
+//        return Err(getError());
+//    }
+
+//    template<typename F,
+//             typename R = typename std::result_of<F(V)>::type>
+//    std::enable_if_t<isErrorResult<R>::value, Result<V, typename R::error_type>>
+//    then(F&& f) {
+//        if (isOk()) {
+//            // TODO(abbyssoul): We probably should handle exeptions here
+//            return f(unwrap());
+//        }
+
+//        return Err(getError());
+//    }
+
+
+    template <typename F,
+              typename R = typename std::result_of<F(V)>::type
+              >
+    std::enable_if_t<!std::is_same<R, void>::value && !isResult<V, E, R>::value,
+    Result<R, E>>
+    then(F&& f) {
+
+        if (isOk()) {
+            // TODO(abbyssoul): Handle exeptions and convert then into Error
+            return Ok<R>(f(unwrap()));
+        }
+
+        return Err(getError());
+    }
+
+
+    template <typename F,
+              typename R = typename std::result_of<F(V)>::type
+              >
+    std::enable_if_t<std::is_same<void, R>::value, Result<R, E>>
+    then(F&& f) {
+
+        if (isOk()) {
+            // TODO(abbyssoul): Handle exeptions and convert then into Error
+            f(unwrap());
+
+            return Ok();
+        }
+
+        return Err(getError());
+    }
+
+
+    //------------------------------------------------------------------
 
     template<typename F,
-             typename U = typename std::result_of<F(E)>::type::value_type>
-    Result<U, E> orElse(F f) const {
+             typename R = typename std::result_of<F(E)>::type>
+    std::enable_if_t<isResult<V, E, R>::value, typename isResult<V, E, R>::type>
+    orElse(F&& f) {
         if (isOk()) {
             return *this;
         }
 
         return f(getError());
+    }
+
+    template<typename F,
+             typename R = typename std::result_of<F(E)>::type>
+    std::enable_if_t<isResult<V, E, R>::value, typename isResult<V, E, R>::type>
+    orElse(F&& f) const {
+        if (isOk()) {
+            return *this;
+        }
+
+        return f(getError());
+    }
+
+    template<typename F,
+             typename RE = typename std::result_of<F(E)>::type>
+    std::enable_if_t<!isResult<V, E, RE>::value, Result<RE, E>>
+    orElse(F&& f) {
+        if (isOk()) {
+            return *this;
+        }
+        // TODO(abbyssoul): Handle exeptions and convert then into Error
+        return Ok(f(getError()));
+    }
+
+    template<typename F,
+             typename RE = typename std::result_of<F(E)>::type>
+    std::enable_if_t<!isResult<V, E, RE>::value, Result<RE, E>>
+    orElse(F&& f) const {
+        if (isOk()) {
+            return *this;
+        }
+
+        // TODO(abbyssoul): Handle exeptions and convert then into Error
+        return Ok(f(getError()));
+    }
+
+//    template<typename F,
+//             typename RE = typename std::result_of<F(E)>::type>
+//    std::enable_if_t<isOkResult<RE>::value, Result<typename RE::value_type, E>>
+//    orElse(F&& f) {
+//        if (isOk()) {
+//            return *this;
+//        }
+
+//        return f(getError());
+//    }
+
+//    template<typename F,
+//             typename RE = typename std::result_of<F(E)>::type>
+//    std::enable_if_t<isErrorResult<RE>::value, Result<V, typename RE::error_type>>
+//    orElse(F&& f) {
+//        if (isOk()) {
+//            return *this;
+//        }
+
+//        return f(getError());
+//    }
+
+
+    /**
+     * Pass through a Ok result but applies a given function to an error value.
+     * This can be used to handle errors.
+     *
+     * @param f - An error mapping function to map Err value.
+     */
+    template<typename F,
+             typename EE = typename std::result_of<F(E)>::type>
+    Result<V, EE> mapError(F&& f) {
+        if (isOk()) {
+            return Ok(unwrap());
+        }
+
+        // TODO(abbyssoul): Handle exeptions and convert then into Error
+        return Err(f(getError()));
     }
 
 
@@ -276,12 +507,13 @@ public:
      * @param f - An error mapping function to map Err value.
      */
     template<typename F,
-             typename U = typename std::result_of<F(E)>::type>
-    Result<V, U> mapError(F f) const {
+             typename EE = typename std::result_of<F(E)>::type>
+    Result<V, EE> mapError(F&& f) const {
         if (isOk()) {
             return Ok(unwrap());
         }
 
+        // TODO(abbyssoul): Handle exeptions and convert then into Error
         return Err(f(getError()));
     }
 
@@ -341,15 +573,19 @@ public:
         return _state->getResult();
     }
 
-    V& unwrap() && {
-        return _state->getResult();
+    V&& unwrap() && {
+        return std::move(_state->getResult());
     }
 
-    const E& getError() const {
+    const E& getError() const & {
         return _state->getError();
     }
 
-    E& getError() {
+    E& getError() & {
+        return _state->getError();
+    }
+
+    E&& getError() && {
         return _state->getError();
     }
 
@@ -385,9 +621,12 @@ private:
 
         virtual const V&  getResult() const = 0;
         virtual V&        getResult()       = 0;
+//        virtual V&        getResult() &      = 0;
+//        virtual V&&       getResult() &&       = 0;
 
-        virtual const E& getError() const = 0;
-        virtual E&       getError()       = 0;
+        virtual const E& getError() const& = 0;
+        virtual E&       getError() &       = 0;
+        virtual E&&       getError() &&      = 0;
     };
 
 
@@ -418,9 +657,15 @@ private:
 
         const V& getResult() const override   { return _storage.ref(); }
         V& getResult() override               { return _storage.ref(); }
+//        V& getResult() & override               { return _storage.ref(); }
+//        V&& getResult() && override               { return _storage.ref(); }
 
-        const E& getError() const override   { raiseInvalidStateError(); return *reinterpret_cast<E*>(NULL); }
-        E& getError() override               { raiseInvalidStateError(); return *reinterpret_cast<E*>(NULL); }
+        const E& getError() const& override   { raiseInvalidStateError(); return *reinterpret_cast<E*>(NULL); }
+        E& getError() & override               { raiseInvalidStateError(); return *reinterpret_cast<E*>(NULL); }
+        E&& getError() && override               {
+            raiseInvalidStateError();
+            return std::move(*reinterpret_cast<E*>(NULL));
+        }
 
     private:
 
@@ -448,9 +693,17 @@ private:
 
         const V& getResult() const override   { raiseInvalidStateError(); return *reinterpret_cast<V*>(NULL); }
         V& getResult() override               { raiseInvalidStateError(); return *reinterpret_cast<V*>(NULL); }
+//        V& getResult() & override               { raiseInvalidStateError(); return *reinterpret_cast<V*>(NULL); }
+//        V&& getResult() && override               {
+//            raiseInvalidStateError();
+//            return std::move(*reinterpret_cast<V*>(NULL));
+//        }
 
-        const E& getError() const override   { return _storage.ref(); }
-        E& getError() override               { return _storage.ref(); }
+        const E& getError() const & override   { return _storage.ref(); }
+        E& getError() & override               { return _storage.ref(); }
+        E&& getError() && override               {
+            return std::move(_storage.ref());
+        }
 
     private:
 
@@ -486,7 +739,7 @@ public:
      * Construct Ok result by copying value
      * @param value Ok value to copy
      */
-    Result(const types::Ok<void>& value):
+    Result(const types::Ok<void>& SOLACE_UNUSED(value)) :
         _maybeError(Optional<E>::none())
     {}
 
@@ -539,20 +792,6 @@ public:
 
 public:
 
-
-    template <typename F,
-              typename U = typename std::result_of<F(void)>::type>
-    Result<U, E> map(F f) const {
-
-        if (isOk()) {
-            // TODO(abbyssoul): We probably should handle exeptions here
-            return Ok<U>(f());
-        }
-
-        return Err(getError());
-    }
-
-
     /**
      * Then combinator.
      * Calls 'f' on the Ok value if the result is Ok, otherwise returns the Err value of self.
@@ -562,43 +801,194 @@ public:
      * @return Result<U, E> of the call of 'f' if this::isOk(), Err(this->getError()) otherwise
      */
     template<typename F,
-             typename U = typename std::result_of<F(void)>::type::value_type
+             typename R = typename std::result_of<F(void)>::type
              >
-    Result<U, E> then(F f) const {
+    std::enable_if_t<isResult<void, E, R>::value, typename isResult<void, E, R>::type>
+    then(F&& f) {
 
         if (isOk()) {
             // TODO(abbyssoul): We probably should handle exeptions here
-
             return f();
         }
 
         return Err(getError());
     }
 
+    template<typename F,
+             typename R = typename std::result_of<F(void)>::type
+             >
+    std::enable_if_t<isResult<void, E, R>::value, typename isResult<void, E, R>::type>
+    then(F&& f) const {
+
+        if (isOk()) {
+            // TODO(abbyssoul): We probably should handle exeptions here
+            return f();
+        }
+
+        return Err(getError());
+    }
+
+//    template<typename F,
+//             typename R = typename std::result_of<F(void)>::type
+//             >
+//    std::enable_if_t<isOkResult<R>::value, Result<typename R::value_type, E>>
+//    then(F&& f) const {
+
+//        if (isOk()) {
+//            // TODO(abbyssoul): We probably should handle exeptions here
+//            return f();
+//        }
+
+//        return Err(getError());
+//    }
+
+
+//    template<typename F,
+//             typename R = typename std::result_of<F(void)>::type
+//             >
+//    std::enable_if_t<isErrorResult<R>::value, Result<void, typename R::error_type>>
+//    then(F&& f) const {
+
+//        if (isOk()) {
+//            // TODO(abbyssoul): We probably should handle exeptions here
+//            return f();
+//        }
+
+//        return Err(getError());
+//    }
+
+
+    template <typename F,
+              typename R = typename std::result_of<F(void)>::type
+              >
+    std::enable_if_t<!std::is_same<R, void>::value && !isResult<void, E, R>::value, Result<R, E>>
+    then(F&& f) {
+
+        if (isOk()) {
+            // TODO(abbyssoul): Handle exeptions and convert then into Error
+            return Ok<R>(f());
+        }
+
+        return Err(getError());
+    }
+
+
+    template <typename F,
+              typename R = typename std::result_of<F(void)>::type
+              >
+    std::enable_if_t<!std::is_same<R, void>::value && !isResult<void, E, R>::value, Result<R, E>>
+    then(F&& f) const {
+
+        if (isOk()) {
+            // TODO(abbyssoul): Handle exeptions and convert then into Error
+            return Ok<R>(f());
+        }
+
+        return Err(getError());
+    }
+
+
+    template <typename F,
+              typename R = typename std::result_of<F(void)>::type
+              >
+    std::enable_if_t<std::is_same<void, R>::value, Result<R, E>>
+    then(F&& f) {
+
+        if (isOk()) {
+            // TODO(abbyssoul): Handle exeptions and convert then into Error
+            f();
+
+            return Ok();
+        }
+
+        return Err(getError());
+    }
+
+    template <typename F,
+              typename R = typename std::result_of<F(void)>::type
+              >
+    std::enable_if_t<std::is_same<void, R>::value, Result<R, E>>
+    then(F&& f) const {
+
+        if (isOk()) {
+            // TODO(abbyssoul): Handle exeptions and convert then into Error
+            f();
+
+            return Ok();
+        }
+
+        return Err(getError());
+    }
+
+    //------------------------------------------------------------------
 
     template<typename F,
-             typename U = typename std::result_of<F(E)>::type,
-             typename R = typename std::enable_if<!std::is_same<U, void>::value, U>::type>
-    Result<U, E> orElse(F f) const {
+             typename R = typename std::result_of<F(E)>::type>
+    std::enable_if_t<isResult<void, E, R>::value, typename isResult<void, E, R>::type>
+    orElse(F&& f) {
+        if (isOk()) {
+            return *this;
+        }
+
+        return f(getError());
+    }
+
+    template<typename F,
+             typename R = typename std::result_of<F(E)>::type>
+    std::enable_if_t<isResult<void, E, R>::value, typename isResult<void, E, R>::type>
+    orElse(F&& f) const {
+        if (isOk()) {
+            return *this;
+        }
+
+        return f(getError());
+    }
+
+
+    template<typename F,
+             typename R = typename std::result_of<F(E)>::type>
+    std::enable_if_t<!std::is_same<void, R>::value && !isResult<void, E, R>::value, Result<R, E>>
+    orElse(F&& f) const {
 
         if (isOk()) {
             return *this;
         }
 
-        return Ok<U>(f(getError()));
+        return Ok<R>(f(getError()));
     }
 
     template<typename F,
              typename U = typename std::result_of<F(E)>::type>
-    Result<typename std::enable_if<std::is_same<U, void>::value, U>::type, E> orElse(F f) const {
+//    Result<typename std::enable_if<std::is_same<U, void>::value, U>::type, E>
+    std::enable_if_t<std::is_same<void, U>::value, Result<U, E>>
+    orElse(F f) const {
 
         if (isOk()) {
             return *this;
         }
 
         f(getError());
+
         return Ok();
     }
+
+
+    /**
+     * Pass through an Ok result but applies a given function to an error value.
+     * This can be used to map error types.
+     *
+     * @param f - An error mapping function to map Err value.
+     */
+    template<typename F,
+             typename ER = typename std::result_of<F(E)>::type>
+    Result<void, ER> mapError(F&& f) const {
+        if (isOk()) {
+            return Ok();
+        }
+
+        return Err(f(getError()));
+    }
+
 
 
     Result& swap(Result& rhs) noexcept {

@@ -37,11 +37,10 @@ class SignalReadRequest :
         public EventLoop::Request {
 public:
 
-    explicit SignalReadRequest(ISelectable::poll_id fd, const SignalSet* sigs) :
+    explicit SignalReadRequest(ISelectable::poll_id fd) :
         Request(),
         _fd(fd),
-        _isComplete(false),
-        _sigs(sigs)
+        _isComplete(false)
     {}
 
 
@@ -56,14 +55,14 @@ public:
                 }
             } else {
                 _isComplete = true;
-                _promise.resolve(fdsi.ssi_signo);
+                _promise.setValue(fdsi.ssi_signo);
             }
         }
 
         if (event.isSet(Solace::IO::Selector::Events::Write) ||
             event.isSet(Solace::IO::Selector::Events::Error)) {
             _isComplete = true;
-//            _promise.error();
+//            _promise.setError();
         }
 
     }
@@ -76,17 +75,16 @@ public:
        return (e.fd == _fd);
     }
 
-    Future<int>& promise() noexcept {
-        return _promise;
+    Future<int> promise() noexcept {
+        return _promise.getFuture();
     }
 
 private:
 
     ISelectable::poll_id    _fd;
     bool                    _isComplete;
-    const SignalSet*        _sigs;
 
-    Future<int>             _promise;
+    Promise<int>             _promise;
 };
 
 
@@ -139,10 +137,10 @@ SignalSet::SignalSet(EventLoop& ioContext, std::initializer_list<int> sigs) :
 }
 
 
-Future<int>& SignalSet::asyncWait() {
+Future<int> SignalSet::asyncWait() {
     auto& iocontext = getIOContext();
 
-    auto request = std::make_shared<SignalReadRequest>(_fd, this);
+    auto request = std::make_shared<SignalReadRequest>(_fd);
 
     // Promiss to call back once this request has been resolved
     iocontext.submit(request);

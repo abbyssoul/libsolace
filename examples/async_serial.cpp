@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
     Solace::MemoryManager memManager(2048);
     Solace::ByteBuffer readBuffer(memManager.create(bufferSize));
 
-    serial.asyncRead(readBuffer).then([&readBuffer]() {
+    serial.asyncRead(readBuffer).then([&readBuffer](int ) {
         auto dataView = readBuffer.viewWritten();
         std::cout.write(dataView.dataAs<const char>(), dataView.size());
         std::cout.flush();

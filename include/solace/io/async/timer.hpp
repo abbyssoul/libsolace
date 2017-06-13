@@ -70,7 +70,7 @@ public:
         return *this;
     }
 
-    Future<int64_t>& asyncWait();
+    Future<int64_t> asyncWait();
 
     Timer& setTimeout(const time_type& d);
     Timer& setTimeoutInterval(const time_type& initialDelay, const time_type& period);

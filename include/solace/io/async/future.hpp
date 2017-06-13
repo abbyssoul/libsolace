@@ -15,22 +15,280 @@
 */
 /*******************************************************************************
  * libSolace: Channel for event loops
- *	@file		solace/io/eventloop/channel.hpp
+ *	@file		solace/io/async/future.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_IO_EVENTLOOP_ASYNCRESULT_HPP
-#define SOLACE_IO_EVENTLOOP_ASYNCRESULT_HPP
+#ifndef SOLACE_IO_ASYNC_FUTUE_HPP
+#define SOLACE_IO_ASYNC_FUTUE_HPP
 
-#include <functional>
+#include <solace/delegate.hpp>
+
+#include <solace/result.hpp>
+#include <solace/error.hpp>
+
 
 namespace Solace { namespace IO { namespace async {
 
+template<typename T>
+class Core {
+public:
+    ~Core() = default;
+
+    Core() :
+        _completionHandler()
+    {}
+
+    Core(const Core&) = delete;
+    Core& operator= (const Core&) = delete;
+
+    Core(Core&&) = delete;
+    Core& operator= (Core&&) = delete;
+
+    template <class F>
+    void setCallback(F&& func) {
+        _completionHandler = std::forward<F>(func);
+    }
+
+    template <typename V>
+    void setResult(V&& value) {
+        if (_completionHandler) {
+            // TODO(abbyssoul): Handle exceptions
+            _completionHandler(value);
+        }
+    }
+
+private:
+
+    delegate<void(const T&)> _completionHandler;
+};
+
+
+template<>
+class Core<void> {
+public:
+    ~Core() = default;
+
+    Core() :
+        _completionHandler()
+    {}
+
+    Core(const Core&) = delete;
+    Core& operator= (const Core&) = delete;
+
+    Core(Core&&) = delete;
+    Core& operator= (Core&&) = delete;
+
+    template <class F>
+    void setCallback(F&& func) {
+        _completionHandler = std::forward<F>(func);
+    }
+
+    void setResult() {
+        if (_completionHandler) {
+            // TODO(abbyssoul): Handle exceptions
+            _completionHandler();
+        }
+    }
+
+private:
+
+    delegate<void()> _completionHandler;
+};
+
+
+
+template <typename T>
+using CorePtr = std::shared_ptr<Core<T>>;
+
+
+// Forward declation so Promise could reference it
+template<typename T>
+class Future;
+
+template <typename T>
+struct isFuture : std::false_type {
+    using std::false_type::value;
+
+    typedef T value_type;
+};
+
+template <typename T>
+struct isFuture<Future<T>> : std::true_type {
+    using std::true_type::value;
+
+    typedef T value_type;
+};
+
+
+/**
+ * Promise is the 'push' side of a future
+ */
+template<typename T>
+class Promise {
+public:
+    typedef T value_type;
+
+public:
+    ~Promise() = default;
+
+    Promise(const Promise& ) = delete;
+    Promise& operator= (const Promise& rhs) = delete;
+
+    /**
+     * Construct an empty promise
+     */
+    Promise() noexcept :
+        _core(std::make_shared<Core<T>>())
+    {}
+
+    Promise(Promise<T>&& rhs) noexcept : Promise() {
+        swap(rhs);
+    }
+
+    Promise& operator= (Promise<T>&& rhs) noexcept {
+        return swap(rhs);
+    }
+
+    Promise& swap(Promise& rhs) noexcept {
+        using std::swap;
+        swap(_core, rhs._core);
+
+        return *this;
+    }
+
+    /**
+     * Get future associated with this Promise.
+     * Note: this is mean to be called only once, thereafter
+     * an exception will be raised.
+     *
+     * @return A Future assocciated with this promise
+     */
+    Future<T> getFuture();
+
+    /**
+     * Resolve this promise with a value.
+     * (use perfect forwarding for both move and copy)
+    */
+    template <typename V>
+    void setValue(V&& value) {
+        if (_core) {
+            _core->setResult(std::forward<V>(value));
+        }
+    }
+
+
+    /**
+     * Fulfill this Promise with the result of a function that takes no
+     * arguments and returns something implicitly convertible to T.
+     * Captures exceptions. e.g.
+     * p.setWith([] { do something that may throw; return a T; });
+    */
+    template <typename F>
+    void setWith(F&& func) {
+        // FIXME: Handle excetions!
+        setValue(func());
+    }
+
+    void setError(const Error& SOLACE_UNUSED(e)) {
+        // FIXME: Implement
+    }
+
+protected:
+
+    template <class> friend class Future;
+
+private:
+
+    CorePtr<T> _core;
+
+};
+
+
+
+template<>
+class Promise<void> {
+public:
+    typedef void value_type;
+
+public:
+    ~Promise() = default;
+
+    Promise(const Promise& ) = delete;
+    Promise& operator= (const Promise& rhs) = delete;
+
+    /**
+     * Construct an empty promise
+     */
+    Promise() noexcept :
+        _core(std::make_shared<Core<void>>())
+    {}
+
+    Promise(Promise&& rhs) noexcept : Promise() {
+        swap(rhs);
+    }
+
+    Promise& operator= (Promise&& rhs) noexcept {
+        return swap(rhs);
+    }
+
+    Promise& swap(Promise& rhs) noexcept {
+        using std::swap;
+        swap(_core, rhs._core);
+
+        return *this;
+    }
+
+    /**
+     * Get future associated with this Promise.
+     * Note: this is mean to be called only once, thereafter
+     * an exception will be raised.
+     *
+     * @return A Future assocciated with this promise
+     */
+    Future<value_type> getFuture();
+
+    /**
+     * Resolve this promise with a value.
+     * (use perfect forwarding for both move and copy)
+    */
+    void setValue() {
+        _core->setResult();
+    }
+
+
+    /**
+     * Fulfill this Promise with the result of a function that takes no
+     * arguments and returns something implicitly convertible to T.
+     * Captures exceptions. e.g.
+     * p.setWith([] { do something that may throw; return a T; });
+    */
+    template <typename F>
+    void setWith(F&& func) {
+        // FIXME: Handle excetions!
+        func();
+        setValue();
+    }
+
+    void setError(const Error& SOLACE_UNUSED(e)) {
+        // FIXME: Implement
+    }
+
+protected:
+    template <class> friend class Future;
+
+private:
+
+    CorePtr<void> _core;
+
+};
+
+
 /**
  * An async future.
- * The Result class is a future that gets resolved once the value has been computed.
+ * This is an extention of Result class idea to represent asynchronous computation.
  *
  * @example
  * \code{.cpp}
@@ -55,34 +313,138 @@ public:
     Future(const Future& ) = delete;
     Future& operator= (const Future& rhs) = delete;
 
-    Future() :
-        _completionHandler()
-    {}
 
-    Future(Future&& rhs) :
-        _completionHandler(std::move(rhs._handler))
-    {}
+    Future(Future&& rhs) noexcept : Future(CorePtr<T>()) {
+        swap(rhs);
+    }
+
+    Future& operator= (Future&& rhs) noexcept {
+        return swap(rhs);
+    }
+
+    Future& swap(Future& rhs) noexcept {
+        using std::swap;
+        swap(_core, rhs._core);
+
+        return *this;
+    }
+
 
     /**
-     * FIXME(abbyssoul): then must return Future<std::result_of<F(value_type)>> to support chainning.
-     * Attach completion handler aka callback to this future to call when it's ready.
+     * Attach completion handler/callback to this future to be called when the future is resolved.
      *
      * @param completionHandler A completion handler to attach to this futuure.
      */
-    void then(std::function<void(const T&)>&& completionHandler) {
-        _completionHandler = std::move(completionHandler);
+    template<typename F,
+             typename R = typename std::result_of<F(value_type)>::type
+             >
+    std::enable_if_t<!std::is_void<R>::value && !isSomeResult<R>::value && !isFuture<R>::value, Future<R>>
+    then(F&& f) {
+
+        Promise<R> promise;
+        auto chainedFuture = promise.getFuture();
+
+        _core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (const T& v) mutable {
+                pm.setValue(cont(v));
+            });
+
+        return chainedFuture;
     }
 
-    // Resolve this future and call the handler.
-    void resolve(const T& value) {
-        if (_completionHandler) {
-            _completionHandler(value);
-        }
+
+    /**
+     * Attach completion handler/callback to this future to be called when the future is resolved.
+     *
+     * @param completionHandler A completion handler to attach to this futuure.
+     */
+    template<typename F,
+             typename R = typename std::result_of<F(value_type)>::type
+             >
+    std::enable_if_t<isSomeResult<R>::value, Future<typename R::value_type> >
+    then(F&& f) {
+        using result_value_type = typename R::value_type;
+        using result_error_type = typename R::error_type;
+
+        Promise<result_value_type> promise;
+        auto chainedFuture = promise.getFuture();
+
+        _core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (const T& v) mutable {
+                cont(v)
+                    .then([&pm] (const result_value_type& rv){
+                        pm.setValue(rv);
+                    })
+                    .orElse([&pm] (const result_error_type& er) {
+                        pm.setError(er);
+                    });
+            });
+
+        return chainedFuture;
     }
+
+
+    /**
+     * Attach completion handler/callback to this future to be called when the future is resolved.
+     *
+     * @param completionHandler A completion handler to attach to this futuure.
+     */
+    template<typename F,
+             typename R = typename std::result_of<F(value_type)>::type
+             >
+    std::enable_if_t<isFuture<R>::value, Future<typename R::value_type> >
+    then(F&& f) {
+        using result_value_type = typename R::value_type;
+//        using result_error_type = typename R::error_type;
+
+        Promise<result_value_type> promise;
+        auto chainedFuture = promise.getFuture();
+
+        _core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (const T& v) mutable {
+                cont(v)
+                    .then([&pm] (const result_value_type& rv){
+                        pm.setValue(rv);
+                    });
+//                    .orElse([&pm] (const result_error_type& er) {
+//                        pm.setError(er);
+//                    });
+            });
+
+        return chainedFuture;
+    }
+
+    /**
+     * Specialization of continuation assigment method for functions returning void
+     */
+    template<typename F,
+             typename R = typename std::result_of<F(value_type)>::type
+             >
+    std::enable_if_t<std::is_void<R>::value, Future<void> >
+    then(F&& f) {
+        Promise<void> promise;
+        auto chainedFuture = promise.getFuture();
+
+        _core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (const T& v) mutable {
+            // TODO(abbyssoul): Handle exceptions!
+            try {
+                cont(v);
+                pm.setValue();
+            } catch (...) {
+//                pm.setError(wrapExceptionIntoError);
+            }
+        });
+
+        return chainedFuture;
+    }
+
+protected:
+    template <class> friend class Promise;
+
+    Future(const CorePtr<T>& core): _core{core}
+    { }
 
 private:
 
-    std::function<void(const T&)> _completionHandler;
+    CorePtr<T> _core;
+
 };
 
 
@@ -92,6 +454,7 @@ private:
 template <>
 class Future<void> {
 public:
+
     typedef void value_type;
 
 public:
@@ -101,78 +464,120 @@ public:
     Future(const Future& ) = delete;
     Future& operator= (const Future& rhs) = delete;
 
-    Future() :
-        _handler()
-    {}
-
-    Future(Future&& rhs) :
-        _handler(std::move(rhs._handler))
-    {}
-
-    void then(const std::function<void()>& handler) {
-        _handler = handler;
+    Future(Future&& rhs) noexcept : Future(CorePtr<void>()) {
+        swap(rhs);
     }
 
-    // Resolve this future and call the handler.
-    void resolve() {
-        if (_handler) {
-            // Note: what happenes if _handler throws? Eventloop.run() get intrapted!
-            _handler();
-        }
+    Future& operator= (Future&& rhs) noexcept {
+        return swap(rhs);
     }
 
+    Future& swap(Future& rhs) noexcept {
+        using std::swap;
+        swap(_core, rhs._core);
+
+        return *this;
+    }
+
+    /**
+     * Attach completion handler to this future to be called when the future is resolved.
+     * This is a special case of completion handlers return void this result in Future<void>
+     * @param completionHandler A completion handler to attach to this futuure.
+     */
+    template<typename F,
+             typename R = typename std::result_of<F(value_type)>::type
+             >
+    std::enable_if_t<std::is_void<R>::value, Future<void>>
+    then(F&& f) {
+        Promise<void> promise;
+        auto chainedFuture = promise.getFuture();
+
+        _core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] () mutable {
+            // TODO(abbyssoul): Handle exceptions!
+            try {
+                cont();
+                pm.setValue();
+            } catch (...) {
+//                pm.setError(wrapExceptionIntoError);
+            }
+        });
+
+        return chainedFuture;
+    }
+
+    template<typename F,
+             typename R = typename std::result_of<F(value_type)>::type
+             >
+    std::enable_if_t<!std::is_void<R>::value && !isSomeResult<R>::value, Future<R>>
+    then(F&& f) {
+        Promise<R> promise;
+        auto chainedFuture = promise.getFuture();
+
+        _core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] () mutable {
+            // TODO(abbyssoul): Handle exceptions!
+            try {
+                pm.setValue(cont());
+            } catch (...) {
+//                pm.setError(wrapExceptionIntoError);
+            }
+        });
+
+        return chainedFuture;
+    }
+
+    /**
+     * Attach completion handler/callback to this future to be called when the future is resolved.
+     *
+     * @param completionHandler A completion handler to attach to this futuure.
+     */
+    template<typename F,
+             typename R = typename std::result_of<F(value_type)>::type
+             >
+    std::enable_if_t<isSomeResult<R>::value, Future<typename R::value_type> >
+    then(F&& f) {
+        using result_value_type = typename R::value_type;
+        using result_error_type = typename R::error_type;
+
+        Promise<result_value_type> promise;
+        auto chainedFuture = promise.getFuture();
+
+        _core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] () mutable {
+                cont()
+                    .then([&pm] (const result_value_type& rv){
+                        pm.setValue(rv);
+                    })
+                    .orElse([&pm] (const result_error_type& er) {
+                        pm.setError(er);
+                    });
+            });
+
+        return chainedFuture;
+    }
+
+
+protected:
+    template <class> friend class Promise;
+
+    Future(const CorePtr<void>& core): _core{core}
+    { }
 
 private:
 
-    std::function<void()> _handler;
+    CorePtr<void> _core;
 };
 
 
-/**
- * Promise is the 'push' side of a future
- */
-template<typename T>
-class Promise {
-public:
-    typedef T value_type;
+template <typename T>
+Future<T> Promise<T>::getFuture() {
+    return Future<T>(_core);
+}
 
-public:
-    ~Promise() = default;
 
-    Promise(const Promise& ) = delete;
-    Promise& operator= (const Promise& rhs) = delete;
-
-    /**
-     * Construct an empty promise
-     */
-    Promise();
-
-    /**
-     * Get future associated with this Promise.
-     * Note: this is mean to be called only once, thereafter
-     * an exception will be raised.
-     *
-     * @return A Future assocciated with this promise
-     */
-    Future<T> getFuture();
-
-    /**
-     * Resolve this promise with a value.
-     * (use perfect forwarding for both move and copy)
-    */
-    template <typename V>
-    void setValue(V&& value);
-
-    /**
-     * Resolve this promise with a call to a given function
-     * (use perfect forwarding for both move and copy)
-    */
-    template <typename F>
-    void setWith(F& func);
-
-};
+inline Future<void> Promise<void>::getFuture() {
+    return Future<void>(_core);
+}
 
 }  // End of namespace async
 }  // End of namespace IO
 }  // End of namespace Solace
-#endif  // SOLACE_IO_EVENTLOOP_ASYNCRESULT_HPP
+#endif  // SOLACE_IO_ASYNC_FUTUE_HPP

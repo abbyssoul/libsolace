@@ -19,6 +19,11 @@ if (WITH_STACK_PROTECTOR)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector")
 endif (WITH_STACK_PROTECTOR)
 
+check_cxx_compiler_flag("-fno-omit-frame-pointer" WITH_FRAME_POINTER)
+if (WITH_FRAME_POINTER)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
+endif (WITH_FRAME_POINTER)
+
 
 # Enable all the warnings one can get
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wmissing-include-dirs -Wpacked -Wredundant-decls")

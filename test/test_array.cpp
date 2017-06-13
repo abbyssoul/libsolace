@@ -23,10 +23,10 @@
  ******************************************************************************/
 #include <solace/array.hpp>    // Class being tested.
 #include <solace/string.hpp>   // Non POD subject.
-#include <solace/exception.hpp>
 
 
 #include <cppunit/extensions/HelperMacros.h>
+#include "mockTypes.hpp"
 
 
 using namespace Solace;
@@ -130,51 +130,6 @@ protected:
         virtual ~DerivedNonPodStruct() = default;
 
 	};
-
-    struct SometimesConstructable {
-        static int InstanceCount;
-        static int BlowUpEveryInstance;
-
-        int someValue;
-
-        SometimesConstructable(): someValue(3) {
-            if ((InstanceCount + 1) % BlowUpEveryInstance) {
-                throw Exception("Blowing up");
-            }
-
-            ++InstanceCount;
-        }
-
-        ~SometimesConstructable() {
-            --InstanceCount;
-        }
-
-        SometimesConstructable(const SometimesConstructable& rhs): someValue(rhs.someValue)
-        {
-            ++InstanceCount;
-        }
-
-        SometimesConstructable(SometimesConstructable&& rhs): someValue(rhs.someValue)
-        {
-            ++InstanceCount;
-        }
-
-        SometimesConstructable& operator= (const SometimesConstructable& rhs) {
-            someValue = rhs.someValue;
-
-            return *this;
-        }
-
-        SometimesConstructable& operator= (SometimesConstructable&& rhs) {
-            someValue = rhs.someValue;
-            return *this;
-        }
-
-        bool operator == (const SometimesConstructable& rhs) const {
-            return someValue == rhs.someValue;
-        }
-    };
-
 
 public:
 
@@ -739,7 +694,5 @@ const String 	TestArray::NonPodStruct::STR_DEFAULT = "test_value";
 
 Array<int>::size_type TestArray::NonPodStruct::TotalCount = 0;
 
-int TestArray::SometimesConstructable::InstanceCount = 0;
-int TestArray::SometimesConstructable::BlowUpEveryInstance = 4;
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestArray);

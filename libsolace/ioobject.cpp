@@ -35,7 +35,7 @@ IOObject::IOResult IOObject::read(ByteBuffer& destBuffer, size_type bytesToRead)
     auto destSlice = destBuffer.viewRemaining().slice(0, bytesToRead);
 
     return read(destSlice)
-            .map([&destBuffer](auto bytesRead) {
+            .then([&destBuffer](auto bytesRead) {
                 destBuffer.advance(bytesRead);
 
                 return bytesRead;
@@ -49,7 +49,7 @@ IOObject::IOResult IOObject::write(ByteBuffer& srcBuffer) {
 
 IOObject::IOResult IOObject::write(ByteBuffer& srcBuffer, size_type bytesToWrite) {
     return write(srcBuffer.viewRemaining().slice(0, bytesToWrite))
-            .map([&srcBuffer](auto bytesRead) {
+            .then([&srcBuffer](auto bytesRead) {
                 srcBuffer.advance(bytesRead);
 
                 return (bytesRead);

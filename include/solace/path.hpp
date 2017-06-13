@@ -98,8 +98,7 @@ public:  // Static methods
      * @param delim A delimiter used to separate path components
      * @return Parsed path object
      *
-     * TODO:
-     *  * Should return Result<Path, ParseError>
+     * TODO: Parse family of functions should return Result<Path, ParseError>
      */
     static Path parse(const String& str, const String& delim = Delimiter);
 

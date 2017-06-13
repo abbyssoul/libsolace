@@ -39,9 +39,8 @@ class ByteBuffer;
 
 
 /**
- * Base intrface for all classes doing I/O
- * This is a 'convention' interface that any IOObject derivative can perform read/write operations
- * given ByteStream and MemoryView objects.
+ * Basic interface for classes doing I/O
+ * All IO objects implementing this interface will be able to accept MemoryView and ByteBuffer as data sources / dest.
  */
 class IOObject {
 public:
