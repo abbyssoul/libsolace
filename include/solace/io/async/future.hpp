@@ -336,7 +336,7 @@ public:
      * @param completionHandler A completion handler to attach to this futuure.
      */
     template<typename F,
-             typename R = typename std::result_of<F(value_type)>::type
+             typename R = typename std::result_of<F(T)>::type
              >
     std::enable_if_t<!std::is_void<R>::value && !isSomeResult<R>::value && !isFuture<R>::value, Future<R>>
     then(F&& f) {
@@ -358,7 +358,7 @@ public:
      * @param completionHandler A completion handler to attach to this futuure.
      */
     template<typename F,
-             typename R = typename std::result_of<F(value_type)>::type
+             typename R = typename std::result_of<F(T)>::type
              >
     std::enable_if_t<isSomeResult<R>::value, Future<typename R::value_type> >
     then(F&& f) {
@@ -388,7 +388,7 @@ public:
      * @param completionHandler A completion handler to attach to this futuure.
      */
     template<typename F,
-             typename R = typename std::result_of<F(value_type)>::type
+             typename R = typename std::result_of<F(T)>::type
              >
     std::enable_if_t<isFuture<R>::value, Future<typename R::value_type> >
     then(F&& f) {
@@ -415,25 +415,10 @@ public:
      * Specialization of continuation assigment method for functions returning void
      */
     template<typename F,
-             typename R = typename std::result_of<F(value_type)>::type
+             typename R = typename std::result_of<F(T)>::type
              >
     std::enable_if_t<std::is_void<R>::value, Future<void> >
-    then(F&& f) {
-        Promise<void> promise;
-        auto chainedFuture = promise.getFuture();
-
-        _core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (const T& v) mutable {
-            // TODO(abbyssoul): Handle exceptions!
-            try {
-                cont(v);
-                pm.setValue();
-            } catch (...) {
-//                pm.setError(wrapExceptionIntoError);
-            }
-        });
-
-        return chainedFuture;
-    }
+    then(F&& f);
 
 protected:
     template <class> friend class Promise;
@@ -485,7 +470,7 @@ public:
      * @param completionHandler A completion handler to attach to this futuure.
      */
     template<typename F,
-             typename R = typename std::result_of<F(value_type)>::type
+             typename R = typename std::result_of<F(void)>::type
              >
     std::enable_if_t<std::is_void<R>::value, Future<void>>
     then(F&& f) {
@@ -506,7 +491,7 @@ public:
     }
 
     template<typename F,
-             typename R = typename std::result_of<F(value_type)>::type
+             typename R = typename std::result_of<F(void)>::type
              >
     std::enable_if_t<!std::is_void<R>::value && !isSomeResult<R>::value, Future<R>>
     then(F&& f) {
@@ -531,7 +516,7 @@ public:
      * @param completionHandler A completion handler to attach to this futuure.
      */
     template<typename F,
-             typename R = typename std::result_of<F(value_type)>::type
+             typename R = typename std::result_of<F(void)>::type
              >
     std::enable_if_t<isSomeResult<R>::value, Future<typename R::value_type> >
     then(F&& f) {
@@ -576,6 +561,30 @@ Future<T> Promise<T>::getFuture() {
 inline Future<void> Promise<void>::getFuture() {
     return Future<void>(_core);
 }
+
+
+template<typename T>
+template<typename F,
+         typename R
+         >
+std::enable_if_t<std::is_void<R>::value, Future<void>>
+Future<T>::then(F&& f) {
+    Promise<void> promise;
+    auto chainedFuture = promise.getFuture();
+
+    _core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (const T& v) mutable {
+        // TODO(abbyssoul): Handle exceptions!
+        try {
+            cont(v);
+            pm.setValue();
+        } catch (...) {
+//                pm.setError(wrapExceptionIntoError);
+        }
+    });
+
+    return chainedFuture;
+}
+
 
 }  // End of namespace async
 }  // End of namespace IO

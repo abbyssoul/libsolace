@@ -89,9 +89,9 @@ public:
 
     class Iterator {
     public:
-        Iterator(const std::shared_ptr<IPollerImpl>& p, size_type index, size_type size):
+        Iterator(const std::shared_ptr<IPollerImpl>& p, size_type index, size_type nbReady):
             _index(index),
-            _size(size),
+            _size(nbReady),
             _pimpl(p)
         {}
 
