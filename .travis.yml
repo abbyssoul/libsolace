@@ -46,9 +46,11 @@ install:
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-4.9 90
   - sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 120 --slave /usr/bin/clang++ clang++ /usr/bin/clang++-3.8
   #- if [ "$CXX" = "g++" ]; then export CXX="g++-5" CC="gcc-5"; fi
-  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.8" CC="clang-3.8"; fi
-  #- if [ "$CXX" = "clang++" ]; then which clang++; clang++ --version; fi
+  #- if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.8" CC="clang-3.8"; fi
+  - if [ "$CXX" = "clang++" ]; then sudo update-alternatives --install /usr/bin/clang clang /usr/bin/clang-3.8 370 && sudo update-alternatives --install /usr/bin/clang++ clang++ /usr/bin/clang++-3.8 370; fi
   - libs/dependencies
+  - echo $CXX
+  - echo $CXX --version
 
 script:
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make codecheck ; fi
