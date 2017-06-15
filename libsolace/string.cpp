@@ -26,19 +26,7 @@
 #include <regex>
 
 
-using Solace::String;
-using Solace::Optional;
-using Solace::MemoryView;
-using Solace::Array;
-using Solace::IFormattable;
-using Solace::ByteBuffer;
-
-using Solace::int32;
-using Solace::int64;
-using Solace::uint32;
-using Solace::uint64;
-using Solace::float32;
-using Solace::float64;
+using namespace Solace;
 
 
 
@@ -340,7 +328,7 @@ bool String::endsWith(const value_type& suffix) const {
            Char::equals(suffix, _str[_str.size() - 1]);
 }
 
-int64 String::hashCode() const {
+uint64 String::hashCode() const {
     return std::hash<std::string>()(_str);
 }
 

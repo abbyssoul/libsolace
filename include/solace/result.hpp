@@ -528,9 +528,8 @@ public:
             else
                 _state = ::new (_stateBuffer.errSpace) ErrorState(std::move(rhs.getError()));
 
-//            rhs.assign(v);
             rhs._state->~IState();
-            rhs._state = ::new (rhs._stateBuffer.okSpace) OkState(v);
+            rhs._state = ::new (rhs._stateBuffer.okSpace) OkState(std::move(v));
         } else {
             E e{ std::move(getError()) };
 
@@ -539,9 +538,8 @@ public:
             else
                 _state = ::new (_stateBuffer.errSpace) ErrorState(std::move(rhs.getError()));
 
-//            rhs.assign(nullptr, e);
             rhs._state->~IState();
-            rhs._state = ::new (rhs._stateBuffer.errSpace) ErrorState(e);
+            rhs._state = ::new (rhs._stateBuffer.errSpace) ErrorState(std::move(e));
         }
 
         return (*this);
@@ -566,48 +564,46 @@ public:
     }
 
     const V& unwrap() const& {
-        return _state->getResult();
+        return *_state->getResult();
     }
 
     V& unwrap() & {
-        return _state->getResult();
+        return *_state->getResult();
     }
 
     V&& unwrap() && {
-        return std::move(_state->getResult());
+        return std::move(*_state->getResult());
     }
 
     const E& getError() const & {
-        return _state->getError();
+        return *_state->getError();
     }
 
     E& getError() & {
-        return _state->getError();
+        return *_state->getError();
     }
 
     E&& getError() && {
-        return _state->getError();
+        return *_state->getError();
     }
 
 private:
 
     template<typename T>
     class AlignedStorage {
-    private:
-        union dummy_u {
-            char data[ sizeof(T) ];
-        } _dummy;
+    public:
+        ~AlignedStorage() {
+            ptr_ref()->T::~T();
+        }
 
-      public:
-        void const* address() const { return _dummy.data; }
-        void      * address()       { return _dummy.data; }
+        void const* address() const { return _dummy; }
+        void      * address()       { return _dummy; }
 
         T const* ptr_ref() const { return static_cast<T const*>(address()); }
         T *      ptr_ref()       { return static_cast<T *>     (address()); }
-        T const& ref() const&   { return *ptr_ref(); }
 
-        T&       ref() &        { return *ptr_ref(); }
-        T&&      ref() &&       { return std::move(*ptr_ref()); }
+    private:
+        std::aligned_storage_t<sizeof(T), alignof(T)> _dummy[1];
     };
 
 private:
@@ -619,19 +615,17 @@ private:
         virtual bool isOk() const = 0;
         virtual bool isError() const = 0;
 
-        virtual const V&  getResult() const = 0;
-        virtual V&        getResult()       = 0;
-//        virtual V&        getResult() &      = 0;
-//        virtual V&&       getResult() &&       = 0;
+        virtual const V*  getResult() const = 0;
+        virtual V*        getResult()       = 0;
 
-        virtual const E& getError() const& = 0;
-        virtual E&       getError() &       = 0;
-        virtual E&&       getError() &&      = 0;
+        virtual const E* getError() const = 0;
+        virtual E*       getError()       = 0;
     };
 
 
     class OkState: public IState {
     public:
+
         OkState(const types::Ok<V>& val) {
             ::new (_storage.address()) V(val.val_);
         }
@@ -648,24 +642,14 @@ private:
             ::new (_storage.address()) V(val);
         }
 
-        ~OkState() {
-            _storage.ref().V::~V();
-        }
+        bool isOk() const override      { return true; }
+        bool isError() const override   { return false; }
 
-        bool isOk() const override { return true; }
-        bool isError() const override { return false; }
+        const V* getResult() const override   { return _storage.ptr_ref(); }
+        V* getResult() override               { return _storage.ptr_ref(); }
 
-        const V& getResult() const override   { return _storage.ref(); }
-        V& getResult() override               { return _storage.ref(); }
-//        V& getResult() & override               { return _storage.ref(); }
-//        V&& getResult() && override               { return _storage.ref(); }
-
-        const E& getError() const& override   { raiseInvalidStateError(); return *reinterpret_cast<E*>(NULL); }
-        E& getError() & override               { raiseInvalidStateError(); return *reinterpret_cast<E*>(NULL); }
-        E&& getError() && override               {
-            raiseInvalidStateError();
-            return std::move(*reinterpret_cast<E*>(NULL));
-        }
+        const E* getError() const override      { raiseInvalidStateError(); return nullptr; }
+        E* getError()  override                 { raiseInvalidStateError(); return nullptr; }
 
     private:
 
@@ -684,26 +668,14 @@ private:
             ::new (_storage.address()) E(std::move(val.val_));
         }
 
-        ~ErrorState() {
-            _storage.ref().E::~E();
-        }
-
         bool isOk() const override { return false; }
         bool isError() const override { return true; }
 
-        const V& getResult() const override   { raiseInvalidStateError(); return *reinterpret_cast<V*>(NULL); }
-        V& getResult() override               { raiseInvalidStateError(); return *reinterpret_cast<V*>(NULL); }
-//        V& getResult() & override               { raiseInvalidStateError(); return *reinterpret_cast<V*>(NULL); }
-//        V&& getResult() && override               {
-//            raiseInvalidStateError();
-//            return std::move(*reinterpret_cast<V*>(NULL));
-//        }
+        const V* getResult() const override   { raiseInvalidStateError(); return nullptr; }
+        V* getResult() override               { raiseInvalidStateError(); return nullptr; }
 
-        const E& getError() const & override   { return _storage.ref(); }
-        E& getError() & override               { return _storage.ref(); }
-        E&& getError() && override               {
-            return std::move(_storage.ref());
-        }
+        const E* getError() const  override   { return _storage.ptr_ref(); }
+        E* getError() override                { return _storage.ptr_ref(); }
 
     private:
 
@@ -734,6 +706,8 @@ public:
             "Error type must be non-void");
 
 public:
+
+    ~Result() = default;
 
     /**
      * Construct Ok result by copying value
@@ -785,10 +759,6 @@ public:
         _maybeError(std::move(rhs._maybeError))
     {
     }
-
-
-    ~Result() = default;
-
 
 public:
 
@@ -959,7 +929,6 @@ public:
 
     template<typename F,
              typename U = typename std::result_of<F(E)>::type>
-//    Result<typename std::enable_if<std::is_same<U, void>::value, U>::type, E>
     std::enable_if_t<std::is_same<void, U>::value, Result<U, E>>
     orElse(F f) const {
 
@@ -988,8 +957,6 @@ public:
 
         return Err(f(getError()));
     }
-
-
 
     Result& swap(Result& rhs) noexcept {
         _maybeError.swap(rhs._maybeError);
@@ -1027,11 +994,7 @@ protected:
 
 private:
 
-    /**
-     * Well, honestly it should have been called Schrodinger's Cat State 0_0
-     */
     Optional<error_type> _maybeError;
-
 };
 
 

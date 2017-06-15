@@ -31,7 +31,7 @@
 
 #include <functional>   // std::function
 #include <ostream>
-
+#include <type_traits>  // std::aligned_storage
 
 namespace Solace {
 
@@ -62,7 +62,7 @@ public:
     }
 
     static Optional<T> of(T&& t) {
-        return Optional<T>(t);
+        return Optional<T>(std::move(t));
     }
 
 public:
@@ -87,8 +87,8 @@ public:
     {}
 
     Optional(Optional<T>&& that) noexcept(std::is_nothrow_copy_constructible<T>::value) :
-        Optional() {
-
+        Optional()
+    {
         swap(that);
     }
 
@@ -105,23 +105,23 @@ public:
             return *this;
         } else if (isSome()) {  // This has something inside:
             if (rhs.isNone()) {
-                rhs.makeSome(get());
+                rhs.makeSome(std::move(get()));
                 makeNone();
             } else {
-                T c(get());
+                T c(std::move(get()));
 
-                makeSome(rhs.get());
-                rhs.makeSome(c);
+                makeSome(std::move(rhs.get()));
+                rhs.makeSome(std::move(c));
             }
         } else {  // Rhs has something inside:
             if (isNone()) {
-                makeSome(rhs.get());
+                makeSome(std::move(rhs.get()));
                 rhs.makeNone();
             } else {
-                T c(get());
+                T c(std::move(get()));
 
-                makeSome(rhs.get());
-                rhs.makeSome(c);
+                makeSome(std::move(rhs.get()));
+                rhs.makeSome(std::move(c));
             }
         }
 
@@ -146,12 +146,16 @@ public:
 
     bool isNone() const noexcept { return _state->isNone(); }
 
-    const T& get() const {
-        return _state->ref();
+    const T& get() const & {
+        return *_state->ptr_ref();
     }
 
-    T& get() {
-        return _state->ref();
+    T& get() & {
+        return *_state->ptr_ref();
+    }
+
+    T&& get() && {
+        return std::move(*_state->ptr_ref());
     }
 
     const T& orElse(const T& t) const noexcept {
@@ -159,20 +163,32 @@ public:
     }
 
     template <typename F,
+              typename U = typename std::result_of<F(T&)>::type>
+    Optional<U> map(F f) {
+        return (isSome())
+                ? Optional<U>::of(f(*_state->ptr_ref()))
+                : Optional<U>::none();
+    }
+
+    template <typename F,
               typename U = typename std::result_of<F(T)>::type>
     Optional<U> map(F f) const {
-        return (isSome()) ? Optional<U>::of(f(_state->ref())) : Optional<U>::none();
+        return (isSome())
+                ? Optional<U>::of(f(*_state->ptr_ref()))
+                : Optional<U>::none();
     }
 
     template <typename U>
     Optional<U> flatMap(const std::function<Optional<U> (const T&)>& f) const {
-        return (isSome()) ? f(_state->ref()) : Optional<U>::none();
+        return (isSome())
+                ? f(*_state->ptr_ref())
+                : Optional<U>::none();
     }
 
     template <typename F>
     Optional<T> filter(F predicate) const {
         return (isSome())
-                ? (predicate(_state->ref()) ? *this : Optional<T>::none())
+                ? (predicate(*_state->ptr_ref()) ? *this : Optional<T>::none())
                 : Optional<T>::none();
     }
 
@@ -186,19 +202,21 @@ private:
 
     template<typename V>
     class AlignedStorage {
-    private:
-        union dummy_u {
-            byte data[ sizeof(V) ];
-        } _dummy;
+    public:
 
-      public:
-        void const* address() const { return _dummy.data; }
-        void      * address()       { return _dummy.data; }
+        ~AlignedStorage() {
+            ptr_ref()->T::~T();
+        }
+
+        void const* address() const { return _dummy; }
+        void      * address()       { return _dummy; }
 
         V const* ptr_ref() const { return static_cast<V const*>(address()); }
         V *      ptr_ref()       { return static_cast<V *>     (address()); }
-        V const& ref() const { return *ptr_ref(); }
-        V &      ref()       { return *ptr_ref(); }
+
+    private:
+        std::aligned_storage_t<sizeof(V), alignof(V)> _dummy[1];
+
     };
 
     class IState {
@@ -210,8 +228,8 @@ private:
 
         virtual const T& orElse(const T& t) const = 0;
 
-        virtual const T& ref() const = 0;
-        virtual T&       ref()       = 0;
+        virtual const T* ptr_ref() const = 0;
+        virtual T*       ptr_ref()       = 0;
     };
 
     class NoneState: public IState {
@@ -221,8 +239,8 @@ private:
 
         const T& orElse(const T& t) const override { return t; }
 
-        const T& ref() const override   { raiseInvalidStateError(); return *reinterpret_cast<T*>(NULL); }
-        T& ref() override               { raiseInvalidStateError(); return *reinterpret_cast<T*>(NULL); }
+        const T* ptr_ref() const override   { raiseInvalidStateError(); return nullptr; }
+        T* ptr_ref() override               { raiseInvalidStateError(); return nullptr; }
     };
 
     class SomeState: public IState {
@@ -236,17 +254,13 @@ private:
             ::new (_storage.address()) T(std::move(val));
         }
 
-        ~SomeState() {
-            _storage.ref().T::~T();
-        }
-
         bool isSome() const noexcept override { return true; }
         bool isNone() const noexcept override { return false; }
 
-        const T& orElse(const T&) const override { return ref(); }
+        const T& orElse(const T&) const override { return *ptr_ref(); }
 
-        T const& ref() const override   { return _storage.ref(); }
-        T& ref() override               { return _storage.ref(); }
+        T const* ptr_ref() const override   { return _storage.ptr_ref(); }
+        T* ptr_ref() override               { return _storage.ptr_ref(); }
 
     private:
 

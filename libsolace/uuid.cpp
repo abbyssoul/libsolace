@@ -50,7 +50,7 @@ UUID UUID::random() {
 
 UUID::UUID() noexcept {
     for (auto& b : _bytes) {
-        b = static_cast<char>(rand() % 255);
+        b = static_cast<byte>(rand() % 255);
     }
 }
 

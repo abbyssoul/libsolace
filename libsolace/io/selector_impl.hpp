@@ -48,9 +48,7 @@ public:
 
     virtual Selector::Event getEvent(uint i) = 0;
 
-    virtual uint advance(uint i) = 0;
-
-//    virtual int toNativeEventFormat() const = 0;
+    virtual size_t advance(size_t i) = 0;
 };
 
 

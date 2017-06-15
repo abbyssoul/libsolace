@@ -91,6 +91,9 @@ private:
     SerialReadRequest& operator =(const SerialReadRequest&) = delete;
     SerialReadRequest& operator =(SerialReadRequest&&) = delete;
 
+private:
+
+    Promise<int>    _promise;
     Serial&         _selectable;
     ByteBuffer&     _buffer;
     SerialChannel::size_type     _size;
@@ -98,7 +101,6 @@ private:
     Selector::Events    _direction;
     bool                    _isComplete;
 
-    Promise<int>    _promise;
 };
 
 

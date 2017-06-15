@@ -54,7 +54,6 @@ public:
     typedef T                                   value_type;
     typedef std::vector<T> Storage;
     typedef uint32                              size_type;
-//    typedef typename Storage::size_type         size_type;
 
     typedef typename Storage::iterator          Iterator;
     typedef typename Storage::const_iterator    const_iterator;
@@ -66,6 +65,8 @@ public:
     typedef typename Storage::const_pointer     const_pointer_type;
 
 public:
+
+    virtual ~Array() noexcept = default;
 
     /** Construct an empty array
      * note: stl vector does not guaranty 'noexcept' even for an empty vector :'(
@@ -101,8 +102,6 @@ public:
     /** Construct an array from an std:: */
     Array(const Storage& list): _storage(list) {
     }
-
-    virtual ~Array() noexcept = default;
 
 public:
 

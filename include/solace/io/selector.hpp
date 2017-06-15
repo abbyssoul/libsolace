@@ -143,7 +143,7 @@ public:
 
         Iterator end() const;
 
-        uint size() const noexcept {
+        size_type size() const noexcept {
             return _size;
         }
 

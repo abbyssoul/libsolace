@@ -36,7 +36,7 @@ using namespace Solace::IO::async;
 
 
 EventLoop::EventLoop(uint32 backlogCapacity) :
-    EventLoop(backlogCapacity, std::move(Selector::createEPoll(backlogCapacity)))
+    EventLoop(backlogCapacity, Selector::createEPoll(backlogCapacity))
 {
 }
 
@@ -145,13 +145,13 @@ void EventLoop::runFor(int msec) {
     auto start = std::chrono::high_resolution_clock::now();
 
     while (_keepOnRunning && !_backlog.empty()) {
-        auto end = std::chrono::high_resolution_clock::now();
-        auto timeLeft = msec - std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
+        const auto end = std::chrono::high_resolution_clock::now();
+        const auto timeLeft = msec - std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
         if (timeLeft < 0) {
             break;
         }
 
-        auto readyEvents = _selector.poll(timeLeft);
+        const auto readyEvents = _selector.poll(timeLeft);
         if (readyEvents.size() == 0) {
             return;  // Timeout
         }

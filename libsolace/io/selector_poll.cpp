@@ -137,7 +137,7 @@ public:
     }
 
 
-    uint advance(uint offsetIndex) override {
+    size_t advance(size_t offsetIndex) override {
         const auto pollCount = _pollfds.size();
 
         // Overflow check
@@ -151,8 +151,8 @@ public:
 
 protected:
 
-    uint findFirstReady(uint offsetIndex, uint pollCount) {
-        for (uint i = offsetIndex; i < pollCount; ++i) {
+    size_t findFirstReady(size_t offsetIndex, size_t pollCount) {
+        for (size_t i = offsetIndex; i < pollCount; ++i) {
             const auto& p = _pollfds[i];
             if (p.revents) {
                 return i;

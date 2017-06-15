@@ -45,8 +45,8 @@ using Solace::IOException;
 
 timespec timespec_from_ms(const uint32 millis) {
     timespec time;
-    time.tv_sec = millis / 1e3;
-    time.tv_nsec = (millis - (time.tv_sec * 1e3)) * 1e6;
+    time.tv_sec = millis / 1000;
+    time.tv_nsec = (millis - (time.tv_sec * 1000)) * 1000000;
 
     return time;
 }
@@ -80,7 +80,7 @@ void reconfigurePort(int fd, uint32 baudrate, Serial::Bytesize bytesize,
 
     // setup baud rate
     bool custom_baud = false;
-    speed_t baud;
+    speed_t baud = 0;
     switch (baudrate) {
 #ifdef B0
         case 0: baud = B0; break;
@@ -245,7 +245,7 @@ void reconfigurePort(int fd, uint32 baudrate, Serial::Bytesize bytesize,
     }
 
     // setup char len
-    options.c_cflag &= (tcflag_t) ~CSIZE;
+    options.c_cflag &= static_cast<tcflag_t>(~CSIZE);
     switch (bytesize) {
         case Serial::Bytesize::eightbits: options.c_cflag |= CS8; break;
         case Serial::Bytesize::sevenbits: options.c_cflag |= CS7; break;

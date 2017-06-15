@@ -146,7 +146,7 @@ public:
         bool firstCallbackOk = false;
         bool secondCallbackOk = false;
 
-        auto ff = [&p2](int x) {
+        auto ff = [&p2](int SOLACE_UNUSED(x)) {
             return p2.getFuture();
         };
 

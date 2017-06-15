@@ -94,7 +94,7 @@ ANALYZE_MAKE: ${ANALYZE_DIR}
 
 tools/cppcheck:
 	# Getting latest cppcheck
-	git clone --depth 1 https://github.com/danmar/cppcheck.git tools/cppcheck
+	git clone --depth 1 https://github.com/abbyssoul/cppcheck.git tools/cppcheck
 
 tools/FlintPlusPlus:
 	git clone --depth 1 https://github.com/L2Program/FlintPlusPlus.git tools/FlintPlusPlus

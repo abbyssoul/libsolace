@@ -85,9 +85,10 @@ public:
      }
 
 private:
-    ISelectable::poll_id    _fd;
-    bool                    _isComplete;
-    Promise<int64_t>         _promise;
+     Promise<int64_t>           _promise;
+
+     ISelectable::poll_id       _fd;
+     bool                       _isComplete;
 };
 
 

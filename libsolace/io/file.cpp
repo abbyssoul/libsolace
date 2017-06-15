@@ -97,15 +97,16 @@ File::File(const Path& path, int flags) {
         _fd = open(pathStr.c_str(), flags);
 
         if ((notDone = (_fd == -1))) {
-          switch (errno) {
-          case EINTR:  // Recoverable error, lest try again!
-              break;
-          case ENFILE:
-          case EMFILE:
-            raise<IOException>("Too many opened file descriptors.");
-          default:
-            raise<IOException>(errno);
-          }
+            switch (errno) {
+            case EINTR:  // Recoverable error, lest try again!
+                break;
+            case ENFILE:
+            case EMFILE:
+                raise<IOException>("Too many opened file descriptors.");
+                break;
+            default:
+                raise<IOException>(errno);
+            }
         }
     }
 }

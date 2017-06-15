@@ -38,6 +38,7 @@ class TestOptional : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testConstructionIntegrals);
         CPPUNIT_TEST(testConstruction);
         CPPUNIT_TEST(testAssignment);
+        CPPUNIT_TEST(testSwap);
 
         CPPUNIT_TEST(testEmpty);
         CPPUNIT_TEST(testString);
@@ -47,65 +48,23 @@ class TestOptional : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testFlatMap);
         CPPUNIT_TEST(testFilter);
         CPPUNIT_TEST(testMoveOnlyResult);
+        CPPUNIT_TEST(testMoveOnlyMapper);
+
     CPPUNIT_TEST_SUITE_END();
 
 private:
 public:
-/*
-    class SomeTestType {
-    public:
-        static int InstanceCount;
 
-        int x;
-        float f;
-
-        const char* somethingElse;
-
-        SomeTestType(): x(), f(), somethingElse("THIS IS ERROR") {
-            ++InstanceCount;
-        }
-
-        SomeTestType(int a, float b, const char* c) : x(a), f(b), somethingElse(c)
-        {
-            ++InstanceCount;
-        }
-
-        SomeTestType(const SomeTestType& t): x(t.x), f(t.f), somethingElse(t.somethingElse)
-        {
-            ++InstanceCount;
-        }
-
-        SomeTestType(SomeTestType&& t): x(t.x), f(t.f), somethingElse(t.somethingElse)
-        {
-            ++InstanceCount;
-        }
-
-        ~SomeTestType()
-        {
-            --InstanceCount;
-        }
-
-        SomeTestType& operator= (const SomeTestType& rhs) {
-            x = rhs.x;
-            f = rhs.f;
-            somethingElse = rhs.somethingElse;
-
-            return (*this);
-        }
-
-        bool operator== (const SomeTestType& rhs) const {
-            return  x == rhs.x &&
-                    std::abs(f - rhs.f) < 1e-4f &&
-                    somethingElse == rhs.somethingElse;
-        }
-    };
-*/
     void setUp() override {
+        CPPUNIT_ASSERT_EQUAL(0, PimitiveType::InstanceCount);
         CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
+        CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
     }
 
     void tearDown() override {
+        CPPUNIT_ASSERT_EQUAL(0, PimitiveType::InstanceCount);
         CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
+        CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
     }
 
     void testConstructionIntegrals() {
@@ -181,6 +140,19 @@ public:
 
             CPPUNIT_ASSERT_EQUAL(v1, v3);
         }
+
+        {
+            CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
+            const Optional<MoveOnlyType> v;
+            CPPUNIT_ASSERT(v.isNone());
+            CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
+
+            MoveOnlyType t(3987);
+            auto v2 = Optional<MoveOnlyType>::of(std::move(t));
+            CPPUNIT_ASSERT(v2.isSome());
+            CPPUNIT_ASSERT_EQUAL(2, MoveOnlyType::InstanceCount);
+        }
+
     }
 
     void testAssignment() {
@@ -209,22 +181,108 @@ public:
             v1 = v2;
             CPPUNIT_ASSERT_EQUAL(2, SimpleType::InstanceCount);
         }
-        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
     }
 
-    /**
-     * Test implementation and contract of IComparable
-     */
+
+    void testSwap() {
+        {
+            auto v1 = Optional<int>::none();
+            auto v2 = Optional<int>::none();
+
+            CPPUNIT_ASSERT(v1.isNone());
+            swap(v1, v2);
+
+            v2 = Optional<int>::of(3);
+            CPPUNIT_ASSERT(v1.isNone());
+            CPPUNIT_ASSERT(v2.isSome());
+            CPPUNIT_ASSERT_EQUAL(3, v2.get());
+
+            swap(v1, v2);
+            CPPUNIT_ASSERT(v1.isSome());
+            CPPUNIT_ASSERT(v2.isNone());
+
+            CPPUNIT_ASSERT_EQUAL(3, v1.get());
+            CPPUNIT_ASSERT_THROW(v2.get(), Solace::NoSuchElementException);
+        }
+        {
+            auto v1 = Optional<SimpleType>::none();
+            auto v2 = Optional<SimpleType>::none();
+
+            CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
+            CPPUNIT_ASSERT(v1.isNone());
+            swap(v1, v2);
+            CPPUNIT_ASSERT(v1.isNone());
+            CPPUNIT_ASSERT(v2.isNone());
+            CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
+
+            v2 = Optional<SimpleType>::of(SimpleType{1, -3, 412});
+            CPPUNIT_ASSERT(v1.isNone());
+            CPPUNIT_ASSERT(v2.isSome());
+            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(-3, v2.get().y);
+
+            swap(v1, v2);
+            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
+            CPPUNIT_ASSERT(v1.isSome());
+            CPPUNIT_ASSERT(v2.isNone());
+
+            CPPUNIT_ASSERT_EQUAL(412, v1.get().z);
+            CPPUNIT_ASSERT_THROW(v2.get(), NoSuchElementException);
+        }
+
+        {
+            auto v1 = Optional<MoveOnlyType>::none();
+            auto v2 = Optional<MoveOnlyType>::none();
+
+            CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
+            CPPUNIT_ASSERT(v1.isNone());
+            swap(v1, v2);
+            CPPUNIT_ASSERT(v1.isNone());
+            CPPUNIT_ASSERT(v2.isNone());
+            CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
+
+            v2 = Optional<MoveOnlyType>::of(MoveOnlyType{998});
+            CPPUNIT_ASSERT(v1.isNone());
+            CPPUNIT_ASSERT(v2.isSome());
+            CPPUNIT_ASSERT_EQUAL(1, MoveOnlyType::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(998, v2.get().x_);
+
+            swap(v1, v2);
+            CPPUNIT_ASSERT_EQUAL(1, MoveOnlyType::InstanceCount);
+            CPPUNIT_ASSERT(v1.isSome());
+            CPPUNIT_ASSERT(v2.isNone());
+
+            CPPUNIT_ASSERT_EQUAL(998, v1.get().x_);
+            CPPUNIT_ASSERT_THROW(v2.get(), NoSuchElementException);
+        }
+    }
+
+
     void testEmpty() {
         auto v1 = Optional<int>::none();
 
         CPPUNIT_ASSERT(v1.isNone());
         CPPUNIT_ASSERT(!v1.isSome());
 
-        auto v2 = Optional<SimpleType>::none();
+        {
+            const auto v = Optional<SimpleType>::none();
+            CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
 
-        CPPUNIT_ASSERT(v2.isNone());
-        CPPUNIT_ASSERT(!v2.isSome());
+            CPPUNIT_ASSERT(v.isNone());
+            CPPUNIT_ASSERT(!v.isSome());
+            CPPUNIT_ASSERT_THROW(v.get(), NoSuchElementException);
+        }
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
+
+        {
+            auto v = Optional<MoveOnlyType>::none();
+            CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
+
+            CPPUNIT_ASSERT(v.isNone());
+            CPPUNIT_ASSERT(!v.isSome());
+            CPPUNIT_ASSERT_THROW(v.get(), NoSuchElementException);
+        }
+        CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
     }
 
     void testString() {
@@ -284,6 +342,19 @@ public:
                                         .map(atoi);
         CPPUNIT_ASSERT(meaningOfLife.isSome());
         CPPUNIT_ASSERT_EQUAL(42, meaningOfLife.get());
+
+        {
+            auto v = Optional<MoveOnlyType>::of(MoveOnlyType(1024));
+            const auto d = v.map([] (MoveOnlyType& q) {
+                return q.x_ / 2;
+            });
+
+            CPPUNIT_ASSERT(v.isSome());
+            CPPUNIT_ASSERT(d.isSome());
+            CPPUNIT_ASSERT_EQUAL(1024, v.get().x_);
+            CPPUNIT_ASSERT_EQUAL(512, d.get());
+            CPPUNIT_ASSERT_EQUAL(1, MoveOnlyType::InstanceCount);
+        }
     }
 
     void testFlatMap() {
@@ -321,15 +392,30 @@ public:
     }
 
     void testMoveOnlyResult() {
-        /*
         CPPUNIT_ASSERT(Optional<MoveOnlyType>::none().isNone());
+        CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
 
         Optional<MoveOnlyType> r =  [] (int v) {
             return MoveOnlyType(v);
         } (321);
 
         CPPUNIT_ASSERT(r.isSome());
-        CPPUNIT_ASSERT_EQUAL(321, r.get().x_);*/
+        CPPUNIT_ASSERT_EQUAL(321, r.get().x_);
+        CPPUNIT_ASSERT_EQUAL(1, MoveOnlyType::InstanceCount);
+    }
+
+    void testMoveOnlyMapper() {
+        auto r = Optional<MoveOnlyType>::of(MoveOnlyType(32));
+
+        /* FIXME: This is broken as map() does not support functors that move value out.
+        auto op = r.map([](MoveOnlyType&& m) {
+                return m.x_ * 2;
+        });
+
+        CPPUNIT_ASSERT(op.isSome());
+        CPPUNIT_ASSERT_EQUAL(64, op.get());
+        */
+        CPPUNIT_ASSERT_EQUAL(1, MoveOnlyType::InstanceCount);
     }
 };
 

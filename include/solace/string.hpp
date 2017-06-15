@@ -54,6 +54,8 @@ public:
 
 public:
 
+    virtual ~String() = default;
+
 	//!< Default constructor constructs an null(empty) string
 	String() noexcept;
 
@@ -77,8 +79,6 @@ public:
 
     //!< Construct the string from std::string - STD compatibility method
 	String(const std::string& buffer) : _str(buffer) {}
-
-	virtual ~String() = default;
 
 public:  // Additional to base object operations
 
@@ -194,16 +194,26 @@ public:  // Basic collection operations:
 
     Optional<size_type> lastIndexOf(const char* str, size_type fromIndex = 0) const;
 
-	/** Returns a string that is a result of concatenation of this and a given string
+    /**
 	 * Concatenates the specified string to the end of this string.
+     * @param str A string to append to this string.
+     * @return A string that is a result of concatenation of this and a given string.
 	 */
 	String concat(const String& str) const;
 
-	String concat(const char* str) const;
+    /**
+     * Concatenates the specified c-style zero terminated string to the end of this string.
+     * @param str A c-style zero terminated string to append to this string.
+     * @return A string that is a result of concatenation of this and a given string.
+     */
+    String concat(const char* str) const;
 
 	/**
 	 * Returns a new string with all occurrences of 'what'
 	 * replaced with 'with'.
+     * @param what A character to be replaced in the string
+     * @param with A replacement character that will replace all occurances of the given one in the string.
+     * @return A resulting string with all occurances of 'what' replaced with 'with'
 	 */
 	String replace(const value_type& what, const value_type& with) const;
 
@@ -258,27 +268,31 @@ public:  // Basic collection operations:
 	String toUpperCase() const;
 
 	/**
-	 * Tests if this string starts with the specified prefix.
-	 * @params prefix - the prefix.
+     * Tests if this string starts with the given prefix.
+     * @param prefix The prefix to check.
+     * @return True if this string indeed starts with the given prefix, false otherwise.
 	 */
 	bool startsWith(const String& prefix) const;
 
 	/**
 	 * Tests if this string starts with the specified prefix.
-	 * @params prefix - the prefix.
-	 */
+     * @param prefix The prefix to check.
+     * @return True if this string indeed starts with the given prefix, false otherwise.
+     */
 	bool startsWith(const value_type& prefix) const;
 
 	/**
 	 * Tests if this string ends with the specified suffix.
-	 * @params suffix - the suffix.
-	 */
+     * @param suffix The suffix to check.
+     * @return True if this string indeed ends with the given suffix, false otherwise.
+     */
 	bool endsWith(const String& suffix) const;
 
 	/**
 	 * Tests if this string ends with the specified suffix.
-	 * @params suffix - the suffix.
-	 */
+     * @param suffix The suffix to check.
+     * @return True if this string indeed ends with the given suffix, false otherwise.
+     */
 	bool endsWith(const value_type& suffix) const;
 
 	/** Returns a hash code for this string.
@@ -290,7 +304,7 @@ public:  // Basic collection operations:
 	 *
 	 * @return A hash code value for this object.
 	 */
-    int64 hashCode() const;
+    uint64 hashCode() const;
 
 	/**
 	 * Identity operation

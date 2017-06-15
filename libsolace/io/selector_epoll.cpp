@@ -164,7 +164,7 @@ public:
         return event;
     }
 
-    uint advance(uint offsetIndex) override {
+    size_t advance(size_t offsetIndex) override {
         return offsetIndex + 1;
     }
 

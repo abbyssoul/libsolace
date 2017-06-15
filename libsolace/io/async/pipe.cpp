@@ -96,6 +96,7 @@ public:
     }
 
 private:
+    Promise<void>       _promise;
 
     File&               _fd;
     ByteBuffer&         _buffer;
@@ -103,8 +104,7 @@ private:
     Pipe::size_type     _bytesPassed;
     Selector::Events    _direction;
 
-    bool                    _isComplete;
-    Promise<void>       _promise;
+    bool                _isComplete;
 };
 
 

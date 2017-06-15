@@ -36,11 +36,10 @@ class EventReadRequest :
         public EventLoop::Request {
 public:
 
-    EventReadRequest(ISelectable::poll_id fd, const Event* event) :
+    explicit EventReadRequest(ISelectable::poll_id fd) :
         Request(),
         _fd(fd),
-        _isComplete(false),
-        _event(event)
+        _isComplete(false)
     {}
 
     void onReady(const Selector::Event& event) override {
@@ -63,7 +62,7 @@ public:
 
     }
 
-    bool isComplete() const noexcept  {
+    bool isComplete() const noexcept override {
         return _isComplete;
     }
 
@@ -76,10 +75,10 @@ public:
      }
 
 private:
-    ISelectable::poll_id    _fd;
-    bool                    _isComplete;
-    const Event*            _event;
-    Promise<void>           _promise;
+     Promise<void>           _promise;
+
+     ISelectable::poll_id    _fd;
+     bool                    _isComplete;
 };
 
 
@@ -123,7 +122,7 @@ Future<void> Event::asyncWait() {
     auto& iocontext = getIOContext();
 
     // FIXME(abbyssoul): WTF?! Don't register fd with selector for each read/write!
-    auto request = std::make_shared<EventReadRequest>(_fd, this);
+    auto request = std::make_shared<EventReadRequest>(_fd);
 
     // Promiss to call back once this request has been resolved
     iocontext.submit(request);

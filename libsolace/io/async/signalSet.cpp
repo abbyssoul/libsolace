@@ -80,11 +80,10 @@ public:
     }
 
 private:
+    Promise<int>             _promise;
 
     ISelectable::poll_id    _fd;
     bool                    _isComplete;
-
-    Promise<int>             _promise;
 };
 
 

@@ -38,7 +38,7 @@ using Solace::IOException;
 using Solace::NotOpen;
 
 
-const char* IOExceptionType = "IOException";
+static const char* IOExceptionType = "IOException";
 
 
 
