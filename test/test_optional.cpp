@@ -395,9 +395,11 @@ public:
         CPPUNIT_ASSERT(Optional<MoveOnlyType>::none().isNone());
         CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
 
-        Optional<MoveOnlyType> r =  [] (int v) {
+        auto mover = [] (int v) {
             return MoveOnlyType(v);
-        } (321);
+        };
+
+        auto r = Optional<MoveOnlyType>::of(mover(321));
 
         CPPUNIT_ASSERT(r.isSome());
         CPPUNIT_ASSERT_EQUAL(321, r.get().x_);
