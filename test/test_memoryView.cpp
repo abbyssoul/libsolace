@@ -38,7 +38,7 @@ class TestMemoryView: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testRead);
         CPPUNIT_TEST(testWrite);
         CPPUNIT_TEST(testWrapping);
-//        CPPUNIT_TEST(testDataAs);
+        CPPUNIT_TEST(testDataAs);
         CPPUNIT_TEST(testReadingPastTheSize);
         CPPUNIT_TEST(testSlice);
     CPPUNIT_TEST_SUITE_END();

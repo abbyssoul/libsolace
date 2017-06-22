@@ -216,5 +216,11 @@ inline void swap(UUID& lhs, UUID& rhs) noexcept {
     lhs.swap(rhs);
 }
 
+
+ByteBuffer& operator >> (ByteBuffer& buffer, UUID& id);
+
+ByteBuffer& operator << (ByteBuffer& buffer, const UUID& id);
+
+
 }  // namespace Solace
 #endif  // SOLACE_UUID_HPP

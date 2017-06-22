@@ -29,13 +29,7 @@
 #include <ctime>    // time
 
 
-using Solace::byte;
-using Solace::UUID;
-using Solace::MemoryView;
-using Solace::String;
-using Solace::IndexOutOfRangeException;
-using Solace::IllegalArgumentException;
-
+using namespace Solace;
 
 
 // GCC Being dickheaded and requires it here, but not Char::max_bytes, WTF?
@@ -184,11 +178,11 @@ String UUID::toString() const {
 
     // 123e4567-e89b-12d3-a456-426655440000
     // 8-4-4-4-12
-    nibbleData(buffer + 0, _bytes + 0, 4);
-    nibbleData(buffer + 9, _bytes + 4, 2);
-    nibbleData(buffer + 14, _bytes + 6, 2);
-    nibbleData(buffer + 19, _bytes + 8, 2);
-    nibbleData(buffer + 24, _bytes + 10, 6);
+    nibbleData(buffer + 0,  &(_bytes[0]),  4);
+    nibbleData(buffer + 9,  &(_bytes[4]),  2);
+    nibbleData(buffer + 14, &(_bytes[6]),  2);
+    nibbleData(buffer + 19, &(_bytes[8]),  2);
+    nibbleData(buffer + 24, &(_bytes[10]), 6);
 
     return String(buffer, StringSize);
 }
@@ -246,4 +240,16 @@ UUID UUID::parse(const String& str) {
     hex2bin(data, str.c_str(), StringSize);
 
     return UUID(wrapMemory(data, sizeof(data)));
+}
+
+
+
+ByteBuffer& operator >> (ByteBuffer& buffer, UUID& id) {
+    auto view = id.view();
+    return buffer.read(view);
+}
+
+
+ByteBuffer& operator << (ByteBuffer& buffer, const UUID& id) {
+    return buffer.write(id.view());
 }

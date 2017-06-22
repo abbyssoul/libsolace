@@ -43,6 +43,8 @@ class TestFuture : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testThenValueUnwrapping);
         CPPUNIT_TEST(testThenResultContinuation);
         CPPUNIT_TEST(testThenFutureContinuation);
+
+        CPPUNIT_TEST(testOnErrorHandler);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -165,6 +167,27 @@ public:
 
         p2.setValue(SimpleType(60, 1, 3));
         CPPUNIT_ASSERT(firstCallbackOk);
+        CPPUNIT_ASSERT(secondCallbackOk);
+    }
+
+    void testOnErrorHandler() {
+        auto p1 = Promise<int>();
+        auto f1 = p1.getFuture();
+
+        bool firstCallbackOk = false;
+        bool secondCallbackOk = false;
+
+        f1.then([&firstCallbackOk](int x) {
+            firstCallbackOk = (x == 120);
+
+            return 2;
+        }).onError([&secondCallbackOk](Error&& e) {
+           secondCallbackOk = true;
+        });
+
+
+        p1.setError(Solace::Error("Test error"));
+        CPPUNIT_ASSERT(!firstCallbackOk);
         CPPUNIT_ASSERT(secondCallbackOk);
     }
 };

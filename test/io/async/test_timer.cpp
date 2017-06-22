@@ -134,10 +134,17 @@ public:
         });
 
         // Should block untill event is triggered
-        iocontext.run();
+        bool runFailes = false;
+        try {
+            iocontext.run();
+        } catch (const std::exception& ) {
+            runFailes = true;
+        }
+
         watchdog.join();
 
         CPPUNIT_ASSERT_EQUAL(4, nbTimesCalled);
+        CPPUNIT_ASSERT(!runFailes);
     }
 
 
@@ -172,11 +179,18 @@ public:
         });
 
         // Should block untill event is triggered
-        iocontext.run();
+        bool runFailes = false;
+        try {
+            iocontext.run();
+        } catch (const std::exception& ) {
+            runFailes = true;
+        }
+
         watchdog.join();
         canceler.join();
 
         CPPUNIT_ASSERT_EQUAL(nbTimesCalledWhenCanceled, nbTimesCalled);
+        CPPUNIT_ASSERT(!runFailes);
     }
 
 
@@ -223,11 +237,17 @@ public:
         });
 
         // Should block untill event is triggered
-        iocontext.run();
+        bool runFailes = false;
+        try {
+            iocontext.run();
+        } catch (const std::exception& ) {
+            runFailes = true;
+        }
         canceler.join();
 
         watchdog.join();
         CPPUNIT_ASSERT_EQUAL(nbTimesCalledWhenCanceled + 1, nbTimesCalled);
+        CPPUNIT_ASSERT(!runFailes);
     }
 
 

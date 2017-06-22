@@ -158,6 +158,10 @@ public:
         return std::move(*_state->ptr_ref());
     }
 
+    T&& move() {
+        return std::move(*_state->ptr_ref());
+    }
+
     const T& orElse(const T& t) const noexcept {
         return _state->orElse(t);
     }

@@ -575,6 +575,10 @@ public:
         return std::move(*_state->getResult());
     }
 
+    E&& moveError() {
+        return std::move(*_state->getError());
+    }
+
     const E& getError() const & {
         return *_state->getError();
     }
@@ -584,7 +588,7 @@ public:
     }
 
     E&& getError() && {
-        return *_state->getError();
+        return std::move(*_state->getError());
     }
 
 private:
@@ -900,43 +904,31 @@ public:
             return *this;
         }
 
-        return f(getError());
+        return f(moveError());
     }
-
-    template<typename F,
-             typename R = typename std::result_of<F(E)>::type>
-    std::enable_if_t<isResult<void, E, R>::value, typename isResult<void, E, R>::type>
-    orElse(F&& f) const {
-        if (isOk()) {
-            return *this;
-        }
-
-        return f(getError());
-    }
-
 
     template<typename F,
              typename R = typename std::result_of<F(E)>::type>
     std::enable_if_t<!std::is_same<void, R>::value && !isResult<void, E, R>::value, Result<R, E>>
-    orElse(F&& f) const {
+    orElse(F&& f) {
 
         if (isOk()) {
             return *this;
         }
 
-        return Ok<R>(f(getError()));
+        return Ok<R>(f(moveError()));
     }
 
     template<typename F,
              typename U = typename std::result_of<F(E)>::type>
     std::enable_if_t<std::is_same<void, U>::value, Result<U, E>>
-    orElse(F f) const {
+    orElse(F&& f) {
 
         if (isOk()) {
             return *this;
         }
 
-        f(getError());
+        f(moveError());
 
         return Ok();
     }
@@ -982,14 +974,16 @@ public:
         return _maybeError.isSome();
     }
 
-protected:
-
     const E& getError() const {
         return _maybeError.get();
     }
 
     E& getError() {
         return _maybeError.get();
+    }
+
+    E&& moveError() {
+        return _maybeError.move();
     }
 
 private:
