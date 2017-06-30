@@ -141,14 +141,19 @@ codecheck: cpplint flint cppcheck #scan-build
 # Runtime Quality Control
 #-------------------------------------------------------------------------------
 
-verify: $(TEST_TAGRET)
+valgrind-sgcheck: $(TEST_TAGRET)
 	# > 3.10 (not avaliable on trusty) --expensive-definedness-checks=yes --read-var-info=yes
 	valgrind --trace-children=yes --track-fds=yes --redzone-size=128 --error-exitcode=4 \
 	--tool=exp-sgcheck $(TEST_TAGRET)
 
+valgrind-memcheck: $(TEST_TAGRET)
 	valgrind --trace-children=yes --track-fds=yes --redzone-size=128 --error-exitcode=3 \
 	--tool=memcheck --leak-check=full --show-leak-kinds=all --track-origins=yes --partial-loads-ok=no \
 	$(TEST_TAGRET)
+
+
+# valgrind-sgcheck is broken for now :'(
+verify: valgrind-memcheck
 
 
 $(COVERAGE_REPORT): $(BUILD_DIR)/build_coverage
