@@ -40,3 +40,6 @@ void Solace::raiseInvalidStateError() {
     Solace::raise<NoSuchElementException>("None");
 }
 
+void Solace::raiseInvalidStateError(const char* message) {
+    Solace::raise<Exception>(message);
+}

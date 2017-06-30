@@ -27,7 +27,6 @@
 
 #include "solace/types.hpp"
 #include "solace/traits/icomparable.hpp"
-#include "solace/traits/iterable.hpp"
 
 #include "solace/assert.hpp"
 #include "solace/memoryView.hpp"
@@ -38,6 +37,10 @@
 #include <vector>       // TODO(abbyssoul): Remove! No dynamic reallocation is needed!
 #include <ostream>      // TODO(abbyssoul): Remove! Used once only for Unit testing
 
+// TODO(abbyssoul): Allcote memory via memory manager
+#include "solace/memoryManager.hpp"
+
+
 
 namespace Solace {
 
@@ -47,8 +50,7 @@ namespace Solace {
  */
 template<typename T>
 class Array:
-        public IComparable<Array<T>>,
-        public Iterable<Array<T>, T>
+        public IComparable<Array<T>>
 {
 public:
     typedef T                                   value_type;
@@ -66,7 +68,7 @@ public:
 
 public:
 
-    virtual ~Array() noexcept = default;
+    ~Array() noexcept = default;
 
     /** Construct an empty array
      * note: stl vector does not guaranty 'noexcept' even for an empty vector :'(
@@ -218,7 +220,8 @@ public:
      *--------------------------------------------------------------------------
      */
 
-    const Array<T>& forEach(const std::function<void(const_reference)> &f) const override {
+    template<typename F>
+    const Array<T>& forEach(F&& f) const {
         for (const auto& x : _storage) {
             f(x);
         }
@@ -226,7 +229,8 @@ public:
         return *this;
     }
 
-    const Array<T>& forEach(const std::function<void(size_type, const_reference)> &f) const {
+    template<typename F>
+    const Array<T>& forEachIndexed(F&& f) const {
         const auto thisSize = size();
         for (size_type i = 0; i < thisSize; ++i) {
             f(i, _storage[i]);
@@ -235,10 +239,12 @@ public:
         return *this;
     }
 
-    template <typename O>
-    Array<O> map(const std::function<O(const_reference)>& f) const {
+
+    template<typename F,
+             typename R = typename std::result_of<F(T)>::type>
+    Array<R> map(F&& f) const {
         const auto thisSize = size();
-        typename Array<O>::Storage mappedStorage;  // NOTE: No default size here as it will insert that many elements.
+        typename Array<R>::Storage mappedStorage;  // NOTE: No default size here as it will insert that many elements.
         mappedStorage.reserve(thisSize);
 
         for (const auto& x : _storage) {

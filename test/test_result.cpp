@@ -52,6 +52,7 @@ class TestResult : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testTypeConvertion);
         CPPUNIT_TEST(testMapError);
         CPPUNIT_TEST(testMoveOnlyObjects);
+        CPPUNIT_TEST(testThenMovesObjects);
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -130,48 +131,48 @@ public:
 
     void testTypeConvertion() {
         {
-            const Result<int, Unit> r = Ok(10);
+            Result<int, Unit> r = Ok(10);
             CPPUNIT_ASSERT(r.isOk());
         }
 
         {
-            const Result<PimitiveType, Unit> r = Ok<PimitiveType>(10);
+            Result<PimitiveType, Unit> r = Ok<PimitiveType>(10);
             CPPUNIT_ASSERT(r.isOk());
         }
 
         {
-            const Result<PimitiveType, Unit> r = Result<int, Unit>(Ok(10));
+            Result<PimitiveType, Unit> r = Result<int, Unit>(Ok(10));
             CPPUNIT_ASSERT(r.isOk());
         }
     }
 
     void testConstructionIntegrals() {
         {
-            const Result<void, int> v = Ok();
+            Result<void, int> v = Ok();
             CPPUNIT_ASSERT(v.isOk());
         }
         {
             Unit x;
-            const Result<Unit, int> v = Ok(std::move(x));
+            Result<Unit, int> v = Ok(std::move(x));
             CPPUNIT_ASSERT(v.isOk());
         }
         {
             int x = 675;
-            const Result<Unit, int> v = Err(x);
+            Result<Unit, int> v = Err(x);
             CPPUNIT_ASSERT(v.isError());
             CPPUNIT_ASSERT_EQUAL(x, v.getError());
         }
 
         {
             int x = 8832;
-            const Result<int, Unit> v = Ok(std::move(x));
+            Result<int, Unit> v = Ok(std::move(x));
             CPPUNIT_ASSERT(v.isOk());
             CPPUNIT_ASSERT_EQUAL(x, v.unwrap());
         }
 
         {
             char x = 'x';
-            const Result<int, char> v = Err(x);
+            Result<int, char> v = Err(x);
             CPPUNIT_ASSERT(v.isError());
             CPPUNIT_ASSERT_EQUAL(x, v.getError());
         }
@@ -307,24 +308,24 @@ public:
 
 
     void getResultOnErrorThrows() {
-        const Result<int, char> v = Err('e');
+        Result<int, char> v = Err('e');
 
         CPPUNIT_ASSERT_THROW(v.unwrap(), Exception);
     }
 
     void getErrorOnOkThrows() {
-        const Result<int, char> v = Ok(32);
+        Result<int, char> v = Ok(32);
 
         CPPUNIT_ASSERT_THROW(v.getError(), Exception);
     }
 
     void testVoidResult() {
-        const Result<void, int> v = Ok();
+        Result<void, int> v = Ok();
 
         CPPUNIT_ASSERT(v.isOk());
 
         bool thenCalled = false;
-        const auto derivedOk = v.then([&thenCalled]() {
+        auto derivedOk = v.then([&thenCalled]() {
             thenCalled = true;
             return Ok<int>(312);
         });
@@ -333,7 +334,7 @@ public:
         CPPUNIT_ASSERT(derivedOk.isOk());
         CPPUNIT_ASSERT_EQUAL(312, derivedOk.unwrap());
 
-        const auto derivedErr = v.then([]() -> Result<const char*, int> { return Err<int>(-5); });
+        auto derivedErr = v.then([]() -> Result<const char*, int> { return Err<int>(-5); });
         CPPUNIT_ASSERT(derivedErr.isError());
         CPPUNIT_ASSERT_EQUAL(-5, derivedErr.getError());
     }
@@ -436,9 +437,9 @@ public:
     }
 
     void testThenComposition_cv() {
-        const Result<int, SimpleType> initialResult = Ok<int>(112);
+        Result<int, SimpleType> initialResult = Ok<int>(112);
 
-        const Result<std::function<int()>, SimpleType> finalResult = initialResult
+        Result<std::function<int()>, SimpleType> finalResult = initialResult
                 .then([](int x)     { return Ok<float32>(x / 10); })
                 .then([](float32 x) { return Ok<int>(floor(x) + 30); })
                 .then([](int x)     { return Ok<std::function<int()>>([x]() { return (1 + x); }); });
@@ -449,8 +450,8 @@ public:
         auto sq =  [](int x) -> Result<int, int> { return Ok<int>(x * x); };
         auto err = [](int x) -> Result<int, int> { return Err(x); };
 
-        const Result<int, int> ok2 = Ok(2);
-        const Result<int, int> err3 = Err(3);
+        Result<int, int> ok2 = Ok(2);
+        Result<int, int> err3 = Err(3);
         CPPUNIT_ASSERT(Ok(2) == ok2.orElse(sq).orElse(sq));
         CPPUNIT_ASSERT(Ok(2) == ok2.orElse(err).orElse(sq));
         CPPUNIT_ASSERT(Ok(9) == err3.orElse(sq).orElse(err));
@@ -459,7 +460,7 @@ public:
 
 
     void testMapError() {
-        const Result<int, PimitiveType> res = Err<PimitiveType>(112);
+        Result<int, PimitiveType> res = Err<PimitiveType>(112);
 
         CPPUNIT_ASSERT(Err<String>("Error is 112") == res.mapError([](const PimitiveType& x){
             return String("Error is ").concat(String::valueOf(x.x));
@@ -468,12 +469,12 @@ public:
 
     void testMoveOnlyObjects() {
         {
-            const Result<MoveOnlyType, SimpleType> res = Err<SimpleType>({112, 2, -1});
+            Result<MoveOnlyType, SimpleType> res = Err<SimpleType>({112, 2, -1});
             CPPUNIT_ASSERT(res.isError());
         }
 
         {
-            const Result<MoveOnlyType, SimpleType> res = [] () {
+            Result<MoveOnlyType, SimpleType> res = [] () {
                 MoveOnlyType t(123);
 
                 return Ok(std::move(t));
@@ -483,7 +484,7 @@ public:
         }
 
         {
-            const Result<int, MoveOnlyType> res = [] () {
+            Result<int, MoveOnlyType> res = [] () {
                 MoveOnlyType t(123);
 
                 return Err(std::move(t));
@@ -491,6 +492,18 @@ public:
 
             CPPUNIT_ASSERT(res.isError());
         }
+    }
+
+    void testThenMovesObjects() {
+        Result<MoveOnlyType, SimpleType> res = Ok<MoveOnlyType>({112});
+
+        bool movedOut = false;
+        res.then([&movedOut](MoveOnlyType&& m) {
+            movedOut = m.x_ == 112;
+            CPPUNIT_ASSERT(m.InstanceCount = 1);
+        });
+
+        CPPUNIT_ASSERT(movedOut);
     }
 
 };

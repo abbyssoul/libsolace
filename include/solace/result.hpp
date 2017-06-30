@@ -238,6 +238,14 @@ public:
 
 public:
 
+    ~Result() {
+        if (_state) {
+            _state->~IState();
+            _state = nullptr;
+        }
+    }
+
+
     /**
      * Construct Ok result by copying value
      * @param value Ok value to copy
@@ -297,8 +305,8 @@ public:
      */
     Result(Result&& rhs) noexcept :
         _state(rhs.isOk()
-               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(std::move(rhs.unwrap())))
-               : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(std::move(rhs.getError()))))
+               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.moveResult()))
+               : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(rhs.moveError())))
     {
     }
 
@@ -310,12 +318,12 @@ public:
     {
     }
 
-
-    ~Result() {
-        if (_state) {
-            _state->~IState();
-            _state = nullptr;
-        }
+    template<typename DV>
+    Result(Result<DV, E>&& rhs) noexcept :
+        _state(rhs.isOk()
+               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.moveResult()))
+               : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(rhs.moveError())))
+    {
     }
 
 public:
@@ -335,23 +343,10 @@ public:
 
         if (isOk()) {
             // TODO(abbyssoul): We probably should handle exeptions here
-            return f(unwrap());
+            return f(moveResult());
         }
 
-        return Err(getError());
-    }
-
-    template<typename F,
-             typename R = typename std::result_of<F(V)>::type>
-    std::enable_if_t<isResult<V, E, R>::value, typename isResult<V, E, R>::type>
-    then(F&& f) const {
-
-        if (isOk()) {
-            // TODO(abbyssoul): We probably should handle exeptions here
-            return f(unwrap());
-        }
-
-        return Err(getError());
+        return Err(moveError());
     }
 
 //    template<typename F,
@@ -388,10 +383,10 @@ public:
 
         if (isOk()) {
             // TODO(abbyssoul): Handle exeptions and convert then into Error
-            return Ok<R>(f(unwrap()));
+            return Ok<R>(f(moveResult()));
         }
 
-        return Err(getError());
+        return Err(moveError());
     }
 
 
@@ -403,12 +398,12 @@ public:
 
         if (isOk()) {
             // TODO(abbyssoul): Handle exeptions and convert then into Error
-            f(unwrap());
+            f(moveResult());
 
             return Ok();
         }
 
-        return Err(getError());
+        return Err(moveError());
     }
 
 
@@ -422,19 +417,9 @@ public:
             return *this;
         }
 
-        return f(getError());
+        return f(moveError());
     }
 
-    template<typename F,
-             typename R = typename std::result_of<F(E)>::type>
-    std::enable_if_t<isResult<V, E, R>::value, typename isResult<V, E, R>::type>
-    orElse(F&& f) const {
-        if (isOk()) {
-            return *this;
-        }
-
-        return f(getError());
-    }
 
     template<typename F,
              typename RE = typename std::result_of<F(E)>::type>
@@ -444,20 +429,9 @@ public:
             return *this;
         }
         // TODO(abbyssoul): Handle exeptions and convert then into Error
-        return Ok(f(getError()));
+        return Ok(f(moveError()));
     }
 
-    template<typename F,
-             typename RE = typename std::result_of<F(E)>::type>
-    std::enable_if_t<!isResult<V, E, RE>::value, Result<RE, E>>
-    orElse(F&& f) const {
-        if (isOk()) {
-            return *this;
-        }
-
-        // TODO(abbyssoul): Handle exeptions and convert then into Error
-        return Ok(f(getError()));
-    }
 
 //    template<typename F,
 //             typename RE = typename std::result_of<F(E)>::type>
@@ -492,30 +466,13 @@ public:
              typename EE = typename std::result_of<F(E)>::type>
     Result<V, EE> mapError(F&& f) {
         if (isOk()) {
-            return Ok(unwrap());
+            return Ok(moveResult());
         }
 
         // TODO(abbyssoul): Handle exeptions and convert then into Error
-        return Err(f(getError()));
+        return Err(f(moveError()));
     }
 
-
-    /**
-     * Pass through a Ok result but applies a given function to an error value.
-     * This can be used to handle errors.
-     *
-     * @param f - An error mapping function to map Err value.
-     */
-    template<typename F,
-             typename EE = typename std::result_of<F(E)>::type>
-    Result<V, EE> mapError(F&& f) const {
-        if (isOk()) {
-            return Ok(unwrap());
-        }
-
-        // TODO(abbyssoul): Handle exeptions and convert then into Error
-        return Err(f(getError()));
-    }
 
 
     Result& swap(Result& rhs) noexcept {
@@ -572,6 +529,10 @@ public:
     }
 
     V&& unwrap() && {
+        return std::move(*_state->getResult());
+    }
+
+    V&& moveResult() {
         return std::move(*_state->getResult());
     }
 
@@ -785,22 +746,9 @@ public:
             return f();
         }
 
-        return Err(getError());
+        return Err(moveError());
     }
 
-    template<typename F,
-             typename R = typename std::result_of<F(void)>::type
-             >
-    std::enable_if_t<isResult<void, E, R>::value, typename isResult<void, E, R>::type>
-    then(F&& f) const {
-
-        if (isOk()) {
-            // TODO(abbyssoul): We probably should handle exeptions here
-            return f();
-        }
-
-        return Err(getError());
-    }
 
 //    template<typename F,
 //             typename R = typename std::result_of<F(void)>::type
@@ -843,22 +791,7 @@ public:
             return Ok<R>(f());
         }
 
-        return Err(getError());
-    }
-
-
-    template <typename F,
-              typename R = typename std::result_of<F(void)>::type
-              >
-    std::enable_if_t<!std::is_same<R, void>::value && !isResult<void, E, R>::value, Result<R, E>>
-    then(F&& f) const {
-
-        if (isOk()) {
-            // TODO(abbyssoul): Handle exeptions and convert then into Error
-            return Ok<R>(f());
-        }
-
-        return Err(getError());
+        return Err(moveError());
     }
 
 
@@ -875,7 +808,7 @@ public:
             return Ok();
         }
 
-        return Err(getError());
+        return Err(moveError());
     }
 
     template <typename F,
@@ -891,7 +824,7 @@ public:
             return Ok();
         }
 
-        return Err(getError());
+        return Err(moveError());
     }
 
     //------------------------------------------------------------------
@@ -942,12 +875,12 @@ public:
      */
     template<typename F,
              typename ER = typename std::result_of<F(E)>::type>
-    Result<void, ER> mapError(F&& f) const {
+    Result<void, ER> mapError(F&& f) {
         if (isOk()) {
             return Ok();
         }
 
-        return Err(f(getError()));
+        return Err(f(moveError()));
     }
 
     Result& swap(Result& rhs) noexcept {

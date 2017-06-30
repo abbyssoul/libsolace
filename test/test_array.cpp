@@ -54,7 +54,14 @@ class TestArray : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testContains);
         CPPUNIT_TEST(testExtend);
 
-        CPPUNIT_TEST(testForEach);
+        // ForEach methods
+        CPPUNIT_TEST(testForEach_byValue);
+        CPPUNIT_TEST(testForEach_byValueConversion);
+        CPPUNIT_TEST(testForEach_byConstRef);
+        CPPUNIT_TEST(testForEachIndexed);
+
+
+
         CPPUNIT_TEST(testMap);
 
         CPPUNIT_TEST(testDeallocationWhenElementConstructorThrows);
@@ -612,37 +619,50 @@ public:
     }
 */
 
-    void testForEach() {
-        {
-            const Array<int> array = {1, 2, 3, 4, 5, 6};
+    void testForEach_byValue() {
+        const Array<int> array = {1, 2, 3, 4, 5, 6};
 
-            int acc = 0;
-            array.forEach([&acc](int x) {
-                acc += x;
-            });
+        int acc = 0;
+        array.forEach([&acc](int x) {
+            acc += x;
+        });
 
-            CPPUNIT_ASSERT_EQUAL(21, acc);
-        }
-        {
-            const Array<String> array = {"Hello", " ", "world", "!"};
-
-            String acc;
-            array.forEach([&acc](const String& x) {
-                acc = acc.concat(x);
-            });
-
-            CPPUNIT_ASSERT_EQUAL(String("Hello world!"), acc);
-        }
-        {
-            const Array<int> array = {1, 2, 3, 4, 5, 6};
-            bool allEq = true;
-            array.forEach([&allEq](Array<int>::size_type i, Array<int>::size_type x) {
-                allEq &= (i + 1 == x);
-            });
-
-            CPPUNIT_ASSERT_EQUAL(true, allEq);
-        }
+        CPPUNIT_ASSERT_EQUAL(21, acc);
     }
+
+    void testForEach_byConstRef() {
+        const Array<String> array = {"Hello", " ", "world", "!"};
+
+        String acc;
+        array.forEach([&acc](const String& x) {
+            acc = acc.concat(x);
+        });
+
+        CPPUNIT_ASSERT_EQUAL(String("Hello world!"), acc);
+    }
+
+    void testForEach_byValueConversion() {
+        const Array<int> array = {1, 2, 3, 4, 5, 6};
+
+        double acc = 0;
+        array.forEach([&acc](double x) {
+            acc += x;
+        });
+
+        CPPUNIT_ASSERT_DOUBLES_EQUAL(21.0, acc, 0.001);
+    }
+
+    void testForEachIndexed() {
+        const Array<int> array = {1, 2, 3, 4, 5, 6};
+        bool allEq = true;
+
+        array.forEachIndexed([&allEq](Array<int>::size_type i, Array<int>::size_type x) {
+            allEq &= (i + 1 == x);
+        });
+
+        CPPUNIT_ASSERT_EQUAL(true, allEq);
+    }
+
 
     void testMap() {
         const Array<DerivedNonPodStruct> array = {
@@ -652,7 +672,7 @@ public:
         };
 
         {
-            auto r = array.map<int>([](const DerivedNonPodStruct& content) {
+            auto r = array.map([](const DerivedNonPodStruct& content) {
                 return content.iValue;
             });
 
@@ -663,7 +683,7 @@ public:
 
         }
         {
-            auto r = array.map<String>([](const DerivedNonPodStruct& content) {
+            auto r = array.map([](const DerivedNonPodStruct& content) {
                 return content.str;
             });
 

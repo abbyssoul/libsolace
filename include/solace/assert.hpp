@@ -35,6 +35,15 @@ namespace Solace {
 void raiseInvalidStateError();
 
 /**
+ * Throw an error if an object is in invalid state.
+ * This usually indicate internale program logic error.
+ *
+ * @param message Error message to describe invalid state of an object.
+ */
+void raiseInvalidStateError(const char* message);
+
+
+/**
  * Assert that the give index is within the give range. Throw if it is not.
  * @param index Index value to be asserted.
  * @param from Lower bound (inclusive)

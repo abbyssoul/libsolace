@@ -38,6 +38,8 @@ using namespace Solace::IO::async;
 class TestFuture : public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(TestFuture);
+        CPPUNIT_TEST(orphanFutureThrows);
+
         CPPUNIT_TEST(testThenVoidContinuation);
         CPPUNIT_TEST(testVoidThenContinuation);
         CPPUNIT_TEST(testThenValueUnwrapping);
@@ -45,10 +47,32 @@ class TestFuture : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testThenFutureContinuation);
 
         CPPUNIT_TEST(testOnErrorHandler);
+        CPPUNIT_TEST(testOnErrorSkippedOnSuccess);
+        CPPUNIT_TEST(testOnErrorRestoresTheChain);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
 public:
+
+
+    void orphanFutureThrows() {
+
+
+        auto makeOrphanFuture = [] () {
+            auto p = Promise<int>();
+
+            return p.getFuture();
+        };
+
+        auto f = makeOrphanFuture();
+
+        int x = 9;
+
+        CPPUNIT_ASSERT_THROW(f.then([&x](int i) {
+            x += i;
+        }),
+                             Solace::Exception);
+    }
 
     void testThenVoidContinuation() {
         auto p = Promise<int>();
@@ -181,7 +205,7 @@ public:
             firstCallbackOk = (x == 120);
 
             return 2;
-        }).onError([&secondCallbackOk](Error&& e) {
+        }).onError([&secondCallbackOk](Error&& ) {
            secondCallbackOk = true;
         });
 
@@ -189,6 +213,62 @@ public:
         p1.setError(Solace::Error("Test error"));
         CPPUNIT_ASSERT(!firstCallbackOk);
         CPPUNIT_ASSERT(secondCallbackOk);
+    }
+
+    void testOnErrorRestoresTheChain() {
+        auto p1 = Promise<int>();
+        auto f1 = p1.getFuture();
+
+        bool firstCallbackOk = false;
+        bool secondCallbackOk = false;
+        bool thirdCallbackOk = false;
+
+        f1.then([&firstCallbackOk](int x) {
+            firstCallbackOk = (x == 120);
+
+            return 2;
+        }).onError([&secondCallbackOk](Error&& e) -> Result<void, Error> {
+            if (e)
+                secondCallbackOk = true;
+            return Ok();
+        }).then([&thirdCallbackOk]() {
+            thirdCallbackOk = true;
+        });
+
+
+        p1.setError(Solace::Error("Test error"));
+        CPPUNIT_ASSERT(!firstCallbackOk);
+        CPPUNIT_ASSERT(secondCallbackOk);
+        CPPUNIT_ASSERT(thirdCallbackOk);
+    }
+
+    void testOnErrorSkippedOnSuccess() {
+        auto p1 = Promise<int>();
+        auto f1 = p1.getFuture();
+
+        bool firstCallbackOk = false;
+        bool secondCallbackOk = false;
+        bool thirdCallbackOk = false;
+
+        f1.then([&firstCallbackOk](int x) {
+            firstCallbackOk = (x == 120);
+
+            return 2;
+        }).onError([&secondCallbackOk](Error&& e) -> Result<void, Error> {
+
+            if (e)
+                secondCallbackOk = true;
+
+            return Ok();
+        }).then([&thirdCallbackOk]() {
+            thirdCallbackOk = true;
+        });
+
+
+        p1.setValue(120);
+        CPPUNIT_ASSERT(firstCallbackOk);
+        CPPUNIT_ASSERT(!secondCallbackOk);
+        CPPUNIT_ASSERT(thirdCallbackOk);
     }
 };
 
