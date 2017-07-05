@@ -25,7 +25,7 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <vector>   // FIXME: We should test with Solace::Array
+#include <vector>
 
 using namespace Solace;
 

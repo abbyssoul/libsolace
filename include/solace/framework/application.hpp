@@ -39,12 +39,11 @@ namespace Solace { namespace Framework {
  */
 class Application {
 public:
+    virtual ~Application() = default;
 
     Application(const Version& version): _version(version) {
 
     }
-
-    virtual ~Application() = default;
 
     /**
      * Get Application's version

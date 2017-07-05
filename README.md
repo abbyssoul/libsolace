@@ -43,15 +43,15 @@ sudo apt-get install cmake doxygen python-pip valgrind ggcov libcppunit-dev
 sudo pip install cpplint
 ```
 
-Library also requires a few extranal dependencies that should be present in list directory:
-```shell
-git clone --depth 1 https://github.com/fmtlib/fmt.git libs/fmt
-git clone --depth 1 https://github.com/danmar/cppcheck.git libs/cppcheck
-```
-
-It is also possible to use the script provided to download all external dependecies:
+The library has a few extranal dependencies.
+The easies way to pull this dependencies is by using a script provided:
 ```shell
 ./libs/dependencies
+```
+
+It is also possible to do it manually:
+```shell
+git clone --depth 1 https://github.com/fmtlib/fmt.git libs/fmt
 ```
 
 
