@@ -43,6 +43,9 @@ set(TEST_SOURCE_FILES
 
         process/test_env.cpp
         framework/test_commandlineParser.cpp
+
+        hashing/test_md5.cpp
+        hashing/test_sha256.cpp
     )
 
 add_executable(test_${PROJECT_NAME} ${TEST_SOURCE_FILES})

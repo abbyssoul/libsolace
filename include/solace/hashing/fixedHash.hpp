@@ -52,5 +52,4 @@ using H64 = FixedHash<8>;
 
 }  // End of namespace hashing
 }  // End of namespace Solace
-
 #endif  // SOLACE_CRYPT_FIXEDHASH_HPP

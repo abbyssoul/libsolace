@@ -275,5 +275,48 @@ inline void swap(MemoryView& a, MemoryView& b) {
     a.swap(b);
 }
 
+
+/// Some data manipulication utilities:
+
+/*
+ * 32-bit integer manipulation (little endian)
+ */
+inline
+void getUint32_BE(uint32& n, const byte* b, size_t i) {
+    n =   static_cast<uint32>(b[i    ] << 24)
+        | static_cast<uint32>(b[i + 1] << 16)
+        | static_cast<uint32>(b[i + 2] <<  8)
+        | static_cast<uint32>(b[i + 3]);
+}
+
+inline
+void putUint32_BE(uint32& n, byte* b, size_t i) {
+    b[i    ] = static_cast<byte>(n >> 24);
+    b[i + 1] = static_cast<byte>(n >> 16);
+    b[i + 2] = static_cast<byte>(n >>  8);
+    b[i + 3] = static_cast<byte>(n);
+}
+
+
+/*
+ * 32-bit integer manipulation macros (little endian)
+ */
+inline
+void getUint32_LE(uint32& n, const byte* b, size_t i) {
+    n =   static_cast<uint32>(b[i   ])
+        | static_cast<uint32>(b[i + 1] <<  8)
+        | static_cast<uint32>(b[i + 2] << 16)
+        | static_cast<uint32>(b[i + 3] << 24);
+}
+
+inline
+void putUint32_LE(uint32& n, byte* b, size_t i) {
+    b[i    ] = static_cast<byte>((n)       & 0xFF);
+    b[i + 1] = static_cast<byte>((n >>  8) & 0xFF);
+    b[i + 2] = static_cast<byte>((n >> 16) & 0xFF);
+    b[i + 3] = static_cast<byte>((n >> 24) & 0xFF);
+}
+
+
 }  // End of namespace Solace
 #endif  // SOLACE_MEMORYVIEW_HPP

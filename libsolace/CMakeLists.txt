@@ -37,6 +37,11 @@ set(SOURCE_FILES
 
         process/env.cpp
         framework/commandlineParser.cpp
+
+        hashing/messageDigest.cpp
+        hashing/md5.cpp
+        hashing/sha2.cpp
+        hashing/sha3.cpp
     )
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES})

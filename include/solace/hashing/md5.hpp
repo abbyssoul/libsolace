@@ -24,8 +24,7 @@
 #ifndef SOLACE_HASHING_MD5_HPP
 #define SOLACE_HASHING_MD5_HPP
 
-#include "solace/byteBuffer.hpp"
-#include "solace/hashing/fixedHash.hpp"
+#include "solace/hashing/digestAlgorithm.hpp"
 
 
 namespace Solace {
@@ -40,11 +39,52 @@ namespace hashing {
  * Please @see Sha3 for a better option of hash function.
  *
  */
-class MD5 {
+class MD5 : public HashingAlgorithm {
 public:
+    using HashingAlgorithm::size_type;
+
+    struct State {
+        uint32  bits[2];                /*!< number of bytes processed  */
+        uint32  state[4];               /*!< intermediate digest state  */
+        byte    buffer[64];             /*!< data block being processed */
+    };
+
+public:
+
+    using HashingAlgorithm::update;
+
+    ~MD5() = default;
+
     MD5();
 
-    H128 encode(ByteBuffer& src);
+    /**
+     * Get a string name of the hashing algorithm.
+     * @return A string name of the hashing algorithm.
+     */
+    String getAlgorithm() const override;
+
+    /**
+     * Get a length of the digest in bytes.
+     * @return Length of the digest produced by this algorithm.
+     */
+    size_type getDigestLength() const override;
+
+    /**
+     * Update the digest with the given input.
+     * @param input A memory view to read data from.
+     * @return A reference to self for a fluent interface.
+     */
+    HashingAlgorithm& update(const MemoryView& input) override;
+
+    /*
+     * Completes the hash computation by performing final operations such as padding.
+     * @return An array of bytes representing message digest.
+     */
+    MessageDigest digest() override;
+
+private:
+
+    State _state;
 };
 
 

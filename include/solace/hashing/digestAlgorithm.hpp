@@ -14,72 +14,75 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Secure Hash Algorithm 2
- *	@file		solace/hashing/sha2.hpp
+ * libSolace: A base class for message digest algorithms
+ *	@file		solace/hashing/messageDigest.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
- *	@brief		Defines a family of cryptographic hash functions SHA-2
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_HASHING_SHA2_HPP
-#define SOLACE_HASHING_SHA2_HPP
+#ifndef SOLACE_HASHING_DIGESTALGORITHM_HPP
+#define SOLACE_HASHING_DIGESTALGORITHM_HPP
 
-
-#include "solace/hashing/digestAlgorithm.hpp"
+#include "solace/hashing/messageDigest.hpp"
 
 
 namespace Solace {
 namespace hashing {
 
-class Sha256 : public HashingAlgorithm {
-public:
-    using HashingAlgorithm::size_type;
-
-    struct State {
-        uint32  total[2];
-        uint32  state[8];               /*!< intermediate digest state  */
-        byte    buffer[64];             /*!< data block being processed */
-    };
-
+/**
+ * This is an interface for message digest algorithms.
+ * Message digests are secure one-way hash functions that take arbitrary-sized data and output a fixed-length value.
+ * Some implementation of MessagDigest are MD5 hash and SHA-2.
+ */
+class HashingAlgorithm {
 public:
 
-    using HashingAlgorithm::update;
+    typedef uint32 size_type;
 
-    ~Sha256() = default;
+public:
 
-    Sha256();
+    virtual ~HashingAlgorithm() = default;
 
     /**
      * Get a string name of the hashing algorithm.
      * @return A string name of the hashing algorithm.
      */
-    String getAlgorithm() const override;
+    virtual String getAlgorithm() const = 0;
 
     /**
      * Get a length of the digest in bytes.
      * @return Length of the digest produced by this algorithm.
      */
-    size_type getDigestLength() const override;
+    virtual size_type getDigestLength() const = 0;
 
     /**
      * Update the digest with the given input.
      * @param input A memory view to read data from.
      * @return A reference to self for a fluent interface.
      */
-    HashingAlgorithm& update(const MemoryView& input) override;
+    virtual HashingAlgorithm& update(const MemoryView& input) = 0;
+
+    /**
+     * Update the digest with the given input.
+     * @param input A byte buffer to read message from.
+     * @return A reference to self for a fluent interface.
+     */
+    virtual HashingAlgorithm& update(ByteBuffer& input) {
+
+        auto memView = input.viewRemaining();
+        update(memView);
+        input.advance(memView.size());
+
+        return *this;
+    }
 
     /*
      * Completes the hash computation by performing final operations such as padding.
      * @return An array of bytes representing message digest.
      */
-    MessageDigest digest() override;
-
-private:
-
-    State _state;
+    virtual MessageDigest digest() = 0;
 };
-
 
 }  // End of namespace hashing
 }  // End of namespace Solace
-#endif  // SOLACE_HASHING_SHA2_HPP
+#endif  // SOLACE_HASHING_DIGESTALGORITHM_HPP

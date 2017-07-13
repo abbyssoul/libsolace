@@ -64,7 +64,7 @@ public:
     typedef typename Storage::reference         reference;
 
     typedef typename Storage::pointer           pointer_type;
-    typedef typename Storage::const_pointer     const_pointer_type;
+    typedef typename Storage::const_pointer     const_pointer;
 
 public:
 
@@ -197,12 +197,12 @@ public:
         return _storage.data();
     }
 
-    const_pointer_type data() const noexcept {
+    const_pointer data() const noexcept {
         return _storage.data();
     }
 
     // TODO(abbyssoul): should be ImmutableMemoryView
-    const MemoryView view() const noexcept {
+    MemoryView view() const noexcept {
         return wrapMemory(_storage.data(), _storage.size() * sizeof(T));
     }
 
