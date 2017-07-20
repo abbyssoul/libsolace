@@ -72,7 +72,7 @@ public:
     String(const char* data, size_type length);
 
     //!< Construct a string from a nicely managed buffer
-    String(const MemoryView& buffer);
+    String(const ImmutableMemoryView& buffer);
 
     //!< Construct a string from a byte buffer
     String(ByteBuffer& buffer);

@@ -151,16 +151,15 @@ public:
         {   // Move-constructor
             byte example[] = {7, 10, 13, 16, 19, 22, 25};  // size = 7
             const MemoryView::size_type exampleSize = sizeof(example);
-            auto b1 = wrapMemory(example, exampleSize);
+            auto b1 = wrapMemory(example);
             {
-                MemoryView b2(b1.viewShallow());
+                MemoryView b2(std::move(b1));
 
-                CPPUNIT_ASSERT_EQUAL(exampleSize, b1.size());
+                CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(0), b1.size());
                 CPPUNIT_ASSERT_EQUAL(exampleSize, b2.size());
 
-                for (MemoryView::size_type i = 0; i < b1.size(); ++i) {
-                    CPPUNIT_ASSERT_EQUAL(example[i], b1.dataAddress()[i]);
-                    CPPUNIT_ASSERT_EQUAL(example[i], b2.dataAddress()[i]);
+                for (MemoryView::size_type i = 0; i < b2.size(); ++i) {
+                    CPPUNIT_ASSERT_EQUAL(example[i], b2[i]);
                 }
             }
 

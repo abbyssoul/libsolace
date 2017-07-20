@@ -51,7 +51,7 @@ String::String(const char* data) : _str(data) {
 String::String(const char* data, size_type dataLength): _str(data, dataLength) {
 }
 
-String::String(const MemoryView& buffer):
+String::String(const ImmutableMemoryView& buffer):
     _str(reinterpret_cast<const char*>(buffer.dataAddress()), buffer.size()) {
 
 }

@@ -78,6 +78,7 @@ StringBuilder& StringBuilder::append(const String& str) {
     return *this;
 }
 
+
 String StringBuilder::toString() const {
     return _buffer.empty()
             ? String::Empty

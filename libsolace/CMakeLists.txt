@@ -2,6 +2,7 @@
 set(SOURCE_FILES
         assert.cpp
         memoryView.cpp
+        immutableMemoryView.cpp
         memoryManager.cpp
         byteBuffer.cpp
         char.cpp

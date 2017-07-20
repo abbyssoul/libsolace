@@ -27,7 +27,7 @@
 
 #include "solace/types.hpp"
 #include "solace/traits/icomparable.hpp"
-#include "solace/memoryView.hpp"
+#include "solace/immutableMemoryView.hpp"
 
 
 namespace Solace {
@@ -71,7 +71,7 @@ public:
      *
      * @note: Size of array should be no more than <imp. def.> bytes
      */
-    Char(const MemoryView& bytes);
+    Char(const ImmutableMemoryView& bytes);
 
     /** Returns the code-point value of the character. */
     value_type getValue() const noexcept {
@@ -86,7 +86,7 @@ public:
     const char* c_str() const noexcept;
 
     /** Get raw bytes representation of the code-point */
-    const MemoryView getBytes() const;
+    const ImmutableMemoryView getBytes() const;
 
     /** Returns true if this character is equal to given. */
     bool equals(const Char& rhs) const noexcept override {

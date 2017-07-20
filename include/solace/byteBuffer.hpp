@@ -251,11 +251,19 @@ public:
         return write(reinterpret_cast<const void*>(bytes), count);
     }
 
-    MemoryView viewRemaining() const {
+    ImmutableMemoryView viewRemaining() const {
         return _storage.slice(position(), limit());
     }
 
-    MemoryView viewWritten() const {
+    MemoryView viewRemaining() {
+        return _storage.slice(position(), limit());
+    }
+
+    ImmutableMemoryView viewWritten() const {
+        return _storage.slice(0, position());
+    }
+
+    MemoryView viewWritten() {
         return _storage.slice(0, position());
     }
 
