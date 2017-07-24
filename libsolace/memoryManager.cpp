@@ -40,7 +40,8 @@ using Solace::IOException;
 MemoryManager::MemoryManager(size_type allowedCapacity) :
     _capacity(allowedCapacity),
     _size(0),
-    _isLocked(false)
+    _isLocked(false),
+    _disposer(this)
 {
 
     const auto totalAvaliableMemory = getPageSize() * getNbPages();
@@ -105,9 +106,17 @@ MemoryManager::size_type MemoryManager::getNbAvailablePages() const {
 }
 
 
-void MemoryManager::free(MemoryView* view) {
+void
+MemoryManager::HeapMemoryDisposer::dispose(ImmutableMemoryView* view) const {
+    const auto size = view->size();
     delete [] view->dataAddress();
-    _size -= view->size();
+
+    _self->free(size);
+}
+
+
+void MemoryManager::free(size_type dataSize) {
+    _size -= dataSize;
 }
 
 
@@ -124,8 +133,7 @@ MemoryView MemoryManager::create(size_type dataSize) {
 
     _size += dataSize;
 
-    return wrapMemory(data, dataSize,
-                      [this](MemoryView* view) { this->free(view); });
+    return wrapMemory(data, dataSize, &_disposer);
 }
 
 

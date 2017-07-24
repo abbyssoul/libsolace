@@ -3,3 +3,29 @@ Every include file must start with '#pragma once'
 
 Include gruards, when user, must follow the pattern: {PROJECT_NAME}_{NAMESPACE}_{FILE_BASENAME -without suffix}_{FILE_SUFFIX}
 Each #endif must be followed by a comment which 'condition' it closures
+
+The coding styli follows official Java coding style, e.g.
+ * Type names start with a Capital letter
+ * Names are cameCase
+ * Method names are generally verbs like a.doSomethig()
+ ** Except for methods that return boolean and take no arguments.
+    boolen isEmpty();
+
+Return statemen is always to be separated by an empty line from the code above it.
+Only exception is when return is the only statement in a method.
+ * Example:
+ ```
+    // Example of a return being the only statement:
+    int getNumber() {
+        return 42;
+    }
+
+    // Multiline method:
+    int doCalculations() {
+        int result = 0;
+        ....
+        result += xyz;
+
+        return result;
+    }
+```

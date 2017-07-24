@@ -93,6 +93,15 @@ public:
     Array(size_type len, const T* carray): _storage(carray, carray + len) {
     }
 
+    /** */
+    Array(const Storage& list): _storage(list) {
+    }
+
+    /** Construct an array from an memory buffer */
+    Array(MemoryView&& memView) : _storage(memView.dataAs<T>(), memView.dataAs<T>() + memView.size() / sizeof(T)) {
+        // FIXME(abbyssoul): current implementation copies data but should use mem location.
+    }
+
     //------------------------------------------------------------------------------------------------------------------
     // Next section is STD lib compatibility interface
     //------------------------------------------------------------------------------------------------------------------
@@ -101,9 +110,6 @@ public:
     Array(const std::initializer_list<T>& list): _storage(list) {
     }
 
-    /** Construct an array from an std:: */
-    Array(const Storage& list): _storage(list) {
-    }
 
 public:
 
@@ -201,8 +207,7 @@ public:
         return _storage.data();
     }
 
-    // TODO(abbyssoul): should be ImmutableMemoryView
-    MemoryView view() const noexcept {
+    ImmutableMemoryView view() const noexcept {
         return wrapMemory(_storage.data(), _storage.size() * sizeof(T));
     }
 
@@ -210,8 +215,8 @@ public:
         return wrapMemory(_storage.data(), _storage.size() * sizeof(T));
     }
 
-    bool contains(const_reference value) {
-        return std::find(_storage.begin(), _storage.end(), value) != _storage.end();
+    bool contains(const_reference value) const {
+        return (std::find(_storage.begin(), _storage.end(), value) != _storage.end());
     }
 
     /*

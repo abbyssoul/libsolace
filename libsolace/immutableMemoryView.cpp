@@ -31,14 +31,28 @@
 #include <sys/mman.h>
 
 
-using Solace::byte;
-using Solace::ImmutableMemoryView;
+using namespace Solace;
+
+
+MemoryViewDisposer::~MemoryViewDisposer()
+{}
+
+
+
+ImmutableMemoryView::~ImmutableMemoryView() {
+    if (_free) {
+        _free->dispose(this);
+
+        _dataAddress = nullptr;
+        _size = 0;
+    }
+}
 
 
 ImmutableMemoryView::ImmutableMemoryView() noexcept :
     _size(),
     _dataAddress(nullptr),
-    _free()
+    _free(nullptr)
 {
 }
 
@@ -57,24 +71,13 @@ ImmutableMemoryView::ImmutableMemoryView(ImmutableMemoryView&& rhs) noexcept :
 
 ImmutableMemoryView::ImmutableMemoryView(size_type newSize,
                                          const void* data,
-                                         const std::function<void(ImmutableMemoryView*)>& freeFunc) :
+                                         const MemoryViewDisposer* disposer) :
     _size(newSize),
     _dataAddress(reinterpret_cast<const value_type*>(data)),
-    _free(freeFunc)
+    _free(disposer)
 {
     if (!_dataAddress && _size) {
         raise<IllegalArgumentException>("data");
-    }
-}
-
-
-
-ImmutableMemoryView::~ImmutableMemoryView() {
-    if (_free) {
-        _free(this);
-
-        _dataAddress = nullptr;
-        _size = 0;
     }
 }
 
@@ -117,6 +120,7 @@ ImmutableMemoryView::slice(size_type from, size_type to) const {
 }
 
 
-ImmutableMemoryView ImmutableMemoryView::viewShallow() const {
+ImmutableMemoryView
+ImmutableMemoryView::viewImmutableShallow() const {
     return wrapMemory(dataAddress(), size());
 }

@@ -134,7 +134,21 @@ public:
 
 protected:
 
-    void free(MemoryView* view);
+    class HeapMemoryDisposer : public MemoryViewDisposer {
+    public:
+        HeapMemoryDisposer(MemoryManager* self): _self(self)
+        {}
+
+        void dispose(ImmutableMemoryView* view) const override;
+
+    private:
+        MemoryManager* _self;
+
+    };
+
+    friend class HeapMemoryDisposer;
+
+    void free(size_type size);
 
 private:
 
@@ -147,7 +161,10 @@ private:
     /** */
     bool        _isLocked;
 
+    HeapMemoryDisposer _disposer;
+
 };
+
 
 inline void swap(MemoryManager& lhs, MemoryManager& rhs) noexcept {
     lhs.swap(rhs);

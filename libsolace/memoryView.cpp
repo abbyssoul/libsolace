@@ -31,33 +31,11 @@
 #include <sys/mman.h>
 
 
-using Solace::byte;
-using Solace::MemoryView;
-using Solace::ImmutableMemoryView;
+using namespace Solace;
 
 
-
-class DumpDeleter {
-public:
-    DumpDeleter(): _delegate(nullptr) {}
-    DumpDeleter(const std::function<void(MemoryView*)>& f): _delegate(f) {}
-
-    void operator() (ImmutableMemoryView* p) {
-        if (_delegate) {
-            _delegate(static_cast<MemoryView*>(p));
-        }
-    }
-
-private:
-    std::function<void(MemoryView*)> _delegate;
-};
-
-
-MemoryView::MemoryView(size_type newSize, void* data, const std::function<void(MemoryView*)>& freeFunc) :
-    ImmutableMemoryView(newSize, const_cast<const void*>(data),
-                        freeFunc
-                            ? DumpDeleter(std::move(freeFunc))
-                            : DumpDeleter())
+MemoryView::MemoryView(size_type newSize, void* data, const Solace::MemoryViewDisposer* disposer) :
+    ImmutableMemoryView(newSize, const_cast<const void*>(data), disposer)
 {
 }
 

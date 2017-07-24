@@ -75,7 +75,7 @@ public:
     }
 
     bool equals(const MemoryView& other) const noexcept {
-        return static_cast<const ImmutableMemoryView*>(this)->equals(static_cast<const ImmutableMemoryView&>(other));
+        return ImmutableMemoryView::equals(other);
     }
 
     bool operator== (const MemoryView& rhv) const noexcept {
@@ -177,18 +177,17 @@ public:
      */
     MemoryView& unlock();
 
-    friend MemoryView wrapMemory(byte*, MemoryView::size_type, const std::function<void(MemoryView*)>&);
-
-    using ImmutableMemoryView::viewShallow;
-    MemoryView viewShallow();
-
     using ImmutableMemoryView::slice;
     MemoryView slice(size_type from, size_type to);
 
+    MemoryView viewShallow();
+
+    friend MemoryView wrapMemory(byte*, MemoryView::size_type, const MemoryViewDisposer*);
 
 protected:
 
-    MemoryView(size_type size, void* data, const std::function<void(MemoryView*)>& freeFunc);
+    MemoryView(size_type size, void* data, const MemoryViewDisposer* disposer);
+
 };
 
 
@@ -203,23 +202,23 @@ protected:
  * @return MemoryView object wrapping the memory address given
  */
 inline MemoryView wrapMemory(byte* data, MemoryView::size_type size,
-                             const std::function<void(MemoryView*)>& freeFunc = 0) {
+                             const MemoryViewDisposer* freeFunc = 0) {
     return MemoryView{size, data, freeFunc};
 }
 
 inline MemoryView wrapMemory(void* data, MemoryView::size_type size,
-                             const std::function<void(MemoryView*)>& freeFunc = 0) {
+                             const MemoryViewDisposer* freeFunc = 0) {
     return wrapMemory(reinterpret_cast<byte*>(data), size, freeFunc);
 }
 
 inline MemoryView wrapMemory(char* data, MemoryView::size_type size,
-                             const std::function<void(MemoryView*)>& freeFunc = 0) {
+                             const MemoryViewDisposer* freeFunc = 0) {
     return wrapMemory(reinterpret_cast<byte*>(data), size, freeFunc);
 }
 
 template<typename PodType, size_t N>
 inline MemoryView wrapMemory(PodType (&data)[N],
-                             const std::function<void(MemoryView*)>& freeFunc = 0)
+                             const MemoryViewDisposer* freeFunc = 0)
 {
     return wrapMemory(static_cast<void*>(data), N * sizeof(PodType), freeFunc);
 }

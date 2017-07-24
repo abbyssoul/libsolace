@@ -14,7 +14,7 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: MemoryView
+ * libSolace: ImmutableMemoryView
  *	@file		solace/immutableMemoryView.hpp
  *	@author		$LastChangedBy: $
  *	@date		$LastChangedDate: $
@@ -34,11 +34,28 @@
 
 namespace Solace {
 
-/* Fixed-length raw data buffer/memory view.
+// FWD declaration for disposer below.
+class ImmutableMemoryView;
+
+/**
+ * Memory view disposer
+ */
+class MemoryViewDisposer {
+public:
+    virtual ~MemoryViewDisposer();
+
+    virtual void dispose(ImmutableMemoryView* view) const = 0;
+
+};
+
+
+/* Fixed-length raw memory buffer/memory view.
  * This is a very thin abstruction on top of raw memory address -
- * it remembers memory block size and deallocates memory only if it ownes it.
+ * it remembers memory block size and associated deallocator to free the memory if there is any.
  *
- * Buffer has value semantic and gives users random access to the undelying memory.
+ * View has a value semantic and gives user random access to the undelying memory.
+ * Howeevr ImmutableMemoryView does not allow for modification of underlaying values - it is read-only.
+ * For a mutable access please use @see MemoryView
  * For the stream semantic please @see ByteBuffer
  */
 class ImmutableMemoryView {
@@ -73,6 +90,7 @@ public:
     }
 
 
+    /** Move assignment **/
     ImmutableMemoryView& operator= (ImmutableMemoryView&& rhs) noexcept {
         return swap(rhs);
     }
@@ -156,23 +174,30 @@ public:
      */
     ImmutableMemoryView slice(size_type from, size_type to) const;
 
+    /**
+     * Get a shallow view of this memory buffer.
+     * Shallow view does not get any ownership of the memory.
+     * When owner of the memory goes out of scope the view will become invalid.
+     *
+     * @return A memory view without ownership of the memory.
+     */
+    ImmutableMemoryView viewImmutableShallow() const;
+
 
     friend ImmutableMemoryView wrapMemory(const byte*,
                                           size_type,
-                                          const std::function<void(ImmutableMemoryView*)>&);
-
-    ImmutableMemoryView viewShallow() const;
+                                          const MemoryViewDisposer*);
 
 protected:
 
-    ImmutableMemoryView(size_type size, const void* data, const std::function<void(ImmutableMemoryView*)>& freeFunc);
+    ImmutableMemoryView(size_type size, const void* data, const MemoryViewDisposer* disposer);
 
 private:
 
     size_type       _size;
     const byte*     _dataAddress;
 
-    std::function<void(ImmutableMemoryView*)> _free;
+    const MemoryViewDisposer* _free;
 };
 
 
@@ -187,23 +212,23 @@ private:
  * @return MemoryView object wrapping the memory address given
  */
 inline ImmutableMemoryView wrapMemory(const byte* data, ImmutableMemoryView::size_type size,
-                             const std::function<void(ImmutableMemoryView*)>& freeFunc = 0) {
+                             const MemoryViewDisposer* freeFunc = 0) {
     return ImmutableMemoryView{size, data, freeFunc};
 }
 
 inline ImmutableMemoryView wrapMemory(const void* data, ImmutableMemoryView::size_type size,
-                             const std::function<void(ImmutableMemoryView*)>& freeFunc = 0) {
+                             const MemoryViewDisposer* freeFunc = 0) {
     return wrapMemory(reinterpret_cast<const byte*>(data), size, freeFunc);
 }
 
 inline ImmutableMemoryView wrapMemory(const char* data, ImmutableMemoryView::size_type size,
-                             const std::function<void(ImmutableMemoryView*)>& freeFunc = 0) {
+                             const MemoryViewDisposer* freeFunc = 0) {
     return wrapMemory(reinterpret_cast<const byte*>(data), size, freeFunc);
 }
 
 template<typename PodType, size_t N>
 inline ImmutableMemoryView wrapMemory(const PodType (&data)[N],
-                             const std::function<void(ImmutableMemoryView*)>& freeFunc = 0)
+                             const MemoryViewDisposer* freeFunc = 0)
 {
     return wrapMemory(static_cast<const void*>(data), N * sizeof(PodType), freeFunc);
 }
