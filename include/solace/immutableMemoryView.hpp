@@ -69,7 +69,12 @@ public:
     ~ImmutableMemoryView();
 
     /** Construct an empty memory view */
-    ImmutableMemoryView() noexcept;
+    ImmutableMemoryView() noexcept :
+        _disposer{nullptr},
+        _size(0),
+        _dataAddress{nullptr}
+    {
+    }
 
     ImmutableMemoryView(const ImmutableMemoryView&) = delete;
     ImmutableMemoryView& operator= (const ImmutableMemoryView&) = delete;
@@ -79,9 +84,9 @@ public:
     ImmutableMemoryView& swap(ImmutableMemoryView& rhs) noexcept {
         using std::swap;
 
+        swap(_disposer, rhs._disposer);
         swap(_size, rhs._size);
         swap(_dataAddress, rhs._dataAddress);
-        swap(_free, rhs._free);
 
         return (*this);
     }
@@ -191,10 +196,10 @@ protected:
 
 private:
 
-    size_type       _size;
-    const byte*     _dataAddress;
+    const MemoryViewDisposer*   _disposer;
+    size_type                   _size;
+    const byte*                 _dataAddress;
 
-    const MemoryViewDisposer* _free;
 };
 
 

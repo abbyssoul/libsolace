@@ -40,8 +40,8 @@ MemoryViewDisposer::~MemoryViewDisposer()
 
 
 ImmutableMemoryView::~ImmutableMemoryView() {
-    if (_free) {
-        _free->dispose(this);
+    if (_disposer) {
+        _disposer->dispose(this);
 
         _dataAddress = nullptr;
         _size = 0;
@@ -49,32 +49,25 @@ ImmutableMemoryView::~ImmutableMemoryView() {
 }
 
 
-ImmutableMemoryView::ImmutableMemoryView() noexcept :
-    _size(0),
-    _dataAddress(nullptr),
-    _free(nullptr)
-{
-}
-
 
 ImmutableMemoryView::ImmutableMemoryView(ImmutableMemoryView&& rhs) noexcept :
+    _disposer(std::move(rhs._disposer)),
     _size(rhs._size),
-    _dataAddress(rhs._dataAddress),
-    _free(std::move(rhs._free))
+    _dataAddress(rhs._dataAddress)
 {
-    // Stuff up rhs so it won't destruct anything
+    // Stuff rhs up so it won't destruct anything
     rhs._size = 0;
     rhs._dataAddress = nullptr;
-    rhs._free = nullptr;
+    rhs._disposer = nullptr;
 }
 
 
 ImmutableMemoryView::ImmutableMemoryView(size_type newSize,
                                          const void* data,
                                          const MemoryViewDisposer* disposer) :
+    _disposer(disposer),
     _size(newSize),
-    _dataAddress(reinterpret_cast<const value_type*>(data)),
-    _free(disposer)
+    _dataAddress(reinterpret_cast<const value_type*>(data))
 {
     if (!_dataAddress && _size) {
         raise<IllegalArgumentException>("data");
