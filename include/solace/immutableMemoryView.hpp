@@ -28,9 +28,7 @@
 #include "solace/types.hpp"
 #include "solace/assert.hpp"
 
-
-#include <functional>
-
+#include <utility>   // std::swap
 
 namespace Solace {
 
@@ -45,7 +43,6 @@ public:
     virtual ~MemoryViewDisposer();
 
     virtual void dispose(ImmutableMemoryView* view) const = 0;
-
 };
 
 
@@ -60,7 +57,7 @@ public:
  */
 class ImmutableMemoryView {
 public:
-    typedef uint32              size_type;
+    typedef uint64              size_type;
     typedef byte                value_type;
 
     typedef const value_type&   const_reference;

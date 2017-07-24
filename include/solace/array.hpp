@@ -259,10 +259,11 @@ public:
         return mappedStorage;
     }
 
-    template <typename O>
-    Array<O> map(const std::function<O(size_type, const_reference)>& f) const {
+    template <typename F,
+              typename R = typename std::result_of<F(size_type, T)>::type>
+    Array<R> mapIndexed(F&& f) const {
         const size_type thisSize = size();
-        typename Array<O>::Storage mappedStorage;  // NOTE: No default size here as it will insert that many elements.
+        typename Array<R>::Storage mappedStorage;  // NOTE: No default size here as it will insert that many elements.
         mappedStorage.reserve(thisSize);
 
         for (size_type i = 0; i < thisSize; ++i) {

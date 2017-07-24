@@ -90,7 +90,7 @@ make install --prefix=/user/<username>/test/lib
 ```
 
 To install system wide (as root)(TBD):
-```
+```shell
 make install
 ```
 
@@ -141,7 +141,7 @@ Given the language choice library is designed with the idea tha exceptions can b
 Actually only fmtlib.
 * [fmt](https://github.com/fmtlib/fmt) - C++ Format is an open-source formatting library for C++ [More info](http://fmtlib.net/latest/index.html)
 
-Here are some other usefull libs to consider:
+Other useful libraries to consider:
 * [jemalloc](http://www.canonware.com/jemalloc) - General-purpose scalable concurrent malloc implementation.
 * [bzip2](http://www.bzip.org/) - a high-quality data compressor.
 * [libsigc++](http://libsigc.sourceforge.net/) - typesafe callback system for standard C++

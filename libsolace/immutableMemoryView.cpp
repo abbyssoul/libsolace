@@ -50,7 +50,7 @@ ImmutableMemoryView::~ImmutableMemoryView() {
 
 
 ImmutableMemoryView::ImmutableMemoryView() noexcept :
-    _size(),
+    _size(0),
     _dataAddress(nullptr),
     _free(nullptr)
 {
@@ -58,9 +58,9 @@ ImmutableMemoryView::ImmutableMemoryView() noexcept :
 
 
 ImmutableMemoryView::ImmutableMemoryView(ImmutableMemoryView&& rhs) noexcept :
-            _size(rhs._size),
-            _dataAddress(rhs._dataAddress),
-            _free(std::move(rhs._free))
+    _size(rhs._size),
+    _dataAddress(rhs._dataAddress),
+    _free(std::move(rhs._free))
 {
     // Stuff up rhs so it won't destruct anything
     rhs._size = 0;
