@@ -118,7 +118,7 @@ public:
     /**
      * Argument proccessing policy for custom callbacks
      */
-    enum class OptionArgument {
+    enum class OptionArgument : byte {
         Required,          //!< Argument is required. It is an error if the option is given without an argument.
         Optional,          //!< Argument is optional. It is not an error to have option with or without an agrument.
         NotRequired        //!< Argument is not expected. It is an error to give an option with an agrument.
@@ -140,20 +140,20 @@ public:
                OptionArgument expectsArgument = OptionArgument::Required);
 
         Option(const Option& rhs) noexcept :
-            _shortName(rhs._shortName),
             _longName(rhs._longName),
             _description(rhs._description),
-            _callback(rhs._callback),
-            _expectsArgument(rhs._expectsArgument)
+            _shortName(rhs._shortName),
+            _expectsArgument(rhs._expectsArgument),
+            _callback(rhs._callback)
 
         {}
 
         Option(Option&& rhs) noexcept :
-            _shortName(std::move(rhs._shortName)),
             _longName(std::move(rhs._longName)),
             _description(std::move(rhs._description)),
-            _callback(std::move(rhs._callback)),
-            _expectsArgument(rhs._expectsArgument)
+            _shortName(std::move(rhs._shortName)),
+            _expectsArgument(rhs._expectsArgument),
+            _callback(std::move(rhs._callback))
         {}
 
         Option& operator= (const Option& rhs) noexcept {
@@ -183,19 +183,20 @@ public:
         bool isMatch(const char* name, char shortPrefix) const noexcept;
         Optional<Error> match(Context& c) const;
 
-        char  shortName() const noexcept { return _shortName; }
-        const char* name() const noexcept { return _longName; }
-        const char* description() const noexcept { return _description; }
+        char        shortName() const noexcept      { return _shortName; }
+        const char* name() const noexcept           { return _longName; }
+        const char* description() const noexcept    { return _description; }
 
         OptionArgument getArgumentExpectations() const noexcept { return _expectsArgument; }
 
     private:
-        char                                _shortName;
         const char*                         _longName;
         const char*                         _description;
-        std::function<Optional<Error> (Context&)>    _callback;
+        char                                _shortName;
 
         OptionArgument                      _expectsArgument;
+
+        std::function<Optional<Error> (Context&)>    _callback;
     };
 
 

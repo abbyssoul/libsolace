@@ -49,13 +49,18 @@ public:
 
 public:
 
+    ~MessageDigest() = default;
+
     MessageDigest(const MessageDigest& rhs) : _storage(rhs._storage)
     { }
 
     MessageDigest(MessageDigest&& rhs) : _storage(std::move(rhs._storage))
     { }
 
-    MessageDigest(byte* bytes, size_type size) : _storage(size, bytes)
+    MessageDigest(byte* bytes, size_type digestSize) : _storage(digestSize, bytes)
+    { }
+
+    MessageDigest(const MemoryView& viewBytes) : _storage(viewBytes.size(), viewBytes.dataAddress())
     { }
 
     MessageDigest(const Storage& bytes) : _storage(bytes)
@@ -65,9 +70,6 @@ public:
     { }
 
     MessageDigest(std::initializer_list<byte> bytes) : _storage(bytes)
-    { }
-
-    MessageDigest(const MemoryView& viewBytes) : _storage(viewBytes.size(), viewBytes.dataAddress())
     { }
 
     MessageDigest& swap(MessageDigest& rhs) noexcept {

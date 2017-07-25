@@ -28,6 +28,8 @@ using namespace Solace::hashing;
 
 
 void nibbleData(char* buffer, const byte* data, size_t len);
+
+
 std::ostream& operator<< (std::ostream& ostr, const MessageDigest& a) {
     ostr << '[';
 
@@ -48,8 +50,9 @@ String MessageDigest::toString() const {
     std::stringstream ss;
 
     char buffer[3];
-    for (MessageDigest::size_type end = size(), i = 0; i < end; ++i) {
+    for (MessageDigest::size_type len = size(), i = 0; i < len; ++i) {
         nibbleData(buffer, &_storage[i], 1);
+
         ss.write(buffer, 2);
     }
 
