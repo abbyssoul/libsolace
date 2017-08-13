@@ -39,19 +39,21 @@ namespace Solace { namespace Framework {
  */
 class Application {
 public:
-    virtual ~Application() = default;
+    virtual ~Application();
 
     Application(const Version& version): _version(version) {
 
     }
 
+
     /**
      * Get Application's version
      * @return Run-time version of the application
      */
-    virtual Version getVersion() const noexcept {
+    Version getVersion() const noexcept {
         return _version;
     }
+
 
     /**
      * Initialise application instance.
@@ -65,6 +67,7 @@ public:
      */
     virtual Result<void, Error>
     init(int argc, const char *argv[]) = 0;
+
 
     /**
      * Non-const version of init for convenience.
@@ -80,7 +83,9 @@ public:
         return init(argc, const_cast<const char**>(argv));
     }
 
+
 private:
+
     const Solace::Version _version;
 };
 
