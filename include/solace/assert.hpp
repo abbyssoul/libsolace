@@ -52,6 +52,16 @@ void raiseInvalidStateError(const char* message);
  */
 uint64 assertIndexInRange(uint64 index, uint64 from, uint64 to);
 
+/**
+ * Assert that the give index is within the give range. Throw if it is not.
+ * @param index Index value to be asserted.
+ * @param from Lower bound (inclusive).
+ * @param to Upper value bound (exclusive).
+ * @param Message identifying location.
+ *
+ * @return Index value if the index is in range. Throws otherwise.
+ */
+uint32 assertIndexInRange(uint32 index, uint32 from, uint32 to, const char* message);
 
 }  // End of namespace Solace
 #endif  // SOLACE_ASSERT_HPP
