@@ -17,7 +17,11 @@
 #ifndef SOLACE_MOCKTYPES_HPP
 #define SOLACE_MOCKTYPES_HPP
 
+#include <solace/array.hpp>
 #include <solace/exception.hpp>
+
+//#include <ostream>      // TODO(abbyssoul): Remove! Used once only for Unit testing
+
 #include <utility>
 #include <iostream>
 
@@ -217,5 +221,22 @@ struct SometimesConstructable {
 };
 
 std::ostream& operator<< (std::ostream& ostr, const SimpleType& t);
+
+
+template <typename T>
+std::ostream& operator<< (std::ostream& ostr, const Solace::Array<T>& a) {
+    ostr << '[';
+
+    for (typename Solace::Array<T>::size_type end = a.size(), i = 0; i < end; ++i) {
+        ostr << a[i];
+        if (i < end - 1) {
+            ostr << ',' << ' ';
+        }
+    }
+
+    ostr << ']';
+
+    return ostr;
+}
 
 #endif  // SOLACE_MOCKTYPES_HPP

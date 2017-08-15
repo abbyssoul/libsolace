@@ -23,6 +23,7 @@
 #ifndef SOLACE_ARRAYREF_HPP
 #define SOLACE_ARRAYREF_HPP
 
+#include "solace/utils.hpp"
 #include "solace/assert.hpp"
 #include "solace/memoryView.hpp"
 #include "solace/optional.hpp"
@@ -34,8 +35,9 @@
 namespace Solace {
 
 /**
- * A wrapper for c-style arrays. It includes array length and does not own the data.
- * Can be passed by value by copies the pointer, not the target.
+ * A wrapper for c-style arrays.
+ * This array does not own the underlaying memory.
+ * Passed by value copies the pointer, not the data.
  */
 template <typename T>
 class ArrayPtr {
@@ -55,38 +57,38 @@ public:
 public:
 
     /** Construct an empty array */
-    inline constexpr ArrayPtr() noexcept :
-        _ptr(nullptr), _size(0)
+    inline constexpr ArrayPtr() noexcept
     {}
 
-    inline constexpr ArrayPtr(decltype(nullptr)) noexcept :
-        _ptr(nullptr), _size(0)
+    inline constexpr ArrayPtr(decltype(nullptr)) noexcept
     {}
 
-    inline constexpr ArrayPtr(T* ptr, size_type size) noexcept :
-        _ptr(ptr), _size(size)
+    inline constexpr ArrayPtr(T* ptr, size_type arraySize) noexcept :
+        _memory(wrapMemory(ptr, arraySize))
     {}
 
     inline constexpr ArrayPtr(T* begin, T* end) noexcept :
-        _ptr(begin), _size(end - begin)
-    {}
-
-
-    inline ArrayPtr(const std::initializer_list<T> initList) noexcept :
-        _ptr(initList.begin()), _size(initList.size())
+        _memory(wrapMemory(begin, end - begin))
     {}
 
     template <size_t size>
     inline constexpr ArrayPtr(T (&carray)[size]) noexcept :
-        _ptr(carray), _size(size)
+        _memory(wrapMemory(carray))
+    {}
+
+    inline constexpr ArrayPtr(const ArrayPtr& other) noexcept :
+        _memory(other._memory.viewShallow())
+    {}
+
+    inline constexpr ArrayPtr(MemoryView&& memview) noexcept :
+        _memory(std::move(memview))
     {}
 
 public:
 
     ArrayPtr<T>& swap(ArrayPtr<T>& rhs) noexcept {
         using std::swap;
-        swap(_ptr, rhs._ptr);
-        swap(_size, rhs._size);
+        swap(_memory, rhs._memory);
 
         return (*this);
     }
@@ -102,16 +104,19 @@ public:
     }
 
     inline bool equals(const ArrayPtr& other) const noexcept {
-        if (_size != other._size) {
+        if (size() != other.size()) {
             return false;
         }
 
-        if ((&other == this) || (_ptr == other._ptr)) {
+        if ((&other == this) || (_memory.dataAddress() == other._memory.dataAddress())) {
             return true;
         }
 
-        for (size_type i = 0; i < _size; ++i) {
-          if (_ptr[i] != other._ptr[i]) {
+        const T* self = _memory.dataAs<T>();
+        const T* that = _memory.dataAs<T>();
+
+        for (size_type i = 0; i < size(); ++i) {
+          if (self[i] != that[i]) {
               return false;
           }
         }
@@ -119,8 +124,8 @@ public:
         return true;
     }
 
-    inline bool operator== (decltype(nullptr)) const noexcept { return _size == 0; }
-    inline bool operator!= (decltype(nullptr)) const noexcept { return _size != 0; }
+    inline bool operator== (decltype(nullptr)) const noexcept { return empty(); }
+    inline bool operator!= (decltype(nullptr)) const noexcept { return !empty(); }
 
     inline bool operator== (const ArrayPtr& other) const noexcept {
         return equals(other);
@@ -145,7 +150,7 @@ public:
      * @return True is this is an empty collection.
      */
     bool empty() const noexcept {
-        return (_size == 0);
+        return _memory.empty();
     }
 
     /**
@@ -153,80 +158,110 @@ public:
      * @return number of elements in this collection.
      */
     inline size_type size() const noexcept {
-        return _size;
+        return _memory.size() / sizeof(T);
     }
 
 
     inline const_reference operator[] (size_type index) const {
-        index = assertIndexInRange(index, 0, _size, "ArrayPtr[] const");
+        index = assertIndexInRange(index, 0, size(), "ArrayPtr[] const");
 
-        return _ptr[index];
+        return _memory.dataAs<T>()[index];
     }
 
 
     inline reference operator[] (size_type index) {
-        index = assertIndexInRange(index, 0, _size, "ArrayPtr[]");
+        index = assertIndexInRange(index, 0, size(), "ArrayPtr[]");
 
-        return _ptr[index];
+        return _memory.dataAs<T>()[index];
     }
 
 
-    inline Iterator begin()     { return _ptr; }
-    inline Iterator end()       { return _ptr + _size; }
-    inline reference front()    { return *_ptr; }
-    inline reference back()     { return *(_ptr + _size - 1); }
+    inline Iterator begin()     {
+        return _memory.empty()
+                ? nullptr
+                : _memory.dataAs<T>();
+    }
 
-    inline const_iterator begin()   const { return _ptr; }
-    inline const_iterator end()     const { return (_ptr + _size); }
-    inline const_reference front()  const { return *_ptr; }
-    inline const_reference back()   const { return *(_ptr + _size - 1); }
+    inline Iterator end()       { return begin() + size(); }
+    inline reference front()    { return *begin(); }
+    inline reference back()     { return *(begin() + size() - 1); }
+
+    inline const_iterator begin()   const {
+        return _memory.empty()
+                ? nullptr
+                : _memory.dataAs<T>();
+    }
+
+    inline const_iterator end()     const { return (begin() + size()); }
+    inline const_reference front()  const { return *begin(); }
+    inline const_reference back()   const { return *(begin() + size() - 1); }
 
 
     inline ArrayPtr<const T> slice(size_type start, size_type end) const {
-        start   = assertIndexInRange(start, 0,      _size, "ArrayPtr::slice() const");
-        end     = assertIndexInRange(end,   start,  _size, "ArrayPtr::slice() const");
+        start   = assertIndexInRange(start, 0,      size(), "ArrayPtr::slice() const");
+        end     = assertIndexInRange(end,   start,  size(), "ArrayPtr::slice() const");
 
-        return ArrayPtr<const T>(_ptr + start, end - start);
+        return ArrayPtr<const T>(begin() + start, end - start);
     }
 
     inline ArrayPtr slice(size_type start, size_type end) {
-        start   = assertIndexInRange(start, 0,      _size, "ArrayPtr::slice()");
-        end     = assertIndexInRange(end,   start,  _size, "ArrayPtr::slice()");
+        start   = assertIndexInRange(start, 0,      size(), "ArrayPtr::slice()");
+        end     = assertIndexInRange(end,   start,  size(), "ArrayPtr::slice()");
 
-        return ArrayPtr<const T>(_ptr + start, end - start);
+        return ArrayPtr<T>(begin() + start, end - start);
     }
 
     inline ImmutableMemoryView view() const noexcept {
-        return wrapMemory(_ptr, _size * sizeof(T));
+        return _memory;
     }
 
     inline MemoryView view() noexcept {
-        return wrapMemory(_ptr, _size * sizeof(T));
+        return _memory;
     }
 
     inline bool contains(const_reference value) const noexcept {
-        return (std::find(begin(), end(), value) != end());
+        return indexOf(value).isSome();
     }
 
     inline Optional<size_type> indexOf(const_reference value) const noexcept {
-        const auto it = std::find(begin(), end(), value);
-        return (it == end())
-                ? Optional<size_type>::of(std::distance(begin(), it))
-                : Optional<size_type>::none();
+        const auto it = begin();
+        for (size_type i = 0; i < size(); ++i) {
+            if (value == it[i]) {
+                return Optional<size_type>::of(i);
+            }
+        }
+
+        return None();
     }
 
     inline ArrayPtr<const T> asConst() const noexcept {
-      return ArrayPtr<const T>(_ptr, _size);
+      return ArrayPtr<const T>(_memory);
     }
 
     inline operator ArrayPtr<const T>() const noexcept {
       return asConst();
     }
 
+    inline void fill(const_reference value) noexcept {
+        for (auto& v : *this) {
+            v = value;
+        }
+    }
+
+    template<typename F>
+    std::enable_if_t<isCallable<F, size_type>::value, void>
+    fill(F&& f) noexcept {
+        const auto len = size();
+        const auto it = begin();
+
+        for (size_type i = 0; i < len; ++i) {
+            it[i] = f(i);
+        }
+    }
 
 private:
-    const_pointer   _ptr;
-    size_type       _size;
+
+    MemoryView _memory;
 };
 
 
@@ -241,6 +276,12 @@ void swap(ArrayPtr<T>& lhs, ArrayPtr<T>& rhs) noexcept {
 template <typename T>
 inline constexpr ArrayPtr<T> arrayPtr(T* ptr, size_t size) {
   return ArrayPtr<T>(ptr, size);
+}
+
+/** Syntactic sugar to create ArrayPtr without spelling out the type name. */
+template <typename T, size_t N>
+inline constexpr ArrayPtr<T> arrayPtr(T (&carray)[N]) {
+  return ArrayPtr<T>(carray);
 }
 
 

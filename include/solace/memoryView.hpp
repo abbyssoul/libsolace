@@ -180,7 +180,7 @@ public:
     using ImmutableMemoryView::slice;
     MemoryView slice(size_type from, size_type to);
 
-    MemoryView viewShallow();
+    MemoryView viewShallow() const;
 
     friend MemoryView wrapMemory(byte*, MemoryView::size_type, const MemoryViewDisposer*);
 

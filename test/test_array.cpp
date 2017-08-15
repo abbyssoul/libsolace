@@ -16,7 +16,7 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  *	@file test/test_array.cpp
- *	@brief		Test set of Solace::Array
+ *	@brief		Test suit for Solace::Array
  ******************************************************************************/
 #include <solace/array.hpp>    // Class being tested.
 #include <solace/string.hpp>   // Non POD subject.
@@ -25,29 +25,12 @@
 #include <cppunit/extensions/HelperMacros.h>
 #include "mockTypes.hpp"
 
-//#include <ostream>      // TODO(abbyssoul): Remove! Used once only for Unit testing
 
 using namespace Solace;
 
 
 template <typename T, size_t N>
-uint32 nativeArrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
-
-template <typename T>
-std::ostream& operator<< (std::ostream& ostr, const Solace::Array<T>& a) {
-    ostr << '[';
-
-    for (typename Solace::Array<T>::size_type end = a.size(), i = 0; i < end; ++i) {
-        ostr << a[i];
-        if (i < end - 1) {
-            ostr << ',' << ' ';
-        }
-    }
-
-    ostr << ']';
-
-    return ostr;
-}
+typename Array<T>::size_type nativeArrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
 
 
 class TestArray : public CppUnit::TestFixture  {
@@ -73,8 +56,6 @@ class TestArray : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testForEach_byValueConversion);
         CPPUNIT_TEST(testForEach_byConstRef);
         CPPUNIT_TEST(testForEachIndexed);
-
-
 
         CPPUNIT_TEST(testMap);
 
@@ -174,6 +155,7 @@ public:
 
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
+            CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
         }
 
         {
@@ -181,6 +163,7 @@ public:
 
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
+            CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
         }
 
         {
@@ -188,6 +171,7 @@ public:
 
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
+            CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
         }
 	}
 

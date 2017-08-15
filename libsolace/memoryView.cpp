@@ -176,6 +176,6 @@ MemoryView::slice(size_type from, size_type to) {
 
 
 MemoryView
-MemoryView ::viewShallow() {
-    return wrapMemory(dataAddress(), size());
+MemoryView ::viewShallow() const {
+    return wrapMemory(const_cast<value_type*>(dataAddress()), size());
 }
