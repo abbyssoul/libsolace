@@ -93,8 +93,8 @@ public:
         return (*this);
     }
 
-    ArrayPtr<T>& operator= (const ArrayPtr<T>& rhs) noexcept {
-        ArrayPtr<T>(rhs).swap(*this);
+    ArrayPtr& operator= (const ArrayPtr& rhs) noexcept {
+        ArrayPtr(rhs).swap(*this);
 
         return *this;
     }

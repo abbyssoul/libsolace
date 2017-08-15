@@ -20,8 +20,6 @@
 #include <solace/array.hpp>
 #include <solace/exception.hpp>
 
-//#include <ostream>      // TODO(abbyssoul): Remove! Used once only for Unit testing
-
 #include <utility>
 #include <iostream>
 

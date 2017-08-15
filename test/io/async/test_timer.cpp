@@ -154,7 +154,7 @@ public:
         int nbTimesCalledWhenCanceled = 0;
 
         async::Timer timer(iocontext);
-        timer.setTimeoutInterval(std::chrono::milliseconds(10), std::chrono::milliseconds(25))
+        timer.setTimeoutInterval(std::chrono::milliseconds(30), std::chrono::milliseconds(60))
                 .asyncWait()
                 .then([&nbTimesCalled, &iocontext](int64_t numberOfExpirations) {
 
