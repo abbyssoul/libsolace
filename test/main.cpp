@@ -22,6 +22,8 @@
   * ID:       $id$
  ******************************************************************************/
 #include <iostream>
+#include <fstream>
+
 #include <stdexcept>
 
 #include <cppunit/TestRunner.h>
@@ -132,16 +134,25 @@ public:
             runner.run(controller, testPath);
 
             if (!isStopped()) {
-                // Print test in a compiler compatible format.
-                CppUnit::CompilerOutputter outputter(&result, std::cerr, "%f:%l: ");
-                outputter.write();
-            }
 
-            if (reportFile) {
-                // Output XML for Jenkins CPPunit plugin
-                std::ofstream xmlFileOut(reportFile);
-                CppUnit::XmlOutputter xmlOut(&result, xmlFileOut);
-                xmlOut.write();
+                if (reportFile) {
+                    std::cout << std::endl << "Writing report to '" << reportFile << '\'' << std::endl;
+
+                    // Output XML for Jenkins CPPunit plugin
+                    std::ofstream xmlFileOut;
+                    xmlFileOut.open(reportFile);
+                    if (!xmlFileOut) {
+                        std::cerr << "Failed to open '" << reportFile << '\'' << std::endl;
+                    }
+                    CppUnit::XmlOutputter xmlOut(&result, xmlFileOut, "UTF-8");
+                    xmlOut.write();
+
+                } else {
+                    // Print test in a compiler compatible format.
+                    CppUnit::CompilerOutputter outputter(&result, std::cerr, "%f:%l: ");
+                    outputter.write();
+                }
+
             }
 
         } catch (std::invalid_argument &e) {  // Test path not resolved
@@ -179,5 +190,6 @@ int main(int argc, char* argv[]) {
     // FIXME(abbyssoul): Add signal handling in test ::signal(SIGSEGV, _sighandler);
     srandom(time(nullptr));
 
-    return GlobalTestRunner.scanTests().run((argc > 1) ? argv[1] : "", (argc > 2 ? argv[2] : nullptr));
+    return GlobalTestRunner.scanTests().run((argc > 1) ? argv[1] : "",
+                                            (argc > 2 ? argv[2] : nullptr));
 }

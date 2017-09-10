@@ -1,4 +1,4 @@
-# Generated Makefile for libsolace: Monday 23 January  23:36:55 AEDT 2017
+# Generated Makefile for libsolace: Mon 11 Sep 02:40:38 AEST 2017
 PREFIX = /usr
 dbg = -g
 

@@ -177,9 +177,10 @@ public:
         CPPUNIT_ASSERT(fs.isDirectory(cwd));
         CPPUNIT_ASSERT(!fs.isFile(cwd));
 
-        fs.setWorkingDirectory(cwd.getParent());
-        CPPUNIT_ASSERT_EQUAL(cwd.getParent(), fs.getWorkingDirectory());
-
+        // Commented out at it changes run-time environment.
+        // FIXME(abbyssoul): Find a way to preserv CWD
+//        fs.setWorkingDirectory(cwd.getParent());
+//        CPPUNIT_ASSERT_EQUAL(cwd.getParent(), fs.getWorkingDirectory());
     }
 
     void testTemp() {
