@@ -34,6 +34,7 @@
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/CompilerOutputter.h>
+#include <cppunit/XmlOutputter.h>
 
 #include <memory>
 
@@ -124,9 +125,9 @@ public:
         return *this;
     }
 
-    int run(const char* path) {
+    int run(const char* testspath, const char* reportFile) {
 
-        testPath = path;
+        testPath = testspath;
         try {
             runner.run(controller, testPath);
 
@@ -134,6 +135,13 @@ public:
                 // Print test in a compiler compatible format.
                 CppUnit::CompilerOutputter outputter(&result, std::cerr, "%f:%l: ");
                 outputter.write();
+            }
+
+            if (reportFile) {
+                // Output XML for Jenkins CPPunit plugin
+                std::ofstream xmlFileOut(reportFile);
+                CppUnit::XmlOutputter xmlOut(&result, xmlFileOut);
+                xmlOut.write();
             }
 
         } catch (std::invalid_argument &e) {  // Test path not resolved
@@ -162,12 +170,14 @@ private:
 };
 
 
-// Note: Test runner made global in order to invoke it's destructor when fork'd version of it does exit()
-TestRunner GlobalTestRunner;
+/*
+ *  Note: Test runner made global in order to invoke it's destructor when fork'd version of it does exit()
+ */
+static TestRunner GlobalTestRunner;
 
 int main(int argc, char* argv[]) {
     // FIXME(abbyssoul): Add signal handling in test ::signal(SIGSEGV, _sighandler);
     srandom(time(nullptr));
 
-    return GlobalTestRunner.scanTests().run((argc > 1) ? argv[1] : "");
+    return GlobalTestRunner.scanTests().run((argc > 1) ? argv[1] : "", (argc > 2 ? argv[2] : nullptr));
 }

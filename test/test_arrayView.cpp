@@ -15,10 +15,10 @@
 */
 /*******************************************************************************
  * libSolace Unit Test Suit
- *	@file test/test_arrayPtr.cpp
- *	@brief		Test set of Solace::ArrayPtr
+ *	@file test/test_arrayView.cpp
+ *	@brief		Test set of Solace::ArrayView
  ******************************************************************************/
-#include <solace/arrayPtr.hpp>    // Class being tested.
+#include <solace/arrayView.hpp>    // Class being tested.
 
 #include <cppunit/extensions/HelperMacros.h>
 #include "mockTypes.hpp"
@@ -28,7 +28,7 @@ using namespace Solace;
 
 
 template <typename T, size_t N>
-typename ArrayPtr<T>::size_type nativeArrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
+typename ArrayView<T>::size_type nativeArrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
 
 
 template <typename T, size_t N, typename F>
@@ -42,10 +42,10 @@ T* generateTestArray(T (&carray)[N], F generator) {
 
 
 template <typename T>
-std::ostream& operator<< (std::ostream& ostr, const Solace::ArrayPtr<T>& a) {
+std::ostream& operator<< (std::ostream& ostr, const Solace::ArrayView<T>& a) {
     ostr << '[';
 
-    for (typename Solace::ArrayPtr<T>::size_type end = a.size(), i = 0; i < end; ++i) {
+    for (typename Solace::ArrayView<T>::size_type end = a.size(), i = 0; i < end; ++i) {
         ostr << a[i];
         if (i < end - 1) {
             ostr << ',' << ' ';
@@ -59,10 +59,10 @@ std::ostream& operator<< (std::ostream& ostr, const Solace::ArrayPtr<T>& a) {
 
 
 
-class TestArrayPtr :
+class TestArrayView :
         public CppUnit::TestFixture  {
 
-    CPPUNIT_TEST_SUITE(TestArrayPtr);
+    CPPUNIT_TEST_SUITE(TestArrayView);
         CPPUNIT_TEST(testEmpty);
         CPPUNIT_TEST(testCopyConstruction);
         CPPUNIT_TEST(testCopy);
@@ -93,13 +93,13 @@ class TestArrayPtr :
 
 protected:
 
-    static const ArrayPtr<int>::size_type ZERO;
-    static const ArrayPtr<int>::size_type TEST_SIZE_0;
-    static const ArrayPtr<int>::size_type TEST_SIZE_1;
+    static const ArrayView<int>::size_type ZERO;
+    static const ArrayView<int>::size_type TEST_SIZE_0;
+    static const ArrayView<int>::size_type TEST_SIZE_1;
 
     struct NonPodStruct {
 
-        static ArrayPtr<int>::size_type TotalCount;
+        static ArrayView<int>::size_type TotalCount;
 
         static const int IVALUE_DEFAULT;
         static const char* STR_DEFAULT;
@@ -178,7 +178,7 @@ public:
 
     void testEmpty() {
         {
-            const ArrayPtr<int> empty_array;
+            const ArrayView<int> empty_array;
 
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
@@ -186,7 +186,7 @@ public:
         }
 
         {
-            const ArrayPtr<NonPodStruct> empty_array(nullptr);
+            const ArrayView<NonPodStruct> empty_array(nullptr);
 
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
@@ -194,7 +194,7 @@ public:
         }
 
         {
-            const ArrayPtr<DerivedNonPodStruct> empty_array;
+            const ArrayView<DerivedNonPodStruct> empty_array;
 
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
@@ -204,33 +204,33 @@ public:
 
     void testCopyConstruction() {
         int src[16];
-        const ArrayPtr<int>::size_type srcSize = sizeof(src) / sizeof(int);
+        const ArrayView<int>::size_type srcSize = sizeof(src) / sizeof(int);
         generateTestArray(src, [](size_t i) { return (2*i - 1); });
 
 
-        ArrayPtr<int> a2(src);
+        ArrayView<int> a2(src);
         CPPUNIT_ASSERT(!a2.empty());
         CPPUNIT_ASSERT_EQUAL(srcSize, a2.size());
 
 
         // Create a copy:
-        ArrayPtr<int> a1(a2);
+        ArrayView<int> a1(a2);
 
         CPPUNIT_ASSERT(!a1.empty());
         CPPUNIT_ASSERT_EQUAL(a1.size(), a2.size());
 
         // Check that the data is the same:
-        for (ArrayPtr<int>::size_type i = 0; i < a1.size(); ++i) {
+        for (ArrayView<int>::size_type i = 0; i < a1.size(); ++i) {
             CPPUNIT_ASSERT_EQUAL(static_cast<int>(2*i - 1), a1[i]);
         }
 
-        // Check that changing values in the original C-array changes ArrayPtr values:
+        // Check that changing values in the original C-array changes ArrayView values:
         auto newGen = [](size_t i) { return static_cast<int>(2*i + 3); };
         generateTestArray(src, newGen);
 
         CPPUNIT_ASSERT_EQUAL(a1.size(), a2.size());
         // Check that the data is the same:
-        for (ArrayPtr<int>::size_type i = 0; i < a1.size(); ++i) {
+        for (ArrayView<int>::size_type i = 0; i < a1.size(); ++i) {
             CPPUNIT_ASSERT_EQUAL(newGen(i), a1[i]);
             CPPUNIT_ASSERT_EQUAL(newGen(i), a2[i]);
         }
@@ -240,13 +240,13 @@ public:
         {
             int src[16];
 
-            ArrayPtr<int> a1;
-            ArrayPtr<int> a2(src);
+            ArrayView<int> a1;
+            ArrayView<int> a2(src);
 
             CPPUNIT_ASSERT(a1.empty());
             CPPUNIT_ASSERT(!a2.empty());
 
-            for (ArrayPtr<int>::size_type i = 0; i < a2.size(); ++i) {
+            for (ArrayView<int>::size_type i = 0; i < a2.size(); ++i) {
                 a2[i] = static_cast<int>(2*i - 1);
             }
 
@@ -255,14 +255,14 @@ public:
 
             CPPUNIT_ASSERT(!a1.empty());
             CPPUNIT_ASSERT_EQUAL(a1.size(), a2.size());
-            for (ArrayPtr<int>::size_type i = 0; i < a1.size(); ++i) {
+            for (ArrayView<int>::size_type i = 0; i < a1.size(); ++i) {
                 CPPUNIT_ASSERT_EQUAL(static_cast<int>(2*i - 1), a1[i]);
             }
         }
     }
 /*
     void testBasics() {
-        ArrayPtr<uint> array(TEST_SIZE_0);
+        ArrayView<uint> array(TEST_SIZE_0);
 
         CPPUNIT_ASSERT(!array.empty());
         CPPUNIT_ASSERT_EQUAL(TEST_SIZE_0, array.size());
@@ -277,7 +277,7 @@ public:
 
             *i = count++;
         }
-        CPPUNIT_ASSERT_EQUAL(static_cast<ArrayPtr<uint>::size_type>(count), array.size());
+        CPPUNIT_ASSERT_EQUAL(static_cast<ArrayView<uint>::size_type>(count), array.size());
 
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             CPPUNIT_ASSERT_EQUAL(static_cast<uint>(i), array[i]);
@@ -287,7 +287,7 @@ public:
     }
 
     void testString() {
-        ArrayPtr<String> array(TEST_SIZE_0);
+        ArrayView<String> array(TEST_SIZE_0);
 
         CPPUNIT_ASSERT(!array.empty());
         CPPUNIT_ASSERT_EQUAL(TEST_SIZE_0, array.size());
@@ -313,7 +313,7 @@ public:
     void testNonPods() {
         CPPUNIT_ASSERT_EQUAL(ZERO, NonPodStruct::TotalCount);
         {
-            ArrayPtr<NonPodStruct> array(TEST_SIZE_1);
+            ArrayView<NonPodStruct> array(TEST_SIZE_1);
 
             CPPUNIT_ASSERT_EQUAL(TEST_SIZE_1, array.size());
             CPPUNIT_ASSERT_EQUAL(NonPodStruct::TotalCount, array.size());
@@ -332,7 +332,7 @@ public:
                 i.str = "Item " + std::to_string(i.iValue);
             }
 
-            CPPUNIT_ASSERT_EQUAL(static_cast<ArrayPtr<NonPodStruct>::size_type>(count), array.size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<ArrayView<NonPodStruct>::size_type>(count), array.size());
 
             for (auto i = ZERO, end = array.size(); i < end; ++i) {
                 CPPUNIT_ASSERT_EQUAL(static_cast<int>(i), array[i].iValue);
@@ -345,7 +345,7 @@ public:
     void testInitializerList() {
         {
             const int native_array[] = {0, 1, 2, 3};
-            const ArrayPtr<int> array = {0, 1, 2, 3};
+            const ArrayView<int> array = {0, 1, 2, 3};
 
             CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
 
@@ -356,7 +356,7 @@ public:
 
         {
             const String native_array[] = {"Abc", "", "dfe", "_xyz3"};
-            const ArrayPtr<String> array = {"Abc", "", "dfe", "_xyz3"};
+            const ArrayView<String> array = {"Abc", "", "dfe", "_xyz3"};
 
             CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
 
@@ -375,7 +375,7 @@ public:
             };
             CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), NonPodStruct::TotalCount);
 
-            const ArrayPtr<NonPodStruct> array = {
+            const ArrayView<NonPodStruct> array = {
                     NonPodStruct(0, "yyyz"),
                     NonPodStruct(),
                     NonPodStruct(-321, "yyx"),
@@ -398,7 +398,7 @@ public:
 
         {
             const int native_array[] = {0, 1, 2, 3};
-            const ArrayPtr<int> array(nativeArrayLength(native_array), native_array);
+            const ArrayView<int> array(nativeArrayLength(native_array), native_array);
 
             CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
 
@@ -409,7 +409,7 @@ public:
 
         {
             const String native_array[] = {"Abc", "", "dfe", "_xyz3"};
-            const ArrayPtr<String> array(nativeArrayLength(native_array), native_array);
+            const ArrayView<String> array(nativeArrayLength(native_array), native_array);
 
             CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
 
@@ -425,7 +425,7 @@ public:
                     NonPodStruct(-321, "yyx"),
                     NonPodStruct(990, "x^hhf")
             };
-            const ArrayPtr<NonPodStruct> array(nativeArrayLength(native_array), native_array);
+            const ArrayView<NonPodStruct> array(nativeArrayLength(native_array), native_array);
 
             CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
 
@@ -437,13 +437,13 @@ public:
     }
 
     template <typename T>
-    ArrayPtr<T> moveArray(std::initializer_list<T> list) {
+    ArrayView<T> moveArray(std::initializer_list<T> list) {
         return {list};
     }
 
     void testMoveAssignment() {
         {// Test on integral types
-            ArrayPtr<int> array(0);
+            ArrayView<int> array(0);
 
             CPPUNIT_ASSERT(array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, array.size());
@@ -452,28 +452,28 @@ public:
             CPPUNIT_ASSERT(!array.empty());
             const int src1[] = {1, 2, 3};
 
-            CPPUNIT_ASSERT_EQUAL(static_cast<ArrayPtr<int>::size_type>(3), array.size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<ArrayView<int>::size_type>(3), array.size());
             for (auto i = ZERO, end = array.size(); i < end; ++i) {
                 CPPUNIT_ASSERT_EQUAL(src1[i], array[i]);
             }
         }
 
         {   // Test on strings types
-            ArrayPtr<String> array(0);
+            ArrayView<String> array(0);
             CPPUNIT_ASSERT(array.empty());
 
             array = moveArray<String>({"tasrd", "", "hhha", "asd"});
             CPPUNIT_ASSERT(!array.empty());
 
             const String src[] = {"tasrd", "", "hhha", "asd"};
-            CPPUNIT_ASSERT_EQUAL(static_cast<ArrayPtr<String>::size_type>(4), array.size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<ArrayView<String>::size_type>(4), array.size());
             for (auto i = ZERO, end = array.size(); i < end; ++i) {
                 CPPUNIT_ASSERT_EQUAL(src[i], array[i]);
             }
         }
 
         {   // Test on non-pod types
-            ArrayPtr<NonPodStruct> array(0);
+            ArrayView<NonPodStruct> array(0);
             const NonPodStruct src[] = {
                     NonPodStruct(0, "yyyz"),
                     NonPodStruct(),
@@ -489,7 +489,7 @@ public:
                                                     NonPodStruct(990, "x^hhf")
                                             });
             CPPUNIT_ASSERT(!array.empty());
-            CPPUNIT_ASSERT_EQUAL(static_cast<ArrayPtr<NonPodStruct>::size_type>(4), array.size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<ArrayView<NonPodStruct>::size_type>(4), array.size());
 
             for (auto i = ZERO, end = array.size(); i < end; ++i) {
                 CPPUNIT_ASSERT_EQUAL(src[i].iValue, array[i].iValue);
@@ -500,7 +500,7 @@ public:
 
     void testEquals() {
         {
-            const ArrayPtr<int> array = {1, 2, 3};
+            const ArrayView<int> array = {1, 2, 3};
 
             const int equal_native_array[] = {1, 2, 3};
             const auto equal_native_array_length = nativeArrayLength(equal_native_array);
@@ -511,9 +511,9 @@ public:
             const int nequal_native_array_1[] = {3, 2, 1};
             const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
-            const ArrayPtr<int> array_eq(equal_native_array_length, equal_native_array);
-            const ArrayPtr<int> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
-            const ArrayPtr<int> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
+            const ArrayView<int> array_eq(equal_native_array_length, equal_native_array);
+            const ArrayView<int> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
+            const ArrayView<int> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
 
             CPPUNIT_ASSERT_EQUAL(equal_native_array_length, array.size());
             CPPUNIT_ASSERT(nequal_native_array_0_length != array.size());
@@ -538,7 +538,7 @@ public:
         }
 
         {
-            const ArrayPtr<String> array = {"tasrd", "", "hhha", "asd"};
+            const ArrayView<String> array = {"tasrd", "", "hhha", "asd"};
 
             const String equal_native_array[] = {"tasrd", "", "hhha", "asd"};
             const auto equal_native_array_length = nativeArrayLength(equal_native_array);
@@ -549,9 +549,9 @@ public:
             const String nequal_native_array_1[] = {"tasrd", "", "hhha", "basd"};
             const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
-            const ArrayPtr<String> array_eq(equal_native_array_length, equal_native_array);
-            const ArrayPtr<String> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
-            const ArrayPtr<String> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
+            const ArrayView<String> array_eq(equal_native_array_length, equal_native_array);
+            const ArrayView<String> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
+            const ArrayView<String> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
 
             CPPUNIT_ASSERT_EQUAL(equal_native_array_length, array.size());
             CPPUNIT_ASSERT(nequal_native_array_0_length != array.size());
@@ -576,7 +576,7 @@ public:
         }
 
         {
-            const ArrayPtr<NonPodStruct> array = {
+            const ArrayView<NonPodStruct> array = {
                     NonPodStruct(0, "yyyz"),
                     NonPodStruct(),
                     NonPodStruct(-321, "yyx"),
@@ -608,9 +608,9 @@ public:
 
             const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
-            const ArrayPtr<NonPodStruct> array_eq(equal_native_array_length, equal_native_array);
-            const ArrayPtr<NonPodStruct> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
-            const ArrayPtr<NonPodStruct> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
+            const ArrayView<NonPodStruct> array_eq(equal_native_array_length, equal_native_array);
+            const ArrayView<NonPodStruct> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
+            const ArrayView<NonPodStruct> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
 
             CPPUNIT_ASSERT_EQUAL(equal_native_array_length, array.size());
             CPPUNIT_ASSERT(nequal_native_array_0_length != array.size());
@@ -644,12 +644,12 @@ public:
         int src[16];
         generateTestArray(src, [](size_t i) { return (2*i - 1); });
 
-        auto array = arrayPtr(src);
+        auto array = arrayView(src);
 
         {  // Test for existing value:
             const auto maybeIndex = array.indexOf(2*4 - 1);
             CPPUNIT_ASSERT(maybeIndex.isSome());
-            CPPUNIT_ASSERT_EQUAL(ArrayPtr<int>::size_type(4), maybeIndex.get());
+            CPPUNIT_ASSERT_EQUAL(ArrayView<int>::size_type(4), maybeIndex.get());
         }
 
 
@@ -658,11 +658,11 @@ public:
         }
 
         {  // Test empty array contains nothing
-            CPPUNIT_ASSERT(ArrayPtr<int>().indexOf(2*3 - 1).isNone());
+            CPPUNIT_ASSERT(ArrayView<int>().indexOf(2*3 - 1).isNone());
         }
 
         {  // Floats are so imprecise
-            CPPUNIT_ASSERT(ArrayPtr<float32>().indexOf(3.1415f).isNone());
+            CPPUNIT_ASSERT(ArrayView<float32>().indexOf(3.1415f).isNone());
         }
     }
 
@@ -671,10 +671,10 @@ public:
         generateTestArray(src, [](size_t i) { return (2*i + 3); });
 
         {  // Test empty array contains nothing
-            CPPUNIT_ASSERT(!ArrayPtr<int>().contains(2*3 - 1));
+            CPPUNIT_ASSERT(!ArrayView<int>().contains(2*3 - 1));
         }
 
-        auto array = arrayPtr(src);
+        auto array = arrayView(src);
 
         {  // Test for existing value:
             CPPUNIT_ASSERT(array.contains(2*9 + 3));
@@ -688,7 +688,7 @@ public:
     void testFill() {
         {  // Const-value filling:
             int src[24];
-            auto array = arrayPtr(src);
+            auto array = arrayView(src);
 
             array.fill(42);
 
@@ -699,11 +699,11 @@ public:
 
         {  // Fill using generator:
             int src[24];
-            auto array = arrayPtr(src);
+            auto array = arrayView(src);
 
             array.fill([](size_t i) { return static_cast<int>(i*2 + 1); });
 
-            for (ArrayPtr<int>::size_type i = 0; i < array.size(); ++i) {
+            for (ArrayView<int>::size_type i = 0; i < array.size(); ++i) {
                 CPPUNIT_ASSERT_EQUAL(static_cast<int>(i*2 + 1), array[i]);
             }
         }
@@ -711,7 +711,7 @@ public:
 
 /*
     void testForEach_byValue() {
-        const ArrayPtr<int> array = {1, 2, 3, 4, 5, 6};
+        const ArrayView<int> array = {1, 2, 3, 4, 5, 6};
 
         int acc = 0;
         array.forEach([&acc](int x) {
@@ -722,7 +722,7 @@ public:
     }
 
     void testForEach_byConstRef() {
-        const ArrayPtr<String> array = {"Hello", " ", "world", "!"};
+        const ArrayView<String> array = {"Hello", " ", "world", "!"};
 
         String acc;
         array.forEach([&acc](const String& x) {
@@ -733,7 +733,7 @@ public:
     }
 
     void testForEach_byValueConversion() {
-        const ArrayPtr<int> array = {1, 2, 3, 4, 5, 6};
+        const ArrayView<int> array = {1, 2, 3, 4, 5, 6};
 
         double acc = 0;
         array.forEach([&acc](double x) {
@@ -744,10 +744,10 @@ public:
     }
 
     void testForEachIndexed() {
-        const ArrayPtr<int> array = {1, 2, 3, 4, 5, 6};
+        const ArrayView<int> array = {1, 2, 3, 4, 5, 6};
         bool allEq = true;
 
-        array.forEachIndexed([&allEq](ArrayPtr<int>::size_type i, ArrayPtr<int>::size_type x) {
+        array.forEachIndexed([&allEq](ArrayView<int>::size_type i, ArrayView<int>::size_type x) {
             allEq &= (i + 1 == x);
         });
 
@@ -756,7 +756,7 @@ public:
 
 
     void testMap() {
-        const ArrayPtr<DerivedNonPodStruct> array = {
+        const ArrayView<DerivedNonPodStruct> array = {
                 DerivedNonPodStruct(32, 2.4, "hello"),
                 DerivedNonPodStruct(-24, 2.4, " "),
                 DerivedNonPodStruct(10, 2.4, "world"),
@@ -768,7 +768,7 @@ public:
             });
 
             CPPUNIT_ASSERT_EQUAL(array.size(), r.size());
-            for (ArrayPtr<int>::size_type i = 0; i < array.size(); ++i) {
+            for (ArrayView<int>::size_type i = 0; i < array.size(); ++i) {
                 CPPUNIT_ASSERT_EQUAL(r[i], array[i].iValue);
             }
 
@@ -779,7 +779,7 @@ public:
             });
 
             CPPUNIT_ASSERT_EQUAL(array.size(), r.size());
-            for (ArrayPtr<int>::size_type i = 0; i < array.size(); ++i) {
+            for (ArrayView<int>::size_type i = 0; i < array.size(); ++i) {
                 CPPUNIT_ASSERT_EQUAL(r[i], array[i].str);
             }
 
@@ -790,20 +790,20 @@ public:
 
         SometimesConstructable::BlowUpEveryInstance = 9;
 
-        CPPUNIT_ASSERT_THROW(const ArrayPtr<SometimesConstructable> sholdFail(10), Exception);
+        CPPUNIT_ASSERT_THROW(const ArrayView<SometimesConstructable> sholdFail(10), Exception);
         CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
     }
     */
 
 };
 
-const ArrayPtr<int>::size_type TestArrayPtr::ZERO = 0;
-const ArrayPtr<int>::size_type TestArrayPtr::TEST_SIZE_0 = 7;
-const ArrayPtr<int>::size_type TestArrayPtr::TEST_SIZE_1 = 35;
+const ArrayView<int>::size_type TestArrayView::ZERO = 0;
+const ArrayView<int>::size_type TestArrayView::TEST_SIZE_0 = 7;
+const ArrayView<int>::size_type TestArrayView::TEST_SIZE_1 = 35;
 
-const int 		TestArrayPtr::NonPodStruct::IVALUE_DEFAULT = -123;
+const int 		TestArrayView::NonPodStruct::IVALUE_DEFAULT = -123;
 
-ArrayPtr<int>::size_type TestArrayPtr::NonPodStruct::TotalCount = 0;
+ArrayView<int>::size_type TestArrayView::NonPodStruct::TotalCount = 0;
 
 
-CPPUNIT_TEST_SUITE_REGISTRATION(TestArrayPtr);
+CPPUNIT_TEST_SUITE_REGISTRATION(TestArrayView);

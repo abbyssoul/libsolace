@@ -29,7 +29,7 @@
 #include "solace/traits/icomparable.hpp"
 
 #include "solace/assert.hpp"
-#include "solace/arrayPtr.hpp"
+#include "solace/arrayView.hpp"
 #include "solace/memoryView.hpp"
 
 

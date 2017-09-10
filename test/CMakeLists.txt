@@ -16,8 +16,8 @@ set(TEST_SOURCE_FILES
         mockTypes.cpp
         ci/teamcity_messages.cpp
         ci/teamcity_cppunit.cpp
-        test_arrayPtr.cpp
         test_array.cpp
+        test_arrayView.cpp
         test_memoryView.cpp
         test_memoryManager.cpp
         test_byteBuffer.cpp

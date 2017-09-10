@@ -40,7 +40,7 @@ namespace Solace {
  * Passed by value copies the pointer, not the data.
  */
 template <typename T>
-class ArrayPtr {
+class ArrayView {
 public:
     typedef T           value_type;
     typedef uint32      size_type;
@@ -57,53 +57,53 @@ public:
 public:
 
     /** Construct an empty array */
-    inline constexpr ArrayPtr() noexcept
+    inline constexpr ArrayView() noexcept
     {}
 
-    inline constexpr ArrayPtr(decltype(nullptr)) noexcept
+    inline constexpr ArrayView(decltype(nullptr)) noexcept
     {}
 
-    inline constexpr ArrayPtr(T* ptr, size_type arraySize) noexcept :
+    inline constexpr ArrayView(T* ptr, size_type arraySize) noexcept :
         _memory(wrapMemory(ptr, arraySize))
     {}
 
-    inline constexpr ArrayPtr(T* begin, T* end) noexcept :
+    inline constexpr ArrayView(T* begin, T* end) noexcept :
         _memory(wrapMemory(begin, end - begin))
     {}
 
     template <size_t size>
-    inline constexpr ArrayPtr(T (&carray)[size]) noexcept :
+    inline constexpr ArrayView(T (&carray)[size]) noexcept :
         _memory(wrapMemory(carray))
     {}
 
-    inline constexpr ArrayPtr(const ArrayPtr& other) noexcept :
+    inline constexpr ArrayView(const ArrayView& other) noexcept :
         _memory(other._memory.viewShallow())
     {}
 
-    inline constexpr ArrayPtr(MemoryView&& memview) noexcept :
+    inline constexpr ArrayView(MemoryView&& memview) noexcept :
         _memory(std::move(memview))
     {}
 
 public:
 
-    ArrayPtr<T>& swap(ArrayPtr<T>& rhs) noexcept {
+    ArrayView<T>& swap(ArrayView<T>& rhs) noexcept {
         using std::swap;
         swap(_memory, rhs._memory);
 
         return (*this);
     }
 
-    ArrayPtr& operator= (const ArrayPtr& rhs) noexcept {
-        ArrayPtr(rhs).swap(*this);
+    ArrayView& operator= (const ArrayView& rhs) noexcept {
+        ArrayView(rhs).swap(*this);
 
         return *this;
     }
 
-    ArrayPtr<T>& operator= (ArrayPtr&& rhs) noexcept {
+    ArrayView<T>& operator= (ArrayView&& rhs) noexcept {
         return swap(rhs);
     }
 
-    inline bool equals(const ArrayPtr& other) const noexcept {
+    inline bool equals(const ArrayView& other) const noexcept {
         if (size() != other.size()) {
             return false;
         }
@@ -127,21 +127,21 @@ public:
     inline bool operator== (decltype(nullptr)) const noexcept { return empty(); }
     inline bool operator!= (decltype(nullptr)) const noexcept { return !empty(); }
 
-    inline bool operator== (const ArrayPtr& other) const noexcept {
+    inline bool operator== (const ArrayView& other) const noexcept {
         return equals(other);
     }
 
-    inline bool operator!= (const ArrayPtr& other) const noexcept {
+    inline bool operator!= (const ArrayView& other) const noexcept {
         return !equals(other);
     }
 
     template <typename U>
-    inline bool operator== (const ArrayPtr<U>& other) const {
+    inline bool operator== (const ArrayView<U>& other) const {
         return equals(other);
     }
 
     template <typename U>
-    inline bool operator!= (const ArrayPtr<U>& other) const noexcept {
+    inline bool operator!= (const ArrayView<U>& other) const noexcept {
         return !equals(other);
     }
 
@@ -163,14 +163,14 @@ public:
 
 
     inline const_reference operator[] (size_type index) const {
-        index = assertIndexInRange(index, 0, size(), "ArrayPtr[] const");
+        index = assertIndexInRange(index, 0, size(), "ArrayView[] const");
 
         return _memory.dataAs<T>()[index];
     }
 
 
     inline reference operator[] (size_type index) {
-        index = assertIndexInRange(index, 0, size(), "ArrayPtr[]");
+        index = assertIndexInRange(index, 0, size(), "ArrayView[]");
 
         return _memory.dataAs<T>()[index];
     }
@@ -197,18 +197,18 @@ public:
     inline const_reference back()   const { return *(begin() + size() - 1); }
 
 
-    inline ArrayPtr<const T> slice(size_type start, size_type end) const {
-        start   = assertIndexInRange(start, 0,      size(), "ArrayPtr::slice() const");
-        end     = assertIndexInRange(end,   start,  size(), "ArrayPtr::slice() const");
+    inline ArrayView<const T> slice(size_type start, size_type end) const {
+        start   = assertIndexInRange(start, 0,      size(), "ArrayView::slice() const");
+        end     = assertIndexInRange(end,   start,  size(), "ArrayView::slice() const");
 
-        return ArrayPtr<const T>(begin() + start, end - start);
+        return ArrayView<const T>(begin() + start, end - start);
     }
 
-    inline ArrayPtr slice(size_type start, size_type end) {
-        start   = assertIndexInRange(start, 0,      size(), "ArrayPtr::slice()");
-        end     = assertIndexInRange(end,   start,  size(), "ArrayPtr::slice()");
+    inline ArrayView slice(size_type start, size_type end) {
+        start   = assertIndexInRange(start, 0,      size(), "ArrayView::slice()");
+        end     = assertIndexInRange(end,   start,  size(), "ArrayView::slice()");
 
-        return ArrayPtr<T>(begin() + start, end - start);
+        return ArrayView<T>(begin() + start, end - start);
     }
 
     inline ImmutableMemoryView view() const noexcept {
@@ -234,11 +234,11 @@ public:
         return None();
     }
 
-    inline ArrayPtr<const T> asConst() const noexcept {
-      return ArrayPtr<const T>(_memory);
+    inline ArrayView<const T> asConst() const noexcept {
+      return ArrayView<const T>(_memory);
     }
 
-    inline operator ArrayPtr<const T>() const noexcept {
+    inline operator ArrayView<const T>() const noexcept {
       return asConst();
     }
 
@@ -259,6 +259,22 @@ public:
         }
     }
 
+    /*
+     *--------------------------------------------------------------------------
+     * Functional methods that operates on the collection without changing it.
+     *--------------------------------------------------------------------------
+     */
+
+    template<typename F>
+    const ArrayView& forEach(F&& f) const {
+        for (const auto& x : *this) {
+            f(x);
+        }
+
+        return *this;
+    }
+
+
 private:
 
     MemoryView _memory;
@@ -268,27 +284,27 @@ private:
 
 
 template<typename T>
-void swap(ArrayPtr<T>& lhs, ArrayPtr<T>& rhs) noexcept {
+void swap(ArrayView<T>& lhs, ArrayView<T>& rhs) noexcept {
     lhs.swap(rhs);
 }
 
-/** Syntactic sugar to create ArrayPtr without spelling out the type name. */
+/** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-inline constexpr ArrayPtr<T> arrayPtr(T* ptr, size_t size) {
-  return ArrayPtr<T>(ptr, size);
+inline constexpr ArrayView<T> arryaView(T* ptr, size_t size) {
+  return ArrayView<T>(ptr, size);
 }
 
-/** Syntactic sugar to create ArrayPtr without spelling out the type name. */
+/** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T, size_t N>
-inline constexpr ArrayPtr<T> arrayPtr(T (&carray)[N]) {
-  return ArrayPtr<T>(carray);
+inline constexpr ArrayView<T> arrayView(T (&carray)[N]) {
+  return ArrayView<T>(carray);
 }
 
 
-/** Syntactic sugar to create ArrayPtr without spelling out the type name. */
+/** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-inline constexpr ArrayPtr<T> arrayPtr(T* begin, T* end) {
-  return ArrayPtr<T>(begin, end);
+inline constexpr ArrayView<T> arrayView(T* begin, T* end) {
+  return ArrayView<T>(begin, end);
 }
 
 }  // End of namespace Solace

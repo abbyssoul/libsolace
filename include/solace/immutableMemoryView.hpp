@@ -127,6 +127,10 @@ public:
         return (_size == 0);
     }
 
+    explicit operator bool() const noexcept {
+        return (_dataAddress != nullptr);
+    }
+
     /**
      * @return The size of this finite collection
      */

@@ -44,11 +44,14 @@ class TestFuture : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testVoidThenContinuation);
         CPPUNIT_TEST(testThenValueUnwrapping);
         CPPUNIT_TEST(testThenResultContinuation);
+        CPPUNIT_TEST(testThenVoidResultContinuation);
         CPPUNIT_TEST(testThenFutureContinuation);
 
         CPPUNIT_TEST(testOnErrorHandler);
         CPPUNIT_TEST(testOnErrorSkippedOnSuccess);
         CPPUNIT_TEST(testOnErrorRestoresTheChain);
+
+        CPPUNIT_TEST(voidFutureThenVoidFuture);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -94,15 +97,16 @@ public:
         bool resolved1 = false;
         bool resolved2 = false;
 
+        // f: Future<void>
         f.then([&resolved1]() {
             resolved1 = true;
-        })
-        .then([](){
+        })  //  : Future<void>
+        .then([]() {
             return 321;
-        })
+        })  // : Future<int>
         .then([&resolved2](int x) {
             resolved2 = (x == 321);
-        });
+        });  // : Future<void>
 
         p.setValue();
 
@@ -137,6 +141,32 @@ public:
         CPPUNIT_ASSERT(resolved);
     }
 
+
+    void testThenVoidResultContinuation() {
+        auto p = Promise<int>();
+        auto f = p.getFuture();
+        bool resolved = false;
+
+        bool firstCallbackOk = false;
+        bool secondCallbackOk = false;
+
+        f.then([&firstCallbackOk](int x) -> Result<void, Error> {
+            firstCallbackOk = (x == 120);
+
+            return Ok();
+        })
+        .then([&resolved, &secondCallbackOk]() {
+            secondCallbackOk = true;
+
+            resolved = true;
+        });
+
+        p.setValue(120);
+
+        CPPUNIT_ASSERT(firstCallbackOk);
+        CPPUNIT_ASSERT(secondCallbackOk);
+        CPPUNIT_ASSERT(resolved);
+    }
 
     void testThenValueUnwrapping() {
         auto p = Promise<int>();
@@ -268,6 +298,41 @@ public:
         p1.setValue(120);
         CPPUNIT_ASSERT(firstCallbackOk);
         CPPUNIT_ASSERT(!secondCallbackOk);
+        CPPUNIT_ASSERT(thirdCallbackOk);
+    }
+
+
+    void voidFutureThenVoidFuture() {
+        Promise<void> p1;
+        Promise<void> p2;
+        auto f1 = p1.getFuture();
+
+        bool firstCallbackOk = false;
+        bool secondCallbackOk = false;
+        bool thirdCallbackOk = false;
+
+        auto cont = [&p2, &secondCallbackOk]() {
+            secondCallbackOk = true;
+            return p2.getFuture();
+        };
+
+        f1.then([&firstCallbackOk, &cont]() -> Future<void> {
+            firstCallbackOk = true;
+
+            return cont();
+        }).then([&thirdCallbackOk]() {
+            thirdCallbackOk = true;
+        });
+
+
+        p1.setValue();
+        CPPUNIT_ASSERT(firstCallbackOk);
+        CPPUNIT_ASSERT(secondCallbackOk);
+        CPPUNIT_ASSERT(!thirdCallbackOk);
+
+        p2.setValue();
+        CPPUNIT_ASSERT(firstCallbackOk);
+        CPPUNIT_ASSERT(secondCallbackOk);
         CPPUNIT_ASSERT(thirdCallbackOk);
     }
 };
