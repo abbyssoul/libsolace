@@ -29,21 +29,19 @@
 #include "solace/traits/icomparable.hpp"
 
 #include "solace/assert.hpp"
+#include "solace/arrayView.hpp"
 #include "solace/memoryView.hpp"
 
 
 // TODO(abbyssoul): Remove std dependencies!
-#include <algorithm>    // std::swap
 #include <vector>       // TODO(abbyssoul): Remove! No dynamic reallocation is needed!
-#include <ostream>      // TODO(abbyssoul): Remove! Used once only for Unit testing
 
-// TODO(abbyssoul): Allcote memory via memory manager
+// TODO(abbyssoul): Allocate memory via memory manager
 #include "solace/memoryManager.hpp"
 
 
 
 namespace Solace {
-
 
 /** Fixed-size indexed collection of elements aka array.
  * Array is a collection template that has a fixed size specified at the time of its creation
@@ -285,22 +283,4 @@ void swap(Array<T>& lhs, Array<T>& rhs) noexcept {
 }
 
 }  // End of namespace Solace
-
-// FIXME(abbyssoul): std dependence, used for Unit Testing only
-template <typename T>
-std::ostream& operator<< (std::ostream& ostr, const Solace::Array<T>& a) {
-    ostr << '[';
-
-    for (typename Solace::Array<T>::size_type end = a.size(), i = 0; i < end; ++i) {
-        ostr << a[i];
-        if (i < end - 1) {
-            ostr << ',' << ' ';
-        }
-    }
-
-    ostr << ']';
-
-    return ostr;
-}
-
 #endif  // SOLACE_ARRAY_HPP

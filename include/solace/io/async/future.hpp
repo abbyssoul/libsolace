@@ -24,225 +24,10 @@
 #ifndef SOLACE_IO_ASYNC_FUTUE_HPP
 #define SOLACE_IO_ASYNC_FUTUE_HPP
 
-#include <solace/delegate.hpp>
-
-#include <solace/result.hpp>
-#include <solace/error.hpp>
-#include <solace/assert.hpp>
+#include "solace/io/async/promise.hpp"
 
 
 namespace Solace { namespace IO { namespace async {
-
-template<typename T>
-class Core {
-public:
-    ~Core() = default;
-
-    Core() :
-        _completionHandler()
-    {}
-
-    Core(const Core&) = delete;
-    Core& operator= (const Core&) = delete;
-
-    Core(Core&&) = delete;
-    Core& operator= (Core&&) = delete;
-
-    template <class F>
-    void setCallback(F&& func) {
-        _completionHandler = std::forward<F>(func);
-    }
-
-    void setResult(Result<T, Error>&& result) {
-        if (_completionHandler) {
-            // TODO(abbyssoul): Handle exceptions! What happenes when completion handler throws?
-            _completionHandler(std::move(result));
-        }
-    }
-
-private:
-
-    // FIXME: Use Try<> instead of result to capture exceptions
-    delegate<void(Result<T, Error>&&)> _completionHandler;
-
-};
-
-
-// Forward declation so Promise could reference it
-template<typename T>
-class Future;
-
-
-/**
- * Promise is the 'push' side of a future
- */
-template<typename T>
-class Promise {
-public:
-    typedef T value_type;
-
-public:
-    ~Promise() = default;
-
-    Promise(const Promise& ) = delete;
-    Promise& operator= (const Promise& rhs) = delete;
-
-    /**
-     * Construct an empty promise
-     */
-    Promise() noexcept :
-        _core(std::make_shared<Core<T>>())
-    {}
-
-    Promise(Promise<T>&& rhs) noexcept : Promise() {
-        swap(rhs);
-    }
-
-    Promise& operator= (Promise<T>&& rhs) noexcept {
-        return swap(rhs);
-    }
-
-    Promise& swap(Promise& rhs) noexcept {
-        using std::swap;
-        swap(_core, rhs._core);
-
-        return *this;
-    }
-
-    /**
-     * Get future associated with this Promise.
-     * Note: this is mean to be called only once, thereafter
-     * an exception will be raised.
-     *
-     * @return A Future assocciated with this promise
-     */
-    Future<T> getFuture();
-
-    /**
-     * Resolve this promise with a value.
-     * (use perfect forwarding for both move and copy)
-    */
-    template <typename V>
-    void setValue(V&& value) {
-        _core->setResult(Ok<V>(std::forward<V>(value)));
-    }
-
-
-    /**
-     * Resolve this promise with an error.
-     * (use perfect forwarding for both move and copy)
-    */
-    template <typename E>
-    void setError(E&& e) {
-        _core->setResult(Err<E>(std::forward<E>(e)));
-    }
-
-
-    /**
-     * Fulfill this Promise with the result of a function that takes no
-     * arguments and returns something implicitly convertible to T.
-     * Captures exceptions. e.g.
-     * p.setWith([] { do something that may throw; return a T; });
-    */
-    template <typename F>
-    void setWith(F&& func) {
-        // FIXME: Handle excetions!
-        setValue(func());
-    }
-
-protected:
-
-    template <class> friend class Future;
-
-private:
-
-    std::shared_ptr<Core<T>> _core;
-
-};
-
-
-
-template<>
-class Promise<void> {
-public:
-    typedef void value_type;
-
-public:
-    ~Promise() = default;
-
-    Promise(const Promise& ) = delete;
-    Promise& operator= (const Promise& rhs) = delete;
-
-    /**
-     * Construct an empty promise
-     */
-    Promise() noexcept :
-        _core(std::make_shared<Core<void>>())
-    {}
-
-    Promise(Promise&& rhs) noexcept : Promise() {
-        swap(rhs);
-    }
-
-    Promise& operator= (Promise&& rhs) noexcept {
-        return swap(rhs);
-    }
-
-    Promise& swap(Promise& rhs) noexcept {
-        using std::swap;
-        swap(_core, rhs._core);
-
-        return *this;
-    }
-
-    /**
-     * Get future associated with this Promise.
-     * Note: this is mean to be called only once, thereafter
-     * an exception will be raised.
-     *
-     * @return A Future assocciated with this promise
-     */
-    Future<value_type> getFuture();
-
-    /**
-     * Resolve this promise with a value.
-     * (use perfect forwarding for both move and copy)
-    */
-    void setValue() {
-        _core->setResult(Ok());
-    }
-
-    /**
-     * Resolve this promise with an error.
-     * (use perfect forwarding for both move and copy)
-    */
-    template <typename E>
-    void setError(E&& e) {
-        _core->setResult(Err<E>(std::forward<E>(e)));
-    }
-
-    /**
-     * Fulfill this Promise with the result of a function that takes no
-     * arguments and returns something implicitly convertible to T.
-     * Captures exceptions. e.g.
-     * p.setWith([] { do something that may throw; return a T; });
-    */
-    template <typename F>
-    void setWith(F&& func) {
-        // FIXME: Handle excetions!
-        func();
-        setValue();
-    }
-
-
-private:
-    template <class> friend class Future;
-
-    std::shared_ptr<Core<void>> _core;
-
-};
-
-
 
 
 template <typename T>
@@ -262,46 +47,57 @@ struct isFuture<Future<T>> : std::true_type {
 
 namespace details  {
 
-template<typename result_type,
-         typename error_type>
-struct ErrorHelper {
+template<typename FutureValueType,
+         typename ContinuationResult,
+         typename UnpuckedResultType,
+         typename F>
+struct CB;
 
-    template<typename F>
-    void propageteError(F&& f, Error&& error, Promise<result_type>& promise) {
-        f(std::move(error))
-            .then([&promise] (const result_type& rv){
-                promise.setValue(rv);
-            })
-            .orElse([&promise] (const error_type& er) {
-                promise.setError(er);
-            });
+
+template<typename FutureValueType,
+         typename ContinuationResult,
+         typename UnpuckedResultType,
+         typename F>
+struct ErrBack;
+
+
+template<typename T,
+         typename ContinuationResult,
+         typename UnpuckedResult, typename UnpackedErrorResultType,
+         typename F>
+Future<UnpuckedResult> thenImplementation(std::shared_ptr<Core<T>>&& core, F&& f) {
+    Promise<UnpuckedResult> promise;
+
+    if (!core) {
+        raiseInvalidStateError("Invalid Future without a Promise");
     }
 
+    auto chainedFuture = promise.getFuture();
 
-    void propageteResult(Promise<result_type>& promise, result_type&& result) {
-        promise.setValue(result);
+    core->setCallback(CB<T, ContinuationResult, UnpuckedResult, F>(std::forward<F>(f), std::move(promise)));
+
+    return chainedFuture;
+}
+
+
+template<typename T,
+         typename ContinuationResult,
+         typename UnpuckedResult, typename UnpackedErrorResultType,
+         typename F>
+Future<UnpuckedResult> onErrorImplementation(std::shared_ptr<Core<T>>&& core, F&& f) {
+    Promise<UnpuckedResult> promise;
+
+    if (!core) {
+        raiseInvalidStateError("Invalid Future without a Promise");
     }
-};
 
-template<typename error_type>
-struct ErrorHelper<void, error_type> {
+    auto chainedFuture = promise.getFuture();
 
-    template<typename F>
-    void propageteError(F&& f, Error&& error, Promise<void>& promise) {
-        f(std::move(error))
-            .then([&promise] () {
-                promise.setValue();
-            })
-            .orElse([&promise] (error_type&& er) {
-                promise.setError(std::move(er));
-            });
-    }
+    core->setCallback(ErrBack<T, ContinuationResult, UnpuckedResult, F>(std::forward<F>(f), std::move(promise)));
 
-    template<typename T>
-    void propageteResult(Promise<void>& promise, T&&) {
-        promise.setValue();
-    }
-};
+    return chainedFuture;
+}
+
 
 }  // namespace details
 
@@ -358,27 +154,12 @@ public:
     template<typename F,
              typename R = typename std::result_of<F(T)>::type
              >
-    std::enable_if_t<!std::is_void<R>::value && !isSomeResult<R>::value && !isFuture<R>::value, Future<R>>
+    std::enable_if_t<isFuture<R>::value || isSomeResult<R>::value, Future<typename R::value_type> >
     then(F&& f) {
+        using UnpackedRT = typename R::value_type;
+        using UnpackedET = typename R::error_type;
 
-        auto core = _core.lock();
-        if (!core) {
-            raiseInvalidStateError("Invalid Future without a Promise");
-        }
-
-        Promise<R> promise;
-        auto chainedFuture = promise.getFuture();
-
-        core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<T, Error>&& result) mutable {
-            if (result.isError()) {
-                pm.setError(result.moveError());
-            } else {
-                // FIXME: Handle exceptions in completion handler
-                pm.setValue(cont(result.unwrap()));
-            }
-        });
-
-        return chainedFuture;
+        return details::thenImplementation<T, R, UnpackedRT, UnpackedET>(_core.lock(), std::forward<F>(f));
     }
 
 
@@ -390,82 +171,11 @@ public:
     template<typename F,
              typename R = typename std::result_of<F(T)>::type
              >
-    std::enable_if_t<isSomeResult<R>::value, Future<typename R::value_type> >
+    std::enable_if_t<!isSomeResult<R>::value && !isFuture<R>::value, Future<R>>
     then(F&& f) {
-        using result_value_type = typename R::value_type;
-        using result_error_type = typename R::error_type;
 
-        auto core = _core.lock();
-        if (!core) {
-            raiseInvalidStateError("Invalid Future without a Promise");
-        }
-
-        Promise<result_value_type> promise;
-        auto chainedFuture = promise.getFuture();
-
-        core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<T, Error>&& result) mutable {
-            if (result.isError()) {
-                pm.setError(result.moveError());
-            } else {
-                cont(result.unwrap())
-                    .then([&pm] (const result_value_type& rv){
-                        pm.setValue(rv);
-                    })
-                    .orElse([&pm] (result_error_type&& er) {
-                        pm.setError(std::move(er));
-                    });
-            }
-        });
-
-        return chainedFuture;
+        return details::thenImplementation<T, R, R, error_type>(_core.lock(), std::forward<F>(f));
     }
-
-
-    /**
-     * Attach completion handler/callback to this future to be called when the future is resolved.
-     *
-     * @param completionHandler A completion handler to attach to this future.
-     */
-    template<typename F,
-             typename R = typename std::result_of<F(T)>::type
-             >
-    std::enable_if_t<isFuture<R>::value, Future<typename R::value_type> >
-    then(F&& f) {
-        using result_value_type = typename R::value_type;
-
-        auto core = _core.lock();
-        if (!core) {
-            raiseInvalidStateError("Invalid Future without a Promise");
-        }
-
-        Promise<result_value_type> promise;
-        auto chainedFuture = promise.getFuture();
-
-        core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<T, Error>&& result) mutable {
-            if (result.isError()) {
-                pm.setError(result.moveError());
-            } else {
-                cont(result.unwrap())
-                    .then([&pm] (const result_value_type& rv){
-                        pm.setValue(rv);
-                    })
-                    .onError([&pm] (Error&& er) {
-                        pm.setError(std::move(er));
-                    });
-            }
-        });
-
-        return chainedFuture;
-    }
-
-    /**
-     * Specialization of continuation assigment method for functions returning void
-     */
-    template<typename F,
-             typename R = typename std::result_of<F(T)>::type
-             >
-    std::enable_if_t<std::is_void<R>::value, Future<void> >
-    then(F&& f);
 
 
     //------------------------------------------------------------------------------------------------------------------
@@ -478,26 +188,9 @@ public:
     template<typename F,
              typename R = typename std::result_of<F(Error)>::type
              >
-    std::enable_if_t<!std::is_void<R>::value && !isSomeResult<R>::value && !isFuture<R>::value, Future<R>>
+    std::enable_if_t<!isFuture<R>::value && !isSomeResult<R>::value, Future<R>>
     onError(F&& f) {
-        auto core = _core.lock();
-        if (!core) {
-            raiseInvalidStateError("Invalid Future without a Promise");
-        }
-
-        Promise<R> promise;
-        auto chainedFuture = promise.getFuture();
-
-        core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<T, Error>&& result) mutable {
-            if (result.isError()) {
-                // FIXME: Handle exceptions in completion handler
-                pm.setValue(cont(result.getError()));
-            } else {
-                pm.setValue(result.unwrap());
-            }
-        });
-
-        return chainedFuture;
+        return details::onErrorImplementation<T, R, R, error_type>(_core.lock(), std::forward<F>(f));
     }
 
 
@@ -508,82 +201,13 @@ public:
     template<typename F,
              typename R = typename std::result_of<F(Error)>::type
              >
-    std::enable_if_t<isSomeResult<R>::value, Future<typename R::value_type> >
+    std::enable_if_t<isFuture<R>::value || isSomeResult<R>::value, Future<typename R::value_type>>
     onError(F&& f) {
-        using result_value_type = typename R::value_type;
-        using result_error_type = typename R::error_type;
+        using UnpackedRT = typename R::value_type;
+        using UnpackedET = typename R::error_type;
 
-        auto core = _core.lock();
-        if (!core) {
-            raiseInvalidStateError("Invalid Future without a Promise");
-        }
-
-        Promise<result_value_type> promise;
-        auto chainedFuture = promise.getFuture();
-
-        core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<T, Error>&& result) mutable {
-            if (result.isError()) {
-                details::ErrorHelper<result_value_type, result_error_type>().propageteError(
-                            std::forward<F>(cont),
-                            result.moveError(),
-                            pm);
-            } else {
-                details::ErrorHelper<result_value_type, result_error_type>().propageteResult(pm, result.unwrap());
-            }
-        });
-
-        return chainedFuture;
+        return details::onErrorImplementation<T, R, UnpackedRT, UnpackedET>(_core.lock(), std::forward<F>(f));
     }
-
-
-    /**
-     * Attach error handler/callback to this future to be called when the future has failed.
-     * @param f A completion handler to attach to this future.
-     */
-    template<typename F,
-             typename R = typename std::result_of<F(Error)>::type
-             >
-    std::enable_if_t<isFuture<R>::value, Future<typename R::value_type> >
-    onError(F&& f) {
-        using result_value_type = typename R::value_type;
-
-        auto core = _core.lock();
-        if (!core) {
-            raiseInvalidStateError("Invalid Future without a Promise");
-        }
-
-        Promise<result_value_type> promise;
-        auto chainedFuture = promise.getFuture();
-
-        core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<T, Error>&& result) mutable {
-            if (result.isError()) {
-                cont(result.getError())
-                    .then([&pm] (const result_value_type& rv){
-                        pm.setValue(rv);
-                    })
-                    .onError([&pm] (Error&& er) {
-                        pm.setError(std::move(er));
-                    });
-            } else {
-                pm.setValue(result.unwrap());
-            }
-
-        });
-
-        return chainedFuture;
-    }
-
-    /**
-     * Attach error handler/callback to this future to be called when the future has failed.
-     * Specialization for methods returning void.
-     * @param f A completion handler to attach to this future.
-     */
-    template<typename F,
-             typename R = typename std::result_of<F(Error)>::type
-             >
-    std::enable_if_t<std::is_void<R>::value, Future<void> >
-    onError(F&& f);
-
 
 protected:
     template <class> friend class Promise;
@@ -598,14 +222,16 @@ private:
 };
 
 
-/** Specialization of AsyncResult for void type
- *
+/**
+ * Specialization of Future for void type
+ * (this exists to prevent formation of references to void.
  */
 template <>
 class Future<void> {
 public:
 
-    typedef void value_type;
+    typedef void    value_type;
+    typedef Error   error_type;
 
 public:
 
@@ -629,69 +255,6 @@ public:
         return *this;
     }
 
-    /**
-     * Attach completion handler to this future to be called when the future is resolved.
-     * This is a special case of completion handlers return void this result in Future<void>
-     * @param completionHandler A completion handler to attach to this future.
-     */
-    template<typename F,
-             typename R = typename std::result_of<F(void)>::type
-             >
-    std::enable_if_t<std::is_void<R>::value, Future<void>>
-    then(F&& f) {
-        auto core = _core.lock();
-        if (!core) {
-            raiseInvalidStateError("Invalid Future without a Promise");
-        }
-
-        Promise<void> promise;
-        auto chainedFuture = promise.getFuture();
-
-        core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<void, Error>&& result) mutable {
-            // TODO(abbyssoul): Handle exceptions!
-            try {
-                if (result.isError()) {
-                    pm.setError(result.moveError());
-                } else {
-                    cont();
-                    pm.setValue();
-                }
-            } catch (...) {
-//                pm.setError(wrapExceptionIntoError);
-            }
-        });
-
-        return chainedFuture;
-    }
-
-    template<typename F,
-             typename R = typename std::result_of<F(void)>::type
-             >
-    std::enable_if_t<!std::is_void<R>::value && !isSomeResult<R>::value, Future<R>>
-    then(F&& f) {
-        auto core = _core.lock();
-        if (!core) {
-            raiseInvalidStateError("Invalid Future without a Promise");
-        }
-
-        Promise<R> promise;
-        auto chainedFuture = promise.getFuture();
-
-        core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<void, Error>&& result) mutable {
-            // TODO(abbyssoul): Handle exceptions!
-            try {
-                if (result.isError()) {
-                    pm.setError(result.moveError());
-                } else {
-                    pm.setValue(cont());
-                }
-            } catch (...) {
-//                pm.setError(wrapExceptionIntoError);
-            }
-        });
-
-        return chainedFuture;
-    }
 
     /**
      * Attach completion handler/callback to this future to be called when the future is resolved.
@@ -701,63 +264,38 @@ public:
     template<typename F,
              typename R = typename std::result_of<F(void)>::type
              >
-    std::enable_if_t<isSomeResult<R>::value, Future<typename R::value_type> >
+    std::enable_if_t<isFuture<R>::value || isSomeResult<R>::value, Future<typename R::value_type> >
     then(F&& f) {
-        using result_value_type = typename R::value_type;
-        using result_error_type = typename R::error_type;
+        using UnpackedRT = typename R::value_type;
+        using UnpackedET = typename R::error_type;
 
-        auto core = _core.lock();
-        if (!core) {
-            raiseInvalidStateError("Invalid Future without a Promise");
-        }
+        return details::thenImplementation<void, R, UnpackedRT, UnpackedET>(_core.lock(), std::forward<F>(f));
+    }
 
-        Promise<result_value_type> promise;
-        auto chainedFuture = promise.getFuture();
 
-        core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<void, Error>&& result) mutable {
-            if (result.isError()) {
-                pm.setError(result.moveError());
-            } else {
-                cont()
-                    .then([&pm] (const result_value_type& rv){
-                        pm.setValue(rv);
-                    })
-                    .orElse([&pm] (const result_error_type& er) {
-                        pm.setError(er);
-                    });
-            }
-        });
+    template<typename F,
+             typename R = typename std::result_of<F(void)>::type
+             >
+    std::enable_if_t<!isSomeResult<R>::value && !isFuture<R>::value, Future<R>>
+    then(F&& f) {
 
-        return chainedFuture;
+        return details::thenImplementation<void, R, R, Error>(_core.lock(), std::forward<F>(f));
     }
 
     //------------------------------------------------------------------------------------------------------------------
     //------------------------------------------------------------------------------------------------------------------
 
-//    /**
-//     * Attach error handler/callback to this future to be called when the future has failed.
-//     * @param f A completion handler to attach to this future.
-//     */
-//    template<typename F,
-//             typename R = typename std::result_of<F(Error)>::type
-//             >
-//    std::enable_if_t<!std::is_void<R>::value && !isSomeResult<R>::value && !isFuture<R>::value, Future<R>>
-//    onError(F&& f) {
-
-//        Promise<R> promise;
-//        auto chainedFuture = promise.getFuture();
-
-//     _core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<void, Error>&& result) mutable {
-//            if (result.isError()) {
-//                // FIXME: Handle exceptions in completion handler
-//                pm.setValue(cont(result.getError()));
-//            } else {
-//                pm.setValue(result.unwrap());
-//            }
-//        });
-
-//        return chainedFuture;
-//    }
+    /**
+     * Attach error handler/callback to this future to be called when the future has failed.
+     * @param f A completion handler to attach to this future.
+     */
+    template<typename F,
+             typename R = typename std::result_of<F(Error)>::type
+             >
+    std::enable_if_t<!isFuture<R>::value && !isSomeResult<R>::value, Future<R>>
+    onError(F&& f) {
+        return details::onErrorImplementation<void, R, R, error_type>(_core.lock(), std::forward<F>(f));
+    }
 
 
     /**
@@ -767,99 +305,12 @@ public:
     template<typename F,
              typename R = typename std::result_of<F(Error)>::type
              >
-    std::enable_if_t<isSomeResult<R>::value, Future<typename R::value_type> >
+    std::enable_if_t<isFuture<R>::value || isSomeResult<R>::value, Future<typename R::value_type> >
     onError(F&& f) {
-        using result_value_type = typename R::value_type;
-        using result_error_type = typename R::error_type;
+        using UnpackedRT = typename R::value_type;
+        using UnpackedET = typename R::error_type;
 
-        auto core = _core.lock();
-        if (!core) {
-            raiseInvalidStateError("Invalid Future without a Promise");
-        }
-
-        Promise<result_value_type> promise;
-        auto chainedFuture = promise.getFuture();
-
-        core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<void, Error>&& result) mutable {
-            if (result.isError()) {
-                details::ErrorHelper<result_value_type, result_error_type>().propageteError(
-                            std::forward<F>(cont),
-                            result.moveError(),
-                            pm);
-            } else {
-                details::ErrorHelper<result_value_type, result_error_type>().propageteResult(pm, 0);
-            }
-        });
-
-        return chainedFuture;
-    }
-
-
-//    /**
-//     * Attach error handler/callback to this future to be called when the future has failed.
-//     * @param f A completion handler to attach to this future.
-//     */
-//    template<typename F,
-//             typename R = typename std::result_of<F(Error)>::type
-//             >
-//    std::enable_if_t<isFuture<R>::value, Future<typename R::value_type> >
-//    onError(F&& f) {
-//        using result_value_type = typename R::value_type;
-
-//        Promise<result_value_type> promise;
-//        auto chainedFuture = promise.getFuture();
-
-//        _core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<T, Error>&& result) mutable {
-//            if (result.isError()) {
-//                cont(result.getError())
-//                    .then([&pm] (const result_value_type& rv){
-//                        pm.setValue(rv);
-//                    })
-//                    .onError([&pm] (Error&& er) {
-//                        pm.setError(std::move(er));
-//                    });
-//            } else {
-//                pm.setValue(result.unwrap());
-//            }
-
-//        });
-
-//        return chainedFuture;
-//    }
-
-    /**
-     * Attach error handler/callback to this future to be called when the future has failed.
-     * Specialization for methods returning void.
-     * @param f A completion handler to attach to this future.
-     */
-    template<typename F,
-             typename R = typename std::result_of<F(Error)>::type
-             >
-    std::enable_if_t<std::is_void<R>::value, Future<void> >
-    onError(F&& f) {
-        auto core = _core.lock();
-        if (!core) {
-            raiseInvalidStateError("Invalid Future without a Promise");
-        }
-
-        Promise<void> promise;
-        auto chainedFuture = promise.getFuture();
-
-        core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<void, Error>&& result) mutable {
-            // TODO(abbyssoul): Handle exceptions!
-            try {
-                if (result.isError()) {
-                    cont(std::move(result.getError()));
-                    pm.setValue();
-                } else {
-                    pm.setValue();
-                }
-            } catch (...) {
-    //                pm.setError(wrapExceptionIntoError);
-            }
-        });
-
-        return chainedFuture;
+        return details::onErrorImplementation<void, R, UnpackedRT, UnpackedET>(_core.lock(), std::forward<F>(f));
     }
 
 
@@ -888,73 +339,10 @@ Promise<void>::getFuture() {
     return Future<void>(_core);
 }
 
-
-template<typename T>
-template<typename F,
-         typename R
-         >
-std::enable_if_t<std::is_void<R>::value, Future<void>>
-Future<T>::then(F&& f) {
-
-    auto core = _core.lock();
-    if (!core) {
-        raiseInvalidStateError("Invalid Future without a Promise");
-    }
-
-    Promise<void> promise;
-    auto chainedFuture = promise.getFuture();
-
-    core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<T, Error>&& result) mutable {
-        // TODO(abbyssoul): Handle exceptions!
-        try {
-            if (result.isError()) {
-                pm.setError(std::move(result).getError());
-            } else {
-                cont(result.unwrap());
-                pm.setValue();
-            }
-        } catch (...) {
-//                pm.setError(wrapExceptionIntoError);
-        }
-    });
-
-    return chainedFuture;
-}
-
-
-template<typename T>
-template<typename F,
-         typename R
-         >
-std::enable_if_t<std::is_void<R>::value, Future<void>>
-Future<T>::onError(F&& f) {
-    auto core = _core.lock();
-    if (!core) {
-        raiseInvalidStateError("Invalid Future without a Promise");
-    }
-
-    Promise<void> promise;
-    auto chainedFuture = promise.getFuture();
-
-    core->setCallback([cont = std::forward<F>(f), pm = std::move(promise)] (Result<T, Error>&& result) mutable {
-        // TODO(abbyssoul): Handle exceptions!
-        try {
-            if (result.isError()) {
-                cont(std::move(result.getError()));
-                pm.setValue();
-            } else {
-                pm.setValue();
-            }
-        } catch (...) {
-//                pm.setError(wrapExceptionIntoError);
-        }
-    });
-
-    return chainedFuture;
-}
-
-
 }  // End of namespace async
 }  // End of namespace IO
 }  // End of namespace Solace
+
+#include "future_impl.hpp"
+
 #endif  // SOLACE_IO_ASYNC_FUTUE_HPP

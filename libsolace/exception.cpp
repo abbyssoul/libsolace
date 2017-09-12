@@ -136,6 +136,15 @@ IndexOutOfRangeException::IndexOutOfRangeException(const char* indexName,
 }
 
 
+IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue,
+                                                   const char* messagePrefix) noexcept :
+    Exception(fmt::format("{}: index {} is out of range [{}, {})", messagePrefix, index, minValue, maxValue))
+{
+    // No-op
+}
+
+
+
 OverflowException::OverflowException(const char* indexName,
                                      size_t index, size_t minValue, size_t maxValue) noexcept :
     Exception(fmt::format("Value '{}'={} overflows range [{}, {})",

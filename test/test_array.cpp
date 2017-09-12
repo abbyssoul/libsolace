@@ -16,10 +16,7 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  *	@file test/test_array.cpp
- *	@author		soultaker
- *	@date		$LastChangedDate$
- *	@brief		Test set of April::Array
- *	ID:			$Id$
+ *	@brief		Test suit for Solace::Array
  ******************************************************************************/
 #include <solace/array.hpp>    // Class being tested.
 #include <solace/string.hpp>   // Non POD subject.
@@ -33,7 +30,7 @@ using namespace Solace;
 
 
 template <typename T, size_t N>
-uint32 nativeArrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
+typename Array<T>::size_type nativeArrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
 
 
 class TestArray : public CppUnit::TestFixture  {
@@ -59,8 +56,6 @@ class TestArray : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testForEach_byValueConversion);
         CPPUNIT_TEST(testForEach_byConstRef);
         CPPUNIT_TEST(testForEachIndexed);
-
-
 
         CPPUNIT_TEST(testMap);
 
@@ -160,6 +155,7 @@ public:
 
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
+            CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
         }
 
         {
@@ -167,6 +163,7 @@ public:
 
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
+            CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
         }
 
         {
@@ -174,6 +171,7 @@ public:
 
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
+            CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
         }
 	}
 

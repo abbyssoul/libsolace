@@ -23,6 +23,7 @@
 #include <solace/path.hpp>			// Class being tested
 #include <solace/exception.hpp>     // Checked expcetions
 
+#include "mockTypes.hpp"
 #include <cppunit/extensions/HelperMacros.h>
 #include <cstring>
 

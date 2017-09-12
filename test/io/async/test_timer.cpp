@@ -154,7 +154,7 @@ public:
         int nbTimesCalledWhenCanceled = 0;
 
         async::Timer timer(iocontext);
-        timer.setTimeoutInterval(std::chrono::milliseconds(10), std::chrono::milliseconds(25))
+        timer.setTimeoutInterval(std::chrono::milliseconds(20), std::chrono::milliseconds(30))
                 .asyncWait()
                 .then([&nbTimesCalled, &iocontext](int64_t numberOfExpirations) {
 
@@ -180,17 +180,19 @@ public:
 
         // Should block untill event is triggered
         bool runFailes = false;
+        std::string errorMsg;
         try {
             iocontext.run();
-        } catch (const std::exception& ) {
+        } catch (const std::exception& e) {
             runFailes = true;
+            errorMsg = e.what();
         }
 
         watchdog.join();
         canceler.join();
 
         CPPUNIT_ASSERT_EQUAL(nbTimesCalledWhenCanceled, nbTimesCalled);
-        CPPUNIT_ASSERT(!runFailes);
+        CPPUNIT_ASSERT_MESSAGE(errorMsg, !runFailes);
     }
 
 

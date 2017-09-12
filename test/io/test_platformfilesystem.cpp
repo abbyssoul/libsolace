@@ -31,6 +31,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <sys/time.h>
+#include <memory.h>
 
 
 using namespace Solace;
@@ -50,6 +51,25 @@ class TestPlatformFs : public CppUnit::TestFixture  {
 
 protected:
     MemoryManager _memoryManager;
+
+
+    class DirectoryGuard {
+    public:
+        ~DirectoryGuard() {
+            chdir(_cwd);
+            std::free(_cwd);
+        }
+
+        DirectoryGuard(char* cwd) : _cwd(cwd)
+        {}
+
+        DirectoryGuard() : DirectoryGuard(get_current_dir_name())
+        {}
+
+    private:
+        char* _cwd;
+
+    };
 
 public:
 
@@ -177,9 +197,11 @@ public:
         CPPUNIT_ASSERT(fs.isDirectory(cwd));
         CPPUNIT_ASSERT(!fs.isFile(cwd));
 
+        DirectoryGuard guardCwd;
+
+        // Commented out at it changes run-time environment.
         fs.setWorkingDirectory(cwd.getParent());
         CPPUNIT_ASSERT_EQUAL(cwd.getParent(), fs.getWorkingDirectory());
-
     }
 
     void testTemp() {

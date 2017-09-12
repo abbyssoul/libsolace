@@ -101,8 +101,11 @@ public:
     //! Construct exception given expected range values:
     IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue) noexcept;
 
-    //! Construct exception giving expected values and w. custom message
+    //! Construct exception with index name
     IndexOutOfRangeException(const char* indexName, size_t index, size_t minValue, size_t maxValue) noexcept;
+
+    //! Construct exception with custom message
+    IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue, const char* messagePrefix) noexcept;
 
     virtual ~IndexOutOfRangeException() noexcept = default;
 };

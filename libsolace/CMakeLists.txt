@@ -37,6 +37,8 @@ set(SOURCE_FILES
         io/async/unixSocket.cpp
 
         process/env.cpp
+
+        framework/application.cpp
         framework/commandlineParser.cpp
 
         hashing/messageDigest.cpp

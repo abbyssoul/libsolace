@@ -22,6 +22,8 @@
   * ID:       $id$
  ******************************************************************************/
 #include <iostream>
+#include <fstream>
+
 #include <stdexcept>
 
 #include <cppunit/TestRunner.h>
@@ -34,6 +36,7 @@
 #include <cppunit/extensions/TestFactoryRegistry.h>
 #include <cppunit/ui/text/TestRunner.h>
 #include <cppunit/CompilerOutputter.h>
+#include <cppunit/XmlOutputter.h>
 
 #include <memory>
 
@@ -124,16 +127,32 @@ public:
         return *this;
     }
 
-    int run(const char* path) {
+    int run(const char* testspath, const char* reportFile) {
 
-        testPath = path;
+        testPath = testspath;
         try {
             runner.run(controller, testPath);
 
             if (!isStopped()) {
-                // Print test in a compiler compatible format.
-                CppUnit::CompilerOutputter outputter(&result, std::cerr, "%f:%l: ");
-                outputter.write();
+
+                if (reportFile) {
+                    std::cout << std::endl << "Writing report to '" << reportFile << '\'' << std::endl;
+
+                    // Output XML for Jenkins CPPunit plugin
+                    std::ofstream xmlFileOut;
+                    xmlFileOut.open(reportFile);
+                    if (!xmlFileOut) {
+                        std::cerr << "Failed to open '" << reportFile << '\'' << std::endl;
+                    }
+                    CppUnit::XmlOutputter xmlOut(&result, xmlFileOut, "UTF-8");
+                    xmlOut.write();
+
+                } else {
+                    // Print test in a compiler compatible format.
+                    CppUnit::CompilerOutputter outputter(&result, std::cerr, "%f:%l: ");
+                    outputter.write();
+                }
+
             }
 
         } catch (std::invalid_argument &e) {  // Test path not resolved
@@ -162,12 +181,15 @@ private:
 };
 
 
-// Note: Test runner made global in order to invoke it's destructor when fork'd version of it does exit()
-TestRunner GlobalTestRunner;
+/*
+ *  Note: Test runner made global in order to invoke it's destructor when fork'd version of it does exit()
+ */
+static TestRunner GlobalTestRunner;
 
 int main(int argc, char* argv[]) {
     // FIXME(abbyssoul): Add signal handling in test ::signal(SIGSEGV, _sighandler);
     srandom(time(nullptr));
 
-    return GlobalTestRunner.scanTests().run((argc > 1) ? argv[1] : "");
+    return GlobalTestRunner.scanTests().run((argc > 1) ? argv[1] : "",
+                                            (argc > 2 ? argv[2] : nullptr));
 }
