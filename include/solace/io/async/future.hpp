@@ -186,9 +186,10 @@ public:
      * @param f A completion handler to attach to this future.
      */
     template<typename F,
-             typename R = typename std::result_of<F(Error)>::type
+             typename R = typename std::result_of<F(error_type)>::type
              >
-    std::enable_if_t<!isFuture<R>::value && !isSomeResult<R>::value, Future<R>>
+    std::enable_if_t<(!isFuture<R>::value && !isSomeResult<R>::value) && std::is_convertible<R, T>::value,
+    Future<R>>
     onError(F&& f) {
         return details::onErrorImplementation<T, R, R, error_type>(_core.lock(), std::forward<F>(f));
     }
@@ -199,9 +200,11 @@ public:
      * @param f A completion handler to attach to this future.
      */
     template<typename F,
-             typename R = typename std::result_of<F(Error)>::type
+             typename R = typename std::result_of<F(error_type)>::type
              >
-    std::enable_if_t<isFuture<R>::value || isSomeResult<R>::value, Future<typename R::value_type>>
+    std::enable_if_t<(isFuture<R>::value || isSomeResult<R>::value) &&
+            std::is_convertible<typename R::value_type, T>::value,
+    Future<typename R::value_type>>
     onError(F&& f) {
         using UnpackedRT = typename R::value_type;
         using UnpackedET = typename R::error_type;
@@ -290,9 +293,10 @@ public:
      * @param f A completion handler to attach to this future.
      */
     template<typename F,
-             typename R = typename std::result_of<F(Error)>::type
+             typename R = typename std::result_of<F(error_type)>::type
              >
-    std::enable_if_t<!isFuture<R>::value && !isSomeResult<R>::value, Future<R>>
+    std::enable_if_t<(!isFuture<R>::value && !isSomeResult<R>::value) && std::is_void<R>::value,
+    Future<R>>
     onError(F&& f) {
         return details::onErrorImplementation<void, R, R, error_type>(_core.lock(), std::forward<F>(f));
     }
@@ -303,9 +307,10 @@ public:
      * @param f A completion handler to attach to this future.
      */
     template<typename F,
-             typename R = typename std::result_of<F(Error)>::type
+             typename R = typename std::result_of<F(error_type)>::type
              >
-    std::enable_if_t<isFuture<R>::value || isSomeResult<R>::value, Future<typename R::value_type> >
+    std::enable_if_t<(isFuture<R>::value || isSomeResult<R>::value) && std::is_void<typename R::value_type>::value,
+    Future<typename R::value_type>>
     onError(F&& f) {
         using UnpackedRT = typename R::value_type;
         using UnpackedET = typename R::error_type;

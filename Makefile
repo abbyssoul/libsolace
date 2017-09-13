@@ -104,9 +104,11 @@ tools/FlintPlusPlus:
 	git clone --depth 1 https://github.com/L2Program/FlintPlusPlus.git tools/FlintPlusPlus
 
 tools/cppcheck/cppcheck: tools/cppcheck
+	git pull
 	$(MAKE) -j2 -C tools/cppcheck cppcheck
 
 tools/FlintPlusPlus/flint/flint++: tools/FlintPlusPlus
+	git pull
 	$(MAKE) -j2 -C tools/FlintPlusPlus/flint
 
 
