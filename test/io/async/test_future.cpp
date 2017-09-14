@@ -50,6 +50,10 @@ class TestFuture : public CppUnit::TestFixture  {
         CPPUNIT_TEST(integralFutureErrorContinuation);
         CPPUNIT_TEST(voidFutureErrorContinuation);
 
+        CPPUNIT_TEST(structFutureErrorResultErrors);
+        CPPUNIT_TEST(integralFutureErrorResultErrors);
+        CPPUNIT_TEST(voidFutureErrorResultErrors);
+
 
         CPPUNIT_TEST(integralFutureIntegralFutureContinuation);
         CPPUNIT_TEST(voidFutureIntegralFutureContinuation);
@@ -213,18 +217,17 @@ public:
         bool resolved2 = false;
         bool resolved3 = false;
 
-        auto f1 = f.then([&resolved1](int x) {
+        f.then([&resolved1](int x) {
             resolved1 = (x == 120);
 
             return SimpleType(3, 5, 7);
-        });
-
-        auto f2 = f1.onError([&resolved2](Error&& e) {
+        })
+        .onError([&resolved2](Error&& e) {
             resolved2 = (e.value() == 789);
 
             return SimpleType(4, 8, 12);
-        });
-       auto f3 = f2.then([&resolved3](SimpleType&& c) {
+        })
+        .then([&resolved3](SimpleType&& c) {
             resolved3 = (c.x == 4);
         });
 
@@ -287,6 +290,105 @@ public:
         CPPUNIT_ASSERT(resolved2);
         CPPUNIT_ASSERT(resolved3);
     }
+
+
+    void structFutureErrorResultErrors() {
+        auto p = Promise<SimpleType>();
+        auto f = p.getFuture();
+        bool resolved1 = false;
+        bool resolved2 = false;
+        bool resolved3 = false;
+        bool resolved4 = false;
+
+        f.then([&resolved1](SimpleType&& ) {
+            resolved1 = true;
+
+            return SimpleType(17, 4, 1);
+        })
+        .onError([&resolved2](Error&& e) -> Result<SimpleType, Error> {
+            resolved2 = (e.value() == 5355);
+
+            return Err(Error("testing", -8152));
+        })
+       .then([&resolved3](SimpleType&& ) {
+            resolved3 = true;
+        })
+        .onError([&resolved4](Error&& e) {
+            resolved4 = (e.value() == -8152);
+        });
+
+        p.setError(Error("testing", 5355));
+
+        CPPUNIT_ASSERT(!resolved1);
+        CPPUNIT_ASSERT(resolved2);
+        CPPUNIT_ASSERT(!resolved3);
+        CPPUNIT_ASSERT(resolved4);
+    }
+
+    void integralFutureErrorResultErrors() {
+        auto p = Promise<int>();
+        auto f = p.getFuture();
+        bool resolved1 = false;
+        bool resolved2 = false;
+        bool resolved3 = false;
+        bool resolved4 = false;
+
+        f.then([&resolved1](int ) {
+            resolved1 = true;
+
+            return 345;
+        })
+        .onError([&resolved2](Error&& e) -> Result<int, Error> {
+            resolved2 = (e.value() == 5355);
+
+            return Err(Error("testing", -8152));
+        })
+       .then([&resolved3](int ) {
+            resolved3 = true;
+        })
+        .onError([&resolved4](Error&& e) {
+            resolved4 = (e.value() == -8152);
+        });
+
+        p.setError(Error("testing", 5355));
+
+        CPPUNIT_ASSERT(!resolved1);
+        CPPUNIT_ASSERT(resolved2);
+        CPPUNIT_ASSERT(!resolved3);
+        CPPUNIT_ASSERT(resolved4);
+    }
+
+    void voidFutureErrorResultErrors() {
+        auto p = Promise<void>();
+        auto f = p.getFuture();
+        bool resolved1 = false;
+        bool resolved2 = false;
+        bool resolved3 = false;
+        bool resolved4 = false;
+
+        f.then([&resolved1]() {
+            resolved1 = true;
+        })
+        .onError([&resolved2](Error&& e) -> Result<void, Error> {
+            resolved2 = (e.value() == 7744);
+
+            return Err(Error("testing", -4424));
+        })
+       .then([&resolved3]() {
+            resolved3 = true;
+        })
+        .onError([&resolved4](Error&& e) {
+            resolved4 = (e.value() == -4424);
+        });
+
+        p.setError(Error("testing", 7744));
+
+        CPPUNIT_ASSERT(!resolved1);
+        CPPUNIT_ASSERT(resolved2);
+        CPPUNIT_ASSERT(!resolved3);
+        CPPUNIT_ASSERT(resolved4);
+    }
+
 
     //------------------------------------------------------------------------------------------------------------------
     // Tests for continuations returning Futures

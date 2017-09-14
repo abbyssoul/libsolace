@@ -104,11 +104,11 @@ tools/FlintPlusPlus:
 	git clone --depth 1 https://github.com/L2Program/FlintPlusPlus.git tools/FlintPlusPlus
 
 tools/cppcheck/cppcheck: tools/cppcheck
-	git pull
+	git -C tools/cppcheck pull
 	$(MAKE) -j2 -C tools/cppcheck cppcheck
 
 tools/FlintPlusPlus/flint/flint++: tools/FlintPlusPlus
-	git pull
+	git -C tools/FlintPlusPlus pull
 	$(MAKE) -j2 -C tools/FlintPlusPlus/flint
 
 
@@ -209,3 +209,5 @@ debian-clean:
 .PHONY: clean
 clean:
 	$(RM) -rf $(DOC_TARGET) $(BUILD_DIR) $(COVERAGE_REPORT)
+	$(RM) tools/cppcheck/cppcheck
+	$(RM) tools/FlintPlusPlus/flint/flint++
