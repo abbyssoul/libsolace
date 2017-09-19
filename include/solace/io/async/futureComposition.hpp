@@ -37,7 +37,7 @@ template <typename T>
 struct CollectContext {
 
     struct Nothing {
-        explicit Nothing(int /* n */)
+        explicit Nothing(int SOLACE_UNUSED(n))
         {}
     };
 
@@ -113,20 +113,16 @@ private:
     Promise<void> p;
     std::atomic<bool> threw {false};
 };
-}
+
+}  // namespace details
 
 
-//template<typename T>
-//Future<Array<T>> collect(Array<Future<T>>& futures) {
 template <class InputIterator>
 Future<typename details::CollectContext<typename std::iterator_traits<InputIterator>::value_type::value_type>::Result>
 collect(InputIterator first, InputIterator last) {
   typedef typename std::iterator_traits<InputIterator>::value_type::value_type T;
 
     auto ctx = std::make_shared<details::CollectContext<T>>(std::distance(first, last));
-//    auto ctx = std::make_shared<details::CollectContext<T>>(futures.size());
-//    for (typename Array<Future<T>>::size_type i = 0; i < futures.size(); ++i) {
-
     for (size_t i = 0; first != last; ++first, ++i) {
         first->then([i, ctx](T&& val) {
             ctx->setPartialResult(i, std::move(val));

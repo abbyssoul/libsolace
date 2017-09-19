@@ -74,7 +74,8 @@ Future<UnpuckedResult> thenImplementation(std::shared_ptr<Core<T>>&& core, F&& f
 
     auto chainedFuture = promise.getFuture();
 
-    core->setCallback(std::make_shared<CB<T, ContinuationResult, UnpuckedResult, F>>(std::forward<F>(f), std::move(promise)));
+    core->setCallback(std::make_shared<CB<T, ContinuationResult, UnpuckedResult, F>>(std::forward<F>(f),
+                                                                                     std::move(promise)));
 
     return chainedFuture;
 }
@@ -93,7 +94,8 @@ Future<UnpuckedResult> onErrorImplementation(std::shared_ptr<Core<T>>&& core, F&
 
     auto chainedFuture = promise.getFuture();
 
-    core->setCallback(std::make_shared<ErrBack<T, ContinuationResult, UnpuckedResult, F>>(std::forward<F>(f), std::move(promise)));
+    core->setCallback(std::make_shared<ErrBack<T, ContinuationResult, UnpuckedResult, F>>(std::forward<F>(f),
+                                                                                          std::move(promise)));
 
     return chainedFuture;
 }
@@ -103,8 +105,17 @@ Future<UnpuckedResult> onErrorImplementation(std::shared_ptr<Core<T>>&& core, F&
 
 
 /**
- * An async future.
- * This is an extention of Result class idea to represent asynchronous computation.
+ * An future.
+ * This is an extention of a Result (@see Result) class to represent asynchronous computation.
+ * Note that creating future does not spawn a computation. It is a promise that the computation will be
+ * carried out some time in the future.
+ * Future class is the 'client' side of the computation. Owner responsible for computing the value holds a Promise
+ * object and use it to notify interested clients about value being availiable.
+ *
+ * This particular implementation of the Future paradigm does not store computed value it self. Rather it provides an
+ * interface for the consumer to register a funtion that will be colled with the value when it become availiable.
+ * Clients also can chose to register another callback to be notified if there was an error in the computation and the
+ * value will not be availialbe.
  *
  * \code{.cpp}
  * io_object.do_something_async().then([](auto value) {

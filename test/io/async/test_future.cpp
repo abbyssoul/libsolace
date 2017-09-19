@@ -1272,7 +1272,7 @@ public:
         auto f = p.getFuture();
 
         CPPUNIT_ASSERT_EQUAL(0, PimitiveType::InstanceCount);
-        f.then([t=PimitiveType(132)](int ) {
+        f.then([t = PimitiveType(132)](int ) {
 
         });
 

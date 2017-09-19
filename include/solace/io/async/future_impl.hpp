@@ -149,10 +149,10 @@ struct CB<T, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> : public 
             pm.setError(result.moveError());
         } else {
             cont(result.moveResult())
-                .then([self=this->shared_from_this()] (UnpuckedResultType&& rv){
+                .then([self = this->shared_from_this()] (UnpuckedResultType&& rv){
                     std::static_pointer_cast<CallbackType>(self)->pm.setValue(std::move(rv));
                 })
-                .orElse([self=this->shared_from_this()] (Error&& er) {
+                .orElse([self = this->shared_from_this()] (Error&& er) {
                     std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
@@ -179,10 +179,10 @@ struct CB<T, Result<void, Error>, void, F> : public CallbackBase<T> {
             pm.setError(result.moveError());
         } else {
             cont(result.moveResult())
-                .then([self=this->shared_from_this()] () {
+                .then([self = this->shared_from_this()] () {
                     std::static_pointer_cast<CallbackType>(self)->pm.setValue();
                 })
-                .orElse([self=this->shared_from_this()] (Error&& er) {
+                .orElse([self = this->shared_from_this()] (Error&& er) {
                     std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
@@ -210,10 +210,10 @@ struct CB<void, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> : publ
             pm.setError(result.moveError());
         } else {
             cont()
-                .then([self=shared_from_this()] (UnpuckedResultType&& rv){
+                .then([self = shared_from_this()] (UnpuckedResultType&& rv){
                     std::static_pointer_cast<CallbackType>(self)->pm.setValue(std::move(rv));
                 })
-                .orElse([self=shared_from_this()] (Error&& er) {
+                .orElse([self = shared_from_this()] (Error&& er) {
                     std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
@@ -238,10 +238,10 @@ struct CB<void, Result<void, Error>, void, F> : public CallbackBase<void> {
             pm.setError(result.moveError());
         } else {
             cont()
-                .then([self=shared_from_this()] () {
+                .then([self = shared_from_this()] () {
                     std::static_pointer_cast<CallbackType>(self)->pm.setValue();
                 })
-                .orElse([self=shared_from_this()] (Error&& er) {
+                .orElse([self = shared_from_this()] (Error&& er) {
                     std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
@@ -273,10 +273,10 @@ struct CB<T, Future<UnpuckedResultType>, UnpuckedResultType, F> : public Callbac
             pm.setError(result.moveError());
         } else {
             cont(result.moveResult())
-                .then([self=this->shared_from_this()] (UnpuckedResultType&& rv) {
+                .then([self = this->shared_from_this()] (UnpuckedResultType&& rv) {
                     std::static_pointer_cast<CallbackType>(self)->pm.setValue(std::move(rv));
                 })
-                .onError([self=this->shared_from_this()] (Error&& er) {
+                .onError([self = this->shared_from_this()] (Error&& er) {
                     std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
@@ -302,10 +302,10 @@ struct CB<T, Future<void>, void, F> : public CallbackBase<T> {
             pm.setError(result.moveError());
         } else {
             cont(result.moveResult())
-                .then([self=this->shared_from_this()] () {
+                .then([self = this->shared_from_this()] () {
                     std::static_pointer_cast<CallbackType>(self)->pm.setValue();
                 })
-                .onError([self=this->shared_from_this()] (Error&& er) {
+                .onError([self = this->shared_from_this()] (Error&& er) {
                     std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
@@ -333,10 +333,10 @@ struct CB<void, Future<UnpuckedResultType>, UnpuckedResultType, F> : public Call
             pm.setError(result.moveError());
         } else {
             cont()
-                .then([self=this->shared_from_this()] (UnpuckedResultType&& rv){
+                .then([self = this->shared_from_this()] (UnpuckedResultType&& rv){
                     std::static_pointer_cast<CallbackType>(self)->pm.setValue(std::move(rv));
                 })
-                .onError([self=this->shared_from_this()] (Error&& er) {
+                .onError([self = this->shared_from_this()] (Error&& er) {
                     std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
@@ -362,10 +362,10 @@ struct CB<void, Future<void>, void, F> : public CallbackBase<void> {
             pm.setError(result.moveError());
         } else {
             cont()
-                .then([self=this->shared_from_this()] () {
+                .then([self = this->shared_from_this()] () {
                     std::static_pointer_cast<CallbackType>(self)->pm.setValue();
                 })
-                .onError([self=this->shared_from_this()] (Error&& er) {
+                .onError([self = this->shared_from_this()] (Error&& er) {
                     std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
@@ -474,7 +474,8 @@ struct ErrBack<FutureValueType, void, void, F> : public CallbackBase<FutureValue
 template<typename FutureValueType,
          typename UnpuckedResultType,
          typename F>
-struct ErrBack<FutureValueType, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> : public CallbackBase<FutureValueType> {
+struct ErrBack<FutureValueType, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> :
+        public CallbackBase<FutureValueType> {
     typedef ErrBack<FutureValueType, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> CallbackType;
 
     Promise<UnpuckedResultType> pm;
@@ -486,10 +487,10 @@ struct ErrBack<FutureValueType, Result<UnpuckedResultType, Error>, UnpuckedResul
     void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([self=this->shared_from_this()] (UnpuckedResultType&& rv){
+                .then([self = this->shared_from_this()] (UnpuckedResultType&& rv){
                     std::static_pointer_cast<CallbackType>(self)->pm.setValue(std::move(rv));
                 })
-                .orElse([self=this->shared_from_this()] (Error&& er) {
+                .orElse([self = this->shared_from_this()] (Error&& er) {
                     std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         } else {
@@ -511,10 +512,10 @@ struct ErrBack<void, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> :
     void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([self=shared_from_this()] (UnpuckedResultType&& rv){
+                .then([self = shared_from_this()] (UnpuckedResultType&& rv){
                     self->pm.setValue(std::move(rv));
                 })
-                .orElse([self=shared_from_this()] (Error&& er) {
+                .orElse([self = shared_from_this()] (Error&& er) {
                     self->pm.setError(std::move(er));
                 });
         } else {
@@ -536,10 +537,10 @@ struct ErrBack<FutureValueType, Result<void, Error>, void, F> : public CallbackB
     void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([self=this->shared_from_this()] () {
+                .then([self = this->shared_from_this()] () {
                     self->pm.setValue();
                 })
-                .orElse([self=this->shared_from_this()] (Error&& er) {
+                .orElse([self = this->shared_from_this()] (Error&& er) {
                     self->pm.setError(std::move(er));
                 });
         } else {
@@ -563,10 +564,10 @@ struct ErrBack<void, Result<void, Error>, void, F> : public CallbackBase<void> {
     void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([self=this->shared_from_this()] () {
+                .then([self = this->shared_from_this()] () {
                     std::static_pointer_cast<CallbackType>(self)->pm.setValue();
                 })
-                .orElse([self=this->shared_from_this()] (Error&& er) {
+                .orElse([self = this->shared_from_this()] (Error&& er) {
                     std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         } else {
@@ -584,7 +585,8 @@ struct ErrBack<void, Result<void, Error>, void, F> : public CallbackBase<void> {
 template<typename FutureValueType,
          typename UnpuckedResultType,
          typename F>
-struct ErrBack<FutureValueType, Future<UnpuckedResultType>, UnpuckedResultType, F> : public CallbackBase<FutureValueType> {
+struct ErrBack<FutureValueType, Future<UnpuckedResultType>, UnpuckedResultType, F> :
+        public CallbackBase<FutureValueType> {
     Promise<UnpuckedResultType> pm;
     F cont;
 
@@ -594,10 +596,10 @@ struct ErrBack<FutureValueType, Future<UnpuckedResultType>, UnpuckedResultType, 
     void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([self=this->shared_from_this()] (UnpuckedResultType&& rv) {
+                .then([self = this->shared_from_this()] (UnpuckedResultType&& rv) {
                     self->pm.setValue(std::move(rv));
                 })
-                .onError([self=this->shared_from_this()] (Error&& er) {
+                .onError([self = this->shared_from_this()] (Error&& er) {
                     self->pm.setError(std::move(er));
                 });
         } else {
@@ -619,10 +621,10 @@ struct ErrBack<void, Future<UnpuckedResultType>, UnpuckedResultType, F> : public
     void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([self=this->shared_from_this()] (UnpuckedResultType&& rv) {
+                .then([self = this->shared_from_this()] (UnpuckedResultType&& rv) {
                     self->pm.setValue(std::move(rv));
                 })
-                .onError([self=this->shared_from_this()] (Error&& er) {
+                .onError([self = this->shared_from_this()] (Error&& er) {
                     self->pm.setError(std::move(er));
                 });
         } else {
@@ -643,10 +645,10 @@ struct ErrBack<FutureValueType, Future<void>, void, F> : public CallbackBase<Fut
     void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([self=this->shared_from_this()] () {
+                .then([self = this->shared_from_this()] () {
                     self->pm.setValue();
                 })
-                .onError([self=this->shared_from_this()] (Error&& er) {
+                .onError([self = this->shared_from_this()] (Error&& er) {
                     self->pm.setError(std::move(er));
                 });
         } else {
@@ -667,10 +669,10 @@ struct ErrBack<void, Future<void>, void, F> : public CallbackBase<void> {
     void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([self=this->shared_from_this()] () {
+                .then([self = this->shared_from_this()] () {
                     self->pm.setValue();
                 })
-                .onError([self=this->shared_from_this()] (Error&& er) {
+                .onError([self = this->shared_from_this()] (Error&& er) {
                     self->pm.setError(std::move(er));
                 });
         } else {
