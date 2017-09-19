@@ -24,6 +24,7 @@
 #define SOLACE_UTILS_HPP
 
 #include <utility>  // FIXME(later): remove after removal of std::true_type/false_type
+#include <functional>
 
 
 /**
@@ -50,6 +51,30 @@ template<typename F, typename...Args> struct isCallable {
 
   static constexpr bool value = decltype(test<F, Args...>(nullptr))::value;
 };
+
+
+
+template<class X, class Y, class Op>
+struct op_valid_impl {
+    template<class U, class L, class R>
+    static auto test(int) -> decltype(std::declval<U>()(std::declval<L>(), std::declval<R>()),
+                                      void(), std::true_type());
+
+    template<class U, class L, class R>
+    static auto test(...) -> std::false_type;
+
+    using type = decltype(test<Op, X, Y>(0));
+
+};
+
+template<class X, class Y, class Op> using op_valid = typename op_valid_impl<X, Y, Op>::type;
+
+template<class X, class Y> using has_equality = op_valid<X, Y, std::equal_to<>>;
+template<class X, class Y> using has_inequality = op_valid<X, Y, std::not_equal_to<>>;
+template<class X, class Y> using has_less_than = op_valid<X, Y, std::less<>>;
+template<class X, class Y> using has_less_equal = op_valid<X, Y, std::less_equal<>>;
+template<class X, class Y> using has_greater_than = op_valid<X, Y, std::greater<>>;
+template<class X, class Y> using has_greater_equal = op_valid<X, Y, std::greater_equal<>>;
 
 
 /**

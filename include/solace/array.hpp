@@ -26,7 +26,6 @@
 #define SOLACE_ARRAY_HPP
 
 #include "solace/types.hpp"
-#include "solace/traits/icomparable.hpp"
 
 #include "solace/assert.hpp"
 #include "solace/arrayView.hpp"
@@ -47,8 +46,7 @@ namespace Solace {
  * Array is a collection template that has a fixed size specified at the time of its creation
  */
 template<typename T>
-class Array:
-        public IComparable<Array<T>>
+class Array
 {
 public:
     typedef T                                   value_type;
@@ -95,6 +93,10 @@ public:
     Array(const Storage& list): _storage(list) {
     }
 
+    /** */
+    Array(Storage&& list): _storage(std::move(list)) {
+    }
+
     /** Construct an array from an memory buffer */
     Array(MemoryView&& memView) : _storage(memView.dataAs<T>(), memView.dataAs<T>() + memView.size() / sizeof(T)) {
         // FIXME(abbyssoul): current implementation copies data but should use mem location.
@@ -128,13 +130,28 @@ public:
         return swap(rhs);
     }
 
-    bool equals(const Array<T>& other) const noexcept override {
+    bool equals(const Array<T>& other) const noexcept {
         return ((&other == this) ||
                 (_storage == other._storage));
     }
 
-    using IComparable<Array<T>>::operator!=;
-    using IComparable<Array<T>>::operator==;
+    /**
+     * Overloaded operator for syntactic sugar. @see equals
+     * @param rhv The object to compare this instance to.
+     * @return True if this object is equal to the given
+     */
+    bool operator== (const Array<T>& rhv) const noexcept {
+        return equals(rhv);
+    }
+
+    /**
+     * Overloaded operator for syntactic sugar. @see equals
+     * @param rhv The object to compare this instance to.
+     * @return True if this object is NOT equal to the given.
+     */
+    bool operator!= (const Array<T>& rhv) const noexcept {
+        return !equals(rhv);
+    }
 
     /**
      * Check if this collection is empty.
@@ -224,8 +241,17 @@ public:
      */
 
     template<typename F>
+    const Array<T>& forEach(F&& f) {
+        for (auto& x : _storage) {
+            f(x);
+        }
+
+        return *this;
+    }
+
+    template<typename F>
     const Array<T>& forEach(F&& f) const {
-        for (const auto& x : _storage) {
+        for (auto& x : _storage) {
             f(x);
         }
 
@@ -234,6 +260,17 @@ public:
 
     template<typename F>
     const Array<T>& forEachIndexed(F&& f) const {
+        const auto thisSize = size();
+        for (size_type i = 0; i < thisSize; ++i) {
+            f(i, _storage[i]);
+        }
+
+        return *this;
+    }
+
+
+    template<typename F>
+    const Array<T>& forEachIndexed(F&& f) {
         const auto thisSize = size();
         for (size_type i = 0; i < thisSize; ++i) {
             f(i, _storage[i]);

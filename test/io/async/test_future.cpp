@@ -21,6 +21,8 @@
  * Created on: 29/05/2017
 *******************************************************************************/
 #include <solace/io/async/future.hpp>  // Class being tested
+#include <solace/exception.hpp>
+#include <solace/array.hpp>
 
 #include <cppunit/extensions/HelperMacros.h>
 
@@ -35,11 +37,21 @@ using namespace Solace::IO;
 using namespace Solace::IO::async;
 
 
+static int resolveVoidFunc() {
+    return 99881;
+}
+
+
 class TestFuture : public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(TestFuture);
         CPPUNIT_TEST(orphanIntegralFutureThrows);
         CPPUNIT_TEST(orphanVoidFutureThrows);
+
+        CPPUNIT_TEST(destoyingIntFuturePropagatesViaThen);
+        CPPUNIT_TEST(destoyingVoidFuturePropagatesViaThen);
+
+        CPPUNIT_TEST(testThenWithStandaloneFunction);
 
         CPPUNIT_TEST(integralFutureIntegralContinuation);
         CPPUNIT_TEST(voidFutureIntegralContinuation);
@@ -85,6 +97,22 @@ class TestFuture : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testOnErrorHandler);
         CPPUNIT_TEST(testOnErrorSkippedOnSuccess);
         CPPUNIT_TEST(testOnErrorRestoresTheChain);
+
+
+        CPPUNIT_TEST(testIntegralPromiseThrowsOnDoubleSetValue);
+        CPPUNIT_TEST(testVoidPromiseThrowsOnDoubleSetValue);
+        CPPUNIT_TEST(testIntegralPromiseThrowsOnDoubleSetError);
+        CPPUNIT_TEST(testVoidPromiseThrowsOnDoubleSetError);
+
+        CPPUNIT_TEST(testCollectIntgralWhenAllSuccess);
+        CPPUNIT_TEST(testCollectVoidWhenAllSuccess);
+
+        CPPUNIT_TEST(testCollectIntegralWhenOneFailure);
+        CPPUNIT_TEST(testCollectVoidWhenOneFailure);
+
+        CPPUNIT_TEST(testThenFiredDeletesClosure);
+
+
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -121,6 +149,41 @@ public:
                              Solace::Exception);
         CPPUNIT_ASSERT_THROW(f.onError([&x](Solace::Error&& ) { x += 12;}),
                              Solace::Exception);
+    }
+
+    void destoyingIntFuturePropagatesViaThen() {
+        Promise<int> p;
+        bool resolved1 = false;
+
+
+        {
+            p.getFuture().then([&resolved1](int) {
+                resolved1 = true;
+
+                return;
+            });
+        }
+
+        p.setValue(321);
+
+        CPPUNIT_ASSERT(resolved1);
+    }
+
+
+    void destoyingVoidFuturePropagatesViaThen() {
+        Promise<void> p;
+        bool resolved1 = false;
+
+
+        {
+            p.getFuture().then([&resolved1]() {
+                resolved1 = true;
+            });
+        }
+
+        p.setValue();
+
+        CPPUNIT_ASSERT(resolved1);
     }
 
     void integralFutureIntegralContinuation() {
@@ -398,10 +461,10 @@ public:
         bool resolved1 = false;
         bool resolved2 = false;
 
-        auto p1 = Promise<int>();
+        Promise<int> p1;
         auto f = p1.getFuture();
 
-        auto p2 = Promise<char>();
+        Promise<char> p2;
 
         f.then([&resolved1, &p2](int x) {
             resolved1 = (x == 310);
@@ -810,7 +873,7 @@ public:
         bool resolved2 = false;
         bool resolved3 = false;
 
-        auto p1 = Promise<void>();
+        Promise<void> p1;
         auto f = p1.getFuture();
 
         f.then([&resolved1](void) -> Result<void, Error> {
@@ -833,6 +896,26 @@ public:
 
 
 
+    void testThenWithStandaloneFunction() {
+        bool resolved1 = false;
+        bool errored1 = false;
+
+        Promise<void> p1;
+        auto f = p1.getFuture();
+
+        f.then(resolveVoidFunc)
+                .then([&resolved1](int x) {
+            resolved1 = (x == 99881);
+        })
+        .onError([&errored1](Error&& ) {
+            errored1 = true;
+        });
+
+        p1.setValue();
+
+        CPPUNIT_ASSERT(resolved1);
+        CPPUNIT_ASSERT(!errored1);
+    }
 
 
 
@@ -1009,6 +1092,194 @@ public:
         CPPUNIT_ASSERT(thirdCallbackOk);
     }
 
+
+    void testIntegralPromiseThrowsOnDoubleSetValue() {
+        Promise<int> promise;
+
+        promise.setValue(123);
+        CPPUNIT_ASSERT_THROW(promise.setValue(-3123), Solace::Exception);
+    }
+
+    void testVoidPromiseThrowsOnDoubleSetValue() {
+        Promise<void> promise;
+
+        promise.setValue();
+        CPPUNIT_ASSERT_THROW(promise.setValue(), Solace::Exception);
+    }
+
+    void testIntegralPromiseThrowsOnDoubleSetError() {
+        Promise<int> promise;
+
+        promise.setError(Error("testError", 991));
+        CPPUNIT_ASSERT_THROW(promise.setError(Error("testError", -187)), Solace::Exception);
+    }
+
+    void testVoidPromiseThrowsOnDoubleSetError() {
+        Promise<void> promise;
+
+        promise.setError(Error("testError", 991));
+        CPPUNIT_ASSERT_THROW(promise.setError(Error("testError", -187)), Solace::Exception);
+    }
+
+
+    void testCollectIntgralWhenAllSuccess() {
+        const int bias = -338;
+        const uint testGroupSize = 16;
+
+        Array<Promise<int>> promises(testGroupSize);
+        std::vector<Future<int>> futures;
+        futures.reserve(testGroupSize);
+        promises.forEach([&futures](Promise<int>& promise) {
+            futures.push_back(promise.getFuture());
+        });
+
+        Future<Array<int>> futureArray = collect(futures);
+
+        bool futureArrayReady = false;
+        futureArray.then([&futureArrayReady](Array<int>&& values) {
+            for (Array<int>::size_type index = 0; index < values.size(); ++index) {
+                if (values[index] != (bias + static_cast<int>(index))) {
+                    return;
+                }
+            }
+
+            futureArrayReady = true;
+        });
+
+        CPPUNIT_ASSERT(!futureArrayReady);
+
+        promises.forEachIndexed([](int index, Promise<int>& promise) {
+            promise.setValue(bias + index);
+        });
+
+        CPPUNIT_ASSERT(futureArrayReady);
+    }
+
+    void testCollectVoidWhenAllSuccess() {
+        const uint testGroupSize = 8;
+
+        Array<Promise<void>> promises(testGroupSize);
+        std::vector<Future<void>> futures;
+        futures.reserve(testGroupSize);
+        promises.forEach([&futures](Promise<void>& promise) {
+            futures.push_back(promise.getFuture());
+        });
+
+        Future<void> futureArray = collect(futures);
+
+        bool futureArrayReady = false;
+        futureArray.then([&futureArrayReady]() {
+            futureArrayReady = true;
+        });
+
+        CPPUNIT_ASSERT(!futureArrayReady);
+
+        promises.forEach([](Promise<void>& promise) {
+            promise.setValue();
+        });
+
+        CPPUNIT_ASSERT(futureArrayReady);
+    }
+
+
+    void testCollectIntegralWhenOneFailure() {
+        const int bias = -338;
+        const uint testGroupSize = 16;
+        const int failEach = 12;
+
+        Array<Promise<int>> promises(testGroupSize);
+        std::vector<Future<int>> futures;
+        futures.reserve(testGroupSize);
+        promises.forEach([&futures](Promise<int>& promise) {
+            futures.push_back(promise.getFuture());
+        });
+
+        Future<Array<int>> futureArray = collect(futures);
+
+        bool futureArrayReady = false;
+        bool futureArrayErrored = false;
+        futureArray
+        .then([&futureArrayReady](Array<int>&& values) {
+            for (Array<int>::size_type index = 0; index < values.size(); ++index) {
+                if (values[index] != (bias + static_cast<int>(index))) {
+                    return;
+                }
+            }
+
+            futureArrayReady = true;
+        })
+        .onError([&futureArrayErrored](Error&& ) {
+            futureArrayErrored = true;
+        });
+
+        CPPUNIT_ASSERT(!futureArrayReady);
+        CPPUNIT_ASSERT(!futureArrayErrored);
+
+        promises.forEachIndexed([failEach](int index, Promise<int>& promise) {
+            if ((index % failEach) == 0) {
+                promise.setError(Error("failed", 321));
+            } else {
+                promise.setValue(bias + index);
+            }
+        });
+
+        CPPUNIT_ASSERT(!futureArrayReady);
+        CPPUNIT_ASSERT(futureArrayErrored);
+    }
+
+
+    void testCollectVoidWhenOneFailure() {
+        const uint testGroupSize = 16;
+        const uint failEach = 12;
+
+        Array<Promise<void>> promises(testGroupSize);
+        std::vector<Future<void>> futures;
+        futures.reserve(testGroupSize);
+        promises.forEach([&futures](Promise<void>& promise) {
+            futures.push_back(promise.getFuture());
+        });
+
+        Future<void> futureArray = collect(futures);
+
+        bool futureArrayReady = false;
+        bool futureArrayErrored = false;
+        futureArray
+            .then([&futureArrayReady]() {
+                futureArrayReady = true;
+            })
+            .onError([&futureArrayErrored](Error&& ) {
+                futureArrayErrored = true;
+            });
+
+        CPPUNIT_ASSERT(!futureArrayReady);
+        CPPUNIT_ASSERT(!futureArrayErrored);
+
+        promises.forEachIndexed([failEach](auto index, Promise<void>& promise) {
+            if ((index % failEach) == 0) {
+                promise.setError(Error("failed", 321));
+            } else {
+                promise.setValue();
+            }
+        });
+
+        CPPUNIT_ASSERT(!futureArrayReady);
+        CPPUNIT_ASSERT(futureArrayErrored);
+    }
+
+    void testThenFiredDeletesClosure() {
+
+        Promise<int> p;
+        auto f = p.getFuture();
+
+        CPPUNIT_ASSERT_EQUAL(0, PimitiveType::InstanceCount);
+        f.then([t=PimitiveType(132)](int ) {
+
+        });
+
+        CPPUNIT_ASSERT_EQUAL(1, PimitiveType::InstanceCount);
+        p.setValue(-17);
+        CPPUNIT_ASSERT_EQUAL(0, PimitiveType::InstanceCount);
+    }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestFuture);

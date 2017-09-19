@@ -30,8 +30,24 @@
 #include <solace/error.hpp>
 #include <solace/assert.hpp>
 
+#include <atomic>
+
 
 namespace Solace { namespace IO { namespace async {
+
+namespace details  {
+
+template<typename T>
+struct CallbackBase : public std::enable_shared_from_this<CallbackBase<T>> {
+    virtual ~CallbackBase() = default;
+
+    using std::enable_shared_from_this<CallbackBase<T>>::shared_from_this;
+
+    virtual void operator() (Result<T, Error>&& result) = 0;
+};
+
+}  // namespace details
+
 
 template<typename T>
 class Core {
@@ -48,22 +64,28 @@ public:
     Core(Core&&) = delete;
     Core& operator= (Core&&) = delete;
 
-    template <class F>
-    void setCallback(F&& func) {
-        _completionHandler = std::forward<F>(func);
+
+    void setCallback(std::shared_ptr<details::CallbackBase<T>>&& func) {
+        _completionHandler = std::move(func);
     }
 
     void setResult(Result<T, Error>&& result) {
+        if (_fired.exchange(true)) {
+            raiseInvalidStateError("Future value already set");
+        }
+
         if (_completionHandler) {
             // TODO(abbyssoul): Handle exceptions! What happenes when completion handler throws?
-            _completionHandler(std::move(result));
+            (*_completionHandler)(std::move(result));
+            _completionHandler.reset();
         }
     }
 
 private:
 
-    // FIXME: Use Try<> instead of result to capture exceptions
-    delegate<void(Result<T, Error>&&)> _completionHandler;
+//    delegate<void(Result<T, Error>&&)> _completionHandler;
+    std::atomic<bool> _fired {false};
+    std::shared_ptr<details::CallbackBase<T>> _completionHandler;
 
 };
 

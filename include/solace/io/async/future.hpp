@@ -74,7 +74,7 @@ Future<UnpuckedResult> thenImplementation(std::shared_ptr<Core<T>>&& core, F&& f
 
     auto chainedFuture = promise.getFuture();
 
-    core->setCallback(CB<T, ContinuationResult, UnpuckedResult, F>(std::forward<F>(f), std::move(promise)));
+    core->setCallback(std::make_shared<CB<T, ContinuationResult, UnpuckedResult, F>>(std::forward<F>(f), std::move(promise)));
 
     return chainedFuture;
 }
@@ -93,7 +93,7 @@ Future<UnpuckedResult> onErrorImplementation(std::shared_ptr<Core<T>>&& core, F&
 
     auto chainedFuture = promise.getFuture();
 
-    core->setCallback(ErrBack<T, ContinuationResult, UnpuckedResult, F>(std::forward<F>(f), std::move(promise)));
+    core->setCallback(std::make_shared<ErrBack<T, ContinuationResult, UnpuckedResult, F>>(std::forward<F>(f), std::move(promise)));
 
     return chainedFuture;
 }
@@ -344,10 +344,13 @@ Promise<void>::getFuture() {
     return Future<void>(_core);
 }
 
+
+
 }  // End of namespace async
 }  // End of namespace IO
 }  // End of namespace Solace
 
 #include "future_impl.hpp"
+#include "futureComposition.hpp"
 
 #endif  // SOLACE_IO_ASYNC_FUTUE_HPP

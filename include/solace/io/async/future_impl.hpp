@@ -24,6 +24,9 @@
 #ifndef SOLACE_IO_ASYNC_FUTURE_IMPL_HPP
 #define SOLACE_IO_ASYNC_FUTURE_IMPL_HPP
 
+#include "solace/io/async/promise.hpp"
+
+
 namespace Solace { namespace IO { namespace async { namespace details  {
 
 
@@ -35,14 +38,14 @@ template<typename FutureValueType,
          typename ContinuationResult,
          typename UnpuckedResultType,
          typename F>
-struct CB {
+struct CB : public CallbackBase<FutureValueType> {
     Promise<UnpuckedResultType> pm;
     F cont;
 
     CB(F&& f, Promise<UnpuckedResultType>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<FutureValueType, Error>&& result) {
+    void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             pm.setError(result.moveError());
         } else {
@@ -58,14 +61,14 @@ struct CB {
  */
 template<typename UnpuckedResultType,
          typename F>
-struct CB<void, UnpuckedResultType, UnpuckedResultType, F> {
+struct CB<void, UnpuckedResultType, UnpuckedResultType, F> : public CallbackBase<void> {
     Promise<UnpuckedResultType> pm;
     F cont;
 
     CB(F&& f, Promise<UnpuckedResultType>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<void, Error>&& result) {
+    void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             pm.setError(result.moveError());
         } else {
@@ -81,14 +84,14 @@ struct CB<void, UnpuckedResultType, UnpuckedResultType, F> {
  */
 template<typename FutureValueType,
          typename F>
-struct CB<FutureValueType, void, void, F> {
+struct CB<FutureValueType, void, void, F> : public CallbackBase<FutureValueType>{
     Promise<void> pm;
     F cont;
 
     CB(F&& f, Promise<void>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<FutureValueType, Error>&& result) {
+    void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             pm.setError(result.moveError());
         } else {
@@ -104,14 +107,14 @@ struct CB<FutureValueType, void, void, F> {
  * Spacialization for Future<void> and continuation F returning Void
  */
 template<typename F>
-struct CB<void, void, void, F> {
+struct CB<void, void, void, F> : public CallbackBase<void>{
     Promise<void> pm;
     F cont;
 
     CB(F&& f, Promise<void>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<void, Error>&& result) {
+    void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             pm.setError(result.moveError());
         } else {
@@ -132,23 +135,25 @@ struct CB<void, void, void, F> {
 template<typename T,
          typename UnpuckedResultType,
          typename F>
-struct CB<T, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> {
+struct CB<T, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> : public CallbackBase<T> {
+    typedef CB<T, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> CallbackType;
+
     Promise<UnpuckedResultType> pm;
     F cont;
 
     CB(F&& f, Promise<UnpuckedResultType>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<T, Error>&& result) {
+    void operator() (Result<T, Error>&& result) override {
         if (result.isError()) {
             pm.setError(result.moveError());
         } else {
             cont(result.moveResult())
-                .then([this] (UnpuckedResultType&& rv){
-                    pm.setValue(std::move(rv));
+                .then([self=this->shared_from_this()] (UnpuckedResultType&& rv){
+                    std::static_pointer_cast<CallbackType>(self)->pm.setValue(std::move(rv));
                 })
-                .orElse([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .orElse([self=this->shared_from_this()] (Error&& er) {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
     }
@@ -160,23 +165,25 @@ struct CB<T, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> {
  */
 template<typename T,
          typename F>
-struct CB<T, Result<void, Error>, void, F> {
+struct CB<T, Result<void, Error>, void, F> : public CallbackBase<T> {
+    typedef CB<T, Result<void, Error>, void, F> CallbackType;
+
     Promise<void> pm;
     F cont;
 
     CB(F&& f, Promise<void>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<T, Error>&& result) {
+    void operator() (Result<T, Error>&& result) override {
         if (result.isError()) {
             pm.setError(result.moveError());
         } else {
             cont(result.moveResult())
-                .then([this] () {
-                    pm.setValue();
+                .then([self=this->shared_from_this()] () {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setValue();
                 })
-                .orElse([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .orElse([self=this->shared_from_this()] (Error&& er) {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
     }
@@ -189,23 +196,25 @@ struct CB<T, Result<void, Error>, void, F> {
 template<
          typename UnpuckedResultType,
          typename F>
-struct CB<void, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> {
+struct CB<void, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> : public CallbackBase<void> {
+    typedef CB<void, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> CallbackType;
+
     Promise<UnpuckedResultType> pm;
     F cont;
 
     CB(F&& f, Promise<UnpuckedResultType>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<void, Error>&& result) {
+    void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             pm.setError(result.moveError());
         } else {
             cont()
-                .then([this] (UnpuckedResultType&& rv){
-                    pm.setValue(std::move(rv));
+                .then([self=shared_from_this()] (UnpuckedResultType&& rv){
+                    std::static_pointer_cast<CallbackType>(self)->pm.setValue(std::move(rv));
                 })
-                .orElse([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .orElse([self=shared_from_this()] (Error&& er) {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
     }
@@ -215,23 +224,25 @@ struct CB<void, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> {
  * Spacialization for Future<void> and continuation F returning Result<void>
  */
 template<typename F>
-struct CB<void, Result<void, Error>, void, F> {
+struct CB<void, Result<void, Error>, void, F> : public CallbackBase<void> {
+    typedef CB<void, Result<void, Error>, void, F> CallbackType;
+
     Promise<void> pm;
     F cont;
 
     CB(F&& f, Promise<void>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<void, Error>&& result) {
+    void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             pm.setError(result.moveError());
         } else {
             cont()
-                .then([this] () {
-                    pm.setValue();
+                .then([self=shared_from_this()] () {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setValue();
                 })
-                .orElse([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .orElse([self=shared_from_this()] (Error&& er) {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
     }
@@ -248,23 +259,25 @@ struct CB<void, Result<void, Error>, void, F> {
 template<typename T,
          typename UnpuckedResultType,
          typename F>
-struct CB<T, Future<UnpuckedResultType>, UnpuckedResultType, F> {
+struct CB<T, Future<UnpuckedResultType>, UnpuckedResultType, F> : public CallbackBase<T> {
+    typedef CB<T, Future<UnpuckedResultType>, UnpuckedResultType, F> CallbackType;
+
     Promise<UnpuckedResultType> pm;
     F cont;
 
     CB(F&& f, Promise<UnpuckedResultType>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<T, Error>&& result) {
+    void operator() (Result<T, Error>&& result) override {
         if (result.isError()) {
             pm.setError(result.moveError());
         } else {
             cont(result.moveResult())
-                .then([this] (UnpuckedResultType&& rv) {
-                    pm.setValue(std::move(rv));
+                .then([self=this->shared_from_this()] (UnpuckedResultType&& rv) {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setValue(std::move(rv));
                 })
-                .onError([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .onError([self=this->shared_from_this()] (Error&& er) {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
     }
@@ -275,23 +288,25 @@ struct CB<T, Future<UnpuckedResultType>, UnpuckedResultType, F> {
  */
 template<typename T,
          typename F>
-struct CB<T, Future<void>, void, F> {
+struct CB<T, Future<void>, void, F> : public CallbackBase<T> {
+    typedef CB<T, Future<void>, void, F> CallbackType;
+
     Promise<void> pm;
     F cont;
 
     CB(F&& f, Promise<void>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<T, Error>&& result) {
+    void operator() (Result<T, Error>&& result) override {
         if (result.isError()) {
             pm.setError(result.moveError());
         } else {
             cont(result.moveResult())
-                .then([this] () {
-                    pm.setValue();
+                .then([self=this->shared_from_this()] () {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setValue();
                 })
-                .onError([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .onError([self=this->shared_from_this()] (Error&& er) {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
     }
@@ -304,23 +319,25 @@ struct CB<T, Future<void>, void, F> {
 template<
          typename UnpuckedResultType,
          typename F>
-struct CB<void, Future<UnpuckedResultType>, UnpuckedResultType, F> {
+struct CB<void, Future<UnpuckedResultType>, UnpuckedResultType, F> : public CallbackBase<void> {
+    typedef CB<void, Future<UnpuckedResultType>, UnpuckedResultType, F> CallbackType;
+
     Promise<UnpuckedResultType> pm;
     F cont;
 
     CB(F&& f, Promise<UnpuckedResultType>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<void, Error>&& result) {
+    void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             pm.setError(result.moveError());
         } else {
             cont()
-                .then([this] (UnpuckedResultType&& rv){
-                    pm.setValue(std::move(rv));
+                .then([self=this->shared_from_this()] (UnpuckedResultType&& rv){
+                    std::static_pointer_cast<CallbackType>(self)->pm.setValue(std::move(rv));
                 })
-                .onError([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .onError([self=this->shared_from_this()] (Error&& er) {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
     }
@@ -331,23 +348,25 @@ struct CB<void, Future<UnpuckedResultType>, UnpuckedResultType, F> {
  * Spacialization for Future<void> and continuation F returning Future<void>
  */
 template<typename F>
-struct CB<void, Future<void>, void, F> {
+struct CB<void, Future<void>, void, F> : public CallbackBase<void> {
+    typedef CB<void, Future<void>, void, F> CallbackType;
+
     Promise<void> pm;
     F cont;
 
     CB(F&& f, Promise<void>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<void, Error>&& result) {
+    void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             pm.setError(result.moveError());
         } else {
             cont()
-                .then([this] () {
-                    pm.setValue();
+                .then([self=this->shared_from_this()] () {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setValue();
                 })
-                .onError([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .onError([self=this->shared_from_this()] (Error&& er) {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         }
     }
@@ -364,14 +383,14 @@ template<typename FutureValueType,
          typename ContinuationResult,
          typename UnpuckedResultType,
          typename F>
-struct ErrBack {
+struct ErrBack : public CallbackBase<FutureValueType>{
     Promise<UnpuckedResultType> pm;
     F cont;
 
     ErrBack(F&& f, Promise<UnpuckedResultType>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<FutureValueType, Error>&& result) {
+    void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             // FIXME: Handle exceptions in completion handler
             pm.setValue(cont(result.moveError()));
@@ -385,14 +404,14 @@ template<
          typename ContinuationResult,
          typename UnpuckedResultType,
          typename F>
-struct ErrBack<void, ContinuationResult, UnpuckedResultType, F> {
+struct ErrBack<void, ContinuationResult, UnpuckedResultType, F> : public CallbackBase<void> {
     Promise<UnpuckedResultType> pm;
     F cont;
 
     ErrBack(F&& f, Promise<UnpuckedResultType>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<void, Error>&& result) {
+    void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             // FIXME: Handle exceptions in completion handler
             pm.setValue(cont(result.moveError()));
@@ -404,14 +423,14 @@ struct ErrBack<void, ContinuationResult, UnpuckedResultType, F> {
 
 template<
          typename F>
-struct ErrBack<void, void, void, F> {
+struct ErrBack<void, void, void, F> : public CallbackBase<void> {
     Promise<void> pm;
     F cont;
 
     ErrBack(F&& f, Promise<void>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<void, Error>&& result) {
+    void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             // FIXME: Handle exceptions in completion handler
             cont(result.moveError());
@@ -425,14 +444,14 @@ struct ErrBack<void, void, void, F> {
 
 template<typename FutureValueType,
          typename F>
-struct ErrBack<FutureValueType, void, void, F> {
+struct ErrBack<FutureValueType, void, void, F> : public CallbackBase<FutureValueType> {
     Promise<void> pm;
     F cont;
 
     ErrBack(F&& f, Promise<void>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<FutureValueType, Error>&& result) {
+    void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             // FIXME: Handle exceptions in completion handler
 //            try {
@@ -455,21 +474,23 @@ struct ErrBack<FutureValueType, void, void, F> {
 template<typename FutureValueType,
          typename UnpuckedResultType,
          typename F>
-struct ErrBack<FutureValueType, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> {
+struct ErrBack<FutureValueType, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> : public CallbackBase<FutureValueType> {
+    typedef ErrBack<FutureValueType, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> CallbackType;
+
     Promise<UnpuckedResultType> pm;
     F cont;
 
     ErrBack(F&& f, Promise<UnpuckedResultType>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<FutureValueType, Error>&& result) {
+    void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([this] (UnpuckedResultType&& rv){
-                    pm.setValue(std::move(rv));
+                .then([self=this->shared_from_this()] (UnpuckedResultType&& rv){
+                    std::static_pointer_cast<CallbackType>(self)->pm.setValue(std::move(rv));
                 })
-                .orElse([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .orElse([self=this->shared_from_this()] (Error&& er) {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         } else {
             pm.setValue(result.moveResult());
@@ -480,21 +501,21 @@ struct ErrBack<FutureValueType, Result<UnpuckedResultType, Error>, UnpuckedResul
 template<
          typename UnpuckedResultType,
          typename F>
-struct ErrBack<void, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> {
+struct ErrBack<void, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> : public CallbackBase<void> {
     Promise<UnpuckedResultType> pm;
     F cont;
 
     ErrBack(F&& f, Promise<UnpuckedResultType>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<void, Error>&& result) {
+    void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([this] (UnpuckedResultType&& rv){
-                    pm.setValue(std::move(rv));
+                .then([self=shared_from_this()] (UnpuckedResultType&& rv){
+                    self->pm.setValue(std::move(rv));
                 })
-                .orElse([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .orElse([self=shared_from_this()] (Error&& er) {
+                    self->pm.setError(std::move(er));
                 });
         } else {
             pm.setValue();
@@ -505,21 +526,21 @@ struct ErrBack<void, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> {
 
 template<typename FutureValueType,
          typename F>
-struct ErrBack<FutureValueType, Result<void, Error>, void, F> {
+struct ErrBack<FutureValueType, Result<void, Error>, void, F> : public CallbackBase<FutureValueType> {
     Promise<void> pm;
     F cont;
 
     ErrBack(F&& f, Promise<void>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<FutureValueType, Error>&& result) {
+    void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([this] () {
-                    pm.setValue();
+                .then([self=this->shared_from_this()] () {
+                    self->pm.setValue();
                 })
-                .orElse([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .orElse([self=this->shared_from_this()] (Error&& er) {
+                    self->pm.setError(std::move(er));
                 });
         } else {
             pm.setValue();
@@ -530,21 +551,23 @@ struct ErrBack<FutureValueType, Result<void, Error>, void, F> {
 
 template<
          typename F>
-struct ErrBack<void, Result<void, Error>, void, F> {
+struct ErrBack<void, Result<void, Error>, void, F> : public CallbackBase<void> {
+    typedef ErrBack<void, Result<void, Error>, void, F> CallbackType;
+
     Promise<void> pm;
     F cont;
 
     ErrBack(F&& f, Promise<void>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<void, Error>&& result) {
+    void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([this] () {
-                    pm.setValue();
+                .then([self=this->shared_from_this()] () {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setValue();
                 })
-                .orElse([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .orElse([self=this->shared_from_this()] (Error&& er) {
+                    std::static_pointer_cast<CallbackType>(self)->pm.setError(std::move(er));
                 });
         } else {
             pm.setValue();
@@ -561,21 +584,21 @@ struct ErrBack<void, Result<void, Error>, void, F> {
 template<typename FutureValueType,
          typename UnpuckedResultType,
          typename F>
-struct ErrBack<FutureValueType, Future<UnpuckedResultType>, UnpuckedResultType, F> {
+struct ErrBack<FutureValueType, Future<UnpuckedResultType>, UnpuckedResultType, F> : public CallbackBase<FutureValueType> {
     Promise<UnpuckedResultType> pm;
     F cont;
 
     ErrBack(F&& f, Promise<UnpuckedResultType>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<FutureValueType, Error>&& result) {
+    void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([this] (UnpuckedResultType&& rv) {
-                    pm.setValue(std::move(rv));
+                .then([self=this->shared_from_this()] (UnpuckedResultType&& rv) {
+                    self->pm.setValue(std::move(rv));
                 })
-                .onError([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .onError([self=this->shared_from_this()] (Error&& er) {
+                    self->pm.setError(std::move(er));
                 });
         } else {
             pm.setValue(result.moveResult());
@@ -586,21 +609,21 @@ struct ErrBack<FutureValueType, Future<UnpuckedResultType>, UnpuckedResultType, 
 template<
          typename UnpuckedResultType,
          typename F>
-struct ErrBack<void, Future<UnpuckedResultType>, UnpuckedResultType, F> {
+struct ErrBack<void, Future<UnpuckedResultType>, UnpuckedResultType, F> : public CallbackBase<void> {
     Promise<UnpuckedResultType> pm;
     F cont;
 
     ErrBack(F&& f, Promise<UnpuckedResultType>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<void, Error>&& result) {
+    void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([this] (UnpuckedResultType&& rv) {
-                    pm.setValue(std::move(rv));
+                .then([self=this->shared_from_this()] (UnpuckedResultType&& rv) {
+                    self->pm.setValue(std::move(rv));
                 })
-                .onError([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .onError([self=this->shared_from_this()] (Error&& er) {
+                    self->pm.setError(std::move(er));
                 });
         } else {
             pm.setValue();
@@ -610,21 +633,21 @@ struct ErrBack<void, Future<UnpuckedResultType>, UnpuckedResultType, F> {
 
 template<typename FutureValueType,
          typename F>
-struct ErrBack<FutureValueType, Future<void>, void, F> {
+struct ErrBack<FutureValueType, Future<void>, void, F> : public CallbackBase<FutureValueType> {
     Promise<void> pm;
     F cont;
 
     ErrBack(F&& f, Promise<void>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<FutureValueType, Error>&& result) {
+    void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([this] () {
-                    pm.setValue();
+                .then([self=this->shared_from_this()] () {
+                    self->pm.setValue();
                 })
-                .onError([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .onError([self=this->shared_from_this()] (Error&& er) {
+                    self->pm.setError(std::move(er));
                 });
         } else {
             pm.setValue(result.moveResult());
@@ -634,21 +657,21 @@ struct ErrBack<FutureValueType, Future<void>, void, F> {
 
 template<
          typename F>
-struct ErrBack<void, Future<void>, void, F> {
+struct ErrBack<void, Future<void>, void, F> : public CallbackBase<void> {
     Promise<void> pm;
     F cont;
 
     ErrBack(F&& f, Promise<void>&& p) : pm(std::move(p)), cont(std::forward<F>(f))
     {}
 
-    void operator() (Result<void, Error>&& result) {
+    void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([this] () {
-                    pm.setValue();
+                .then([self=this->shared_from_this()] () {
+                    self->pm.setValue();
                 })
-                .onError([this] (Error&& er) {
-                    pm.setError(std::move(er));
+                .onError([self=this->shared_from_this()] (Error&& er) {
+                    self->pm.setError(std::move(er));
                 });
         } else {
             pm.setValue();
