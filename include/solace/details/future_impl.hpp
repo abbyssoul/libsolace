@@ -14,20 +14,20 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Future class to bind completion handlers for async operatoins
- *	@file		solace/io/async/future.hpp
+ * libSolace: Implementation details of Future callback types
+ *	@file		solace/details/future_impl.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_IO_ASYNC_FUTURE_IMPL_HPP
-#define SOLACE_IO_ASYNC_FUTURE_IMPL_HPP
+#ifndef SOLACE_DEATILS_FUTURE_IMPL_HPP
+#define SOLACE_DEATILS_FUTURE_IMPL_HPP
 
-#include "solace/io/async/promise.hpp"
+#include "solace/promise.hpp"
 
 
-namespace Solace { namespace IO { namespace async { namespace details  {
+namespace Solace { namespace details  {
 
 
 /**
@@ -683,7 +683,5 @@ struct ErrBack<void, Future<void>, void, F> : public CallbackBase<void> {
 
 
 }  // End of namespace details
-}  // End of namespace async
-}  // End of namespace IO
 }  // End of namespace Solace
-#endif  // SOLACE_IO_ASYNC_FUTURE_IMPL_HPP
+#endif  // SOLACE_DEATILS_FUTURE_IMPL_HPP

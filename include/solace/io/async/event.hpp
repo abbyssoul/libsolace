@@ -25,8 +25,8 @@
 #define SOLACE_IO_ASYNC_EVENT_HPP
 
 
+#include "solace/future.hpp"
 #include "solace/io/selectable.hpp"
-#include "solace/io/async/future.hpp"
 #include "solace/io/async/channel.hpp"
 
 

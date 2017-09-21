@@ -25,9 +25,9 @@
 #define SOLACE_IO_ASYNC_EVENTLOOP_HPP
 
 
+#include "solace/future.hpp"
 #include "solace/byteBuffer.hpp"
 #include "solace/io/selector.hpp"
-#include "solace/io/async/future.hpp"
 
 
 #include <memory>

@@ -25,9 +25,9 @@
 #define SOLACE_IO_ASYNC_SERIAL_HPP
 
 #include "solace/byteBuffer.hpp"
+#include "solace/future.hpp"
 #include "solace/io/serial.hpp"
 #include "solace/io/selectable.hpp"
-#include "solace/io/async/future.hpp"
 #include "solace/io/async/channel.hpp"
 
 

@@ -15,25 +15,26 @@
 */
 /*******************************************************************************
  * libSolace: Promise side of the Future
- *	@file		solace/io/async/promise.hpp
+ *	@file		solace/promise.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_IO_ASYNC_PROMISE_HPP
-#define SOLACE_IO_ASYNC_PROMISE_HPP
+#ifndef SOLACE_PROMISE_HPP
+#define SOLACE_PROMISE_HPP
 
-#include <solace/delegate.hpp>
 
-#include <solace/result.hpp>
-#include <solace/error.hpp>
-#include <solace/assert.hpp>
+#include "solace/result.hpp"
+#include "solace/error.hpp"
+#include "solace/assert.hpp"
+
 
 #include <atomic>
+#include <memory>
 
 
-namespace Solace { namespace IO { namespace async {
+namespace Solace {
 
 namespace details  {
 
@@ -83,7 +84,6 @@ public:
 
 private:
 
-//    delegate<void(Result<T, Error>&&)> _completionHandler;
     std::atomic<bool> _fired {false};
     std::shared_ptr<details::CallbackBase<T>> _completionHandler;
 
@@ -265,8 +265,5 @@ private:
 };
 
 
-
-}  // End of namespace async
-}  // End of namespace IO
 }  // End of namespace Solace
-#endif  // SOLACE_IO_ASYNC_PROMISE_HPP
+#endif  // SOLACE_PROMISE_HPP

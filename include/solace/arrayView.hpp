@@ -224,9 +224,10 @@ public:
     }
 
     Optional<size_type> indexOf(const_reference value) const noexcept {
-        const auto it = begin();
-        for (size_type i = 0; i < size(); ++i) {
-            if (value == it[i]) {
+        const auto len = size();
+        auto it = begin();
+        for (size_type i = 0; i < len; ++i, ++it) {
+            if (value == *it) {
                 return Optional<size_type>::of(i);
             }
         }

@@ -52,7 +52,8 @@ public:
             } else if (expCount > 0) {
                 _promise.setValue(expCount);
             }
-            _isComplete = true; //!isPeriodic();
+
+            _isComplete = true;  // !isPeriodic();
         }
 
         if (event.isSet(Solace::IO::Selector::Events::Write)) {

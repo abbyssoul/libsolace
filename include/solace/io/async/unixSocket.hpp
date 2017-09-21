@@ -24,11 +24,12 @@
 #ifndef SOLACE_IO_ASYNC_UNIXSOCKET_HPP
 #define SOLACE_IO_ASYNC_UNIXSOCKET_HPP
 
+#include "solace/future.hpp"
+#include "solace/string.hpp"
+
 #include "solace/io/selectable.hpp"
-#include "solace/io/async/future.hpp"
 #include "solace/io/async/channel.hpp"
 
-#include "solace/string.hpp"
 
 
 namespace Solace { namespace IO { namespace async {

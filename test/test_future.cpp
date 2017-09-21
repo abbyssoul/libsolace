@@ -20,21 +20,19 @@
  *
  * Created on: 29/05/2017
 *******************************************************************************/
-#include <solace/io/async/future.hpp>  // Class being tested
+#include <solace/future.hpp>  // Class being tested
 #include <solace/exception.hpp>
 #include <solace/array.hpp>
 
 #include <cppunit/extensions/HelperMacros.h>
 
-#include "../../mockTypes.hpp"
+#include "mockTypes.hpp"
 
 #include <thread>
 #include <chrono>
 
 
 using namespace Solace;
-using namespace Solace::IO;
-using namespace Solace::IO::async;
 
 
 static int resolveVoidFunc() {

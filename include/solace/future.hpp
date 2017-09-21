@@ -15,19 +15,19 @@
 */
 /*******************************************************************************
  * libSolace: Future class to bind completion handlers for async operatoins
- *	@file		solace/io/async/future.hpp
+ *	@file		solace/future.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_IO_ASYNC_FUTUE_HPP
-#define SOLACE_IO_ASYNC_FUTUE_HPP
+#ifndef SOLACE_FUTUE_HPP
+#define SOLACE_FUTUE_HPP
 
-#include "solace/io/async/promise.hpp"
+#include "solace/promise.hpp"
 
 
-namespace Solace { namespace IO { namespace async {
+namespace Solace {
 
 
 template <typename T>
@@ -357,11 +357,9 @@ Promise<void>::getFuture() {
 
 
 
-}  // End of namespace async
-}  // End of namespace IO
 }  // End of namespace Solace
 
-#include "future_impl.hpp"
-#include "futureComposition.hpp"
+#include "details/future_impl.hpp"
+#include "details/futureComposition.hpp"
 
-#endif  // SOLACE_IO_ASYNC_FUTUE_HPP
+#endif  // SOLACE_FUTUE_HPP

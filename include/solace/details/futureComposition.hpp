@@ -14,24 +14,22 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Future class to bind completion handlers for async operatoins
- *	@file		solace/io/async/future.hpp
+ * libSolace: Implementation details of Future composition methods
+ *	@file		solace/details/futureComposition.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  *	ID:			$Id$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_IO_ASYNC_FUTURECOMPOSITION_HPP
-#define SOLACE_IO_ASYNC_FUTURECOMPOSITION_HPP
+#ifndef SOLACE_DEATILS_FUTURE_COMPOSITION_HPP
+#define SOLACE_DEATILS_FUTURE_COMPOSITION_HPP
 
-#include "future.hpp"
+#include "solace/future.hpp"
 
 #include <atomic>
 
 
-namespace Solace { namespace IO { namespace async {
-
-namespace details {
+namespace Solace { namespace details {
 
 template <typename T>
 struct CollectContext {
@@ -158,8 +156,5 @@ auto collect(Collection&& c) -> decltype(collect(c.begin(), c.end())) {
   return collect(c.begin(), c.end());
 }
 
-}  // End of namespace async
-}  // End of namespace IO
 }  // End of namespace Solace
-
-#endif  // SOLACE_IO_ASYNC_FUTURECOMPOSITION_HPP
+#endif  // SOLACE_DEATILS_FUTUREC_OMPOSITION_HPP

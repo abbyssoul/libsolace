@@ -23,6 +23,7 @@ set(TEST_SOURCE_FILES
         test_byteBuffer.cpp
         test_optional.cpp
         test_result.cpp
+        test_future.cpp
         test_uuid.cpp
         test_char.cpp
         test_string.cpp
@@ -40,7 +41,6 @@ set(TEST_SOURCE_FILES
         io/async/test_pipe.cpp
         io/async/test_signalSet.cpp
         io/async/test_timer.cpp
-        io/async/test_future.cpp
 
         process/test_env.cpp
         framework/test_commandlineParser.cpp
