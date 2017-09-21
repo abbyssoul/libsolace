@@ -30,6 +30,7 @@
 #include <poll.h>   // poll()
 #include <fcntl.h>
 #include <unistd.h>  // close()
+#include <errno.h>
 
 
 using namespace Solace;
@@ -43,7 +44,7 @@ class PollSelectorImpl :
 public:
 
     // FIXME: evlist will actually leak if we throw here...
-    explicit PollSelectorImpl(uint maxPollables) {
+    explicit PollSelectorImpl(uint32 maxPollables) {
         _selectables.reserve(maxPollables);
         _pollfds.reserve(maxPollables);
     }
@@ -62,8 +63,11 @@ public:
             pollEvents |= POLLIN | POLLPRI;
         if (events & Selector::Events::Write)
             pollEvents |= POLLOUT;
+
+        #ifdef SOLACE_PLATFORM_LINUX
         if (events & Selector::Events::Hup)
             pollEvents |= POLLRDHUP;
+        #endif
 
         addRaw(fd, pollEvents, data);
     }
@@ -102,7 +106,7 @@ public:
     }
 
 
-    std::tuple<uint, uint> poll(int msec) override {
+    std::tuple<uint32, uint32> poll(int msec) override {
         const auto r = ::poll(_pollfds.data(), _pollfds.size(), msec);
         if (r < 0) {
             Solace::raise<IOException>(errno);
@@ -115,7 +119,7 @@ public:
     }
 
 
-    Selector::Event getEvent(uint i) override {
+    Selector::Event getEvent(size_t i) override {
         const auto& ev = _pollfds[i];
         const auto& selected = _selectables[i];
 
@@ -130,8 +134,10 @@ public:
             event.events |= Selector::Events::Write;
         if (ev.revents & POLLERR)
             event.events |= Selector::Events::Error;
+        #ifdef SOLACE_PLATFORM_LINUX
         if (ev.revents & POLLRDHUP)
             event.events |= Selector::Events::Hup;
+        #endif
 
         return event;
     }
@@ -172,7 +178,7 @@ private:
 };
 
 
-Selector Selector::createPoll(uint eventSize) {
+Selector Selector::createPoll(uint32 eventSize) {
     auto pimpl = std::make_shared<PollSelectorImpl>(eventSize);
 
     return Selector(std::move(pimpl));

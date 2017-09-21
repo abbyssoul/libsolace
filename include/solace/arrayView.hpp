@@ -57,30 +57,30 @@ public:
 public:
 
     /** Construct an empty array */
-    inline constexpr ArrayView() noexcept
+    constexpr ArrayView() noexcept
     {}
 
-    inline constexpr ArrayView(decltype(nullptr)) noexcept
+    constexpr ArrayView(decltype(nullptr)) noexcept
     {}
 
-    inline constexpr ArrayView(T* ptr, size_type arraySize) noexcept :
+    constexpr ArrayView(T* ptr, size_type arraySize) noexcept :
         _memory(wrapMemory(ptr, arraySize))
     {}
 
-    inline constexpr ArrayView(T* begin, T* end) noexcept :
+    constexpr ArrayView(T* begin, T* end) noexcept :
         _memory(wrapMemory(begin, end - begin))
     {}
 
     template <size_t size>
-    inline constexpr ArrayView(T (&carray)[size]) noexcept :
+    constexpr ArrayView(T (&carray)[size]) noexcept :
         _memory(wrapMemory(carray))
     {}
 
-    inline constexpr ArrayView(const ArrayView& other) noexcept :
+    constexpr ArrayView(const ArrayView& other) noexcept :
         _memory(other._memory.viewShallow())
     {}
 
-    inline constexpr ArrayView(MemoryView&& memview) noexcept :
+    constexpr ArrayView(MemoryView&& memview) noexcept :
         _memory(std::move(memview))
     {}
 
@@ -103,7 +103,7 @@ public:
         return swap(rhs);
     }
 
-    inline bool equals(const ArrayView& other) const noexcept {
+    bool equals(const ArrayView& other) const noexcept {
         if (size() != other.size()) {
             return false;
         }
@@ -124,24 +124,24 @@ public:
         return true;
     }
 
-    inline bool operator== (decltype(nullptr)) const noexcept { return empty(); }
-    inline bool operator!= (decltype(nullptr)) const noexcept { return !empty(); }
+    bool operator== (decltype(nullptr)) const noexcept { return empty(); }
+    bool operator!= (decltype(nullptr)) const noexcept { return !empty(); }
 
-    inline bool operator== (const ArrayView& other) const noexcept {
+    bool operator== (const ArrayView& other) const noexcept {
         return equals(other);
     }
 
-    inline bool operator!= (const ArrayView& other) const noexcept {
+    bool operator!= (const ArrayView& other) const noexcept {
         return !equals(other);
     }
 
     template <typename U>
-    inline bool operator== (const ArrayView<U>& other) const {
+    bool operator== (const ArrayView<U>& other) const {
         return equals(other);
     }
 
     template <typename U>
-    inline bool operator!= (const ArrayView<U>& other) const noexcept {
+    bool operator!= (const ArrayView<U>& other) const noexcept {
         return !equals(other);
     }
 
@@ -157,73 +157,73 @@ public:
      * Get the number of elements in this array
      * @return number of elements in this collection.
      */
-    inline size_type size() const noexcept {
+    size_type size() const noexcept {
         return _memory.size() / sizeof(T);
     }
 
 
-    inline const_reference operator[] (size_type index) const {
+    const_reference operator[] (size_type index) const {
         index = assertIndexInRange(index, 0, size(), "ArrayView[] const");
 
         return _memory.dataAs<T>()[index];
     }
 
 
-    inline reference operator[] (size_type index) {
+    reference operator[] (size_type index) {
         index = assertIndexInRange(index, 0, size(), "ArrayView[]");
 
         return _memory.dataAs<T>()[index];
     }
 
 
-    inline Iterator begin()     {
+    Iterator begin()     {
         return _memory.empty()
                 ? nullptr
                 : _memory.dataAs<T>();
     }
 
-    inline Iterator end()       { return begin() + size(); }
-    inline reference front()    { return *begin(); }
-    inline reference back()     { return *(begin() + size() - 1); }
+    Iterator end()       { return begin() + size(); }
+    reference front()    { return *begin(); }
+    reference back()     { return *(begin() + size() - 1); }
 
-    inline const_iterator begin()   const {
+    const_iterator begin()   const {
         return _memory.empty()
                 ? nullptr
                 : _memory.dataAs<T>();
     }
 
-    inline const_iterator end()     const { return (begin() + size()); }
-    inline const_reference front()  const { return *begin(); }
-    inline const_reference back()   const { return *(begin() + size() - 1); }
+    const_iterator end()     const { return (begin() + size()); }
+    const_reference front()  const { return *begin(); }
+    const_reference back()   const { return *(begin() + size() - 1); }
 
 
-    inline ArrayView<const T> slice(size_type start, size_type end) const {
+    ArrayView<const T> slice(size_type start, size_type end) const {
         start   = assertIndexInRange(start, 0,      size(), "ArrayView::slice() const");
         end     = assertIndexInRange(end,   start,  size(), "ArrayView::slice() const");
 
         return ArrayView<const T>(begin() + start, end - start);
     }
 
-    inline ArrayView slice(size_type start, size_type end) {
+    ArrayView slice(size_type start, size_type end) {
         start   = assertIndexInRange(start, 0,      size(), "ArrayView::slice()");
         end     = assertIndexInRange(end,   start,  size(), "ArrayView::slice()");
 
         return ArrayView<T>(begin() + start, end - start);
     }
 
-    inline ImmutableMemoryView view() const noexcept {
+    ImmutableMemoryView view() const noexcept {
         return _memory;
     }
 
-    inline MemoryView view() noexcept {
+    MemoryView view() noexcept {
         return _memory;
     }
 
-    inline bool contains(const_reference value) const noexcept {
+    bool contains(const_reference value) const noexcept {
         return indexOf(value).isSome();
     }
 
-    inline Optional<size_type> indexOf(const_reference value) const noexcept {
+    Optional<size_type> indexOf(const_reference value) const noexcept {
         const auto it = begin();
         for (size_type i = 0; i < size(); ++i) {
             if (value == it[i]) {
@@ -234,15 +234,15 @@ public:
         return None();
     }
 
-    inline ArrayView<const T> asConst() const noexcept {
+    ArrayView<const T> asConst() const noexcept {
       return ArrayView<const T>(_memory);
     }
 
-    inline operator ArrayView<const T>() const noexcept {
+    operator ArrayView<const T>() const noexcept {
       return asConst();
     }
 
-    inline void fill(const_reference value) noexcept {
+    void fill(const_reference value) noexcept {
         for (auto& v : *this) {
             v = value;
         }
@@ -290,20 +290,20 @@ void swap(ArrayView<T>& lhs, ArrayView<T>& rhs) noexcept {
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-inline constexpr ArrayView<T> arryaView(T* ptr, size_t size) {
+constexpr ArrayView<T> arryaView(T* ptr, size_t size) {
   return ArrayView<T>(ptr, size);
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T, size_t N>
-inline constexpr ArrayView<T> arrayView(T (&carray)[N]) {
+constexpr ArrayView<T> arrayView(T (&carray)[N]) {
   return ArrayView<T>(carray);
 }
 
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-inline constexpr ArrayView<T> arrayView(T* begin, T* end) {
+constexpr ArrayView<T> arrayView(T* begin, T* end) {
   return ArrayView<T>(begin, end);
 }
 

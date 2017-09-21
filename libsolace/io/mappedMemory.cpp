@@ -22,6 +22,7 @@
 #include <solace/exception.hpp>
 
 
+#include <errno.h>
 #include <sys/mman.h>
 #include <sys/types.h>
 

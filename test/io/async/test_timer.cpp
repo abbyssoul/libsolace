@@ -109,22 +109,49 @@ public:
         CPPUNIT_ASSERT(eventWasCalled);
     }
 
-    void testPeriodicTimeout() {
-        auto iocontext = async::EventLoop(2);
-        int nbTimesCalled = 0;
+    class TimerResetter {
+    public:
+        TimerResetter(async::Timer& timer, int stopAfter) : _timer(timer), _stopAfter(stopAfter)
+        {}
 
-        async::Timer timer(iocontext);
-        timer.setTimeoutInterval(std::chrono::milliseconds(10), std::chrono::milliseconds(25))
-                .asyncWait()
-                .then([&nbTimesCalled, &iocontext](int64_t numberOfExpirations) {
+        int getTimesCalled() const noexcept {
+            return nbTimesCalled;
+        }
+
+        bool countTimeout(int64 numberOfExpirations) {
 
             nbTimesCalled += numberOfExpirations;
-            if (nbTimesCalled >= 4) {
-                iocontext.stop();
-            }
-        });
+            if (_stopAfter < nbTimesCalled) {
+                _timer.getIOContext().stop();
 
-        CPPUNIT_ASSERT_EQUAL(0, nbTimesCalled);
+                return false;
+            }
+
+            return true;
+        }
+
+        void await() {
+            _timer.asyncWait().then([this](int64 count) {
+                if (countTimeout(count))
+                    await();
+            });
+        }
+
+    private:
+        int nbTimesCalled = 0;
+        async::Timer& _timer;
+        int _stopAfter;
+    };
+
+    void testPeriodicTimeout() {
+        auto iocontext = async::EventLoop(2);
+        async::Timer timer(iocontext);
+
+        timer.setTimeoutInterval(std::chrono::milliseconds(10), std::chrono::milliseconds(25));
+        TimerResetter resetter(timer, 4);
+        resetter.await();
+
+        CPPUNIT_ASSERT_EQUAL(0, resetter.getTimesCalled());
 
         std::thread watchdog([&iocontext]() {
             using namespace std::chrono_literals;
@@ -143,7 +170,7 @@ public:
 
         watchdog.join();
 
-        CPPUNIT_ASSERT_EQUAL(4, nbTimesCalled);
+        CPPUNIT_ASSERT_EQUAL(4, resetter.getTimesCalled());
         CPPUNIT_ASSERT(!runFailes);
     }
 

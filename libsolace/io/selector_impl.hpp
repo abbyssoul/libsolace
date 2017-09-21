@@ -44,9 +44,9 @@ public:
 
     virtual void remove(ISelectable::poll_id fd) = 0;
 
-    virtual std::tuple<uint, uint> poll(int msec) = 0;
+    virtual std::tuple<uint32, uint32> poll(int msec) = 0;
 
-    virtual Selector::Event getEvent(uint i) = 0;
+    virtual Selector::Event getEvent(size_t i) = 0;
 
     virtual size_t advance(size_t i) = 0;
 };

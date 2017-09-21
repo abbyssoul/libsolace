@@ -26,6 +26,7 @@
 
 #include <unistd.h>
 #include <signal.h>
+#include <errno.h>
 
 
 using namespace Solace;

@@ -50,9 +50,9 @@ public:
             if (result < 0) {
                 raise<IOException>(errno);
             } else if (expCount > 0) {
-                _isComplete = !isPeriodic();
                 _promise.setValue(expCount);
             }
+            _isComplete = true; //!isPeriodic();
         }
 
         if (event.isSet(Solace::IO::Selector::Events::Write)) {

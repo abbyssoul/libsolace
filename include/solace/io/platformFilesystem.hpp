@@ -154,7 +154,7 @@ public:
      * @param path A path to the file to get timestamp of
      * @return Timestamp of the file
      */
-    timespec getTimestamp(const Path& path) const;
+    time_t getTimestamp(const Path& path) const;
 
     /**
      * Get the size of the file pointed to by the path

@@ -122,7 +122,7 @@ void EventLoop::dispatchEvents(const Selector::Iterator& readyEvents) {
         }
     }
 
-    _backlog.erase(std::remove_if(_backlog.begin(), _backlog.end(), [](auto r) { return r->isComplete();}),
+    _backlog.erase(std::remove_if(_backlog.begin(), _backlog.end(), [](auto r) { return r->isComplete(); }),
                    _backlog.end());
 }
 

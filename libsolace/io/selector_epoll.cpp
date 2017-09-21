@@ -25,9 +25,13 @@
 
 #include "selector_impl.hpp"
 
-#include <sys/epoll.h>
-#include <fcntl.h>
+
 #include <unistd.h>  // close()
+#include <fcntl.h>
+
+#ifdef SOLACE_PLATFORM_LINUX
+
+#include <sys/epoll.h>
 
 
 using namespace Solace;
@@ -125,7 +129,7 @@ public:
     }
 
 
-    std::tuple<uint, uint> poll(int msec) override {
+    std::tuple<uint32, uint32> poll(int msec) override {
 
         for (int i = 0; i < 3; ++i) {   // Allow for 3 interapts in a row
             const int ready = epoll_wait(_epfd, _evlist.data(), _evlist.size(), msec);
@@ -143,7 +147,7 @@ public:
     }
 
 
-    Selector::Event getEvent(uint i) override {
+    Selector::Event getEvent(size_t i) override {
         const auto& ev = _evlist[i];
         const auto selected = static_cast<Selector::Event*>(ev.data.ptr);
 
@@ -175,7 +179,7 @@ private:
 
     std::vector<Selector::Event>    _selectables;
     Solace::Array<epoll_event>      _evlist;
-    int _epfd;
+    int                             _epfd;
 };
 
 
@@ -185,3 +189,5 @@ Selector Selector::createEPoll(uint eventSize) {
 
     return Selector(std::move(pimpl));
 }
+
+#endif  // SOLACE_PLATFORM_LINUX

@@ -64,6 +64,8 @@ public:
     enum Events {
         Read = 0x001,
         Write = 0x004,
+
+        // Following events are not selectable, but can be returned by a selector
         Error = 0x008,
         Hup = 0x010,
     };

@@ -27,7 +27,7 @@
 
 #include <cstring>  // memcpy
 #include <unistd.h>
-
+#include <cerrno>
 
 using Solace::MemoryView;
 using Solace::MemoryManager;
@@ -97,12 +97,16 @@ MemoryManager::size_type MemoryManager::getNbPages() const {
 }
 
 MemoryManager::size_type MemoryManager::getNbAvailablePages() const {
-    const auto res = sysconf(_SC_AVPHYS_PAGES);
+#ifdef SOLACE_PLATFORM_LINUX
+  const auto res = sysconf(_SC_AVPHYS_PAGES);
     if (res < 0) {
         Solace::raise<IOException>(errno, "sysconf(_SC_AVPHYS_PAGES)");
     }
 
     return res;
+#else
+    return 0;
+#endif
 }
 
 

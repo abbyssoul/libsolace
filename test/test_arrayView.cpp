@@ -652,6 +652,9 @@ public:
             CPPUNIT_ASSERT_EQUAL(ArrayView<int>::size_type(4), maybeIndex.get());
         }
 
+        {  // Can we find this sequance? Yes we can
+            CPPUNIT_ASSERT(ArrayView<SimpleType>().indexOf(SimpleType(7, 9, 11)).isSome());
+        }
 
         {  // Test for non-existing value:
             CPPUNIT_ASSERT(array.indexOf(3*4 + 128).isNone());
@@ -661,8 +664,8 @@ public:
             CPPUNIT_ASSERT(ArrayView<int>().indexOf(2*3 - 1).isNone());
         }
 
-        {  // Floats are so imprecise
-            CPPUNIT_ASSERT(ArrayView<float32>().indexOf(3.1415f).isNone());
+        {  // Can we find this sequance? Nope
+            CPPUNIT_ASSERT(ArrayView<SimpleType>().indexOf(SimpleType(3, 2, 1)).isNone());
         }
     }
 

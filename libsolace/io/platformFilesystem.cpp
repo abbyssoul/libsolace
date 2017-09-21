@@ -186,7 +186,7 @@ bool PlatformFilesystem::isDirectory(const Path& path) const {
 }
 
 
-timespec PlatformFilesystem::getTimestamp(const Path& path) const {
+time_t PlatformFilesystem::getTimestamp(const Path& path) const {
     const auto& pathString = path.toString();
 
     struct stat sb;
@@ -194,7 +194,7 @@ timespec PlatformFilesystem::getTimestamp(const Path& path) const {
         raise<IOException>(errno);
     }
 
-    return sb.st_mtim;
+    return sb.st_mtime;
 }
 
 

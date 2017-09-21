@@ -41,9 +41,8 @@ class Application {
 public:
     virtual ~Application();
 
-    Application(const Version& version): _version(version) {
-
-    }
+    Application(const Version& version): _version(version)
+    {}
 
 
     /**
@@ -87,6 +86,7 @@ public:
 private:
 
     const Solace::Version _version;
+
 };
 
 }  // End of namespace Framework

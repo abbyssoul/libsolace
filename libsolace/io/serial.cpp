@@ -40,7 +40,7 @@ using Solace::Path;
 using Solace::ByteBuffer;
 using Solace::IO::Serial;
 using Solace::IOException;
-
+using Solace::IllegalArgumentException;
 
 
 timespec timespec_from_ms(const uint32 millis) {
@@ -283,7 +283,7 @@ void reconfigurePort(int fd, uint32 baudrate, Serial::Bytesize bytesize,
             break;
 #else
         // CMSPAR is not defined on OSX. So do not support mark or space parity.
-    if (parity_ == parity_mark || parity_ == parity_space) {
+    if (parity == Serial::Parity::mark || parity == Serial::Parity::space) {
         Solace::raise<IllegalArgumentException>("OS does not support mark or space parity");
     }
 #endif  // ifdef CMSPAR
@@ -566,9 +566,12 @@ Serial::size_type Serial::available() const {
     const auto fd = validateFd();
 
     int count = 0;
+
+#ifdef SOLACE_PLATFORM_LINUX
     if (-1 == ioctl(fd, TIOCINQ, &count)) {
         Solace::raise<IOException>(errno, "ioctl(TIOCINQ)");
     }
+#endif
 
     return static_cast<size_type>(count);
 }
