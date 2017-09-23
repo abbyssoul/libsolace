@@ -5,6 +5,7 @@ doc/html
 libs/*/
 tools/*/
 coverage.info
+Makefile
 
 ### C++/C ###
 # Compiled Object files

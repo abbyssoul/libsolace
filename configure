@@ -1,5 +1,7 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+project_name=$(basename $DIR)
 prefix=/usr/local
 debugsym=true
 
@@ -26,9 +28,9 @@ for arg in "$@"; do
     esac
 done
 
-echo 'generating makefile ...'
-echo "# Generated Makefile for libsolace: $(date)" > Makefile
-echo "PREFIX = $prefix" >> Makefile
+echo "Generating Makefile for ${project_name}..."
+echo "# Generated Makefile for ${project_name}: $(date)" > Makefile
+echo "PREFIX ?= ${prefix}" >> Makefile
 
 if $debugsym; then
     echo 'dbg = -g' >> Makefile
@@ -36,4 +38,4 @@ fi
 
 echo '' >> Makefile
 cat Makefile.in >> Makefile
-echo 'configuration complete, type make to build.'
+echo "Configuration complete, type 'make' to build ${project_name}."

@@ -1,5 +1,5 @@
-# Generated Makefile for libsolace: Mon 11 Sep 02:40:38 AEST 2017
-PREFIX = /usr
+# Generated Makefile for libsolace: Sat 23 Sep 18:31:54 AEST 2017
+PREFIX ?= /usr/local
 dbg = -g
 
 
