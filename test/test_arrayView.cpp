@@ -40,6 +40,16 @@ T* generateTestArray(T (&carray)[N], F generator) {
     return carray;
 }
 
+int fillOdd(size_t i) {
+    return static_cast<int>(2*i - 1);
+}
+
+int fillEven(size_t i) {
+    static constexpr int bias = 2928;
+
+    return 2*static_cast<int>(i) + bias;
+}
+
 
 template <typename T>
 std::ostream& operator<< (std::ostream& ostr, const Solace::ArrayView<T>& a) {
@@ -74,10 +84,18 @@ class TestArrayView :
         CPPUNIT_TEST(testFromNativeConvertion);
         CPPUNIT_TEST(testMoveAssignment);
 */
-//        CPPUNIT_TEST(testEquals);
+        CPPUNIT_TEST(testEquals_EmptyArray);
+        CPPUNIT_TEST(testEquals_IntegralType);
+        CPPUNIT_TEST(testEquals_NonPodType);
+
+
         CPPUNIT_TEST(testIndexOf);
         CPPUNIT_TEST(testContains);
-        CPPUNIT_TEST(testFill);
+        CPPUNIT_TEST(testFillWithConstValue);
+        CPPUNIT_TEST(testFillWithGenerator);
+        CPPUNIT_TEST(testFillWithConstExplosiveValue);
+        CPPUNIT_TEST(testFillWithGeneratorOfExplosiveValue);
+
 
         // ForEach methods
         /*
@@ -105,13 +123,25 @@ protected:
         static const char* STR_DEFAULT;
 
         int iValue;
-        const char* str;
+        std::string str;
+
+
+        virtual ~NonPodStruct() {
+            --TotalCount;
+        }
 
         NonPodStruct(int i, const char* inStr) :
             iValue(i), str(inStr)
         {
             ++TotalCount;
         }
+
+        NonPodStruct(int i, std::string&& inStr) :
+            iValue(i), str(std::move(inStr))
+        {
+            ++TotalCount;
+        }
+
 
         NonPodStruct() : iValue(IVALUE_DEFAULT), str(STR_DEFAULT)
         {
@@ -128,13 +158,16 @@ protected:
             ++TotalCount;
         }
 
-        virtual ~NonPodStruct() {
-            --TotalCount;
-        }
-
         NonPodStruct& operator= (const NonPodStruct& rhs) {
             iValue = rhs.iValue;
             str = rhs.str;
+
+            return (*this);
+        }
+
+        NonPodStruct& operator= (NonPodStruct&& rhs) {
+            iValue = std::move(rhs.iValue);
+            str = std::move(rhs.str);
 
             return (*this);
         }
@@ -148,6 +181,8 @@ protected:
     struct DerivedNonPodStruct  : public NonPodStruct {
         float fValue;
 
+        virtual ~DerivedNonPodStruct() = default;
+
         DerivedNonPodStruct() :
             NonPodStruct(312, "Derived String"), fValue(3.1415f)
         {
@@ -158,9 +193,46 @@ protected:
         {
         }
 
-        virtual ~DerivedNonPodStruct() = default;
-
     };
+
+    static NonPodStruct fillOddNonPods(size_t i) {
+        const auto index = static_cast<int>(i)*2 - 1;
+        auto str = std::string("Some Odd string: ") + std::to_string(index);
+
+        return NonPodStruct(index, std::move(str));
+    }
+
+    static NonPodStruct fillEvenNonPods(size_t i) {
+        const auto index = static_cast<int>(i)*2 + 1;
+        auto str = std::string("Some Event string: ") + std::to_string(index);
+
+        return NonPodStruct(index, std::move(str));
+    }
+
+
+    template<typename T>
+    class NonPodGuard {
+    public:
+        ~NonPodGuard() {
+            for (size_t i = 0; i < _size; ++i) {
+                reinterpret_cast<T*>(_mem + i * sizeof(T))->~T();
+            }
+        }
+
+        NonPodGuard(byte* mem, size_t size) :
+            _mem(mem),
+            _size(size)
+        {
+            for (size_t i = 0; i < _size; ++i) {
+                new ((_mem + i * sizeof(T))) T();
+            }
+        }
+
+    private:
+        byte*   _mem;
+        size_t  _size;
+    };
+
 
 public:
 
@@ -183,6 +255,7 @@ public:
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
             CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
+            CPPUNIT_ASSERT(empty_array == nullptr);
         }
 
         {
@@ -191,6 +264,7 @@ public:
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
             CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
+            CPPUNIT_ASSERT(empty_array == nullptr);
         }
 
         {
@@ -199,13 +273,15 @@ public:
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
             CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
+            CPPUNIT_ASSERT(empty_array == nullptr);
         }
     }
+
 
     void testCopyConstruction() {
         int src[16];
         const ArrayView<int>::size_type srcSize = sizeof(src) / sizeof(int);
-        generateTestArray(src, [](size_t i) { return (2*i - 1); });
+        generateTestArray(src, fillOdd);
 
 
         ArrayView<int> a2(src);
@@ -239,6 +315,7 @@ public:
     void testCopy() {
         {
             int src[16];
+            generateTestArray(src, fillOdd);
 
             ArrayView<int> a1;
             ArrayView<int> a2(src);
@@ -246,17 +323,22 @@ public:
             CPPUNIT_ASSERT(a1.empty());
             CPPUNIT_ASSERT(!a2.empty());
 
-            for (ArrayView<int>::size_type i = 0; i < a2.size(); ++i) {
-                a2[i] = static_cast<int>(2*i - 1);
-            }
-
             // Copy arrays
             a1 = a2;
 
             CPPUNIT_ASSERT(!a1.empty());
+            CPPUNIT_ASSERT(!a2.empty());
             CPPUNIT_ASSERT_EQUAL(a1.size(), a2.size());
+
             for (ArrayView<int>::size_type i = 0; i < a1.size(); ++i) {
-                CPPUNIT_ASSERT_EQUAL(static_cast<int>(2*i - 1), a1[i]);
+                CPPUNIT_ASSERT_EQUAL(fillOdd(i), a1[i]);
+            }
+
+            // Make sure that if underlaying memory changed - this is reflected in arrayView:
+            generateTestArray(src, fillEven);
+            for (ArrayView<int>::size_type i = 0; i < a1.size(); ++i) {
+                CPPUNIT_ASSERT_EQUAL(fillEven(i), a1[i]);
+                CPPUNIT_ASSERT_EQUAL(fillEven(i), a2[i]);
             }
         }
     }
@@ -497,152 +579,173 @@ public:
             }
         }
     }
+*/
 
-    void testEquals() {
-        {
-            const ArrayView<int> array = {1, 2, 3};
+    void testEquals_EmptyArray() {
+        ArrayView<int> emptyArray;
 
-            const int equal_native_array[] = {1, 2, 3};
-            const auto equal_native_array_length = nativeArrayLength(equal_native_array);
+        CPPUNIT_ASSERT(emptyArray == nullptr);
+        CPPUNIT_ASSERT(!(emptyArray != nullptr));
+        CPPUNIT_ASSERT(emptyArray.equals(emptyArray));
 
-            const int nequal_native_array_0[] = {0, 1, 2, 3};
-            const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
+        {  // Check that array views of the same memory are equal:
+            ArrayView<int> differenEmptyArray;
 
-            const int nequal_native_array_1[] = {3, 2, 1};
-            const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
-
-            const ArrayView<int> array_eq(equal_native_array_length, equal_native_array);
-            const ArrayView<int> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
-            const ArrayView<int> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
-
-            CPPUNIT_ASSERT_EQUAL(equal_native_array_length, array.size());
-            CPPUNIT_ASSERT(nequal_native_array_0_length != array.size());
-            CPPUNIT_ASSERT(nequal_native_array_1_length == array.size());
-
-            CPPUNIT_ASSERT(array.equals({1, 2, 3}));
-            CPPUNIT_ASSERT(!array.equals({3, 2, 3}));
-            CPPUNIT_ASSERT(!array.equals({1, 2, 3, 4}));
-
-            CPPUNIT_ASSERT(array.equals(array_eq));
-            CPPUNIT_ASSERT(!array.equals(array_neq_0));
-            CPPUNIT_ASSERT(!array.equals(array_neq_1));
-
-            CPPUNIT_ASSERT_EQUAL(true, array == array_eq);
-            CPPUNIT_ASSERT_EQUAL(false, array != array_eq);
-
-            CPPUNIT_ASSERT_EQUAL(false, array == array_neq_0);
-            CPPUNIT_ASSERT_EQUAL(true, array != array_neq_0);
-
-            CPPUNIT_ASSERT_EQUAL(false, array == array_neq_1);
-            CPPUNIT_ASSERT_EQUAL(true, array != array_neq_1);
-        }
-
-        {
-            const ArrayView<String> array = {"tasrd", "", "hhha", "asd"};
-
-            const String equal_native_array[] = {"tasrd", "", "hhha", "asd"};
-            const auto equal_native_array_length = nativeArrayLength(equal_native_array);
-
-            const String nequal_native_array_0[] = {"tasrd", "", "hhha", "asd", "ugaga"};
-            const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
-
-            const String nequal_native_array_1[] = {"tasrd", "", "hhha", "basd"};
-            const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
-
-            const ArrayView<String> array_eq(equal_native_array_length, equal_native_array);
-            const ArrayView<String> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
-            const ArrayView<String> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
-
-            CPPUNIT_ASSERT_EQUAL(equal_native_array_length, array.size());
-            CPPUNIT_ASSERT(nequal_native_array_0_length != array.size());
-            CPPUNIT_ASSERT(nequal_native_array_1_length == array.size());
-
-            CPPUNIT_ASSERT(array.equals({"tasrd", "", "hhha", "asd"}));
-            CPPUNIT_ASSERT(!array.equals({"tasrd", "", "hhha", "basd"}));
-            CPPUNIT_ASSERT(!array.equals({"ugaga", "tasrd", "", "hhha", "asd"}));
-
-            CPPUNIT_ASSERT(array.equals(array_eq));
-            CPPUNIT_ASSERT(!array.equals(array_neq_0));
-            CPPUNIT_ASSERT(!array.equals(array_neq_1));
-
-            CPPUNIT_ASSERT_EQUAL(true, array == array_eq);
-            CPPUNIT_ASSERT_EQUAL(false, array != array_eq);
-
-            CPPUNIT_ASSERT_EQUAL(false, array == array_neq_0);
-            CPPUNIT_ASSERT_EQUAL(true, array != array_neq_0);
-
-            CPPUNIT_ASSERT_EQUAL(false, array == array_neq_1);
-            CPPUNIT_ASSERT_EQUAL(true, array != array_neq_1);
-        }
-
-        {
-            const ArrayView<NonPodStruct> array = {
-                    NonPodStruct(0, "yyyz"),
-                    NonPodStruct(),
-                    NonPodStruct(-321, "yyx"),
-                    NonPodStruct(990, "x^hhf")
-            };
-
-            const NonPodStruct equal_native_array[] = {
-                    NonPodStruct(0, "yyyz"),
-                    NonPodStruct(),
-                    NonPodStruct(-321, "yyx"),
-                    NonPodStruct(990, "x^hhf")
-            };
-            const auto equal_native_array_length = nativeArrayLength(equal_native_array);
-
-            const NonPodStruct nequal_native_array_0[] = {
-                    NonPodStruct(-31, "kek-yyyz"),
-                    NonPodStruct(81, "ddds"),
-                    NonPodStruct(-321, "yyx"),
-                    NonPodStruct(21, "32"),
-                    NonPodStruct(990, "x^hhf")
-            };
-            const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
-
-            const NonPodStruct nequal_native_array_1[] = {
-                    NonPodStruct(-31, "kek-yyyz"),
-                    NonPodStruct(-1, "ddds"),
-                    NonPodStruct(0, "dhf")
-            };
-
-            const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
-
-            const ArrayView<NonPodStruct> array_eq(equal_native_array_length, equal_native_array);
-            const ArrayView<NonPodStruct> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
-            const ArrayView<NonPodStruct> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
-
-            CPPUNIT_ASSERT_EQUAL(equal_native_array_length, array.size());
-            CPPUNIT_ASSERT(nequal_native_array_0_length != array.size());
-            CPPUNIT_ASSERT(nequal_native_array_1_length != array.size());
-
-            CPPUNIT_ASSERT(array.equals({
-                                                NonPodStruct(0, "yyyz"),
-                                                NonPodStruct(),
-                                                NonPodStruct(-321, "yyx"),
-                                                NonPodStruct(990, "x^hhf")
-                                        }));
-
-            CPPUNIT_ASSERT(array.equals(array_eq));
-            CPPUNIT_ASSERT(!array.equals(array_neq_0));
-            CPPUNIT_ASSERT(!array.equals(array_neq_1));
-
-            CPPUNIT_ASSERT_EQUAL(true, array == array_eq);
-            CPPUNIT_ASSERT_EQUAL(false, array != array_eq);
-
-            CPPUNIT_ASSERT_EQUAL(false, array == array_neq_0);
-            CPPUNIT_ASSERT_EQUAL(true, array != array_neq_0);
-
-            CPPUNIT_ASSERT_EQUAL(false, array == array_neq_1);
-            CPPUNIT_ASSERT_EQUAL(true, array != array_neq_1);
+            CPPUNIT_ASSERT(emptyArray.equals(differenEmptyArray));
+            CPPUNIT_ASSERT(differenEmptyArray.equals(emptyArray));
+            CPPUNIT_ASSERT(emptyArray == differenEmptyArray);
+            CPPUNIT_ASSERT(differenEmptyArray == emptyArray);
+            CPPUNIT_ASSERT(!(emptyArray != differenEmptyArray));
+            CPPUNIT_ASSERT(!(differenEmptyArray != emptyArray));
         }
     }
 
-    */
+    void testEquals_IntegralType() {
+        int src[32];
+        generateTestArray(src, fillOdd);
+
+        auto array = arrayView(src);
+
+        // Make sure it is not equals empty array if it is not empty
+        CPPUNIT_ASSERT(!array.equals(ArrayView<int>()));
+        CPPUNIT_ASSERT(!(array == ArrayView<int>()));
+        CPPUNIT_ASSERT(!(array == nullptr));
+        CPPUNIT_ASSERT(array != ArrayView<int>());
+        CPPUNIT_ASSERT(array != nullptr);
+
+        // Self equality is important
+        CPPUNIT_ASSERT(array.equals(array));
+
+        {  // Check that array views of the same memory are equal:
+            ArrayView<int> arraySharingMemory(src);
+
+            CPPUNIT_ASSERT(array.equals(arraySharingMemory));
+            CPPUNIT_ASSERT(arraySharingMemory.equals(array));
+            CPPUNIT_ASSERT(array == arraySharingMemory);
+            CPPUNIT_ASSERT(arraySharingMemory == array);
+            CPPUNIT_ASSERT(!(array != arraySharingMemory));
+            CPPUNIT_ASSERT(!(arraySharingMemory != array));
+        }
+
+        {  // Unrelated memory buffer array equals by value:
+            byte byteSrc[32 * sizeof (int)];
+            ArrayView<int> arrayBytes(wrapMemory(byteSrc));
+            arrayBytes.fill(fillOdd);
+
+            CPPUNIT_ASSERT(array.equals(arrayBytes));
+            CPPUNIT_ASSERT(arrayBytes.equals(array));
+            CPPUNIT_ASSERT(array == arrayBytes);
+            CPPUNIT_ASSERT(arrayBytes == array);
+            CPPUNIT_ASSERT(!(array != arrayBytes));
+            CPPUNIT_ASSERT(!(arrayBytes != array));
+        }
+
+        {  // Unrelated smaller memory buffer array filled with the same values no equals:
+            byte byteSrc[24 * sizeof (int)];
+            ArrayView<int> arrayBytes(wrapMemory(byteSrc));
+            arrayBytes.fill(fillOdd);
+
+            CPPUNIT_ASSERT(!array.equals(arrayBytes));
+            CPPUNIT_ASSERT(!arrayBytes.equals(array));
+            CPPUNIT_ASSERT(array != arrayBytes);
+            CPPUNIT_ASSERT(arrayBytes != array);
+            CPPUNIT_ASSERT(!(array == arrayBytes));
+            CPPUNIT_ASSERT(!(arrayBytes == array));
+        }
+
+        {  // Unrelated memory buffer array filled with different values not equal by value:
+            byte byteSrc[32 * sizeof (int)];
+            ArrayView<int> arrayBytes(wrapMemory(byteSrc));
+            arrayBytes.fill(fillEven);
+
+            CPPUNIT_ASSERT(!array.equals(arrayBytes));
+            CPPUNIT_ASSERT(!arrayBytes.equals(array));
+            CPPUNIT_ASSERT(array != arrayBytes);
+            CPPUNIT_ASSERT(arrayBytes != array);
+            CPPUNIT_ASSERT(!(array == arrayBytes));
+            CPPUNIT_ASSERT(!(arrayBytes == array));
+        }
+    }
+
+    void testEquals_NonPodType() {
+        constexpr size_t nbNonPodStruct = 81;
+
+        NonPodStruct src[nbNonPodStruct];
+        generateTestArray(src, fillOddNonPods);
+
+        auto array = arrayView(src);
+
+        // Make sure it is not equals empty array if it is not empty
+        CPPUNIT_ASSERT(!array.equals(ArrayView<NonPodStruct>()));
+        CPPUNIT_ASSERT(!(array == ArrayView<NonPodStruct>()));
+        CPPUNIT_ASSERT(!(array == nullptr));
+        CPPUNIT_ASSERT(array != ArrayView<NonPodStruct>());
+        CPPUNIT_ASSERT(array != nullptr);
+
+        // Self equality is important
+        CPPUNIT_ASSERT(array.equals(array));
+
+        {  // Check that array views of the same memory are equal:
+            ArrayView<NonPodStruct> arraySharingMemory(src);
+
+            CPPUNIT_ASSERT(array.equals(arraySharingMemory));
+            CPPUNIT_ASSERT(arraySharingMemory.equals(array));
+            CPPUNIT_ASSERT(array == arraySharingMemory);
+            CPPUNIT_ASSERT(arraySharingMemory == array);
+            CPPUNIT_ASSERT(!(array != arraySharingMemory));
+            CPPUNIT_ASSERT(!(arraySharingMemory != array));
+        }
+
+        {  // Unrelated memory buffer array equals by value:
+            byte byteSrc[nbNonPodStruct * sizeof(NonPodStruct)];
+            NonPodGuard<NonPodStruct> guard(byteSrc, nbNonPodStruct);
+
+            ArrayView<NonPodStruct> arrayBytes(wrapMemory(byteSrc));
+            arrayBytes.fill(fillOddNonPods);
+
+            CPPUNIT_ASSERT(array.equals(arrayBytes));
+            CPPUNIT_ASSERT(arrayBytes.equals(array));
+            CPPUNIT_ASSERT(array == arrayBytes);
+            CPPUNIT_ASSERT(arrayBytes == array);
+            CPPUNIT_ASSERT(!(array != arrayBytes));
+            CPPUNIT_ASSERT(!(arrayBytes != array));
+        }
+
+        {  // Unrelated smaller memory buffer array filled with the same values no equals:
+            constexpr size_t nbOtherNonPodStruct = 112;
+            byte byteSrc[nbOtherNonPodStruct * sizeof(NonPodStruct)];
+            NonPodGuard<NonPodStruct> guard(byteSrc, nbOtherNonPodStruct);
+
+            ArrayView<NonPodStruct> arrayBytes(wrapMemory(byteSrc));
+            arrayBytes.fill(fillOddNonPods);
+
+            CPPUNIT_ASSERT(!array.equals(arrayBytes));
+            CPPUNIT_ASSERT(!arrayBytes.equals(array));
+            CPPUNIT_ASSERT(array != arrayBytes);
+            CPPUNIT_ASSERT(arrayBytes != array);
+            CPPUNIT_ASSERT(!(array == arrayBytes));
+            CPPUNIT_ASSERT(!(arrayBytes == array));
+        }
+
+        {  // Unrelated memory buffer array filled with different values not equal by value:
+            byte byteSrc[nbNonPodStruct * sizeof(NonPodStruct)];
+            NonPodGuard<NonPodStruct> guard(byteSrc, nbNonPodStruct);
+
+            ArrayView<NonPodStruct> arrayBytes(wrapMemory(byteSrc));
+            arrayBytes.fill(fillEvenNonPods);
+
+            CPPUNIT_ASSERT(!array.equals(arrayBytes));
+            CPPUNIT_ASSERT(!arrayBytes.equals(array));
+            CPPUNIT_ASSERT(array != arrayBytes);
+            CPPUNIT_ASSERT(arrayBytes != array);
+            CPPUNIT_ASSERT(!(array == arrayBytes));
+            CPPUNIT_ASSERT(!(arrayBytes == array));
+        }
+    }
 
     void testIndexOf() {
         int src[16];
-        generateTestArray(src, [](size_t i) { return (2*i - 1); });
+        generateTestArray(src, [](size_t i) { return (2*static_cast<int>(i) - 1); });
 
         auto array = arrayView(src);
 
@@ -653,7 +756,8 @@ public:
         }
 
         {  // Can we find this sequance? Yes we can
-            CPPUNIT_ASSERT(ArrayView<SimpleType>().indexOf(SimpleType(7, 9, 11)).isSome());
+            const auto view = ArrayView<SimpleType>(wrapMemory(src));
+            CPPUNIT_ASSERT(view.indexOf(SimpleType(5, 7, 9)).isSome());
         }
 
         {  // Test for non-existing value:
@@ -665,51 +769,103 @@ public:
         }
 
         {  // Can we find this sequance? Nope
-            CPPUNIT_ASSERT(ArrayView<SimpleType>().indexOf(SimpleType(3, 2, 1)).isNone());
+            const auto view = ArrayView<SimpleType>(wrapMemory(src));
+            CPPUNIT_ASSERT(view.indexOf(SimpleType(3, 2, 1)).isNone());
         }
     }
 
     void testContains() {
-        int src[24];
-        generateTestArray(src, [](size_t i) { return (2*i + 3); });
-
         {  // Test empty array contains nothing
             CPPUNIT_ASSERT(!ArrayView<int>().contains(2*3 - 1));
         }
 
+        int src[24];
+        generateTestArray(src, [](size_t i) { return static_cast<int>(i)*2 + 3; });
+
+
         auto array = arrayView(src);
 
-        {  // Test for existing value:
+        {  // Test for an existing value:
             CPPUNIT_ASSERT(array.contains(2*9 + 3));
         }
 
         {  // Test for non-existing value:
             CPPUNIT_ASSERT(!array.contains(-41));
         }
+
+        {  // Can we find this sequance? Yes we can
+            const auto view = ArrayView<SimpleType>(wrapMemory(src));
+            CPPUNIT_ASSERT(view.contains(SimpleType(15, 17, 19)));
+        }
     }
 
-    void testFill() {
-        {  // Const-value filling:
-            int src[24];
-            auto array = arrayView(src);
+    void testFillWithConstValue() {
+        int src[24];
+        auto array = arrayView(src);
 
-            array.fill(42);
+        array.fill(42);
 
-            for (const auto i : array) {
-                CPPUNIT_ASSERT_EQUAL(42, i);
+        for (const auto i : array) {
+            CPPUNIT_ASSERT_EQUAL(42, i);
+        }
+    }
+
+    void testFillWithConstExplosiveValue() {
+        CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
+        {
+            constexpr size_t nbNonPodStruct = 24;
+            byte src[nbNonPodStruct * sizeof (SometimesConstructable)];
+
+            SometimesConstructable::BlowUpEveryInstance = 0;
+            NonPodGuard<SometimesConstructable> guard(src, nbNonPodStruct);
+
+            SometimesConstructable::BlowUpEveryInstance = 9;
+            ArrayView<SometimesConstructable> array(wrapMemory(src));
+
+            // This should not throw as we don't create any new instances apart from +1 used as a temp template
+            array.fill(SometimesConstructable(99));
+            CPPUNIT_ASSERT_EQUAL(static_cast<int>(nbNonPodStruct), SometimesConstructable::InstanceCount);
+
+            for (int i = 0; i < SometimesConstructable::InstanceCount; ++i) {
+                CPPUNIT_ASSERT_EQUAL(99, array[i].someValue);
             }
         }
+        CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
+    }
 
-        {  // Fill using generator:
-            int src[24];
-            auto array = arrayView(src);
+    void testFillWithGenerator() {
+        int src[24];
+        auto array = arrayView(src);
 
-            array.fill([](size_t i) { return static_cast<int>(i*2 + 1); });
+        array.fill([](ArrayView<int>::size_type i) { return static_cast<int>(i)*2 - 187; });
 
-            for (ArrayView<int>::size_type i = 0; i < array.size(); ++i) {
-                CPPUNIT_ASSERT_EQUAL(static_cast<int>(i*2 + 1), array[i]);
+        for (ArrayView<int>::size_type i = 0; i < array.size(); ++i) {
+            CPPUNIT_ASSERT_EQUAL(static_cast<int>(i)*2 - 187, array[i]);
+        }
+    }
+
+    void testFillWithGeneratorOfExplosiveValue() {
+        CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
+        {
+            constexpr size_t nbNonPodStruct = 81;
+            byte src[nbNonPodStruct * sizeof(SometimesConstructable)];
+
+            SometimesConstructable::BlowUpEveryInstance = 0;
+            NonPodGuard<SometimesConstructable> guard(src, nbNonPodStruct);
+
+            SometimesConstructable::BlowUpEveryInstance = 13;
+            ArrayView<SometimesConstructable> array(wrapMemory(src));
+
+            // This should not throw as we don't create any new instances apart from +1 used as a temp template
+            array.fill([](size_t i ) { return SometimesConstructable(fillOdd(i)); });
+            CPPUNIT_ASSERT_EQUAL(static_cast<int>(nbNonPodStruct), SometimesConstructable::InstanceCount);
+
+            for (int i = 0; i < SometimesConstructable::InstanceCount; ++i) {
+                CPPUNIT_ASSERT_EQUAL(fillOdd(i), array[i].someValue);
             }
         }
+        // Make sure that after the array has been destroyed no instances of SometimesConstructable exist.
+        CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
     }
 
 /*
@@ -805,6 +961,8 @@ const ArrayView<int>::size_type TestArrayView::TEST_SIZE_0 = 7;
 const ArrayView<int>::size_type TestArrayView::TEST_SIZE_1 = 35;
 
 const int 		TestArrayView::NonPodStruct::IVALUE_DEFAULT = -123;
+const char*		TestArrayView::NonPodStruct::STR_DEFAULT = "Deafult TestArrayView::NonPodStruct::STR_DEFAULT";
+
 
 ArrayView<int>::size_type TestArrayView::NonPodStruct::TotalCount = 0;
 

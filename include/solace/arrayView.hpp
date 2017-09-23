@@ -112,13 +112,15 @@ public:
             return true;
         }
 
-        const T* self = _memory.dataAs<T>();
-        const T* that = _memory.dataAs<T>();
+        auto selfIt = this->begin();
+        auto otherIt = other.begin();
+        const auto selfEnd = this->end();
+        const auto otherEnd = other.end();
 
-        for (size_type i = 0; i < size(); ++i) {
-          if (self[i] != that[i]) {
-              return false;
-          }
+        for (; (selfIt != selfEnd) && (otherIt != otherEnd); ++otherIt, ++selfIt) {
+            if ( !(*selfIt == *otherIt) ) {
+                return false;
+            }
         }
 
         return true;
@@ -243,21 +245,25 @@ public:
       return asConst();
     }
 
-    void fill(const_reference value) noexcept {
+    ArrayView& fill(const_reference value) noexcept {
         for (auto& v : *this) {
             v = value;
         }
+
+        return (*this);
     }
 
     template<typename F>
-    std::enable_if_t<isCallable<F, size_type>::value, void>
+    std::enable_if_t<isCallable<F, size_type>::value, ArrayView&>
     fill(F&& f) noexcept {
-        const auto len = size();
-        const auto it = begin();
+        auto it = begin();
+        const auto itEnd = end();
 
-        for (size_type i = 0; i < len; ++i) {
-            it[i] = f(i);
+        for (size_type i = 0; it != itEnd; ++i, ++it) {
+            *it = f(i);
         }
+
+        return (*this);
     }
 
     /*

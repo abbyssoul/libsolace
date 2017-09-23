@@ -138,7 +138,7 @@ struct SimpleType {
         return *this;
     }
 
-    friend bool operator == (const SimpleType& a, const SimpleType& b) {
+    friend bool operator== (const SimpleType& a, const SimpleType& b) {
         return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
     }
 
@@ -180,16 +180,20 @@ struct SometimesConstructable {
 
     int someValue;
 
-    SometimesConstructable(): someValue(3) {
-        if ((InstanceCount + 1) % BlowUpEveryInstance) {
+    ~SometimesConstructable() {
+        --InstanceCount;
+    }
+
+
+    SometimesConstructable(): SometimesConstructable(3)
+    {}
+
+    explicit SometimesConstructable(int value): someValue(value) {
+        if (BlowUpEveryInstance && ((InstanceCount + 1) % BlowUpEveryInstance) == 0) {
             throw Solace::Exception("Blowing up on purpose");
         }
 
         ++InstanceCount;
-    }
-
-    ~SometimesConstructable() {
-        --InstanceCount;
     }
 
     SometimesConstructable(const SometimesConstructable& rhs): someValue(rhs.someValue)
@@ -210,11 +214,12 @@ struct SometimesConstructable {
 
     SometimesConstructable& operator= (SometimesConstructable&& rhs) {
         someValue = rhs.someValue;
+
         return *this;
     }
 
     bool operator == (const SometimesConstructable& rhs) const {
-        return someValue == rhs.someValue;
+        return (someValue == rhs.someValue);
     }
 };
 

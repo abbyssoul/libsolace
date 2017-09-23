@@ -31,6 +31,7 @@ using namespace Solace::hashing;
 class TestHashingSHA256: public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(TestHashingSHA256);
+        CPPUNIT_TEST(testAlgorithmName);
         CPPUNIT_TEST(hashEmptyMessage);
         CPPUNIT_TEST(hashSingleLetter);
         CPPUNIT_TEST(hashABC);
@@ -39,6 +40,11 @@ class TestHashingSHA256: public CppUnit::TestFixture  {
 
 public:
 
+    void testAlgorithmName() {
+        Sha256 hash;
+
+        CPPUNIT_ASSERT_EQUAL(String("SHA256"), hash.getAlgorithm());
+    }
 
     void hashEmptyMessage() {
         Sha256 hash;
@@ -81,6 +87,8 @@ public:
 
     void hashMessageDigest() {
         Sha256 hash;
+
+        CPPUNIT_ASSERT_EQUAL(static_cast<Sha256::size_type>(256 / 8), hash.getDigestLength());
 
         char message[] = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
         hash.update(wrapMemory(message, sizeof(message) - 1));

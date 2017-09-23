@@ -31,6 +31,7 @@ using namespace Solace::hashing;
 class TestHashingMD5: public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(TestHashingMD5);
+        CPPUNIT_TEST(testAlgorithmName);
         CPPUNIT_TEST(hashEmptyMessage);
         CPPUNIT_TEST(hashSingleLetter);
         CPPUNIT_TEST(hashABC);
@@ -42,6 +43,11 @@ class TestHashingMD5: public CppUnit::TestFixture  {
 
 public:
 
+    void testAlgorithmName() {
+        MD5 hash;
+
+        CPPUNIT_ASSERT_EQUAL(String("MD5"), hash.getAlgorithm());
+    }
 
     void hashEmptyMessage() {
         MD5 hash;
@@ -78,6 +84,8 @@ public:
 
     void hashMessageDigest() {
         MD5 hash;
+
+        CPPUNIT_ASSERT_EQUAL(static_cast<MD5::size_type>(128 / 8), hash.getDigestLength());
 
         char message[] = "message digest";
         hash.update(wrapMemory(message, sizeof(message) - 1));
