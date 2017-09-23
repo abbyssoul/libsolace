@@ -9,7 +9,7 @@ PROJECT = solace
 BUILD_DIR = build
 ANALYZE_DIR = build-analyze
 INCLUDE_DIR = include
-SRC_DIR = libsolace
+SRC_DIR = src
 TEST_DIR = test
 
 

@@ -88,6 +88,6 @@ add_subdirectory(libs/fmt)
 
 include_directories(include)
 
-add_subdirectory(libsolace)
+add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(examples)

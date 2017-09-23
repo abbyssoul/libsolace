@@ -668,9 +668,9 @@ public:
     }
 
     void testEquals_NonPodType() {
-        constexpr size_t nbNonPodStruct = 81;
+        static constexpr size_t kNonPodStruct = 81;
 
-        NonPodStruct src[nbNonPodStruct];
+        NonPodStruct src[kNonPodStruct];
         generateTestArray(src, fillOddNonPods);
 
         auto array = arrayView(src);
@@ -697,8 +697,8 @@ public:
         }
 
         {  // Unrelated memory buffer array equals by value:
-            byte byteSrc[nbNonPodStruct * sizeof(NonPodStruct)];
-            NonPodGuard<NonPodStruct> guard(byteSrc, nbNonPodStruct);
+            byte byteSrc[kNonPodStruct * sizeof(NonPodStruct)];
+            NonPodGuard<NonPodStruct> guard(byteSrc, kNonPodStruct);
 
             ArrayView<NonPodStruct> arrayBytes(wrapMemory(byteSrc));
             arrayBytes.fill(fillOddNonPods);
@@ -712,9 +712,9 @@ public:
         }
 
         {  // Unrelated smaller memory buffer array filled with the same values no equals:
-            constexpr size_t nbOtherNonPodStruct = 112;
-            byte byteSrc[nbOtherNonPodStruct * sizeof(NonPodStruct)];
-            NonPodGuard<NonPodStruct> guard(byteSrc, nbOtherNonPodStruct);
+            static constexpr size_t kOtherNonPodStruct = 112;
+            byte byteSrc[kOtherNonPodStruct * sizeof(NonPodStruct)];
+            NonPodGuard<NonPodStruct> guard(byteSrc, kOtherNonPodStruct);
 
             ArrayView<NonPodStruct> arrayBytes(wrapMemory(byteSrc));
             arrayBytes.fill(fillOddNonPods);
@@ -728,8 +728,8 @@ public:
         }
 
         {  // Unrelated memory buffer array filled with different values not equal by value:
-            byte byteSrc[nbNonPodStruct * sizeof(NonPodStruct)];
-            NonPodGuard<NonPodStruct> guard(byteSrc, nbNonPodStruct);
+            byte byteSrc[kNonPodStruct * sizeof(NonPodStruct)];
+            NonPodGuard<NonPodStruct> guard(byteSrc, kNonPodStruct);
 
             ArrayView<NonPodStruct> arrayBytes(wrapMemory(byteSrc));
             arrayBytes.fill(fillEvenNonPods);
@@ -813,18 +813,18 @@ public:
     void testFillWithConstExplosiveValue() {
         CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
         {
-            constexpr size_t nbNonPodStruct = 24;
-            byte src[nbNonPodStruct * sizeof (SometimesConstructable)];
+            static constexpr size_t kNonPodStruct = 24;
+            byte src[kNonPodStruct * sizeof (SometimesConstructable)];
 
             SometimesConstructable::BlowUpEveryInstance = 0;
-            NonPodGuard<SometimesConstructable> guard(src, nbNonPodStruct);
+            NonPodGuard<SometimesConstructable> guard(src, kNonPodStruct);
 
             SometimesConstructable::BlowUpEveryInstance = 9;
             ArrayView<SometimesConstructable> array(wrapMemory(src));
 
             // This should not throw as we don't create any new instances apart from +1 used as a temp template
             array.fill(SometimesConstructable(99));
-            CPPUNIT_ASSERT_EQUAL(static_cast<int>(nbNonPodStruct), SometimesConstructable::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(static_cast<int>(kNonPodStruct), SometimesConstructable::InstanceCount);
 
             for (int i = 0; i < SometimesConstructable::InstanceCount; ++i) {
                 CPPUNIT_ASSERT_EQUAL(99, array[i].someValue);
@@ -847,18 +847,18 @@ public:
     void testFillWithGeneratorOfExplosiveValue() {
         CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
         {
-            constexpr size_t nbNonPodStruct = 81;
-            byte src[nbNonPodStruct * sizeof(SometimesConstructable)];
+            static constexpr size_t kNonPodStruct = 81;
+            byte src[kNonPodStruct * sizeof(SometimesConstructable)];
 
             SometimesConstructable::BlowUpEveryInstance = 0;
-            NonPodGuard<SometimesConstructable> guard(src, nbNonPodStruct);
+            NonPodGuard<SometimesConstructable> guard(src, kNonPodStruct);
 
             SometimesConstructable::BlowUpEveryInstance = 13;
             ArrayView<SometimesConstructable> array(wrapMemory(src));
 
             // This should not throw as we don't create any new instances apart from +1 used as a temp template
             array.fill([](size_t i ) { return SometimesConstructable(fillOdd(i)); });
-            CPPUNIT_ASSERT_EQUAL(static_cast<int>(nbNonPodStruct), SometimesConstructable::InstanceCount);
+            CPPUNIT_ASSERT_EQUAL(static_cast<int>(kNonPodStruct), SometimesConstructable::InstanceCount);
 
             for (int i = 0; i < SometimesConstructable::InstanceCount; ++i) {
                 CPPUNIT_ASSERT_EQUAL(fillOdd(i), array[i].someValue);
