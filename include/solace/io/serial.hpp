@@ -111,7 +111,7 @@ public:
     /**
      * Byte sizes of the serial port
      */
-    enum class Bytesize: int {
+    enum class Bytesize : uint8 {
         fivebits = 5,
         sixbits = 6,
         sevenbits = 7,
@@ -121,7 +121,7 @@ public:
     /**
      * Parity types of the serial port
      */
-    enum class Parity: int {
+    enum class Parity : uint8 {
         none = 0,
         odd = 1,
         even = 2,
@@ -132,7 +132,7 @@ public:
     /**
      * Stop bit types of the serial port
      */
-    enum class Stopbits: int {
+    enum class Stopbits : uint8 {
         one = 1,
         two = 2,
         one_point_five
@@ -141,7 +141,7 @@ public:
     /**
      * Flowcontrol types of the serial port.
      */
-    enum class Flowcontrol: int {
+    enum class Flowcontrol: uint8 {
         none = 0,
         software,
         hardware

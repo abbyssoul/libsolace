@@ -29,7 +29,12 @@
 #include "solace/traits/iformattable.hpp"
 #include "solace/string.hpp"
 
+/* FIXME: SUPPORT std::error
+#include <system_error>
+*/
+
 namespace Solace {
+
 
 class Error: public IFormattable {
 public:
