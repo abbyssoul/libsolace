@@ -50,6 +50,7 @@ install:
   - echo $CXX --version
 
 script:
+  - ./configure
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make codecheck ; fi
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make -j2 && make test && make verify ; fi
 after_success:
