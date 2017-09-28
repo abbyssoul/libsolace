@@ -158,6 +158,10 @@ public:
 };
 
 
+/**
+ * Get build version of the linked library.
+ * @return Build version of libsolace we are linked against.
+ */
 Version getBuildVersion();
 
 

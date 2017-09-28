@@ -34,6 +34,7 @@ class TestCommandlineParser: public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE(TestCommandlineParser);
         CPPUNIT_TEST(testShortInt);
         CPPUNIT_TEST(testLongInt);
+        CPPUNIT_TEST(testErrorWhenSignedIntPassedWhenUnsignedExpected);
         CPPUNIT_TEST(testBoolWithNoArgument);
         CPPUNIT_TEST(testUnrecognizedArgument);
         CPPUNIT_TEST(testOptionalValueAndUnrecognizedArgument);
@@ -103,6 +104,26 @@ public:
         CPPUNIT_ASSERT_EQUAL(756, xValue);
         CPPUNIT_ASSERT(parsedSuccessully);
     }
+
+
+    void testErrorWhenSignedIntPassedWhenUnsignedExpected() {
+
+        bool parsedSuccessully = false;
+        uint32 xValue = 0;
+
+        const char* argv[] = {"prog", "--xxx", "-42", nullptr};
+        const int argc = 3;
+
+        const char* appDesc = "Something awesome";
+        CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
+                .parse(argc, argv)
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
+
+        CPPUNIT_ASSERT_EQUAL(0u, xValue);
+        CPPUNIT_ASSERT(!parsedSuccessully);
+    }
+
 
     void testBoolWithNoArgument() {
         bool parsedSuccessully = false;

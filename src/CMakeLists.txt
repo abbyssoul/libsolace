@@ -28,14 +28,6 @@ set(SOURCE_FILES
         io/sharedMemory.cpp
         io/mappedMemory.cpp
 
-        io/async/eventLoop.cpp
-        io/async/event.cpp
-        io/async/timer.cpp
-        io/async/pipe.cpp
-        io/async/serialChannel.cpp
-        io/async/signalSet.cpp
-        io/async/unixSocket.cpp
-
         process/env.cpp
 
         framework/application.cpp

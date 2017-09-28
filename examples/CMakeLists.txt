@@ -13,9 +13,3 @@ target_link_libraries(serial ${PROJECT_NAME})
 set(EXAMPLE_APPFRAMEWORK_SOURCE_FILES application.cpp)
 add_executable(application ${EXAMPLE_APPFRAMEWORK_SOURCE_FILES})
 target_link_libraries(application ${PROJECT_NAME})
-
-
-# Reading from serial port using Async framework
-set(EXAMPLE_ASYNCSERIAL_SOURCE_FILES async_serial.cpp)
-add_executable(async_serial ${EXAMPLE_ASYNCSERIAL_SOURCE_FILES})
-target_link_libraries(async_serial ${PROJECT_NAME})
