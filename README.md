@@ -3,8 +3,9 @@ libSolace
 [![Build Status](https://travis-ci.org/abbyssoul/libsolace.png?branch=master)](https://travis-ci.org/abbyssoul/libsolace)
 [![Coverity Scan](https://scan.coverity.com/projects/9728/badge.svg)](https://scan.coverity.com/projects/abbyssoul-libsolace)
 [![Coverage Status](https://coveralls.io/repos/github/abbyssoul/libsolace/badge.svg?branch=master)](https://coveralls.io/github/abbyssoul/libsolace?branch=master)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-libSolace is a 'simple' library for building mission critical application.
+libSolace is a toolkit for building mission critical application.
 Idea of this library is inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).
 The library aims to provide building blocks for fast and reliable applications using Modern C++ dialect.
 The implementation attempts to respect P10 rules to practically possible extent, but it is an ongoing effort.
@@ -16,8 +17,6 @@ In this context simple means that it provides minimal nessessery set of tools to
 Solace is intended the development of systems of communicating process that solve a problem collaboratively. Thus
 it feautures an async IO framework. The main difference from other similar frameworks is that solace focuses on
 performance and gives fire grain control. As such it will never spawn a thread or allocate memory after initialization.
-
-### Async
 
 
 Please fill free to contribute.
@@ -33,7 +32,7 @@ In order to build this project following tools must be present in the system:
 * cpplint (for static code analysis in addition to cppcheck)
 * valgrind (for runtime code verification)
 
-The project extensively uses C++ features from C++14 standard, so the minimal required version of gcc is gcc-4.9
+This project extensively using C++14 features. The minimal required version of gcc is gcc-4.9.
 
 
 To install build tools on Debian based Linux distribution:
@@ -43,17 +42,12 @@ sudo apt-get install cmake doxygen python-pip valgrind ggcov libcppunit-dev
 sudo pip install cpplint
 ```
 
-The library has a few extranal dependencies.
-The easies way to pull this dependencies is by using a script provided:
-```shell
-./libs/dependencies
+The library has one extranal dependency: [libfmt](http://fmtlib.net/latest/index.html) - an awesome string formatting library.
+It is managed as git submodule. Please make sure to use `git clone --recursive` when clonning the project for the first time.
+You can also update existing clone with:
 ```
-
-It is also possible to do it manually:
-```shell
-git clone --depth 1 https://github.com/fmtlib/fmt.git libs/fmt
+git submodule update --init --recursive
 ```
-
 
 ## Building using CMake
 Current build system used for the project is cmake. You can build the library and test using familiar cmake steps:
@@ -84,9 +78,9 @@ To build API documentation:
 make doc
 ```
 
-To install locally for testing (TBD, currently broken):
+To install locally for testing:
 ```shell
-make install --prefix=/user/<username>/test/lib
+make --prefix=/user/home/<username>/test/lib install
 ```
 
 To install system wide (as root)(TBD):
@@ -102,8 +96,8 @@ make codecheck
 
 ### Target Platforms
 The library is designed with the following platforms in mind:
- * [Parallella](https://www.parallella.org/)
  * [Raspberry Pi](https://www.raspberrypi.org/)
+ * [Parallella](https://www.parallella.org/)
  * [BeagleBone](http://beagleboard.org/)
 
 
