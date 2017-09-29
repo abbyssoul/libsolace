@@ -93,7 +93,8 @@ MemoryManager::size_type MemoryManager::getNbPages() const {
         Solace::raise<IOException>(errno, "sysconf(_SC_PHYS_PAGES)");
     }
 
-    return res;
+    // By now it is safe to cast to unsigned type as we have checked for negative values above.
+    return static_cast<MemoryManager::size_type>(res);
 }
 
 MemoryManager::size_type MemoryManager::getNbAvailablePages() const {
@@ -103,7 +104,8 @@ MemoryManager::size_type MemoryManager::getNbAvailablePages() const {
         Solace::raise<IOException>(errno, "sysconf(_SC_AVPHYS_PAGES)");
     }
 
-    return res;
+    // By now it is safe to cast to unsigned type as we have checked for negative values above.
+    return static_cast<MemoryManager::size_type>(res);
 #else
     return 0;
 #endif

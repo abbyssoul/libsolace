@@ -801,8 +801,8 @@ public:
 
             return Err(Error("test", -525));
         })
-        .then([&resolved2](int x) {
-            resolved2 = (x == 6568);
+        .then([&resolved2](int ) {
+            resolved2 = true;
         })
         .onError([&resolved3](Error&& e) {
             resolved3 = (e.value() == -525);

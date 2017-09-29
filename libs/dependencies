@@ -1,5 +1,0 @@
-#!/bin/bash
-# Get external dependencies as part of the build process
-
-# FMT:
-git clone --depth 1 https://github.com/fmtlib/fmt.git libs/fmt

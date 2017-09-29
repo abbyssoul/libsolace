@@ -189,8 +189,4 @@ void raise(Args&&... args) {
 
 }  // End of namespace Solace
 
-
-#define checkAssert(condition, msg) { if ((!condition)) { THROW(msg); } }
-#define assertException(condition, _ex) do { if ( !(condition) ) { throw _ex; } } while (false)
-
 #endif  // SOLACE_EXCEPTION_HPP

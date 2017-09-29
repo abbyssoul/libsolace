@@ -62,8 +62,8 @@ endif (WITH_FORTIFY_SOURCE)
 
 # Optimization flags
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -O0 -D _DEBUG -ggdb3")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG") # -fwhole-program")
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -O0 -ggdb3 -D _DEBUG -D DEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG")
 
 
 #kernel-address
@@ -71,20 +71,19 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG") # -fw
 #set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined,leak -fstack-protector-all")
 
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
 
 # If generation of coverage information is required
 if (COVERALLS)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0") # debug, no optimisation
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")     # debug, no optimisation
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage") # enabling coverage
 endif()
 
 
 # Build project dependencies (should be removed eventually)
 set(FMT_USE_CPP11 OFF CACHE BOOL "Don't add std by fmt" FORCE)
-add_subdirectory(libs/fmt)
-
+add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
 
 include_directories(include)
 
