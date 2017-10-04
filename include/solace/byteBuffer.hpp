@@ -236,11 +236,24 @@ public:
     }
 
 
-    ByteBuffer& write(const MemoryView& dest) {
-        return write(dest.dataAddress(), dest.size());
+    /**
+     * Write given raw bytes into this buffer.
+     * @param data Raw bytes data to write.
+     * @return Refernce to this for luency.
+     * @note Exception is thrown if given data exceed buffer capacity.
+     */
+    ByteBuffer& write(const ImmutableMemoryView& data) {
+        return write(data.dataAddress(), data.size());
     }
 
-    ByteBuffer& write(const MemoryView& dest, size_type bytesToWrite);
+    /**
+     * Write given raw bytes into this buffer.
+     * @param data Raw bytes data to write.
+     * @param bytesToWrite Number of bytes to write from data into this buffer.
+     * @return Refernce to this for luency.
+     * @note Exception is thrown if bytesToWrite exceed buffer capacity.
+     */
+    ByteBuffer& write(const ImmutableMemoryView& data, size_type bytesToWrite);
 
     ByteBuffer& write(const void* bytes, size_type count);
     ByteBuffer& write(const byte* bytes, size_type count) {
@@ -291,6 +304,42 @@ public:
     ByteBuffer& operator>> (float32& c)  { return read(&c, sizeof(float32)); }
     ByteBuffer& operator>> (float64& c)  { return read(&c, sizeof(float64)); }
 
+    // Endianess aware read/write
+    ByteBuffer& writeLE(int8 value)  { return *this << value; }
+    ByteBuffer& writeLE(uint8 value) { return *this << value; }
+    ByteBuffer& writeLE(int16 value) { return writeLE(static_cast<uint16>(value)); }
+    ByteBuffer& writeLE(uint16 value);
+    ByteBuffer& writeLE(int32 value) { return writeLE(static_cast<uint32>(value)); }
+    ByteBuffer& writeLE(uint32 value);
+    ByteBuffer& writeLE(int64 value) { return writeLE(static_cast<uint64>(value)); }
+    ByteBuffer& writeLE(uint64 value);
+
+    ByteBuffer& readLE(int8& value)  { return *this >> value; }
+    ByteBuffer& readLE(uint8& value) { return *this >> value; }
+    ByteBuffer& readLE(int16& value) { return readLE(reinterpret_cast<uint16&>(value)); }
+    ByteBuffer& readLE(uint16& value);
+    ByteBuffer& readLE(int32& value) { return readLE(reinterpret_cast<uint32&>(value)); }
+    ByteBuffer& readLE(uint32& value);
+    ByteBuffer& readLE(int64& value) { return readLE(reinterpret_cast<uint64&>(value)); }
+    ByteBuffer& readLE(uint64& value);
+
+    ByteBuffer& writeBE(int8 value)  { return *this << value; }
+    ByteBuffer& writeBE(uint8 value) { return *this << value; }
+    ByteBuffer& writeBE(int16 value) { return writeBE(static_cast<uint16>(value)); }
+    ByteBuffer& writeBE(uint16 value);
+    ByteBuffer& writeBE(int32 value) { return writeBE(static_cast<uint32>(value)); }
+    ByteBuffer& writeBE(uint32 value);
+    ByteBuffer& writeBE(int64 value) { return writeBE(static_cast<uint64>(value)); }
+    ByteBuffer& writeBE(uint64 value);
+
+    ByteBuffer& readBE(int8& value)  { return *this >> value; }
+    ByteBuffer& readBE(uint8& value) { return *this >> value; }
+    ByteBuffer& readBE(int16& value) { return readBE(reinterpret_cast<uint16&>(value)); }
+    ByteBuffer& readBE(uint16& value);
+    ByteBuffer& readBE(int32& value) { return readBE(reinterpret_cast<uint32&>(value)); }
+    ByteBuffer& readBE(uint32& value);
+    ByteBuffer& readBE(int64& value) { return readBE(reinterpret_cast<uint64&>(value)); }
+    ByteBuffer& readBE(uint64& value);
 
 private:
 

@@ -28,9 +28,7 @@
 #include <cstring>  // memcpy
 
 
-using Solace::MemoryView;
-using Solace::byte;
-using Solace::ByteBuffer;
+using namespace Solace;
 
 
 ByteBuffer& ByteBuffer::limit(size_type newLimit) {
@@ -129,20 +127,235 @@ const ByteBuffer& ByteBuffer::read(size_type offset, MemoryView& bytes, size_typ
 }
 
 
-ByteBuffer& ByteBuffer::write(const MemoryView& dest, size_type bytesToWrite) {
-    if (dest.size() < bytesToWrite) {
-         raise<OverflowException>("bytesToWrite", bytesToWrite, 0, dest.size());
+ByteBuffer& ByteBuffer::write(const ImmutableMemoryView& data, size_type bytesToWrite) {
+    if (data.size() < bytesToWrite) {
+         raise<OverflowException>("bytesToWrite", bytesToWrite, 0, data.size());
     }
 
-    return write(dest.dataAddress(), bytesToWrite);
+    return write(data.dataAddress(), bytesToWrite);
 }
 
-ByteBuffer& ByteBuffer::write(const void* bytes, size_type count) {
+ByteBuffer& ByteBuffer::write(const void* data, size_type count) {
     if (remaining() < count) {
          raise<OverflowException>(_position + count, _position, remaining());
     }
 
-    memcpy(_storage.dataAddress(_position), bytes, count);
+    memcpy(_storage.dataAddress(_position), data, count);
 
     return advance(count);
+}
+
+
+ByteBuffer& ByteBuffer::writeLE(uint16 value) {
+    constexpr auto valueSize = sizeof(value);
+    auto result = value;
+
+    if (isBigendian()) {
+        const byte* v = reinterpret_cast<byte*>(&value);
+        byte* const p = reinterpret_cast<byte*>(&result);
+        p[0] = v[valueSize - 1];
+        p[1] = v[valueSize - 2];
+    }
+
+    return write(&result, valueSize);
+}
+
+
+ByteBuffer& ByteBuffer::writeLE(uint32 value) {
+    constexpr auto valueSize = sizeof(value);
+    auto result = value;
+
+    if (isBigendian()) {
+        const byte* v = reinterpret_cast<byte*>(&value);
+        byte* const p = reinterpret_cast<byte*>(&result);
+        p[0] = v[valueSize - 1];
+        p[1] = v[valueSize - 2];
+        p[2] = v[valueSize - 3];
+        p[3] = v[valueSize - 4];
+    }
+
+    return write(&result, valueSize);
+}
+
+
+ByteBuffer& ByteBuffer::writeLE(uint64 value) {
+    constexpr auto valueSize = sizeof(value);
+    auto result = value;
+
+    if (isBigendian()) {
+        const byte* v = reinterpret_cast<byte*>(&value);
+        byte* const p = reinterpret_cast<byte*>(&result);
+        p[0] = v[valueSize - 1];
+        p[1] = v[valueSize - 2];
+        p[2] = v[valueSize - 3];
+        p[3] = v[valueSize - 4];
+        p[4] = v[valueSize - 5];
+        p[5] = v[valueSize - 6];
+        p[6] = v[valueSize - 7];
+        p[7] = v[valueSize - 8];
+    }
+
+    return write(&result, valueSize);
+}
+
+
+ByteBuffer& ByteBuffer::readLE(uint16& value) {
+    constexpr auto valueSize = sizeof(value);
+    read(&value, valueSize);
+
+    if (isBigendian()) {
+        auto result = value;
+        const byte* v = reinterpret_cast<byte*>(&result);
+        byte* const p = reinterpret_cast<byte*>(&value);
+        p[0] = v[valueSize - 1];
+        p[1] = v[valueSize - 2];
+    }
+
+    return (*this);
+}
+
+ByteBuffer& ByteBuffer::readLE(uint32& value) {
+    constexpr auto valueSize = sizeof(value);
+    read(&value, valueSize);
+
+    if (isBigendian()) {
+        auto result = value;
+        const byte* v = reinterpret_cast<byte*>(&result);
+        byte* const p = reinterpret_cast<byte*>(&value);
+        p[0] = v[valueSize - 1];
+        p[1] = v[valueSize - 2];
+        p[2] = v[valueSize - 3];
+        p[3] = v[valueSize - 4];
+    }
+
+    return (*this);
+}
+
+ByteBuffer& ByteBuffer::readLE(uint64& value) {
+    constexpr auto valueSize = sizeof(value);
+    read(&value, valueSize);
+
+    if (isBigendian()) {
+        auto result = value;
+        const byte* v = reinterpret_cast<byte*>(&result);
+        byte* const p = reinterpret_cast<byte*>(&value);
+        p[0] = v[valueSize - 1];
+        p[1] = v[valueSize - 2];
+        p[2] = v[valueSize - 3];
+        p[3] = v[valueSize - 4];
+        p[4] = v[valueSize - 5];
+        p[5] = v[valueSize - 6];
+        p[6] = v[valueSize - 7];
+        p[7] = v[valueSize - 8];
+    }
+
+    return (*this);
+}
+
+//////////////////////////////////
+
+ByteBuffer& ByteBuffer::writeBE(uint16 value) {
+    constexpr auto valueSize = sizeof(value);
+    auto result = value;
+
+    if (!isBigendian()) {
+        const byte* v = reinterpret_cast<byte*>(&value);
+        byte* const p = reinterpret_cast<byte*>(&result);
+        p[0] = v[1];
+        p[1] = v[0];
+    }
+
+    return write(&result, valueSize);
+}
+
+
+ByteBuffer& ByteBuffer::writeBE(uint32 value) {
+    constexpr auto valueSize = sizeof(value);
+    auto result = value;
+
+    if (!isBigendian()) {
+        const byte* v = reinterpret_cast<byte*>(&value);
+        byte* const p = reinterpret_cast<byte*>(&result);
+        p[0] = v[valueSize - 1];
+        p[1] = v[valueSize - 2];
+        p[2] = v[valueSize - 3];
+        p[3] = v[valueSize - 4];
+    }
+
+    return write(&result, valueSize);
+}
+
+
+ByteBuffer& ByteBuffer::writeBE(uint64 value) {
+    constexpr auto valueSize = sizeof(value);
+    auto result = value;
+
+    if (!isBigendian()) {
+        const byte* v = reinterpret_cast<byte*>(&value);
+        byte* const p = reinterpret_cast<byte*>(&result);
+        p[0] = v[valueSize - 1];
+        p[1] = v[valueSize - 2];
+        p[2] = v[valueSize - 3];
+        p[3] = v[valueSize - 4];
+        p[4] = v[valueSize - 5];
+        p[5] = v[valueSize - 6];
+        p[6] = v[valueSize - 7];
+        p[7] = v[valueSize - 8];
+    }
+
+    return write(&result, valueSize);
+}
+
+
+ByteBuffer& ByteBuffer::readBE(uint16& value) {
+    constexpr auto valueSize = sizeof(value);
+    read(&value, valueSize);
+
+    if (!isBigendian()) {
+        auto result = value;
+        const byte* v = reinterpret_cast<byte*>(&result);
+        byte* const p = reinterpret_cast<byte*>(&value);
+        p[0] = v[valueSize - 1];
+        p[1] = v[valueSize - 2];
+    }
+
+    return (*this);
+}
+
+ByteBuffer& ByteBuffer::readBE(uint32& value) {
+    constexpr auto valueSize = sizeof(value);
+    read(&value, valueSize);
+
+    if (!isBigendian()) {
+        auto result = value;
+        const byte* v = reinterpret_cast<byte*>(&result);
+        byte* const p = reinterpret_cast<byte*>(&value);
+        p[0] = v[valueSize - 1];
+        p[1] = v[valueSize - 2];
+        p[2] = v[valueSize - 3];
+        p[3] = v[valueSize - 4];
+    }
+
+    return (*this);
+}
+
+ByteBuffer& ByteBuffer::readBE(uint64& value) {
+    constexpr auto valueSize = sizeof(value);
+    read(&value, valueSize);
+
+    if (!isBigendian()) {
+        auto result = value;
+        const byte* v = reinterpret_cast<byte*>(&result);
+        byte* const p = reinterpret_cast<byte*>(&value);
+        p[0] = v[valueSize - 1];
+        p[1] = v[valueSize - 2];
+        p[2] = v[valueSize - 3];
+        p[3] = v[valueSize - 4];
+        p[4] = v[valueSize - 5];
+        p[5] = v[valueSize - 6];
+        p[6] = v[valueSize - 7];
+        p[7] = v[valueSize - 8];
+    }
+
+    return (*this);
 }

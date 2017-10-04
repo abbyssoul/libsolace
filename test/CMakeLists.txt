@@ -4,7 +4,7 @@ pkg_search_module(CPPUNIT REQUIRED cppunit)
 
 # Main lib project may disable rtti by default but cppunit requires it
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frtti")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
 # Maybe someday...
 # TODO(abbyssoul): Disabled as not supported by clang (without gold linker that is)
@@ -46,4 +46,16 @@ set(TEST_SOURCE_FILES
     )
 
 add_executable(test_${PROJECT_NAME} ${TEST_SOURCE_FILES})
-target_link_libraries(test_${PROJECT_NAME} PRIVATE ${PROJECT_NAME} ${CPPUNIT_LIBRARIES} fmt::fmt-header-only)
+
+if(UNIX AND NOT APPLE)
+    target_link_libraries(test_${PROJECT_NAME} PRIVATE
+        ${PROJECT_NAME}
+        ${CPPUNIT_LIBRARIES}
+        rt
+        fmt::fmt-header-only)
+else()
+    target_link_libraries(test_${PROJECT_NAME} PRIVATE
+        ${PROJECT_NAME}
+        ${CPPUNIT_LIBRARIES}
+        fmt::fmt-header-only)
+endif()

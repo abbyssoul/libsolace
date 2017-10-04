@@ -33,6 +33,13 @@
 
 using namespace Solace;
 
+constexpr int kOne = 1;
+
+
+bool Solace::isBigendian() noexcept {
+    return *reinterpret_cast<const char*>(&kOne) == 0;
+}
+
 
 MemoryViewDisposer::~MemoryViewDisposer()
 {}

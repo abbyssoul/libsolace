@@ -39,6 +39,12 @@ class TestByteBuffer: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testWrite);
         CPPUNIT_TEST(testRead);
         CPPUNIT_TEST(testGetByte);
+
+        CPPUNIT_TEST(endianConsisten);
+        CPPUNIT_TEST(readBigEndian);
+        CPPUNIT_TEST(readLittleEndian);
+        CPPUNIT_TEST(writeBigEndian);
+        CPPUNIT_TEST(writeLittleEndian);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -131,7 +137,6 @@ public:
         byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
         byte readBytes[3];
 
-
         constexpr ByteBuffer::size_type testSize = sizeof(bytes);
         ByteBuffer buffer(_memoryManager.create(testSize));
 
@@ -143,6 +148,171 @@ public:
         for (ByteBuffer::size_type i = 0; i < sizeof(readBytes); ++i) {
             CPPUNIT_ASSERT_EQUAL(bytes[i + 3], readBytes[i]);
         }
+    }
+
+
+    void readBigEndian() {
+        byte bytes[] = {0x84, 0x2d, 0xa3, 0x80,
+                        0xe3, 0x42, 0x6d, 0xff};
+
+        uint8 expected8(0x84);
+        uint16 expected16(0x842d);
+        uint32 expected32(0x842da380);
+        uint64 expected64(0x842da380e3426dff);
+
+        ByteBuffer buffer(wrapMemory(bytes));
+        {
+            uint8 result;
+            buffer.readBE(result).rewind();
+            CPPUNIT_ASSERT_EQUAL(expected8, result);
+        }
+        {
+            uint16 result;
+            buffer.readBE(result).rewind();
+            CPPUNIT_ASSERT_EQUAL(expected16, result);
+        }
+
+        {
+            uint32 result;
+            buffer.readBE(result).rewind();
+            CPPUNIT_ASSERT_EQUAL(expected32, result);
+        }
+
+        {
+            uint64 result;
+            buffer.readBE(result).rewind();
+            CPPUNIT_ASSERT_EQUAL(expected64, result);
+        }
+    }
+
+
+    void readLittleEndian() {
+        byte bytes[] = {0x01, 0x04, 0x00, 0x00,
+                        0xe3, 0x42, 0x6d, 0xff};
+
+        uint8 expected8(0x01);
+        uint16 expected16(1025);
+        uint32 expected32(1025);
+        uint64 expected64(0xff6d42e300000401);
+
+        ByteBuffer buffer(wrapMemory(bytes));
+        {
+            uint8 result;
+            buffer.readLE(result).rewind();
+            CPPUNIT_ASSERT_EQUAL(expected8, result);
+        }
+        {
+            uint16 result;
+            buffer.readLE(result).rewind();
+            CPPUNIT_ASSERT_EQUAL(expected16, result);
+        }
+
+        {
+            uint32 result;
+            buffer.readLE(result).rewind();
+            CPPUNIT_ASSERT_EQUAL(expected32, result);
+        }
+
+        {
+            uint64 result;
+            buffer.readLE(result).rewind();
+            CPPUNIT_ASSERT_EQUAL(expected64, result);
+        }
+    }
+
+
+
+    void writeBigEndian() {
+        byte bytes[8];
+        ByteBuffer buffer(wrapMemory(bytes));
+
+        {
+            const uint16 value(1025);
+            buffer.writeBE(value).rewind();
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x04), bytes[0]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x01), bytes[1]);
+        }
+
+        {
+            const uint32 value(0x842da380);
+            buffer.writeBE(value).rewind();
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x84), bytes[0]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x2d), bytes[1]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xa3), bytes[2]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x80), bytes[3]);
+        }
+
+        {
+            const uint64 value(0x842da380e3426dff);
+            buffer.writeBE(value).rewind();
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x84), bytes[0]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x2d), bytes[1]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xa3), bytes[2]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x80), bytes[3]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xe3), bytes[4]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x42), bytes[5]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x6d), bytes[6]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xff), bytes[7]);
+        }
+    }
+
+
+    void writeLittleEndian() {
+        byte bytes[8];
+        ByteBuffer buffer(wrapMemory(bytes));
+
+        {
+            const uint16 value(1025);
+            buffer.writeLE(value).rewind();
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x01), bytes[0]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x04), bytes[1]);
+        }
+
+        {
+            const uint32 value(1025);
+            buffer.writeLE(value).rewind();
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x01), bytes[0]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x04), bytes[1]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x00), bytes[2]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x00), bytes[3]);
+        }
+
+        {
+            const uint64 value(0x842da380e3426dff);
+            buffer.writeLE(value).rewind();
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xff), bytes[0]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x6d), bytes[1]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x42), bytes[2]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xe3), bytes[3]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x80), bytes[4]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xa3), bytes[5]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x2d), bytes[6]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x84), bytes[7]);
+        }
+    }
+
+    void endianConsisten() {
+        byte bytes[8];
+        ByteBuffer buffer(wrapMemory(bytes));
+
+        {
+            const uint16 value(0x842d);
+            buffer.writeLE(value).rewind();
+
+            uint16 res;
+            buffer.readLE(res).rewind();
+            CPPUNIT_ASSERT_EQUAL(value, res);
+        }
+
+        {
+            const uint16 value(0x842d);
+            buffer.writeBE(value).rewind();
+
+            uint16 res;
+            buffer.readBE(res).rewind();
+            CPPUNIT_ASSERT_EQUAL(value, res);
+        }
+
     }
 
 };

@@ -32,6 +32,13 @@
 
 namespace Solace {
 
+/**
+ * Check if Runtime platform is big or little endian.
+ * @return True if running on a big endian system.
+ */
+bool isBigendian() noexcept;
+
+
 // FWD declaration for disposer below.
 class ImmutableMemoryView;
 
