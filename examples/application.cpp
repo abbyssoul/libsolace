@@ -43,9 +43,9 @@ public:
 
         int someParam = 0;
 
-        return CommandlineParser("Solace framework example", {
+        return CommandlineParser("Solace app-framework example", {
                     CommandlineParser::printHelp(),
-                    CommandlineParser::printVersion("sol_example", getVersion()),
+                    CommandlineParser::printVersion("application", getVersion()),
                     {0, "some-param", "Some useless parameter for the demo", &someParam},
                     {'u', "name", "Name to call", &_name}
                 })
@@ -54,7 +54,12 @@ public:
     }
 
     Solace::Result<int, Solace::Error> run() {
-        std::cout << "Hello ";
+        std::cout << "Hello";
+
+        if (Solace::isBigendian())
+            std::cout << ", big-endian ";
+        else
+            std::cout << ", little-endian ";
 
         if (_name.empty())
             std::cout << "world";
