@@ -31,8 +31,9 @@
 using namespace Solace;
 using namespace Solace::IO;
 
-
+#ifndef NAME_MAX
 static constexpr size_t NAME_MAX = 255;
+#endif
 
 
 SharedMemory::SharedMemory(const poll_id fd) noexcept :

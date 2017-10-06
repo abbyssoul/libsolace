@@ -32,6 +32,19 @@ using namespace Solace;
 using namespace Solace::Process;
 
 
+#ifdef __APPLE__
+# include <crt_externs.h>
+# define environ (*_NSGetEnviron())
+int clearenv(void) {
+    environ[0] = NULL;
+    return 0;
+}
+#else
+extern char **environ;
+#endif
+
+
+
 Env::Iterator::Iterator(size_t size, size_t position) :
     _index(position), _size(size)
 {
@@ -83,7 +96,12 @@ Env::Env() {
 
 
 Optional<String> Env::get(const String& name) const {
-    auto value = secure_getenv(name.c_str());
+    auto value = 
+    #ifdef SOLACE_PLATFORM_LINUX
+        secure_getenv(name.c_str());
+    #else
+        getenv(name.c_str());
+    #endif
 
     return (value)
             ? Optional<String>::of(value)

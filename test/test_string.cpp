@@ -80,7 +80,7 @@ public:
         {   // NullPointer smoke test
             const char* nullCString = nullptr;
 
-            CPPUNIT_ASSERT_THROW(String nullString(nullCString), std::logic_error);
+            CPPUNIT_ASSERT_THROW(String nullString(nullCString, 0), std::logic_error);
         }
 
 

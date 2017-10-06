@@ -4,7 +4,7 @@ pkg_search_module(CPPUNIT REQUIRED cppunit)
 
 # Main lib project may disable rtti by default but cppunit requires it
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frtti")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
 # Maybe someday...
 # TODO(abbyssoul): Disabled as not supported by clang (without gold linker that is)

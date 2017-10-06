@@ -30,6 +30,7 @@
 
 #include <iomanip>
 #include <iostream>
+#include <sstream>  // std::stringstream
 
 
 using namespace Solace;
