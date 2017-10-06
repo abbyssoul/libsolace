@@ -96,7 +96,7 @@ Env::Env() {
 
 
 Optional<String> Env::get(const String& name) const {
-    auto value = 
+    auto value =
     #ifdef SOLACE_PLATFORM_LINUX
         secure_getenv(name.c_str());
     #else

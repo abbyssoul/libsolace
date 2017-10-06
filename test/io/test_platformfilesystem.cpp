@@ -63,7 +63,7 @@ protected:
         DirectoryGuard(char* cwd) : _cwd(cwd)
         {}
 
-        DirectoryGuard() : 
+        DirectoryGuard() :
         #ifdef SOLACE_PLATFORM_LINUX
             DirectoryGuard(get_current_dir_name())
         #else
