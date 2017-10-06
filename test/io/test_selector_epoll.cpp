@@ -32,6 +32,8 @@ using namespace Solace;
 using namespace Solace::IO;
 
 
+#ifdef SOLACE_PLATFORM_LINUX
+
 class TestEPollSelector : public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(TestEPollSelector);
@@ -143,3 +145,4 @@ public:
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestEPollSelector);
+#endif  // SOLACE_PLATFORM_LINUX
