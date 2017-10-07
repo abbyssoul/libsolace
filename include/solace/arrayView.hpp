@@ -67,8 +67,8 @@ public:
         _memory(wrapMemory(ptr, arraySize))
     {}
 
-    constexpr ArrayView(T* begin, T* end) noexcept :
-        _memory(wrapMemory(begin, end - begin))
+    constexpr ArrayView(T* beginSeq, T* endSeq) noexcept :
+        _memory(wrapMemory(beginSeq, endSeq - beginSeq))
     {}
 
     template <size_t size>
@@ -199,18 +199,18 @@ public:
     const_reference back()   const { return *(begin() + size() - 1); }
 
 
-    ArrayView<const T> slice(size_type start, size_type end) const {
-        start   = assertIndexInRange(start, 0,      size(), "ArrayView::slice() const");
-        end     = assertIndexInRange(end,   start,  size(), "ArrayView::slice() const");
+    ArrayView<const T> slice(size_type from, size_type to) const {
+        from   = assertIndexInRange(from, 0,     size(), "ArrayView::slice() const");
+        to     = assertIndexInRange(to,   from,  size(), "ArrayView::slice() const");
 
-        return ArrayView<const T>(begin() + start, end - start);
+        return ArrayView<const T>(begin() + from, to - from);
     }
 
-    ArrayView slice(size_type start, size_type end) {
-        start   = assertIndexInRange(start, 0,      size(), "ArrayView::slice()");
-        end     = assertIndexInRange(end,   start,  size(), "ArrayView::slice()");
+    ArrayView slice(size_type from, size_type to) {
+        from   = assertIndexInRange(from, 0,     size(), "ArrayView::slice()");
+        to     = assertIndexInRange(to,   from,  size(), "ArrayView::slice()");
 
-        return ArrayView<T>(begin() + start, end - start);
+        return ArrayView<T>(begin() + from, to - from);
     }
 
     ImmutableMemoryView view() const noexcept {
