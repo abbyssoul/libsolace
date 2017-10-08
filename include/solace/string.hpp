@@ -340,8 +340,9 @@ public:  // Basic collection operations:
 	{	return substring(from, to);}
 
 
-    // TODO(abbyssoul): should be ImmutableMemoryView
-    const MemoryView view() const noexcept;
+    const ImmutableMemoryView view() const noexcept {
+        return wrapMemory(c_str(), size());
+    }
 
 	const char* c_str() const;
 
