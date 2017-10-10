@@ -282,6 +282,12 @@ public:
         src.fill(32);
         buffer.fill(0);
 
+        {  // Identity writing:
+            buffer.write(buffer);
+            for (MemoryView::size_type i = 0; i < buffer.size(); ++i) {
+                CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0), buffer[i]);
+            }
+        }
         {
             // Test simple read
             buffer.write(src);

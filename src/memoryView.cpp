@@ -86,7 +86,7 @@ void MemoryView::write(const MemoryView& source, size_type offset) {
         raise<IndexOutOfRangeException>("offset", offset, 0, thisSize);
     }
 
-    if (source.size() >= thisSize - offset) {  // Make sure that source is writing no more then there is room.
+    if (source.size() > thisSize - offset) {  // Make sure that source is writing no more then there is room.
         raise<OverflowException>("source", source.size(), 0, thisSize - offset);
     }
 
