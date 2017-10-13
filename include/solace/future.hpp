@@ -65,13 +65,12 @@ template<typename T,
          typename ContinuationResult,
          typename UnpuckedResult, typename UnpackedErrorResultType,
          typename F>
-Future<UnpuckedResult> thenImplementation(std::shared_ptr<Core<T>>&& core, F&& f) {
-    Promise<UnpuckedResult> promise;
-
-    if (!core) {
+Future<UnpuckedResult> thenImplementation(std::shared_ptr<Core<T>>& core, F&& f) {
+    if (!core || core->isDetached()) {
         raiseInvalidStateError("Invalid Future without a Promise");
     }
 
+    Promise<UnpuckedResult> promise;
     auto chainedFuture = promise.getFuture();
 
     core->setCallback(std::make_shared<CB<T, ContinuationResult, UnpuckedResult, F>>(std::forward<F>(f),
@@ -85,13 +84,12 @@ template<typename T,
          typename ContinuationResult,
          typename UnpuckedResult, typename UnpackedErrorResultType,
          typename F>
-Future<UnpuckedResult> onErrorImplementation(std::shared_ptr<Core<T>>&& core, F&& f) {
-    Promise<UnpuckedResult> promise;
-
-    if (!core) {
+Future<UnpuckedResult> onErrorImplementation(std::shared_ptr<Core<T>>& core, F&& f) {
+    if (!core || core->isDetached()) {
         raiseInvalidStateError("Invalid Future without a Promise");
     }
 
+    Promise<UnpuckedResult> promise;
     auto chainedFuture = promise.getFuture();
 
     core->setCallback(std::make_shared<ErrBack<T, ContinuationResult, UnpuckedResult, F>>(std::forward<F>(f),
@@ -141,9 +139,9 @@ public:
     Future& operator= (const Future& rhs) = delete;
 
 
-    Future(Future&& rhs) noexcept : Future(std::shared_ptr<Core<T>>()) {
-        swap(rhs);
-    }
+    Future(Future&& rhs) noexcept :
+        _core(std::move(rhs._core))
+    {}
 
     Future& operator= (Future&& rhs) noexcept {
         return swap(rhs);
@@ -170,7 +168,7 @@ public:
         using UnpackedRT = typename R::value_type;
         using UnpackedET = typename R::error_type;
 
-        return details::thenImplementation<T, R, UnpackedRT, UnpackedET>(_core.lock(), std::forward<F>(f));
+        return details::thenImplementation<T, R, UnpackedRT, UnpackedET>(_core, std::forward<F>(f));
     }
 
 
@@ -185,7 +183,7 @@ public:
     std::enable_if_t<!isSomeResult<R>::value && !isFuture<R>::value, Future<R>>
     then(F&& f) {
 
-        return details::thenImplementation<T, R, R, error_type>(_core.lock(), std::forward<F>(f));
+        return details::thenImplementation<T, R, R, error_type>(_core, std::forward<F>(f));
     }
 
 
@@ -202,7 +200,7 @@ public:
     std::enable_if_t<(!isFuture<R>::value && !isSomeResult<R>::value) && std::is_convertible<R, T>::value,
     Future<R>>
     onError(F&& f) {
-        return details::onErrorImplementation<T, R, R, error_type>(_core.lock(), std::forward<F>(f));
+        return details::onErrorImplementation<T, R, R, error_type>(_core, std::forward<F>(f));
     }
 
 
@@ -220,18 +218,19 @@ public:
         using UnpackedRT = typename R::value_type;
         using UnpackedET = typename R::error_type;
 
-        return details::onErrorImplementation<T, R, UnpackedRT, UnpackedET>(_core.lock(), std::forward<F>(f));
+        return details::onErrorImplementation<T, R, UnpackedRT, UnpackedET>(_core, std::forward<F>(f));
     }
 
 protected:
-    template <class> friend class Promise;
+    template <typename> friend class Promise;
+    template <typename FT> friend Future<FT> makeFuture(FT&&);
 
     Future(const std::shared_ptr<Core<T>>& core): _core{core}
-    { }
+    {}
 
 private:
 
-    std::weak_ptr<Core<T>> _core;
+    std::shared_ptr<Core<T>> _core;
 
 };
 
@@ -254,8 +253,9 @@ public:
     Future(const Future& ) = delete;
     Future& operator= (const Future& rhs) = delete;
 
-    Future(Future&& rhs) noexcept : Future(std::shared_ptr<Core<void>>()) {
-        swap(rhs);
+    Future(Future&& rhs) noexcept :
+        _core(std::move(rhs._core))
+    {
     }
 
     Future& operator= (Future&& rhs) noexcept {
@@ -283,7 +283,7 @@ public:
         using UnpackedRT = typename R::value_type;
         using UnpackedET = typename R::error_type;
 
-        return details::thenImplementation<void, R, UnpackedRT, UnpackedET>(_core.lock(), std::forward<F>(f));
+        return details::thenImplementation<void, R, UnpackedRT, UnpackedET>(_core, std::forward<F>(f));
     }
 
 
@@ -293,7 +293,7 @@ public:
     std::enable_if_t<!isSomeResult<R>::value && !isFuture<R>::value, Future<R>>
     then(F&& f) {
 
-        return details::thenImplementation<void, R, R, Error>(_core.lock(), std::forward<F>(f));
+        return details::thenImplementation<void, R, R, Error>(_core, std::forward<F>(f));
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -309,7 +309,7 @@ public:
     std::enable_if_t<(!isFuture<R>::value && !isSomeResult<R>::value) && std::is_void<R>::value,
     Future<R>>
     onError(F&& f) {
-        return details::onErrorImplementation<void, R, R, error_type>(_core.lock(), std::forward<F>(f));
+        return details::onErrorImplementation<void, R, R, error_type>(_core, std::forward<F>(f));
     }
 
 
@@ -326,19 +326,19 @@ public:
         using UnpackedRT = typename R::value_type;
         using UnpackedET = typename R::error_type;
 
-        return details::onErrorImplementation<void, R, UnpackedRT, UnpackedET>(_core.lock(), std::forward<F>(f));
+        return details::onErrorImplementation<void, R, UnpackedRT, UnpackedET>(_core, std::forward<F>(f));
     }
 
 
 protected:
-    template <class> friend class Promise;
+    template <typename> friend class Promise;
 
     Future(const std::shared_ptr<Core<void>>& core): _core{core}
     { }
 
 private:
 
-    std::weak_ptr<Core<void>> _core;
+    std::shared_ptr<Core<void>> _core;
 
 };
 
@@ -355,6 +355,15 @@ Promise<void>::getFuture() {
     return Future<void>(_core);
 }
 
+
+template<typename T>
+Future<T> makeFuture(T&& value) {
+    Promise<T> p;
+    auto future = p.getFuture();
+    p.setValue(std::move(value));
+
+    return future;
+}
 
 
 }  // End of namespace Solace

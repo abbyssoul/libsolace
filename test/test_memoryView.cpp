@@ -41,6 +41,7 @@ class TestMemoryView: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testDataAs);
         CPPUNIT_TEST(testReadingPastTheSize);
         CPPUNIT_TEST(testSlice);
+        CPPUNIT_TEST(testZeroSizedSlice);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -370,6 +371,18 @@ public:
         CPPUNIT_ASSERT_THROW(buffer.slice(31, 939), IndexOutOfRangeException);
     }
 
+
+    void testZeroSizedSlice() {
+        byte src[24];
+        auto&& buffer = wrapMemory(src);
+        buffer.fill(124);
+
+        auto slice = buffer.slice(3, 3);
+        CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(0), slice.size());
+
+        CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(0), ImmutableMemoryView().slice(0, 0).size());
+        CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(0), MemoryView().slice(0, 0).size());
+    }
 
 };
 

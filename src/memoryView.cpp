@@ -159,17 +159,18 @@ MemoryView::unlock() {
 
 MemoryView
 MemoryView::slice(size_type from, size_type to) {
-    if (from >= size()) {
-        raise<IndexOutOfRangeException>("from", from, 0, size());
-    }
-
     if (to < from) {
-        raise<IndexOutOfRangeException>("to", to, from, size());
+        raise<IndexOutOfRangeException>("from", from, 0, to + 1);
     }
 
     if (to > size()) {
         raise<IndexOutOfRangeException>("to", to, from, size());
     }
+
+    if ((from != to) && (from >= size())) {
+        raise<IndexOutOfRangeException>("from", from, 0, size());
+    }
+
 
     return wrapMemory(const_cast<value_type*>(dataAddress(from)), to - from);
 }

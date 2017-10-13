@@ -110,6 +110,7 @@ class TestFuture : public CppUnit::TestFixture  {
 
         CPPUNIT_TEST(testThenFiredDeletesClosure);
 
+        CPPUNIT_TEST(readyFuture);
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -1265,7 +1266,6 @@ public:
     }
 
     void testThenFiredDeletesClosure() {
-
         Promise<int> p;
         auto f = p.getFuture();
 
@@ -1276,6 +1276,28 @@ public:
 
         CPPUNIT_ASSERT_EQUAL(1, PimitiveType::InstanceCount);
         p.setValue(-17);
+        CPPUNIT_ASSERT_EQUAL(0, PimitiveType::InstanceCount);
+    }
+
+
+    void readyFuture() {
+        bool thenFired = false;
+        bool futureErrored = false;
+
+        Future<PimitiveType> f = makeFuture(PimitiveType(817));
+
+        CPPUNIT_ASSERT_EQUAL(1, PimitiveType::InstanceCount);
+
+        f.then([&thenFired](PimitiveType&& value) {
+            thenFired = (value.x == 817);
+        })
+        .onError([&futureErrored](Error&& ) {
+            futureErrored = true;
+        });
+
+
+        CPPUNIT_ASSERT(thenFired);
+        CPPUNIT_ASSERT(!futureErrored);
         CPPUNIT_ASSERT_EQUAL(0, PimitiveType::InstanceCount);
     }
 };

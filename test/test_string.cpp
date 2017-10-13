@@ -20,6 +20,8 @@
  *
  ******************************************************************************/
 #include <solace/string.hpp>  // Class being tested
+#include <solace/exception.hpp>
+
 #include <cppunit/extensions/HelperMacros.h>
 
 
@@ -80,7 +82,7 @@ public:
         {   // NullPointer smoke test
             const char* nullCString = nullptr;
 
-            CPPUNIT_ASSERT_THROW(String nullString(nullCString), std::logic_error);
+            CPPUNIT_ASSERT_THROW(String nullString(nullCString), Exception);
         }
 
 

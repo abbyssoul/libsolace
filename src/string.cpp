@@ -45,7 +45,8 @@ String::String(String&& s) noexcept {
     _str.swap(s._str);
 }
 
-String::String(const char* data) : _str(data) {
+String::String(const char* data) :
+    _str(assertNotNull(data)) {
 }
 
 String::String(const char* data, size_type dataLength): _str(data, dataLength) {

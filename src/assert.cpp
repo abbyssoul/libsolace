@@ -52,3 +52,16 @@ void Solace::raiseInvalidStateError() {
 void Solace::raiseInvalidStateError(const char* message) {
     Solace::raise<Exception>(message);
 }
+
+
+const void* Solace::assertNotNull(const void* ptr) {
+    return assertNotNull(ptr, "Assertion violation: Null pointer value passed.");
+}
+
+
+const void* Solace::assertNotNull(const void* ptr, const char* message) {
+    if (ptr == nullptr)
+        Solace::raise<Exception>(message);
+
+    return ptr;
+}

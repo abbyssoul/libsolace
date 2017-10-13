@@ -42,6 +42,27 @@ void raiseInvalidStateError();
  */
 void raiseInvalidStateError(const char* message);
 
+/**
+ * Check that a pointer is not NULL, throw an exception if it is.
+ * @param ptr A pointer to check.
+ */
+const void* assertNotNull(const void* ptr);
+
+/**
+ * Check that a pointer is not NULL, throw an exception if it is.
+ * @param prt A pointer to check.
+ * @param message A message content of an excetpion thrown in case of assertion failure.
+ */
+const void* assertNotNull(const void* prt, const char* message);
+
+
+template<typename T>
+T* assertNotNull(T* value) {
+    assertNotNull(static_cast<const void*>(value));
+
+    return value;
+}
+
 
 /**
  * Assert that the give index is within the give range. Throw if it is not.

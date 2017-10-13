@@ -94,7 +94,7 @@ ImmutableMemoryView::operator[] (size_type index) const {
 
 const ImmutableMemoryView::value_type*
 ImmutableMemoryView::dataAddress(size_type offset) const {
-    if (offset >= size()) {
+    if ((offset != 0) && (offset >= size())) {
         raise<IndexOutOfRangeException>("offset", offset, 0, size());
     }
 
@@ -104,17 +104,18 @@ ImmutableMemoryView::dataAddress(size_type offset) const {
 
 ImmutableMemoryView
 ImmutableMemoryView::slice(size_type from, size_type to) const {
-    if (from >= size()) {
-        raise<IndexOutOfRangeException>("from", from, 0, size());
-    }
-
     if (to < from) {
-        raise<IndexOutOfRangeException>("to", to, from, size());
+        raise<IndexOutOfRangeException>("from", from, 0, to + 1);
     }
 
     if (to > size()) {
         raise<IndexOutOfRangeException>("to", to, from, size());
     }
+
+    if ((from != to) && (from >= size())) {
+        raise<IndexOutOfRangeException>("from", from, 0, size());
+    }
+
 
     return wrapMemory(dataAddress(from), to - from);
 }

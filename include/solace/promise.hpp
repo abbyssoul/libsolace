@@ -42,8 +42,6 @@ template<typename T>
 struct CallbackBase : public std::enable_shared_from_this<CallbackBase<T>> {
     virtual ~CallbackBase() = default;
 
-    using std::enable_shared_from_this<CallbackBase<T>>::shared_from_this;
-
     virtual void operator() (Result<T, Error>&& result) = 0;
 };
 
@@ -53,7 +51,7 @@ struct CallbackBase : public std::enable_shared_from_this<CallbackBase<T>> {
 template<typename T>
 class Core {
 public:
-    ~Core() = default;
+    virtual ~Core() = default;
 
     Core() :
         _completionHandler()
@@ -65,26 +63,43 @@ public:
     Core(Core&&) = delete;
     Core& operator= (Core&&) = delete;
 
-
-    void setCallback(std::shared_ptr<details::CallbackBase<T>>&& func) {
-        _completionHandler = std::move(func);
+    void detach() {
+        _isDetached.exchange(true);
     }
 
-    void setResult(Result<T, Error>&& result) {
+    bool isDetached() {
+        return _isDetached.load() && _result.isNone();
+    }
+
+    virtual void setCallback(std::shared_ptr<details::CallbackBase<T>>&& func) {
+        _completionHandler = std::move(func);
+
+        if (_result.isSome()) {
+            (*_completionHandler)(_result.move());
+            _result = None();
+            _completionHandler.reset();
+        }
+    }
+
+    virtual void setResult(Result<T, Error>&& result) {
         if (_fired.exchange(true)) {
             raiseInvalidStateError("Future value already set");
         }
 
         if (_completionHandler) {
-            // TODO(abbyssoul): Handle exceptions! What happenes when completion handler throws?
+            // TODO(abbyssoul): Handle exceptions! What happenes if completion handler throws?
             (*_completionHandler)(std::move(result));
             _completionHandler.reset();
+        } else {
+            _result = std::move(result);
         }
     }
 
 private:
 
-    std::atomic<bool> _fired {false};
+    Optional<Result<T, Error>>      _result;
+    std::atomic<bool> _fired        {false};
+    std::atomic<bool> _isDetached   {false};
     std::shared_ptr<details::CallbackBase<T>> _completionHandler;
 
 };
@@ -102,9 +117,15 @@ template<typename T>
 class Promise {
 public:
     typedef T value_type;
+    typedef Core<T> core_type;
 
 public:
-    ~Promise() = default;
+
+    ~Promise() {
+        if (_core) {
+            _core->detach();
+        }
+    }
 
     Promise(const Promise& ) = delete;
     Promise& operator= (const Promise& rhs) = delete;
@@ -112,13 +133,17 @@ public:
     /**
      * Construct an empty promise
      */
-    Promise() noexcept :
+    Promise() :
         _core(std::make_shared<Core<T>>())
     {}
 
-    Promise(Promise<T>&& rhs) noexcept : Promise() {
-        swap(rhs);
-    }
+    Promise(Promise<T>&& rhs) noexcept :
+        _core(std::move(rhs._core))
+    {}
+
+    Promise(std::shared_ptr<core_type>&& core) noexcept :
+        _core(std::move(core))
+    {}
 
     Promise& operator= (Promise<T>&& rhs) noexcept {
         return swap(rhs);
@@ -178,7 +203,7 @@ protected:
 
 private:
 
-    std::shared_ptr<Core<T>> _core;
+    std::shared_ptr<core_type> _core;
 
 };
 
@@ -188,9 +213,15 @@ template<>
 class Promise<void> {
 public:
     typedef void value_type;
+    typedef Core<void> core_type;
 
 public:
-    ~Promise() = default;
+
+    ~Promise() {
+        if (_core) {
+            _core->detach();
+        }
+    }
 
     Promise(const Promise& ) = delete;
     Promise& operator= (const Promise& rhs) = delete;
@@ -198,13 +229,17 @@ public:
     /**
      * Construct an empty promise
      */
-    Promise() noexcept :
+    Promise() :
         _core(std::make_shared<Core<void>>())
     {}
 
-    Promise(Promise&& rhs) noexcept : Promise() {
-        swap(rhs);
-    }
+    Promise(Promise&& rhs) noexcept :
+        _core(std::move(rhs._core))
+    {}
+
+    Promise(std::shared_ptr<core_type>&& core) noexcept :
+        _core(std::move(core))
+    {}
 
     Promise& operator= (Promise&& rhs) noexcept {
         return swap(rhs);
@@ -260,7 +295,7 @@ public:
 private:
     template <class> friend class Future;
 
-    std::shared_ptr<Core<void>> _core;
+    std::shared_ptr<core_type> _core;
 
 };
 
