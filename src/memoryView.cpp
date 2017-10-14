@@ -90,7 +90,7 @@ void MemoryView::write(const MemoryView& source, size_type offset) {
         raise<OverflowException>("source", source.size(), 0, thisSize - offset);
     }
 
-    memcpy(const_cast<value_type*>(dataAddress(offset)), source.dataAddress(), source.size());
+    memmove(const_cast<value_type*>(dataAddress(offset)), source.dataAddress(), source.size());
 
     // TODO(abbyssoul): return Result<>;
 }
@@ -103,7 +103,7 @@ void MemoryView::read(MemoryView& dest) {
         raise<OverflowException>("dest", thisSize, 0, dest.size());
     }
 
-    memcpy(const_cast<value_type*>(dest.dataAddress()), dataAddress(), dest.size());
+    memmove(const_cast<value_type*>(dest.dataAddress()), dataAddress(), dest.size());
     // TODO(abbyssoul): return Result<>;
 }
 
@@ -123,7 +123,7 @@ void MemoryView::read(MemoryView& dest, size_type bytesToRead, size_type offset)
         raise<OverflowException>("dest.size()", dest.size(), 0, bytesToRead);
     }
 
-    memcpy(const_cast<value_type*>(dest.dataAddress()), dataAddress(offset), bytesToRead);
+    memmove(const_cast<value_type*>(dest.dataAddress()), dataAddress(offset), bytesToRead);
 
     // TODO(abbyssoul): return Result<>;
 }

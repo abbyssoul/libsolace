@@ -155,10 +155,12 @@ verify: valgrind-memcheck
 
 
 $(COVERAGE_REPORT): $(BUILD_DIR)/build_coverage
+	cd ${BUILD_DIR} && ./${TEST_DIR}/$(TESTNAME)
+
 	# capture coverage info
 	lcov --directory . --capture --output-file $@
 	# filter out system and test code
-	lcov --remove coverage.info 'test/*' '/usr/*' 'libs/*' --output-file $@
+	lcov --remove coverage.info 'test/*' '/usr/*' 'external/*' --output-file $@
 
 coverage: $(COVERAGE_REPORT)
 

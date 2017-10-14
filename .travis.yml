@@ -53,6 +53,5 @@ script:
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make codecheck ; fi
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make -j2 test && make verify ; fi
 after_success:
-  - make clean && make build_coverage
-  - make test && make coverage_report
+  - make clean && make coverage_report
   - coveralls-lcov --repo-token ${COVERALLS_TOKEN} coverage.info # uploads to coveralls

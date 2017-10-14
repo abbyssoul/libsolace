@@ -94,7 +94,7 @@ ByteBuffer& ByteBuffer::read(void* bytes, size_type count) {
         raise<OverflowException>(_position + count, _position, _limit);
     }
 
-    memcpy(bytes, _storage.dataAddress(_position), count);
+    memmove(bytes, _storage.dataAddress(_position), count);
     _position += count;
 
     return (*this);
@@ -106,7 +106,7 @@ const ByteBuffer& ByteBuffer::read(size_type offset, byte* bytes, size_type coun
         raise<OverflowException>(offset + count, 0, _limit);
     }
 
-    memcpy(bytes, _storage.dataAddress(offset), count);
+    memmove(bytes, _storage.dataAddress(offset), count);
 
     return (*this);
 }
@@ -121,7 +121,7 @@ const ByteBuffer& ByteBuffer::read(size_type offset, MemoryView& bytes, size_typ
         raise<OverflowException>(count, 0, bytes.size());
     }
 
-    memcpy(bytes.dataAddress(), _storage.dataAddress(offset), count);
+    memmove(bytes.dataAddress(), _storage.dataAddress(offset), count);
 
     return (*this);
 }
@@ -140,7 +140,7 @@ ByteBuffer& ByteBuffer::write(const void* data, size_type count) {
          raise<OverflowException>(_position + count, _position, remaining());
     }
 
-    memcpy(_storage.dataAddress(_position), data, count);
+    memmove(_storage.dataAddress(_position), data, count);
 
     return advance(count);
 }

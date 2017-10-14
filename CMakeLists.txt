@@ -18,14 +18,12 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pipe -pedantic -pedantic-err
 
 # Enable stack-protector if compiler supports it (it should)
 check_cxx_compiler_flag("-fstack-protector" WITH_STACK_PROTECTOR)
+check_cxx_compiler_flag("-fno-omit-frame-pointer" WITH_FRAME_POINTER)
+
 if (WITH_STACK_PROTECTOR)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector")
 endif (WITH_STACK_PROTECTOR)
 
-check_cxx_compiler_flag("-fno-omit-frame-pointer" WITH_FRAME_POINTER)
-if (WITH_FRAME_POINTER)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
-endif (WITH_FRAME_POINTER)
 
 
 # Enable all the warnings one can get
@@ -65,21 +63,31 @@ endif (WITH_FORTIFY_SOURCE)
 set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -O0 -ggdb3 -D _DEBUG -D DEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG")
 
+if (WITH_FRAME_POINTER)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer")
+endif (WITH_FRAME_POINTER)
+
 
 #kernel-address
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
-#set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address,undefined,leak -fstack-protector-all")
+#set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address")
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address,undefined,leak")
 #set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=undefined,leak -fstack-protector-all")
-#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_DEBUG}")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_RELEASE}")
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
 
-# If generation of coverage information is required
-if (COVERALLS)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -O0")     # debug, no optimisation
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage") # enabling coverage
+    if (COVERALLS)
+        set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} --coverage") # enabling coverage
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+    endif()
+else()
+    if (COVERALLS)
+        message(FATAL_ERROR "Coverage can only be built in Debug mode")
+    endif()
 endif()
+
 
 
 # Build project dependencies (should be removed eventually)
