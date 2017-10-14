@@ -36,7 +36,7 @@ using namespace Solace::Process;
 # include <crt_externs.h>
 # define environ (*_NSGetEnviron())
 int clearenv(void) {
-    environ[0] = NULL;
+    environ[0] = nullptr;
     return 0;
 }
 #else

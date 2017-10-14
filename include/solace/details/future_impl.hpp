@@ -489,7 +489,8 @@ struct ErrBack<FutureValueType, Result<UnpuckedResultType, Error>, UnpuckedResul
     void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([self = std::static_pointer_cast<CallbackType>(this->shared_from_this())] (UnpuckedResultType&& rv){
+                .then([self = std::static_pointer_cast<CallbackType>(this->shared_from_this())]
+                      (UnpuckedResultType&& rv) {
                     self->pm.setValue(std::move(rv));
                 })
                 .orElse([self = std::static_pointer_cast<CallbackType>(this->shared_from_this())] (Error&& er) {
@@ -516,7 +517,8 @@ struct ErrBack<void, Result<UnpuckedResultType, Error>, UnpuckedResultType, F> :
     void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([self = std::static_pointer_cast<CallbackType>(this->shared_from_this())] (UnpuckedResultType&& rv){
+                .then([self = std::static_pointer_cast<CallbackType>(this->shared_from_this())]
+                      (UnpuckedResultType&& rv) {
                     self->pm.setValue(std::move(rv));
                 })
                 .orElse([self = std::static_pointer_cast<CallbackType>(this->shared_from_this())] (Error&& er) {
@@ -605,7 +607,8 @@ struct ErrBack<FutureValueType, Future<UnpuckedResultType>, UnpuckedResultType, 
     void operator() (Result<FutureValueType, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([self = std::static_pointer_cast<CallbackType>(this->shared_from_this())] (UnpuckedResultType&& rv) {
+                .then([self = std::static_pointer_cast<CallbackType>(this->shared_from_this())]
+                      (UnpuckedResultType&& rv) {
                     self->pm.setValue(std::move(rv));
                 })
                 .onError([self = std::static_pointer_cast<CallbackType>(this->shared_from_this())] (Error&& er) {
@@ -632,7 +635,8 @@ struct ErrBack<void, Future<UnpuckedResultType>, UnpuckedResultType, F> : public
     void operator() (Result<void, Error>&& result) override {
         if (result.isError()) {
             cont(result.moveError())
-                .then([self = std::static_pointer_cast<CallbackType>(this->shared_from_this())] (UnpuckedResultType&& rv) {
+                .then([self = std::static_pointer_cast<CallbackType>(this->shared_from_this())]
+                      (UnpuckedResultType&& rv) {
                     self->pm.setValue(std::move(rv));
                 })
                 .onError([self = std::static_pointer_cast<CallbackType>(this->shared_from_this())] (Error&& er) {
