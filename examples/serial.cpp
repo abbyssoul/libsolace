@@ -83,7 +83,7 @@ int main(int argc, const char **argv) {
 
         Solace::ByteBuffer readBuffer(memManager.create(bufferSize));
         auto selector = Solace::IO::Selector::createPoll(2);
-        selector.add(&serial,   Solace::IO::Selector::Events::Read ||
+        selector.add(&serial,   Solace::IO::Selector::Events::Read |
                                 Solace::IO::Selector::Events::Error);
 
         bool keepOnRunning = true;

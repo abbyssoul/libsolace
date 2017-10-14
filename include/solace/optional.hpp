@@ -33,6 +33,10 @@
 #include <ostream>
 #include <type_traits>  // std::aligned_storage
 
+// Note: with C++17 can use std::optional
+// #include <optional>
+
+
 namespace Solace {
 
 
@@ -68,60 +72,66 @@ public:
 public:
 
     ~Optional() {
-        // TODO(abbysoul): If this is optional is error and error was not handled - it must throw
-        _state->~IState();
+        destroy();
     }
 
 
     /**
      * Construct an new empty optional value.
      */
-    Optional() : _state(::new (_stateBuffer.noneSpace) NoneState())
+    Optional() :
+        _empty(),
+        _engaged(false)
     {}
 
     /**
      * Construct an non-empty optional value moving value.
      */
     Optional(T&& t) noexcept(std::is_nothrow_copy_constructible<T>::value) :
-        _state(::new (_stateBuffer.someSpace) SomeState(std::move(t)))
+        _payload(std::move(t)),
+        _engaged(true)
     {}
 
-    Optional(Optional<T>&& that) noexcept(std::is_nothrow_copy_constructible<T>::value) :
-        Optional()
-    {
-        swap(that);
+    Optional(Optional<T>&& other) noexcept(std::is_nothrow_copy_constructible<T>::value) {
+        if (other.isSome())
+            construct(std::move(other._payload));
     }
 
-    Optional(const Optional<T>& that) noexcept(std::is_nothrow_copy_constructible<T>::value) {
-        if (that.isSome())
-            _state = ::new (_stateBuffer.someSpace) SomeState(that.get());
-        else
-            _state = ::new (_stateBuffer.noneSpace) NoneState();
+    Optional(const Optional<T>& other) noexcept(std::is_nothrow_copy_constructible<T>::value) {
+        if (other.isSome())
+            construct(other._payload);
     }
+
+
+    template<typename D>
+    Optional(Optional<D>&& other) {
+        if (other.isSome())
+            construct(std::move(other._payload));
+    }
+
 
     Optional<T>& swap(Optional<T>& rhs) noexcept {
+        using std::swap;
+
         // TODO(abbyssoul): can we refactor this ugliness?
         if (isNone() && rhs.isNone()) {
             return *this;
-        } else if (isSome()) {  // This has something inside:
+        }
+
+        if (isSome()) {  // This has something inside:
             if (rhs.isNone()) {
-                rhs.makeSome(std::move(get()));
-                makeNone();
+                rhs.construct(std::move(_payload));
+                destroy();
             } else {
-                T c(std::move(get()));
-
-                makeSome(std::move(rhs.get()));
-                rhs.makeSome(std::move(c));
+                swap(rhs._payload, _payload);
             }
-        } else {  // Rhs has something inside:
-            if (isNone()) {
-                makeSome(std::move(rhs.get()));
-                rhs.makeNone();
+        } else {  // We got nothing:
+            if (rhs.isNone()) {
+                // Logic error!
+                raiseInvalidStateError("logic error");
             } else {
-                T c(std::move(get()));
-
-                makeSome(std::move(rhs.get()));
-                rhs.makeSome(std::move(c));
+                construct(std::move(rhs._payload));
+                rhs.destroy();
             }
         }
 
@@ -138,39 +148,55 @@ public:
         return swap(rhs);
     }
 
-    explicit operator bool() const noexcept {
+    constexpr explicit operator bool() const noexcept {
       return isSome();
     }
 
-    bool isSome() const noexcept { return _state->isSome(); }
+    constexpr bool isSome() const noexcept { return _engaged; }
 
-    bool isNone() const noexcept { return _state->isNone(); }
+    constexpr bool isNone() const noexcept { return !_engaged; }
 
-    const T& get() const & {
-        return *_state->ptr_ref();
+    const T& get() const {
+        if (isNone())
+            raiseInvalidStateError();
+
+        return _payload;
     }
 
-    T& get() & {
-        return *_state->ptr_ref();
+    T& get() {
+        if (isNone())
+            raiseInvalidStateError();
+
+        return _payload;
     }
 
-    T&& get() && {
-        return std::move(*_state->ptr_ref());
-    }
 
-    T&& move() {
-        return std::move(*_state->ptr_ref());
+    T move() {
+        auto p = std::move(_payload);
+        destroy();
+
+        return p;
     }
 
     const T& orElse(const T& t) const noexcept {
-        return _state->orElse(t);
+        if (isNone())
+            return t;
+
+        return _payload;
+    }
+
+    T&& orElse(T&& t) noexcept {
+        if (isNone())
+            return std::move(t);
+
+        return std::move(_payload);
     }
 
     template <typename F,
               typename U = typename std::result_of<F(T&)>::type>
     Optional<U> map(F f) {
         return (isSome())
-                ? Optional<U>::of(f(*_state->ptr_ref()))
+                ? Optional<U>::of(f(_payload))
                 : Optional<U>::none();
     }
 
@@ -178,127 +204,71 @@ public:
               typename U = typename std::result_of<F(T)>::type>
     Optional<U> map(F f) const {
         return (isSome())
-                ? Optional<U>::of(f(*_state->ptr_ref()))
+                ? Optional<U>::of(f(_payload))
                 : Optional<U>::none();
     }
 
     template <typename U>
     Optional<U> flatMap(const std::function<Optional<U> (const T&)>& f) const {
         return (isSome())
-                ? f(*_state->ptr_ref())
+                ? f(_payload)
                 : Optional<U>::none();
     }
 
     template <typename F>
     Optional<T> filter(F predicate) const {
         return (isSome())
-                ? (predicate(*_state->ptr_ref()) ? *this : Optional<T>::none())
+                ? (predicate(_payload) ? *this : Optional<T>::none())
                 : Optional<T>::none();
     }
 
 protected:
 
-    Optional(const T& t) {
-        _state = ::new (_stateBuffer.someSpace) SomeState(t);
+    Optional(const T& t) :
+        _payload(t),
+        _engaged(true)
+    {
+    }
+
+    void construct(const T& t) {
+//        destroy();
+        if (_engaged)
+            raiseInvalidStateError("logic error");
+
+        ::new (reinterpret_cast<void *>(std::addressof(_payload))) Stored_type(t);
+        _engaged = true;
+    }
+
+    void construct(T&& t) {
+//        destroy();
+        if (_engaged)
+            raiseInvalidStateError("logic error");
+
+        ::new (reinterpret_cast<void *>(std::addressof(_payload))) Stored_type(std::move(t));
+        _engaged = true;
+    }
+
+    void destroy() {
+        if (_engaged) {
+            _engaged = false;
+            _payload.~Stored_type();
+        }
     }
 
 private:
 
-    template<typename V>
-    class AlignedStorage {
-    public:
+    template <class>
+    friend class Optional;
 
-        ~AlignedStorage() {
-            ptr_ref()->T::~T();
-        }
+    using   Stored_type = std::remove_const_t<T>;
+    struct  Empty_type {};
 
-        void const* address() const { return _dummy; }
-        void      * address()       { return _dummy; }
-
-        V const* ptr_ref() const { return static_cast<V const*>(address()); }
-        V *      ptr_ref()       { return static_cast<V *>     (address()); }
-
-    private:
-        std::aligned_storage_t<sizeof(V), alignof(V)> _dummy[1];
-
+    union {
+        Empty_type  _empty;
+        Stored_type _payload;
     };
 
-    class IState {
-    public:
-        virtual ~IState() = default;
-
-        virtual bool isSome() const noexcept = 0;
-        virtual bool isNone() const noexcept = 0;
-
-        virtual const T& orElse(const T& t) const = 0;
-
-        virtual const T* ptr_ref() const = 0;
-        virtual T*       ptr_ref()       = 0;
-    };
-
-    class NoneState: public IState {
-    public:
-        bool isSome() const noexcept override { return false; }
-        bool isNone() const noexcept override { return true; }
-
-        const T& orElse(const T& t) const override { return t; }
-
-        const T* ptr_ref() const override   { raiseInvalidStateError(); return nullptr; }
-        T* ptr_ref() override               { raiseInvalidStateError(); return nullptr; }
-    };
-
-    class SomeState: public IState {
-    public:
-
-        SomeState(const T& val) {
-            ::new (_storage.address()) T(val);
-        }
-
-        SomeState(T&& val) {
-            ::new (_storage.address()) T(std::move(val));
-        }
-
-        bool isSome() const noexcept override { return true; }
-        bool isNone() const noexcept override { return false; }
-
-        const T& orElse(const T&) const override { return *ptr_ref(); }
-
-        T const* ptr_ref() const override   { return _storage.ptr_ref(); }
-        T* ptr_ref() override               { return _storage.ptr_ref(); }
-
-    private:
-
-        AlignedStorage<T> _storage;
-    };
-
-
-    void makeNone() {
-        _state->~IState();
-        _state = ::new (_stateBuffer.noneSpace) NoneState();
-    }
-
-    void makeSome(const T& t) {
-        _state->~IState();
-        _state = ::new (_stateBuffer.someSpace) SomeState(t);
-    }
-
-    void makeSome(T&& t) {
-        _state->~IState();
-        _state = ::new (_stateBuffer.someSpace) SomeState(std::move(t));
-    }
-
-
-private:
-
-    /**
-     * Well, honestly it should have been called Schrodinger Cat's State 0_0
-     */
-    union SchrodingerState {
-        byte noneSpace[ sizeof(NoneState) ];
-        byte someSpace[ sizeof(SomeState) ];
-    } _stateBuffer;
-
-    IState* _state;
+    bool _engaged = false;
 };
 
 // TODO(abbyssoul): Specialization of Optional<T&> and Optional<T*>

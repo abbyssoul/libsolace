@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 
     return app.init(argc, argv)
             .then([&app]() { return app.run(); })
-            .orElse([](const Solace::Error& error) {
+            .orElse([](Solace::Error&& error) {
                 if (error) {
                     std::cerr << "Error: " << error << std::endl;
                 }

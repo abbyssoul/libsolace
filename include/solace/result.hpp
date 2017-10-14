@@ -128,33 +128,6 @@ struct isSomeResult<Result<V, E>> : std::true_type {
     typedef typename type::error_type error_type;
 };
 
-/*
-template <typename T>
-struct isOkResult : std::false_type {
-    using std::false_type::value;
-
-    typedef T value_type;
-};
-
-
-template <typename T>
-struct isErrorResult : std::false_type {
-    using std::false_type::value;
-
-    typedef T value_type;
-};
-
-
-template <typename V, typename E>
-struct isResult<Result<V, E>> : std::true_type {
-    using std::true_type::value;
-
-    using type = Result<V, E>;
-
-    typedef typename type::value_type value_type;
-    typedef typename type::error_type error_type;
-};
-*/
 
 
 template <
@@ -195,25 +168,6 @@ struct isResult<OV, OE, types::Err<E>> : std::true_type {
 };
 
 
-/*
-template <typename V>
-struct isOkResult<types::Ok<V>> : std::true_type {
-    using std::true_type::value;
-
-    using type = types::Ok<V>;
-
-    typedef typename type::value_type value_type;
-};
-
-template <typename E>
-struct isErrorResult<types::Err<E>> : std::true_type {
-    using std::true_type::value;
-
-    using type = types::Err<E>;
-    typedef typename type::error_type error_type;
-};
-*/
-
 
 /**
  * Result class is an 'enum' of two values V and E with V being 'expected'.
@@ -239,27 +193,17 @@ public:
 public:
 
     ~Result() {
-        if (_state) {
-            _state->~IState();
-            _state = nullptr;
-        }
+        destroy();
     }
 
-
-    /**
-     * Construct Ok result by copying value
-     * @param value Ok value to copy
-     */
-    Result(const types::Ok<V>& value):
-        _state( ::new (_stateBuffer.okSpace) OkState(value) )
-    {}
 
     /**
      * Move-Construct Ok result
      * @param value Ok value to move from
      */
-    Result(types::Ok<V>&& value):
-        _state( ::new (_stateBuffer.okSpace) OkState(std::move(value)) )
+    Result(types::Ok<V>&& value) :
+        _value(std::move(value.val_)),
+        _engaged(true)
     {}
 
     /**
@@ -268,23 +212,18 @@ public:
      */
     template<typename DV>
     Result(types::Ok<DV>&& value):
-        _state( ::new (_stateBuffer.okSpace) OkState(std::move(value.val_)) )
+        _value(std::move(value.val_)),
+        _engaged(true)
     {}
 
-    /**
-     * Construct Err result by copying error value
-     * @param err Err value to copy from
-     */
-    Result(const types::Err<E>& err):
-        _state( ::new (_stateBuffer.errSpace) ErrorState(err) )
-    {}
 
     /**
      * Move-Construct Err result by moving error value
      * @param err Err value to move from
      */
     Result(types::Err<E>&& err):
-        _state( ::new (_stateBuffer.errSpace) ErrorState(std::move(err)) )
+        _error(std::move(err.val_)),
+        _engaged(false)
     {}
 
 
@@ -292,38 +231,50 @@ public:
      * Copy construct Result of the same type
      * @param rhs Source to copy values from
      */
-    Result(const Result& rhs) noexcept :
-        _state(rhs.isOk()
-               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.unwrap()))
-               : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(rhs.getError())))
-    {
+    Result(const Result& rhs) noexcept {
+        if (rhs.isOk()) {
+            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(rhs._value);
+            _engaged = true;
+        } else {
+            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(rhs._error);
+            _engaged = false;
+        }
     }
 
     /**
      * Move-Construct Result of the same type
      * @param rhs Source to move values from
      */
-    Result(Result&& rhs) noexcept :
-        _state(rhs.isOk()
-               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.moveResult()))
-               : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(rhs.moveError())))
-    {
+    Result(Result&& rhs) noexcept {
+        if (rhs.isOk()) {
+            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(std::move(rhs._value));
+            _engaged = true;
+        } else {
+            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(std::move(rhs._error));
+            _engaged = false;
+        }
     }
 
     template<typename DV>
-    Result(const Result<DV, E>& rhs) noexcept :
-        _state(rhs.isOk()
-               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.unwrap()))
-               : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(rhs.getError())))
-    {
+    Result(const Result<DV, E>& rhs) noexcept {
+        if (rhs.isOk()) {
+            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(rhs._value);
+            _engaged = true;
+        } else {
+            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(rhs._error);
+            _engaged = false;
+        }
     }
 
     template<typename DV>
-    Result(Result<DV, E>&& rhs) noexcept :
-        _state(rhs.isOk()
-               ? static_cast<IState*>(::new (_stateBuffer.okSpace) OkState(rhs.moveResult()))
-               : static_cast<IState*>(::new (_stateBuffer.errSpace) ErrorState(rhs.moveError())))
-    {
+    Result(Result<DV, E>&& rhs) noexcept {
+        if (rhs.isOk()) {
+            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(std::move(rhs._value));
+            _engaged = true;
+        } else {
+            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(std::move(rhs._error));
+            _engaged = false;
+        }
     }
 
 public:
@@ -349,31 +300,6 @@ public:
         return Err(moveError());
     }
 
-//    template<typename F,
-//             typename R = typename std::result_of<F(V)>::type>
-//    std::enable_if_t<isOkResult<R>::value, Result<typename R::value_type, E>>
-//    then(F&& f) {
-//        if (isOk()) {
-//            // TODO(abbyssoul): We probably should handle exeptions here
-//            return f(unwrap());
-//        }
-
-//        return Err(getError());
-//    }
-
-//    template<typename F,
-//             typename R = typename std::result_of<F(V)>::type>
-//    std::enable_if_t<isErrorResult<R>::value, Result<V, typename R::error_type>>
-//    then(F&& f) {
-//        if (isOk()) {
-//            // TODO(abbyssoul): We probably should handle exeptions here
-//            return f(unwrap());
-//        }
-
-//        return Err(getError());
-//    }
-
-
     template <typename F,
               typename R = typename std::result_of<F(V)>::type
               >
@@ -397,7 +323,7 @@ public:
     then(F&& f) {
 
         if (isOk()) {
-            // TODO(abbyssoul): Handle exeptions and convert then into Error
+            // TODO(abbyssoul): Handle exeptions and convert them into error_type
             f(moveResult());
 
             return Ok();
@@ -432,30 +358,6 @@ public:
         return Ok(f(moveError()));
     }
 
-
-//    template<typename F,
-//             typename RE = typename std::result_of<F(E)>::type>
-//    std::enable_if_t<isOkResult<RE>::value, Result<typename RE::value_type, E>>
-//    orElse(F&& f) {
-//        if (isOk()) {
-//            return *this;
-//        }
-
-//        return f(getError());
-//    }
-
-//    template<typename F,
-//             typename RE = typename std::result_of<F(E)>::type>
-//    std::enable_if_t<isErrorResult<RE>::value, Result<V, typename RE::error_type>>
-//    orElse(F&& f) {
-//        if (isOk()) {
-//            return *this;
-//        }
-
-//        return f(getError());
-//    }
-
-
     /**
      * Pass through a Ok result but applies a given function to an error value.
      * This can be used to handle errors.
@@ -476,27 +378,25 @@ public:
 
 
     Result& swap(Result& rhs) noexcept {
+        using std::swap;
 
         if (isOk()) {
-            V v{ std::move(unwrap()) };
+            if (rhs.isOk()) {
+                swap(_value, rhs._value);
+            } else {
+                StoredValue_type v(std::move(_value));
+                constructError(std::move(rhs._error));
+                rhs.constructValue(std::move(v));
+            }
 
-            if (rhs.isOk())
-                _state = ::new (_stateBuffer.okSpace) OkState(std::move(rhs.unwrap()));
-            else
-                _state = ::new (_stateBuffer.errSpace) ErrorState(std::move(rhs.getError()));
-
-            rhs._state->~IState();
-            rhs._state = ::new (rhs._stateBuffer.okSpace) OkState(std::move(v));
         } else {
-            E e{ std::move(getError()) };
-
-            if (rhs.isOk())
-                _state = ::new (_stateBuffer.okSpace) OkState(std::move(rhs.unwrap()));
-            else
-                _state = ::new (_stateBuffer.errSpace) ErrorState(std::move(rhs.getError()));
-
-            rhs._state->~IState();
-            rhs._state = ::new (rhs._stateBuffer.errSpace) ErrorState(std::move(e));
+            if (rhs.isOk()) {
+                StoredValue_type v(std::move(rhs._value));
+                rhs.constructError(std::move(_error));
+                constructValue(std::move(v));
+            } else {
+                swap(_error, rhs._error);
+            }
         }
 
         return (*this);
@@ -513,149 +413,117 @@ public:
     }
 
     bool isOk() const noexcept {
-        return _state->isOk();
+        return _engaged;
     }
 
     bool isError() const noexcept {
-        return _state->isError();
+        return !_engaged;
     }
 
-    const V& unwrap() const& {
-        return *_state->getResult();
+    const V& unwrap() const {
+        if (isError())
+            raiseInvalidStateError();
+
+        return _value;
     }
 
-    V& unwrap() & {
-        return *_state->getResult();
+    V& unwrap() {
+        if (isError())
+            raiseInvalidStateError();
+
+        return _value;
     }
 
-    V&& unwrap() && {
-        return std::move(*_state->getResult());
-    }
 
     V&& moveResult() {
-        return std::move(*_state->getResult());
+        if (isError())
+            raiseInvalidStateError();
+
+        return std::move(_value);
     }
 
     E&& moveError() {
-        return std::move(*_state->getError());
+        if (isOk())
+            raiseInvalidStateError();
+
+        return std::move(_error);
     }
 
     const E& getError() const & {
-        return *_state->getError();
+        if (isOk())
+            raiseInvalidStateError();
+
+        return _error;
     }
 
     E& getError() & {
-        return *_state->getError();
+        if (isOk())
+            raiseInvalidStateError();
+
+        return _error;
     }
 
     E&& getError() && {
-        return std::move(*_state->getError());
+        if (isOk())
+            raiseInvalidStateError();
+
+        return std::move(_error);
     }
 
 private:
 
-    template<typename T>
-    class AlignedStorage {
-    public:
-        ~AlignedStorage() {
-            ptr_ref()->T::~T();
+    void destroy() {
+        if (_engaged) {
+            _value.~StoredValue_type();
+        } else {
+            _error.~StoredError_type();
         }
+    }
 
-        void const* address() const { return _dummy; }
-        void      * address()       { return _dummy; }
+    void constructValue(const V& t) {
+        destroy();
 
-        T const* ptr_ref() const { return static_cast<T const*>(address()); }
-        T *      ptr_ref()       { return static_cast<T *>     (address()); }
+        ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(t);
+        _engaged = true;
+    }
 
-    private:
-        std::aligned_storage_t<sizeof(T), alignof(T)> _dummy[1];
-    };
+    void constructValue(V&& t) {
+        destroy();
+
+        ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(std::move(t));
+        _engaged = true;
+    }
+
+
+    void constructError(const E& t) {
+        destroy();
+
+        ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(t);
+        _engaged = false;
+    }
+
+    void constructError(E&& t) {
+        destroy();
+
+        ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(std::move(t));
+        _engaged = false;
+    }
 
 private:
 
-    class IState {
-    public:
-        virtual ~IState() = default;
+    template<typename DV, typename DE>
+    friend class Result;
 
-        virtual bool isOk() const = 0;
-        virtual bool isError() const = 0;
+    using   StoredValue_type = std::remove_const_t<V>;
+    using   StoredError_type = std::remove_const_t<E>;
 
-        virtual const V*  getResult() const = 0;
-        virtual V*        getResult()       = 0;
-
-        virtual const E* getError() const = 0;
-        virtual E*       getError()       = 0;
+    union {
+        StoredValue_type    _value;
+        StoredError_type    _error;
     };
 
+    bool _engaged = false;
 
-    class OkState: public IState {
-    public:
-
-        OkState(const types::Ok<V>& val) {
-            ::new (_storage.address()) V(val.val_);
-        }
-
-        OkState(types::Ok<V>&& val) {
-            ::new (_storage.address()) V(std::move(val.val_));
-        }
-
-        OkState(V&& val) {
-            ::new (_storage.address()) V(std::move(val));
-        }
-
-        OkState(const V& val) {
-            ::new (_storage.address()) V(val);
-        }
-
-        bool isOk() const override      { return true; }
-        bool isError() const override   { return false; }
-
-        const V* getResult() const override   { return _storage.ptr_ref(); }
-        V* getResult() override               { return _storage.ptr_ref(); }
-
-        const E* getError() const override      { raiseInvalidStateError(); return nullptr; }
-        E* getError()  override                 { raiseInvalidStateError(); return nullptr; }
-
-    private:
-
-        AlignedStorage<V> _storage;
-    };
-
-
-    class ErrorState: public IState {
-    public:
-
-        ErrorState(const types::Err<E>& val) {
-            ::new (_storage.address()) E(val.val_);
-        }
-
-        ErrorState(types::Err<E>&& val) {
-            ::new (_storage.address()) E(std::move(val.val_));
-        }
-
-        bool isOk() const override { return false; }
-        bool isError() const override { return true; }
-
-        const V* getResult() const override   { raiseInvalidStateError(); return nullptr; }
-        V* getResult() override               { raiseInvalidStateError(); return nullptr; }
-
-        const E* getError() const  override   { return _storage.ptr_ref(); }
-        E* getError() override                { return _storage.ptr_ref(); }
-
-    private:
-
-        AlignedStorage<E> _storage;
-    };
-
-    /**
-     * Well, honestly it should have been called Schrodinger's Cat State 0_0
-     */
-    union SchrodingerState {
-        byte okSpace[ sizeof(OkState) ];
-        byte errSpace[ sizeof(ErrorState) ];
-    } _stateBuffer;
-
-    IState* _state;
 };
 
 
@@ -679,15 +547,15 @@ public:
      * @param value Ok value to copy
      */
     Result(const types::Ok<void>& SOLACE_UNUSED(value)) :
-        _maybeError(Optional<E>::none())
+        _maybeError()
     {}
 
     /**
      * Move-Construct Ok result
      * @param value Ok value to move from
      */
-    Result(types::Ok<void>&&):
-        _maybeError(Optional<E>::none())
+    Result(types::Ok<void>&& SOLACE_UNUSED(value)):
+        _maybeError()
     {}
 
     /**
@@ -703,7 +571,7 @@ public:
      * @param err Err value to move from
      */
     Result(types::Err<E>&& err):
-        _maybeError(Optional<E>::of(std::move(err.val_)))
+        _maybeError(std::move(err.val_))
     {}
 
 
@@ -748,37 +616,6 @@ public:
 
         return Err(moveError());
     }
-
-
-//    template<typename F,
-//             typename R = typename std::result_of<F(void)>::type
-//             >
-//    std::enable_if_t<isOkResult<R>::value, Result<typename R::value_type, E>>
-//    then(F&& f) const {
-
-//        if (isOk()) {
-//            // TODO(abbyssoul): We probably should handle exeptions here
-//            return f();
-//        }
-
-//        return Err(getError());
-//    }
-
-
-//    template<typename F,
-//             typename R = typename std::result_of<F(void)>::type
-//             >
-//    std::enable_if_t<isErrorResult<R>::value, Result<void, typename R::error_type>>
-//    then(F&& f) const {
-
-//        if (isOk()) {
-//            // TODO(abbyssoul): We probably should handle exeptions here
-//            return f();
-//        }
-
-//        return Err(getError());
-//    }
-
 
     template <typename F,
               typename R = typename std::result_of<F(void)>::type
@@ -915,7 +752,7 @@ public:
         return _maybeError.get();
     }
 
-    E&& moveError() {
+    E moveError() {
         return _maybeError.move();
     }
 

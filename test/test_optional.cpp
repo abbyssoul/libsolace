@@ -152,7 +152,13 @@ public:
             CPPUNIT_ASSERT(v2.isSome());
             CPPUNIT_ASSERT_EQUAL(2, MoveOnlyType::InstanceCount);
         }
+    }
 
+    void testConstrucorTypeConvertion() {
+        Optional<PimitiveType> ptype = Optional<int>::of(321);
+
+        CPPUNIT_ASSERT_EQUAL(1, PimitiveType::InstanceCount);
+        CPPUNIT_ASSERT_EQUAL(321, ptype.get().x);
     }
 
     void testAssignment() {
