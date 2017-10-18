@@ -340,7 +340,7 @@ public:
     std::enable_if_t<isResult<V, E, R>::value, typename isResult<V, E, R>::type>
     orElse(F&& f) {
         if (isOk()) {
-            return *this;
+            return Ok(moveResult());
         }
 
         return f(moveError());
@@ -352,8 +352,9 @@ public:
     std::enable_if_t<!isResult<V, E, RE>::value, Result<RE, E>>
     orElse(F&& f) {
         if (isOk()) {
-            return *this;
+            return Ok(moveResult());
         }
+
         // TODO(abbyssoul): Handle exeptions and convert then into Error
         return Ok(f(moveError()));
     }
@@ -382,7 +383,11 @@ public:
 
         if (isOk()) {
             if (rhs.isOk()) {
-                swap(_value, rhs._value);
+//                swap(_value, rhs._value);
+
+                StoredValue_type v(std::move(_value));
+                constructValue(std::move(rhs._value));
+                rhs.constructValue(std::move(v));
             } else {
                 StoredValue_type v(std::move(_value));
                 constructError(std::move(rhs._error));
@@ -395,7 +400,10 @@ public:
                 rhs.constructError(std::move(_error));
                 constructValue(std::move(v));
             } else {
-                swap(_error, rhs._error);
+//                swap(_error, rhs._error);
+                StoredError_type v(std::move(_error));
+                constructError(std::move(rhs._error));
+                rhs.constructError(std::move(v));
             }
         }
 

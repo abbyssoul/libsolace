@@ -32,9 +32,38 @@ using namespace Solace::Framework;
 class TestCommandlineParser: public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(TestCommandlineParser);
-        CPPUNIT_TEST(testShortInt);
-        CPPUNIT_TEST(testLongInt);
-        CPPUNIT_TEST(testErrorWhenSignedIntPassedWhenUnsignedExpected);
+        CPPUNIT_TEST(parseNullString);
+        CPPUNIT_TEST(parseEmptyString);
+        CPPUNIT_TEST(parseOneArgumentString);
+
+        CPPUNIT_TEST(parseInt8);
+        CPPUNIT_TEST(parseInt8_Overflow);
+        CPPUNIT_TEST(parseUInt8);
+        CPPUNIT_TEST(parseUInt8_Overflow);
+        CPPUNIT_TEST(parseUInt8_NegativeArgument);
+        CPPUNIT_TEST(parseUInt8_NegativeOverflow);
+
+        CPPUNIT_TEST(parseInt16);
+        CPPUNIT_TEST(parseInt16_Overflow);
+        CPPUNIT_TEST(parseUInt16);
+        CPPUNIT_TEST(parseUInt16_Overflow);
+        CPPUNIT_TEST(parseUInt16_NegativeArgument);
+        CPPUNIT_TEST(parseUInt16_NegativeOverflow);
+
+        CPPUNIT_TEST(parseInt32);
+        CPPUNIT_TEST(parseInt32_Overflow);
+        CPPUNIT_TEST(parseUInt32);
+        CPPUNIT_TEST(parseUInt32_Overflow);
+        CPPUNIT_TEST(parseUInt32_NegativeArgument);
+        CPPUNIT_TEST(parseUInt32_NegativeOverflow);
+
+        CPPUNIT_TEST(parseInt64);
+        CPPUNIT_TEST(parseInt64_Overflow);
+        CPPUNIT_TEST(parseUInt64);
+        CPPUNIT_TEST(parseUInt64_Overflow);
+        CPPUNIT_TEST(parseUInt64_NegativeArgument);
+        CPPUNIT_TEST(parseUInt64_NegativeOverflow);
+
         CPPUNIT_TEST(testBoolWithNoArgument);
         CPPUNIT_TEST(testUnrecognizedArgument);
         CPPUNIT_TEST(testOptionalValueAndUnrecognizedArgument);
@@ -59,19 +88,17 @@ class TestCommandlineParser: public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE_END();
 
-public:
+protected:
 
-
-    void testShortInt() {
-
+    template<typename T>
+    void testIntParsing(const char* strArg, T expectedValue, bool expectedToPass = true) {
         bool parsedSuccessully = false;
-        int xValue = 0;
+        T xValue = 0;
 
-        const char* argv[] = {"prog", "-x", "321", nullptr};
+        const char* argv[] = {"prog", "-x", strArg, nullptr};
         const int argc = 3;
 
-        const char* appDesc = "Something awesome";
-        CommandlineParser(appDesc, {
+        CommandlineParser("Something awesome", {
                               {'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
@@ -79,49 +106,150 @@ public:
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false;});
 
 
-        CPPUNIT_ASSERT_EQUAL(321, xValue);
-        CPPUNIT_ASSERT(parsedSuccessully);
+        CPPUNIT_ASSERT_EQUAL(static_cast<T>(expectedValue), xValue);
+        CPPUNIT_ASSERT_EQUAL(expectedToPass, parsedSuccessully);
+    }
+
+    template<typename T>
+    void testIntOverflow(const char* strArg) {
+        testIntParsing<T>(strArg, 0, false);
     }
 
 
-    void testLongInt() {
+public:
 
-        bool parsedSuccessully = false;
-        int xValue = 0;
+    void parseNullString() {
+        CommandlineParser parser("Something awesome");
+        auto result = parser.parse(0, nullptr);
 
-        const char* argv[] = {"prog", "--xxx", "756", nullptr};
-        const int argc = 3;
+        CPPUNIT_ASSERT(result.isOk());
+    }
 
-        const char* appDesc = "Something awesome";
-        CommandlineParser(appDesc, {
-                              {'x', "xxx", "Something", &xValue}
-                          })
-                .parse(argc, argv)
-                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
-                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
+    void parseEmptyString() {
+        const char* argv[] = {""};
+        CommandlineParser parser("Something awesome");
+        auto result1 = parser.parse(0, argv);
 
+        CPPUNIT_ASSERT(result1.isOk());
 
-        CPPUNIT_ASSERT_EQUAL(756, xValue);
-        CPPUNIT_ASSERT(parsedSuccessully);
+        auto result2 = parser.parse(1, argv);
+
+        CPPUNIT_ASSERT(result2.isOk());
     }
 
 
-    void testErrorWhenSignedIntPassedWhenUnsignedExpected() {
+    void parseOneArgumentString() {
+        const char* argv[] = {"blarg!"};
 
-        bool parsedSuccessully = false;
-        uint32 xValue = 0;
+        CPPUNIT_ASSERT(CommandlineParser("Something awesome", {})
+                       .parse(1, argv)
+                       .isOk());
 
-        const char* argv[] = {"prog", "--xxx", "-42", nullptr};
-        const int argc = 3;
+//        CommandlineParser parser("Something awesome");
+//        auto result = parser.parse(1, argv);
 
-        const char* appDesc = "Something awesome";
-        CommandlineParser(appDesc, {{'x', "xxx", "Something", &xValue}})
-                .parse(argc, argv)
-                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
-                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
+//        CPPUNIT_ASSERT(result.isOk());
+    }
 
-        CPPUNIT_ASSERT_EQUAL(0u, xValue);
-        CPPUNIT_ASSERT(!parsedSuccessully);
+
+    void parseInt8() {
+        testIntParsing<int8>("120", 120);
+    }
+
+    void parseInt8_Overflow() {
+        testIntOverflow<int8>("32042");
+    }
+
+    void parseUInt8() {
+        testIntParsing<uint8>("240", 240);
+    }
+
+    void parseUInt8_Overflow() {
+        testIntOverflow<uint8>("429883");
+    }
+
+    void parseUInt8_NegativeArgument() {
+        testIntParsing<uint8>("-32", 0, false);
+    }
+
+    void parseUInt8_NegativeOverflow() {
+        testIntParsing<uint8>("-739834887", 0, false);
+    }
+
+
+    void parseInt16() {
+        testIntParsing<int16>("321", 321);
+    }
+
+    void parseInt16_Overflow() {
+        testIntOverflow<int16>("68535");
+    }
+
+    void parseUInt16() {
+        testIntParsing<uint16>("9883", 9883);
+    }
+
+    void parseUInt16_Overflow() {
+        testIntOverflow<uint16>("429883");
+    }
+
+    void parseUInt16_NegativeArgument() {
+        testIntParsing<uint16>("-73", 0, false);
+    }
+
+    void parseUInt16_NegativeOverflow() {
+        testIntParsing<uint16>("-739834887", 0, false);
+    }
+
+
+    void parseInt32() {
+        testIntParsing<int32>("717321", 717321);
+    }
+
+    void parseInt32_Overflow() {
+        testIntOverflow<int32>("9898847598475");
+    }
+
+    void parseUInt32() {
+        testIntParsing<uint32>("19587446", 19587446);
+    }
+
+    void parseUInt32_Overflow() {
+        testIntOverflow<uint32>("4298833432");
+    }
+
+    void parseUInt32_NegativeArgument() {
+        testIntParsing<uint32>("-19587446", 0, false);
+    }
+
+    void parseUInt32_NegativeOverflow() {
+        testIntParsing<uint32>("-9898847598475", 0, false);
+    }
+
+
+    void parseInt64() {
+        testIntParsing<int64>("717321", 717321);
+    }
+
+    void parseInt64_Overflow() {
+//        testIntOverflow<int64>("9898847598475978947899839987438957");
+        testIntOverflow<int64>("922337203685477580742111");
+    }
+
+    void parseUInt64() {
+        testIntParsing<uint64>("19587446", 19587446);
+    }
+
+    void parseUInt64_Overflow() {
+        testIntOverflow<uint64>("92233720368547758072");
+    }
+
+    void parseUInt64_NegativeArgument() {
+        testIntParsing<uint64>("-19587446", 0, false);
+    }
+
+    void parseUInt64_NegativeOverflow() {
+        testIntParsing<uint64>("-922337203685477580712", 0, false);
     }
 
 
@@ -142,6 +270,7 @@ public:
                 .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error e) {
                         parsedSuccessully = false;
+
                         CPPUNIT_FAIL(e.toString().c_str());
                     });
 
@@ -160,7 +289,7 @@ public:
 
         const char* appDesc = "Something awesome";
         CommandlineParser(appDesc, {
-                              {'x', "xxx", "Something", &xValue}
+                              CommandlineParser::Option{'x', "xxx", "Something", &xValue}
                           })
                 .parse(argc, argv)
                 .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })

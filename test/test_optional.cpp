@@ -37,6 +37,7 @@ class TestOptional : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE(TestOptional);
         CPPUNIT_TEST(testConstructionIntegrals);
         CPPUNIT_TEST(testConstruction);
+        CPPUNIT_TEST(testConstrucorTypeConvertion);
         CPPUNIT_TEST(testAssignment);
         CPPUNIT_TEST(testSwap);
 
@@ -155,6 +156,8 @@ public:
     }
 
     void testConstrucorTypeConvertion() {
+        CPPUNIT_ASSERT_EQUAL(0, PimitiveType::InstanceCount);
+
         Optional<PimitiveType> ptype = Optional<int>::of(321);
 
         CPPUNIT_ASSERT_EQUAL(1, PimitiveType::InstanceCount);

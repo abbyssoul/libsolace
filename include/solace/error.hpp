@@ -36,8 +36,14 @@
 namespace Solace {
 
 
-class Error: public IFormattable {
+class Error :
+        public IFormattable {
 public:
+
+    ~Error() = default;
+
+    //! Construct error with a message
+    Error(std::string&& message, int code = -1) noexcept;
 
     //! Construct error with a message
     Error(const std::string& message, int code = -1) noexcept;
@@ -51,8 +57,6 @@ public:
         _code(other._code),
         _message(std::move(other._message))
     {}
-
-    ~Error() noexcept;
 
 
     int value() const noexcept {

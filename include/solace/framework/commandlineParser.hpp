@@ -33,6 +33,8 @@
 #include "solace/array.hpp"
 #include "solace/version.hpp"
 
+#include "solace/utils.hpp"
+#include "solace/delegate.hpp"
 
 
 namespace Solace { namespace Framework {
@@ -130,14 +132,44 @@ public:
      */
     class Option {
     public:
+        Option(char shortName, const char* longName, const char* description, String* value);
+        Option(char shortName, const char* longName, const char* description, int8* value);
+        Option(char shortName, const char* longName, const char* description, uint8* value);
+        Option(char shortName, const char* longName, const char* description, int16* value);
+        Option(char shortName, const char* longName, const char* description, uint16* value);
         Option(char shortName, const char* longName, const char* description, int32* value);
         Option(char shortName, const char* longName, const char* description, uint32* value);
+        Option(char shortName, const char* longName, const char* description, int64* value);
+        Option(char shortName, const char* longName, const char* description, uint64* value);
         Option(char shortName, const char* longName, const char* description, float32* value);
+        Option(char shortName, const char* longName, const char* description, float64* value);
         Option(char shortName, const char* longName, const char* description, bool* value);
-        Option(char shortName, const char* longName, const char* description, String* value);
+
+        /// Common constructor:
+        template<typename F,
+                 typename R = typename std::result_of<F(Context&)>::type
+                 >
         Option(char shortName, const char* longName, const char* description,
-               const std::function<Optional<Error> (Context&)>& callback,
-               OptionArgument expectsArgument = OptionArgument::Required);
+//               const std::function<Optional<Error> (Context&)>& callback,
+               F&& f,
+               OptionArgument expectsArgument = OptionArgument::Required) :
+            _longName(longName),
+            _description(description),
+            _shortName(shortName),
+            _expectsArgument(expectsArgument),
+            _callback(std::forward<F>(f))
+        {}
+
+        /// Common constructor:
+//        Option(char shortName, const char* longName, const char* description,
+//               std::function<Optional<Error>(Context&)>&& callback,
+//               OptionArgument expectsArgument = OptionArgument::Required) :
+//            _longName(longName),
+//            _description(description),
+//            _shortName(shortName),
+//            _expectsArgument(expectsArgument),
+//            _callback(std::move(callback))
+//        {}
 
         Option(const Option& rhs) noexcept :
             _longName(rhs._longName),
@@ -145,7 +177,6 @@ public:
             _shortName(rhs._shortName),
             _expectsArgument(rhs._expectsArgument),
             _callback(rhs._callback)
-
         {}
 
         Option(Option&& rhs) noexcept :
@@ -190,11 +221,15 @@ public:
         OptionArgument getArgumentExpectations() const noexcept { return _expectsArgument; }
 
     private:
+
+
         const char*                         _longName;
         const char*                         _description;
         char                                _shortName;
 
         OptionArgument                      _expectsArgument;
+
+//        delegate<Optional<Error> (Context&)>    _callback;
 
         std::function<Optional<Error> (Context&)>    _callback;
     };
@@ -203,13 +238,32 @@ public:
     class Argument {
     public:
         // Mandatory positional arguments
+        Argument(const char* name, const char* description, String* value);
+        Argument(const char* name, const char* description, int8* value);
+        Argument(const char* name, const char* description, uint8* value);
+        Argument(const char* name, const char* description, int16* value);
+        Argument(const char* name, const char* description, uint16* value);
         Argument(const char* name, const char* description, int32* value);
         Argument(const char* name, const char* description, uint32* value);
+        Argument(const char* name, const char* description, int64* value);
+        Argument(const char* name, const char* description, uint64* value);
         Argument(const char* name, const char* description, float32* value);
+        Argument(const char* name, const char* description, float64* value);
         Argument(const char* name, const char* description, bool* value);
-        Argument(const char* name, const char* description, String* value);
+
         Argument(const char* name, const char* description,
-                 const std::function<Optional<Error> (Context&)>& callback);
+                 const std::function<Optional<Error> (Context&)>& callback) :
+            _name(name),
+            _description(description),
+            _callback(std::move(callback))
+        {}
+
+        Argument(const char* name, const char* description,
+                 std::function<Optional<Error> (Context&)>&& callback) :
+            _name(name),
+            _description(description),
+            _callback(std::move(callback))
+        {}
 
         Argument(const Argument& rhs) noexcept :
             _name(rhs._name),
@@ -261,20 +315,23 @@ public:
 
 public:
 
+    ~CommandlineParser() = default;
+
+    CommandlineParser(const char* appDescription);
     CommandlineParser(const char* appDescription, const std::initializer_list<Option>& options);
     CommandlineParser(const char* appDescription,
                       const std::initializer_list<Option>& options,
                       const std::initializer_list<Argument>& arguments);
 
     CommandlineParser(const CommandlineParser& rhs) :
-        prefix(rhs.prefix),
+        _prefix(rhs._prefix),
         _description(rhs._description),
         _options(rhs._options),
         _arguments(rhs._arguments)
     {}
 
     CommandlineParser(CommandlineParser&& rhs) noexcept :
-        prefix(rhs.prefix),
+        _prefix(rhs._prefix),
         _description(std::move(rhs._description)),
         _options(std::move(rhs._options)),
         _arguments(std::move(rhs._arguments))
@@ -292,7 +349,7 @@ public:
 
     CommandlineParser& swap(CommandlineParser& rhs) noexcept {
         using std::swap;
-        swap(prefix, rhs.prefix);
+        swap(_prefix, rhs._prefix);
         swap(_description, rhs._description);
         swap(_options, rhs._options);
         swap(_arguments, rhs._arguments);
@@ -309,9 +366,9 @@ public:
 
     // printUsage() const
 
-    char optionPrefix() const noexcept { return prefix; }
+    char optionPrefix() const noexcept { return _prefix; }
     CommandlineParser& optionPrefix(char prefixChar) noexcept {
-        prefix = prefixChar;
+        _prefix = prefixChar;
         return *this;
     }
 
@@ -329,7 +386,8 @@ public:
 
 private:
 
-    char prefix;
+    /// Option prefix
+    char            _prefix;
 
     /// Human readable description of the application.
     const char*     _description;

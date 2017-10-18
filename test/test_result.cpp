@@ -23,6 +23,7 @@
 #include <solace/result.hpp>			// Class being tested
 
 #include <solace/unit.hpp>
+#include <solace/error.hpp>
 #include <solace/string.hpp>
 #include <solace/exception.hpp>
 #include <cmath>
@@ -31,12 +32,15 @@
 
 #include "mockTypes.hpp"
 
+#include <fmt/format.h>
+
 using namespace Solace;
 
 
 class TestResult : public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(TestResult);
+        CPPUNIT_TEST(testFailure);
         CPPUNIT_TEST(testConstructionIntegrals);
         CPPUNIT_TEST(testConstruction);
         CPPUNIT_TEST(testMoveAssignment);
@@ -128,6 +132,23 @@ public:
         CPPUNIT_ASSERT_EQUAL(0, SomeTestType::InstanceCount);
         CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
     }
+
+
+    Result<void, Error>
+    fail(std::string&& message) {
+        return Err(Error(std::move(message)));
+    }
+
+    void testFailure() {
+        Result<void, Error> r = fail(fmt::format("Bad errors '{}' about to happen", 3221));
+
+        CPPUNIT_ASSERT(!r.isOk());
+        CPPUNIT_ASSERT(r.isError());
+
+        Result<void, Error> other = fail(fmt::format("Bad errors '{}' about to happen", 3221));
+        CPPUNIT_ASSERT(other.isError());
+    }
+
 
     void testTypeConvertion() {
         {

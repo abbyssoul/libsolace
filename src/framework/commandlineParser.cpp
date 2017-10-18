@@ -28,9 +28,11 @@
 #include <cstring>
 #include <cstdlib>
 
+#include <limits>
 #include <iomanip>
 #include <iostream>
 #include <sstream>  // std::stringstream
+#include <limits.h>
 
 
 using namespace Solace;
@@ -38,6 +40,32 @@ using namespace Solace::Framework;
 
 
 const char CommandlineParser::DefaultPrefix = '-';
+
+Optional<Error> conversionError(const char* fmt, const char* name, const char* value) {
+    return Optional<Error>::of(fmt::format(fmt, name, value));
+}
+
+template<typename T>
+Optional<Error> parseIntArgument(CommandlineParser::Context& context, T* value) {
+    char* pEnd = nullptr;
+
+    errno = 0;
+    auto val = strtoll(context.value, &pEnd, 0);
+
+    if ((errno == ERANGE && (val == LLONG_MAX || val == LLONG_MIN)) || (errno != 0 && val == 0))
+        return conversionError("Argument '{}' is outside of parsable int range: '{}'", context.name, context.value);
+
+    if (!pEnd || pEnd == context.value)  // No conversion has been done
+        return conversionError("Argument '{}' is not a valid value: '{}'", context.name, context.value);
+
+    if (val > std::numeric_limits<T>::max() ||
+        val < std::numeric_limits<T>::min())
+        return conversionError("Argument '{}' is outside of bounds: '{}'", context.name, context.value);
+
+    *value = static_cast<T>(val);
+
+    return None();
+}
 
 
 
@@ -55,51 +83,156 @@ bool as_boolean(const char* v, bool* value) {
     return false;
 }
 
+CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, int8* value):
+    Option(shortName, longName, desc, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, uint8* value):
+    Option(shortName, longName, desc, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+
+CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, int16* value):
+    Option(shortName, longName, desc, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, uint16* value):
+    Option(shortName, longName, desc, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
 
 CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, int32* value):
-    _longName(longName),
-    _description(desc),
-    _shortName(shortName),
-    _expectsArgument(OptionArgument::Required),
-    _callback([value](Context& context) -> Optional<Error> {
-        char* pEnd = nullptr;
-        *value = strtol(context.value, &pEnd, 0);
-
-        return (!pEnd || pEnd == context.value)
-                ? Optional<Error>::of(fmt::format("Argument '{}' invalid int32 value: '{}'",
-                                                  context.name,
-                                                  context.value))  // No conversion was done!
-                : None();
-    })
-
+    Option(shortName, longName, desc, [value](Context& context) { return parseIntArgument(context, value); })
 {
 }
 
 CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, uint32* value):
-    _longName(longName),
-    _description(desc),
-    _shortName(shortName),
-    _expectsArgument(OptionArgument::Required),
-    _callback([value](Context& context) {
-        char* pEnd = nullptr;
-        *value = strtoul(context.value, &pEnd, 0);
+    Option(shortName, longName, desc, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
 
-        return (!pEnd || pEnd == context.value)
-                ? Optional<Error>::of(fmt::format("Argument '{}' invalid uint32 value: '{}'",
-                                                  context.name,
-                                                  context.value))  // No conversion was done!
-                : None();
+
+CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, int64* value):
+    Option(shortName, longName, desc, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, uint64* value):
+    Option(shortName, longName, desc, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, float32* value) :
+    Option(shortName, longName, desc, [value](Context& context) -> Optional<Error> {
+        char* pEnd = nullptr;
+        auto val = strtof(context.value, &pEnd);
+
+        if (!pEnd || pEnd == context.value)  // No conversion has been done
+            return conversionError("Option '{}' is not float32 value: '{}'", context.name, context.value);
+
+        *value = static_cast<float32>(val);
+
+        return None();
+    })
+{
+}
+
+CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, float64* value) :
+    Option(shortName, longName, desc, [value](Context& context) -> Optional<Error> {
+        char* pEnd = nullptr;
+        auto val = strtod(context.value, &pEnd);
+
+        if (!pEnd || pEnd == context.value)  // No conversion has been done
+            return conversionError("Option '{}' is not float64 value: '{}'", context.name, context.value);
+
+        *value = static_cast<float64>(val);
+
+        return None();
     })
 {
 }
 
 
-CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, float32* value) :
-    _longName(longName),
-    _description(desc),
-    _shortName(shortName),
-    _expectsArgument(OptionArgument::Required),
-    _callback([value](Context& context) {
+CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, bool* value) :
+     Option(shortName, longName, desc, [value](Context& context) {
+        return (!as_boolean(context.value, value))
+                ? Optional<Error>::of(fmt::format("Option '{}' is invalid boolean value: '{}'",
+                                                  context.name,
+                                                  context.value))  // No conversion was done!
+                : None();
+    }, OptionArgument::Optional)
+{
+}
+
+
+CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, String* value) :
+    Option(shortName, longName, desc, [value](Context& context) -> Optional<Error> {
+        *value = context.value;
+
+        return None();
+    })
+{
+}
+
+
+
+bool CommandlineParser::Option::operator == (const CommandlineParser::Option& other) const noexcept {
+    return ((_shortName == other._shortName)
+            && (_longName == other._longName
+                 || (_longName && other._longName && strcmp(_longName, other._longName) == 0)));
+}
+
+
+
+CommandlineParser::Argument::Argument(const char* name, const char* description, int8* value):
+    Argument(name, description, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+CommandlineParser::Argument::Argument(const char* name, const char* description, uint8* value):
+    Argument(name, description, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+CommandlineParser::Argument::Argument(const char* name, const char* description, int16* value):
+    Argument(name, description, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+CommandlineParser::Argument::Argument(const char* name, const char* description, uint16* value):
+    Argument(name, description, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+
+CommandlineParser::Argument::Argument(const char* name, const char* description, int32* value):
+    Argument(name, description, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+CommandlineParser::Argument::Argument(const char* name, const char* description, uint32* value):
+    Argument(name, description, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+
+CommandlineParser::Argument::Argument(const char* name, const char* description, int64* value):
+    Argument(name, description, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+CommandlineParser::Argument::Argument(const char* name, const char* description, uint64* value):
+    Argument(name, description, [value](Context& context) { return parseIntArgument(context, value); })
+{
+}
+
+
+CommandlineParser::Argument::Argument(const char* name, const char* description, float32* value):
+    Argument(name, description, [value](Context& context) {
         char* pEnd = nullptr;
         *value = strtof(context.value, &pEnd);
 
@@ -113,96 +246,10 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
 }
 
 
-CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, bool* value) :
-    _longName(longName),
-    _description(desc),
-    _shortName(shortName),
-    _expectsArgument(OptionArgument::Optional),
-    _callback([value](Context& context) {
-
-        return (!as_boolean(context.value, value))
-                ? Optional<Error>::of(fmt::format("Argument '{}' invalid boolean value: '{}'",
-                                                  context.name,
-                                                  context.value))  // No conversion was done!
-                : None();
-    })
-{
-}
-
-
-CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, String* value) :
-    _longName(longName),
-    _description(desc),
-    _shortName(shortName),
-    _expectsArgument(OptionArgument::Required),
-    _callback([value](Context& context) {
-        *value = context.value;
-
-        return None();
-    })
-{
-}
-
-CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc,
-                                  const std::function<Optional<Error> (Context& context)>& callback,
-                                  OptionArgument expectsArgument) :
-    _longName(longName),
-    _description(desc),
-    _shortName(shortName),
-    _expectsArgument(expectsArgument),
-    _callback(callback)
-{
-}
-
-
-bool CommandlineParser::Option::operator == (const CommandlineParser::Option& other) const noexcept {
-    return ((_shortName == other._shortName)
-            && (_longName == other._longName
-                 || (_longName && other._longName && strcmp(_longName, other._longName) == 0)));
-}
-
-
-
-CommandlineParser::Argument::Argument(const char* name, const char* description, int32* value):
-    _name(name),
-    _description(description),
-    _callback([value](Context& context) {
+CommandlineParser::Argument::Argument(const char* name, const char* description, float64* value):
+    Argument(name, description, [value](Context& context) {
         char* pEnd = nullptr;
-        *value = strtof(context.value, &pEnd);
-
-        return (!pEnd || pEnd == context.value)
-                ? Optional<Error>::of(fmt::format("Argument '{}' invalid int32 value: '{}'",
-                                                  context.name,
-                                                  context.value))  // No conversion was done!
-            : None();
-    })
-{
-}
-
-
-CommandlineParser::Argument::Argument(const char* name, const char* description, uint32* value):
-    _name(name),
-    _description(description),
-    _callback([value](Context& context) {
-        char* pEnd = nullptr;
-        *value = strtof(context.value, &pEnd);
-
-        return (!pEnd || pEnd == context.value)
-                ? Optional<Error>::of(fmt::format("Argument '{}' invalid uint32 value: '{}'",
-                                                  context.name,
-                                                  context.value))  // No conversion was done!
-            : None();
-    })
-{
-}
-
-
-CommandlineParser::Argument::Argument(const char* name, const char* description, float32* value):
-    _name(name),
-    _description(description),
-    _callback([value](Context& context) {
-        char* pEnd = nullptr;
-        *value = strtof(context.value, &pEnd);
+        *value = strtod(context.value, &pEnd);
 
         return (!pEnd || pEnd == context.value)
                 ? Optional<Error>::of(fmt::format("Argument '{}' invalid float32 value: '{}'",
@@ -215,9 +262,7 @@ CommandlineParser::Argument::Argument(const char* name, const char* description,
 
 
 CommandlineParser::Argument::Argument(const char* name, const char* description, bool* value) :
-    _name(name),
-    _description(description),
-    _callback([value](Context& context) {
+    Argument(name, description, [value](Context& context) {
         return (as_boolean(context.value, value))
                 ? Optional<Error>::of(fmt::format("Argument '{}' invalid boolean value: '{}'",
                                                   context.name,
@@ -229,23 +274,11 @@ CommandlineParser::Argument::Argument(const char* name, const char* description,
 
 
 CommandlineParser::Argument::Argument(const char* name, const char* description, String* value) :
-    _name(name),
-    _description(description),
-    _callback([value](Context& context) {
+    Argument(name, description, [value](Context& context) {
         *value = context.value;
 
         return None();
     })
-{
-}
-
-
-CommandlineParser::Argument::Argument(const char* name,
-                                      const char* description,
-                                      const std::function<Optional<Error> (Context& context)>& callback) :
-    _name(name),
-    _description(description),
-    _callback(callback)
 {
 }
 
@@ -256,11 +289,21 @@ bool CommandlineParser::Argument::operator == (const CommandlineParser::Argument
 }
 
 
+CommandlineParser::CommandlineParser(const char* appDescription) :
+    _prefix(DefaultPrefix),
+    _description(appDescription),
+    _options(),
+    _arguments()
+{
+}
+
+
 CommandlineParser::CommandlineParser(const char* appDescription,
                                      const std::initializer_list<Option>& options) :
-    prefix(DefaultPrefix),
+    _prefix(DefaultPrefix),
     _description(appDescription),
-    _options(options)
+    _options(options),
+    _arguments()
 {
 }
 
@@ -268,7 +311,7 @@ CommandlineParser::CommandlineParser(const char* appDescription,
 CommandlineParser::CommandlineParser(const char* appDescription,
                                      const std::initializer_list<Option>& options,
                                      const std::initializer_list<Argument>& arguments) :
-    prefix(DefaultPrefix),
+    _prefix(DefaultPrefix),
     _description(appDescription),
     _options(options),
     _arguments(arguments)
@@ -305,32 +348,32 @@ Optional<Error> CommandlineParser::Argument::match(Context& c) const {
 
 
 Result<const CommandlineParser*, Error>
-fail(const std::string& message) {
-    return Err(Error(message));
+fail(std::string&& message) {
+    return Err(Error(std::move(message)));
 }
 
 
 Result<const CommandlineParser*, Error>
 CommandlineParser::parse(int argc, const char *argv[]) const {
-    uint32 firstPositionalArgument = 1;
+    uint firstPositionalArgument = 1;
 
     // Handle flags
     for (int i = 1; i < argc; ++i, ++firstPositionalArgument) {
         const char* arg = argv[i];
 
-        if (arg[0] == prefix) {
+        if (arg[0] == _prefix) {
             int numberMatched = 0;
             bool valueConsumed = false;
 
             for (auto& option : _options) {
 
-                if (option.isMatch(arg, prefix)) {
+                if (option.isMatch(arg, _prefix)) {
                     numberMatched += 1;
 
                     if (i + 1 < argc) {
 
                         const char* value = nullptr;
-                        if (argv[i + 1][0] == prefix) {
+                        if (argv[i + 1][0] == _prefix) {
                             if (option.getArgumentExpectations() == OptionArgument::Required) {
                                 // Argument is required but none was given, error out!
                                 return fail(fmt::format("Option '{}' expected one argument", argv[i]));
@@ -388,8 +431,12 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
 
 
     // Positional arguments processing
+    if (firstPositionalArgument >= argc)
+        return _arguments.empty()
+                ? Ok(this)
+                : fail("No arguments given");
 
-    const uint32 nbPositionalArgument = argc - firstPositionalArgument;
+    const auto nbPositionalArgument = argc - firstPositionalArgument;
     if (nbPositionalArgument > _arguments.size()) {
         return fail(fmt::format("Too many arguments given {}, expected: {}",
                                                   nbPositionalArgument,
@@ -404,7 +451,7 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
     }
 
 
-    for (uint32 i = 0; i < nbPositionalArgument; ++i) {
+    for (uint i = 0; i < nbPositionalArgument; ++i) {
         Context c {argc, argv,
                     _arguments[i].name(),
                     argv[firstPositionalArgument + i],

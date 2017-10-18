@@ -38,6 +38,7 @@ class TestArray : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE(TestArray);
         CPPUNIT_TEST(testEmpty);
         CPPUNIT_TEST(testCopy);
+        CPPUNIT_TEST(testComposite);
 
         CPPUNIT_TEST(testBasics);
         CPPUNIT_TEST(testString);
@@ -70,7 +71,7 @@ protected:
 
 	struct NonPodStruct {
 
-		static Array<int>::size_type TotalCount;
+        static int TotalCount;
 
 		static const int IVALUE_DEFAULT;
 		static const String STR_DEFAULT;
@@ -119,6 +120,8 @@ protected:
 	struct DerivedNonPodStruct  : public NonPodStruct {
 		float fValue;
 
+        virtual ~DerivedNonPodStruct() = default;
+
 		DerivedNonPodStruct() :
             NonPodStruct(312, "Derived String"), fValue(3.1415f)
 		{
@@ -129,8 +132,6 @@ protected:
         {
         }
 
-        virtual ~DerivedNonPodStruct() = default;
-
 	};
 
 public:
@@ -138,20 +139,54 @@ public:
     // cppcheck-suppress unusedFunction
     void setUp() override {
         // TODO(abbyssoul): Debug::BeginMemCheck();
-        CPPUNIT_ASSERT_EQUAL(ZERO, NonPodStruct::TotalCount);
+        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
         CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
 	}
 
     // cppcheck-suppress unusedFunction
     void tearDown() override {
         // TODO(abbyssoul): Debug::EndMemCheck();
-        CPPUNIT_ASSERT_EQUAL(ZERO, NonPodStruct::TotalCount);
+        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
         CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
+    }
+
+
+    struct Composite {
+        Array<NonPodStruct> nonPods;
+        int uselessPadding;
+        Array<SimpleType> simpletons;
+
+        Composite(int x, std::initializer_list<NonPodStruct> nons, std::initializer_list<SimpleType> simps) :
+            nonPods(nons),
+            uselessPadding(x),
+            simpletons(simps)
+        {}
+    };
+
+    void testComposite() {
+        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
+
+        CPPUNIT_ASSERT_EQUAL(21, Composite(21, {}, {{41, -18, 3}, {2, 743, 1}}).uselessPadding);
+        CPPUNIT_ASSERT_EQUAL(98, Composite(16, {}, {{14, 17, -7}, {45, 98, -717}}).simpletons[1].y);
+
+        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
+        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
     }
 
 	void testEmpty() {
         {
             const Array<int> empty_array(0);
+
+            CPPUNIT_ASSERT(empty_array.empty());
+            CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
+            CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
+        }
+
+        {
+            Array<NonPodStruct> empty_array;
 
             CPPUNIT_ASSERT(empty_array.empty());
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
@@ -173,6 +208,7 @@ public:
             CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
             CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
         }
+
 	}
 
 	void testCopy() {
@@ -246,12 +282,12 @@ public:
 	}
 
 	void testNonPods() {
-        CPPUNIT_ASSERT_EQUAL(ZERO, NonPodStruct::TotalCount);
+        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
         {
             Array<NonPodStruct> array(TEST_SIZE_1);
 
             CPPUNIT_ASSERT_EQUAL(TEST_SIZE_1, array.size());
-            CPPUNIT_ASSERT_EQUAL(NonPodStruct::TotalCount, array.size());
+            CPPUNIT_ASSERT_EQUAL(static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount), array.size());
 
             for (auto i = ZERO, end = array.size(); i < end; ++i) {
                 CPPUNIT_ASSERT_EQUAL(NonPodStruct::IVALUE_DEFAULT, array[i].iValue);
@@ -274,7 +310,7 @@ public:
                 CPPUNIT_ASSERT_EQUAL(String("Item " + std::to_string(i)), array[i].str);
             }
         }
-        CPPUNIT_ASSERT_EQUAL(ZERO, NonPodStruct::TotalCount);
+        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
 	}
 
 	void testInitializerList() {
@@ -300,7 +336,7 @@ public:
 			}
 		}
 
-		CPPUNIT_ASSERT_EQUAL(ZERO, NonPodStruct::TotalCount);
+        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
 		{
 			const NonPodStruct native_array[] = {
 					NonPodStruct(0, "yyyz"),
@@ -308,7 +344,8 @@ public:
 					NonPodStruct(-321, "yyx"),
 					NonPodStruct(990, "x^hhf")
 			};
-            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), NonPodStruct::TotalCount);
+            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array),
+                                 static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount));
 
 			const Array<NonPodStruct> array = {
 					NonPodStruct(0, "yyyz"),
@@ -318,14 +355,15 @@ public:
 			};
 
             CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
-            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array) + array.size(), NonPodStruct::TotalCount);
+            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array) + array.size(),
+                                 static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount));
 
 			for (auto i = ZERO, end = array.size(); i < end; ++i) {
 				CPPUNIT_ASSERT_EQUAL(native_array[i].iValue, array[i].iValue);
 				CPPUNIT_ASSERT_EQUAL(native_array[i].str, array[i].str);
 			}
 		}
-		CPPUNIT_ASSERT_EQUAL(ZERO, NonPodStruct::TotalCount);
+        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
 
 	}
 
@@ -710,7 +748,7 @@ const Array<int>::size_type TestArray::TEST_SIZE_1 = 35;
 const int 		TestArray::NonPodStruct::IVALUE_DEFAULT = -123;
 const String 	TestArray::NonPodStruct::STR_DEFAULT = "test_value";
 
-Array<int>::size_type TestArray::NonPodStruct::TotalCount = 0;
+int TestArray::NonPodStruct::TotalCount = 0;
 
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestArray);
