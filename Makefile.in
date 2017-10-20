@@ -25,6 +25,19 @@ DOC_TARGET = $(DOC_DIR)/html
 
 COVERAGE_REPORT = coverage.info
 
+ifdef sanitize
+	SANITIZE = ON
+else
+	SANITIZE = OFF
+endif
+
+ifdef dbg
+	BUILD_TYPE = Debug
+else
+	BUILD_TYPE = Release
+endif
+
+
 # First tagret that starts not with '.'' - is a default target to run
 .PHONY: codecheck verify ANALYZE_MAKE
 
@@ -38,20 +51,14 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(GENERATED_MAKE): ${BUILD_DIR}
-	cd ${BUILD_DIR} && cmake ..
+	cd ${BUILD_DIR} && cmake -DSANITIZE=${SANITIZE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
-release: ${BUILD_DIR}
-	cd ${BUILD_DIR} && cmake -DCMAKE_BUILD_TYPE=Release ..
-	$(MAKE) -C ${BUILD_DIR}
-
-debug: ${BUILD_DIR}
-	cd ${BUILD_DIR} && cmake -DCMAKE_BUILD_TYPE=Debug ..
-	$(MAKE) -C ${BUILD_DIR}
 
 ${BUILD_DIR}/build_coverage: ${BUILD_DIR}
 	cd ${BUILD_DIR} && cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug ..
 	$(MAKE) -C ${BUILD_DIR}
 	$(shell touch ${BUILD_DIR}/build_coverage)
+
 
 #-------------------------------------------------------------------------------
 # Build the project

@@ -7,6 +7,8 @@ include(CheckCXXCompilerFlag)
 # Custom build target to generate code coverage:
 # We probably don't want this to run on every build.
 option(COVERALLS "Generate coveralls data" OFF)
+option(SANITIZE "Enable 'sanitize' compiler flag" OFF)
+
 
 
 # libsolace requires at least C++14
@@ -19,11 +21,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pipe -pedantic -pedantic-err
 # Enable stack-protector if compiler supports it (it should)
 check_cxx_compiler_flag("-fstack-protector" WITH_STACK_PROTECTOR)
 check_cxx_compiler_flag("-fno-omit-frame-pointer" WITH_FRAME_POINTER)
-
-if (WITH_STACK_PROTECTOR)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector")
-endif (WITH_STACK_PROTECTOR)
-
 
 
 # Enable all the warnings one can get
@@ -45,44 +42,44 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat-security -Wmissing-format-attri
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++ ")
 
 
-# If the library is built as a shared object: use -fPIC
-#check_cxx_compiler_flag("-fPIC" WITH_FPIC)
-#if (WITH_FPIC)
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-#endif (WITH_FPIC)
-
-
 # It's better to use fortify_sources if compiler supports it
 check_cxx_compiler_flag("-D_FORTIFY_SOURCE=2" WITH_FORTIFY_SOURCE)
-if (WITH_FORTIFY_SOURCE)
+if (WITH_FORTIFY_SOURCE AND UNIX AND NOT APPLE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FORTIFY_SOURCE=2")
-endif (WITH_FORTIFY_SOURCE)
+endif()
 
-# Optimization flags
+
+if (WITH_STACK_PROTECTOR)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector")
+endif (WITH_STACK_PROTECTOR)
+
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
+
+# Debug flags
 set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -O0 -ggdb3 -D _DEBUG -D DEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -fstack-protector-all")
 
 if (WITH_FRAME_POINTER)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer")
 endif (WITH_FRAME_POINTER)
 
+# Release Optimization flags
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG")
 
-#kernel-address
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address,undefined,leak")
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -fstack-protector-all")
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+if (SANITIZE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address,undefined,leak")
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+endif()
 
-    if (COVERALLS)
+
+if (COVERALLS)
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} --coverage") # enabling coverage
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
-    endif()
-else()
-    if (COVERALLS)
+    else()
         message(FATAL_ERROR "Coverage can only be built in Debug mode")
     endif()
 endif()
