@@ -67,7 +67,7 @@ protected:
         #ifdef SOLACE_PLATFORM_LINUX
             DirectoryGuard(get_current_dir_name())
         #else
-            DirectoryGuard(getcwd(NULL, 0))
+            DirectoryGuard(getcwd(nullptr, 0))
         #endif
         {}
 

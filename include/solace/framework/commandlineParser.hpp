@@ -63,7 +63,7 @@ namespace Solace { namespace Framework {
             })
             .parse(argc, argv)
             .then(...consume parsing results...
-                  ...handle errors...);
+            .orElse(...handle errors...);
     ...
 
     \endcode
@@ -150,7 +150,6 @@ public:
                  typename R = typename std::result_of<F(Context&)>::type
                  >
         Option(char shortName, const char* longName, const char* description,
-//               const std::function<Optional<Error> (Context&)>& callback,
                F&& f,
                OptionArgument expectsArgument = OptionArgument::Required) :
             _longName(longName),
@@ -159,17 +158,6 @@ public:
             _expectsArgument(expectsArgument),
             _callback(std::forward<F>(f))
         {}
-
-        /// Common constructor:
-//        Option(char shortName, const char* longName, const char* description,
-//               std::function<Optional<Error>(Context&)>&& callback,
-//               OptionArgument expectsArgument = OptionArgument::Required) :
-//            _longName(longName),
-//            _description(description),
-//            _shortName(shortName),
-//            _expectsArgument(expectsArgument),
-//            _callback(std::move(callback))
-//        {}
 
         Option(const Option& rhs) noexcept :
             _longName(rhs._longName),

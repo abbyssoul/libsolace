@@ -144,11 +144,6 @@ public:
         CPPUNIT_ASSERT(CommandlineParser("Something awesome", {})
                        .parse(1, argv)
                        .isOk());
-
-//        CommandlineParser parser("Something awesome");
-//        auto result = parser.parse(1, argv);
-
-//        CPPUNIT_ASSERT(result.isOk());
     }
 
 
@@ -232,7 +227,7 @@ public:
     }
 
     void parseInt64_Overflow() {
-//        testIntOverflow<int64>("9898847598475978947899839987438957");
+        testIntOverflow<int64>("9898847598475978947899839987438957");
         testIntOverflow<int64>("922337203685477580742111");
     }
 

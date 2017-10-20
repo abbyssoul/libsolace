@@ -47,7 +47,7 @@ public:
 
     void testConstruction() {
         {   // NullPointer smoke test
-            // CPPUNIT_ASSERT_THROW(Buffer nullbuffer(321, NULL), IllegalArgumentException);
+//             CPPUNIT_ASSERT_THROW(Buffer nullbuffer(321, nullptr), IllegalArgumentException);
             MemoryManager nullManager(0);
 
             CPPUNIT_ASSERT_EQUAL(static_cast<MemoryManager::size_type>(0), nullManager.size());

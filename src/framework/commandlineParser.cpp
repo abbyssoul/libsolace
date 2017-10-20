@@ -168,8 +168,8 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
 {
 }
 
-
 CommandlineParser::Option::Option(char shortName, const char* longName, const char* desc, String* value) :
+// cppcheck-suppress warning
     Option(shortName, longName, desc, [value](Context& context) -> Optional<Error> {
         *value = context.value;
 
