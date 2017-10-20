@@ -201,7 +201,7 @@ public:
      * Move-Construct Ok result
      * @param value Ok value to move from
      */
-    Result(types::Ok<V>&& value) :
+    constexpr Result(types::Ok<V>&& value) :
         _value(std::move(value.val_)),
         _engaged(true)
     {}
@@ -211,7 +211,7 @@ public:
      * @param value Ok value to move value from
      */
     template<typename DV>
-    Result(types::Ok<DV>&& value):
+    constexpr Result(types::Ok<DV>&& value):
         _value(std::move(value.val_)),
         _engaged(true)
     {}
@@ -221,7 +221,7 @@ public:
      * Move-Construct Err result by moving error value
      * @param err Err value to move from
      */
-    Result(types::Err<E>&& err):
+    constexpr Result(types::Err<E>&& err):
         _error(std::move(err.val_)),
         _engaged(false)
     {}
@@ -420,11 +420,11 @@ public:
         return isOk();
     }
 
-    bool isOk() const noexcept {
+    constexpr bool isOk() const noexcept {
         return _engaged;
     }
 
-    bool isError() const noexcept {
+    constexpr bool isError() const noexcept {
         return !_engaged;
     }
 
@@ -442,7 +442,6 @@ public:
         return _value;
     }
 
-
     V&& moveResult() {
         if (isError())
             raiseInvalidStateError();
@@ -457,25 +456,11 @@ public:
         return std::move(_error);
     }
 
-    const E& getError() const & {
+    const E& getError() const {
         if (isOk())
             raiseInvalidStateError();
 
         return _error;
-    }
-
-    E& getError() & {
-        if (isOk())
-            raiseInvalidStateError();
-
-        return _error;
-    }
-
-    E&& getError() && {
-        if (isOk())
-            raiseInvalidStateError();
-
-        return std::move(_error);
     }
 
 private:
@@ -531,7 +516,6 @@ private:
     };
 
     bool _engaged = false;
-
 };
 
 
@@ -765,7 +749,6 @@ public:
     }
 
 private:
-
     Optional<error_type> _maybeError;
 };
 

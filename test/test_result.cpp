@@ -140,13 +140,23 @@ public:
     }
 
     void testFailure() {
-        Result<void, Error> r = fail(fmt::format("Bad errors '{}' about to happen", 3221));
+        {
+            Result<void, Error> r = fail(fmt::format("Bad errors '{}' about to happen", 3221));
 
-        CPPUNIT_ASSERT(!r.isOk());
-        CPPUNIT_ASSERT(r.isError());
+            CPPUNIT_ASSERT(!r.isOk());
+            CPPUNIT_ASSERT(r.isError());
+        }
 
-        Result<void, Error> other = fail(fmt::format("Bad errors '{}' about to happen", 3221));
-        CPPUNIT_ASSERT(other.isError());
+        bool value = false;
+        {
+            Result<void, Error> other = fail(fmt::format("Maybe no errors '{}' here", 9922));
+            other.orElse([&value](Error&&){
+                value = true;
+            });
+
+            CPPUNIT_ASSERT(other.isError());
+            CPPUNIT_ASSERT(value);
+        }
     }
 
 

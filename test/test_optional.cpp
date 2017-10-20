@@ -50,6 +50,7 @@ class TestOptional : public CppUnit::TestFixture  {
         CPPUNIT_TEST(testFilter);
         CPPUNIT_TEST(testMoveOnlyResult);
         CPPUNIT_TEST(testMoveOnlyMapper);
+        CPPUNIT_TEST(testMoveOnlyMove);
 
     CPPUNIT_TEST_SUITE_END();
 
@@ -427,6 +428,17 @@ public:
         CPPUNIT_ASSERT_EQUAL(64, op.get());
         */
         CPPUNIT_ASSERT_EQUAL(1, MoveOnlyType::InstanceCount);
+    }
+
+
+    void testMoveOnlyMove() {
+        auto r = Optional<MoveOnlyType>::of(MoveOnlyType(732));
+
+        auto p = [&r]() { return r.move(); } ();
+        CPPUNIT_ASSERT_EQUAL(2, MoveOnlyType::InstanceCount);
+        CPPUNIT_ASSERT_EQUAL(732, p.x_);
+        CPPUNIT_ASSERT_EQUAL(732, r.get().x_);
+        CPPUNIT_ASSERT_EQUAL(732, r.orElse(MoveOnlyType(-9876)).x_);
     }
 };
 

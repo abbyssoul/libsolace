@@ -172,10 +172,10 @@ public:
 
 
     T move() {
-        auto p = std::move(_payload);
-        destroy();
+        if (isNone())
+            raiseInvalidStateError();
 
-        return p;
+        return std::move(_payload);
     }
 
     const T& orElse(const T& t) const noexcept {
@@ -183,13 +183,6 @@ public:
             return t;
 
         return _payload;
-    }
-
-    T&& orElse(T&& t) noexcept {
-        if (isNone())
-            return std::move(t);
-
-        return std::move(_payload);
     }
 
     template <typename F,
@@ -207,6 +200,7 @@ public:
                 ? Optional<U>::of(f(_payload))
                 : Optional<U>::none();
     }
+
 
     template <typename U>
     Optional<U> flatMap(const std::function<Optional<U> (const T&)>& f) const {
@@ -231,16 +225,15 @@ protected:
     }
 
     void construct(const T& t) {
-//        destroy();
         if (_engaged)
             raiseInvalidStateError("logic error");
 
         ::new (reinterpret_cast<void *>(std::addressof(_payload))) Stored_type(t);
+
         _engaged = true;
     }
 
     void construct(T&& t) {
-//        destroy();
         if (_engaged)
             raiseInvalidStateError("logic error");
 
@@ -252,6 +245,8 @@ protected:
         if (_engaged) {
             _engaged = false;
             _payload.~Stored_type();
+        } else {
+            _empty.~Empty_type();
         }
     }
 
