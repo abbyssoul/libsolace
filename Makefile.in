@@ -121,7 +121,7 @@ cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
 
 # TODO: Extra cppcheck options to consider: --enable=style --inconclusive
 cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) tools/cppcheck/cppcheck
-	tools/cppcheck/cppcheck --std=c++11 --std=posix -D __linux__ --inline-suppr -q --error-exitcode=2 \
+	tools/cppcheck/cppcheck --std=c++11 --std=posix -D __linux__ -D __x86_64__ --inline-suppr -q --error-exitcode=2 \
 	--enable=warning,performance,portability,missingInclude,information,unusedFunction \
 	-I include -i test/ci ${SRC_DIR} ${TEST_DIR} examples
 

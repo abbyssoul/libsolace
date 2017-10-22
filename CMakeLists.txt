@@ -22,6 +22,8 @@ check_cxx_compiler_flag("-fstack-protector" WITH_STACK_PROTECTOR)
 check_cxx_compiler_flag("-fno-omit-frame-pointer" WITH_FRAME_POINTER)
 check_cxx_compiler_flag("-fvtable-verify" WITH_VTABLE_VERIFY)
 
+check_cxx_compiler_flag("-Wimplicit-fallthrough=2" WITH_IMPLICIT_FALLTHROUGH)
+
 
 
 # Enable all the warnings one can get
@@ -30,6 +32,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Woverloaded-virtual"
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wfloat-equal")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpointer-arith -Wcast-align -Wwrite-strings")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused -Wunused-function -Wunused-label -Wunused-value -Wunused-variable")
+
+# New in gcc-7
+if (WITH_IMPLICIT_FALLTHROUGH)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wimplicit-fallthrough=2")
+endif(WITH_IMPLICIT_FALLTHROUGH)
 
 # TODO: Make this warning work too!
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion -Wold-style-cast -Wsign-conversion")
