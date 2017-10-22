@@ -42,6 +42,8 @@ set(TEST_SOURCE_FILES
         framework/test_commandlineParser.cpp
 
         hashing/test_md5.cpp
+        hashing/test_murmur3.cpp
+        hashing/test_sha1.cpp
         hashing/test_sha256.cpp
     )
 

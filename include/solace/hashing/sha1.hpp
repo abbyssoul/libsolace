@@ -14,15 +14,15 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Secure Hash Algorithm 2
- *	@file		solace/hashing/sha2.hpp
+ * libSolace: Secure Hash Algorithm 1
+ *	@file		solace/hashing/sha1.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
- *	@brief		Defines a family of cryptographic hash functions SHA-2
+ *	@brief		Defines a family of cryptographic hash functions SHA-1
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_HASHING_SHA2_HPP
-#define SOLACE_HASHING_SHA2_HPP
+#ifndef SOLACE_HASHING_SHA1_HPP
+#define SOLACE_HASHING_SHA1_HPP
 
 
 #include "solace/hashing/digestAlgorithm.hpp"
@@ -32,16 +32,16 @@ namespace Solace {
 namespace hashing {
 
 /**
- * Implementation of Sha-2 cryptographic hashing algorithm.
- * This is SHA-256 with 256 bit digest.
+ * Implementation of Sha-1 cryptographic hashing algorithm.
+ * SHA-1 produces a 160-bit (20-byte) hash.
  */
-class Sha256 : public HashingAlgorithm {
+class Sha1 : public HashingAlgorithm {
 public:
     using HashingAlgorithm::size_type;
 
     struct State {
         uint32  total[2];
-        uint32  state[8];               /*!< intermediate digest state  */
+        uint32  state[5];               /*!< intermediate digest state  */
         byte    buffer[64];             /*!< data block being processed */
     };
 
@@ -49,7 +49,7 @@ public:
 
     using HashingAlgorithm::update;
 
-    Sha256();
+    Sha1();
 
     /**
      * Get a string name of the hashing algorithm.
@@ -84,4 +84,4 @@ private:
 
 }  // End of namespace hashing
 }  // End of namespace Solace
-#endif  // SOLACE_HASHING_SHA2_HPP
+#endif  // SOLACE_HASHING_SHA1_HPP

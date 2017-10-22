@@ -35,6 +35,8 @@ set(SOURCE_FILES
 
         hashing/messageDigest.cpp
         hashing/md5.cpp
+        hashing/murmur3.cpp
+        hashing/sha1.cpp
         hashing/sha2.cpp
         hashing/sha3.cpp
     )

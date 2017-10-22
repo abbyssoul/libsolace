@@ -36,7 +36,7 @@ static const byte md5_padding[64] = {
 };
 
 
-void md5_process(MD5::State *ctx, const byte data[64] ) {
+void md5_process(MD5::State& ctx, const byte data[64]) {
     uint32_t X[16], A, B, C, D;
 
     getUint32_LE(X[ 0], data,  0);
@@ -61,10 +61,10 @@ void md5_process(MD5::State *ctx, const byte data[64] ) {
 #define P(a, b, c, d, k, s, t)                                \
 { a += F(b, c, d) + X[k] + t; a = S(a, s) + b; }
 
-    A = ctx->state[0];
-    B = ctx->state[1];
-    C = ctx->state[2];
-    D = ctx->state[3];
+    A = ctx.state[0];
+    B = ctx.state[1];
+    C = ctx.state[2];
+    D = ctx.state[3];
 
 #define F(x, y, z) (z ^ (x & (y ^ z)))
 
@@ -150,32 +150,32 @@ void md5_process(MD5::State *ctx, const byte data[64] ) {
 
 #undef F
 
-    ctx->state[0] += A;
-    ctx->state[1] += B;
-    ctx->state[2] += C;
-    ctx->state[3] += D;
+    ctx.state[0] += A;
+    ctx.state[1] += B;
+    ctx.state[2] += C;
+    ctx.state[3] += D;
 }
 
 
-void md5_update(MD5::State *ctx, const byte *input, MD5::size_type inputLen) {
+void md5_update(MD5::State& ctx, const byte *input, MD5::size_type inputLen) {
     size_t fill;
     uint32_t left;
 
     if (inputLen == 0)
         return;
 
-    left = ctx->bits[0] & 0x3F;
+    left = ctx.bits[0] & 0x3F;
     fill = 64 - left;
 
-    ctx->bits[0] += inputLen;
-    ctx->bits[0] &= 0xFFFFFFFF;
+    ctx.bits[0] += inputLen;
+    ctx.bits[0] &= 0xFFFFFFFF;
 
-    if ( ctx->bits[0] < inputLen)
-        ctx->bits[1]++;
+    if ( ctx.bits[0] < inputLen)
+        ctx.bits[1]++;
 
     if (left && inputLen >= fill) {
-        memcpy((ctx->buffer + left), input, fill);
-        md5_process(ctx, ctx->buffer);
+        memcpy((ctx.buffer + left), input, fill);
+        md5_process(ctx, ctx.buffer);
         input += fill;
         inputLen  -= fill;
         left = 0;
@@ -189,7 +189,7 @@ void md5_update(MD5::State *ctx, const byte *input, MD5::size_type inputLen) {
 
 
     if (inputLen > 0) {
-        memcpy((ctx->buffer + left), input, inputLen);
+        memcpy((ctx.buffer + left), input, inputLen);
     }
 }
 
@@ -217,7 +217,7 @@ MD5::size_type MD5::getDigestLength() const {
 
 HashingAlgorithm& MD5::update(const MemoryView& input) {
 
-    md5_update(&_state, input.dataAddress(), input.size());
+    md5_update(_state, input.dataAddress(), input.size());
 
     return (*this);
 }
@@ -236,8 +236,8 @@ MessageDigest MD5::digest() {
     const uint32 last = _state.bits[0] & 0x3F;
     const uint32 padn = (last < 56) ? (56 - last) : (120 - last);
 
-    md5_update(&_state, md5_padding, padn);
-    md5_update(&_state, msglen, 8);
+    md5_update(_state, md5_padding, padn);
+    md5_update(_state, msglen, 8);
 
     putUint32_LE(_state.state[0], result,  0);
     putUint32_LE(_state.state[1], result,  4);

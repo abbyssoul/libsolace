@@ -14,10 +14,11 @@ addons:
  apt:
    sources:
    - ubuntu-toolchain-r-test
+   - llvm-toolchain-trusty-5.0
    packages:
-   - clang-3.8
-   - gcc-5
-   - g++-5
+   - clang-5.0
+   - gcc-7
+   - g++-7
    - cmake
    - doxygen
    - python-pip
@@ -41,9 +42,9 @@ before_install:
 install:
   - gcov --version
   - lcov --version
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-5 60 --slave /usr/bin/g++ g++ /usr/bin/g++-5
-  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-5 90
-  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-3.8" CC="clang-3.8"; fi
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7
+  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-7 90
+  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-5.0" CC="clang-5.0"; fi
   - echo $CXX
   - $CXX --version
 

@@ -83,13 +83,13 @@ static const uint32 K[64] = {
     d += temp1; h = temp1 + temp2;              \
 }
 
-void sha256_process(Sha256::State *ctx, const byte data[64] ) {
+void sha256_process(Sha256::State& ctx, const byte data[64] ) {
     uint32 temp1, temp2, W[64];
     uint32 A[8];
     uint32 i;
 
     for (i = 0; i < 8; i++)
-        A[i] = ctx->state[i];
+        A[i] = ctx.state[i];
 
 #if defined(SOLACE_SHA256_SMALLER)
     for (i = 0; i < 64; i++) {
@@ -133,30 +133,30 @@ void sha256_process(Sha256::State *ctx, const byte data[64] ) {
 #endif /* SOLACE_SHA256_SMALLER */
 
     for (i = 0; i < 8; i++) {
-        ctx->state[i] += A[i];
+        ctx.state[i] += A[i];
     }
 }
 
 
-void sha256_update(Sha256::State *ctx, const byte input[], Sha256::size_type ilen) {
+void sha256_update(Sha256::State& ctx, const byte input[], Sha256::size_type ilen) {
     Sha256::size_type fill;
     uint32 left;
 
     if (ilen == 0)
         return;
 
-    left = ctx->total[0] & 0x3F;
+    left = ctx.total[0] & 0x3F;
     fill = 64 - left;
 
-    ctx->total[0] += ilen;
-    ctx->total[0] &= 0xFFFFFFFF;
+    ctx.total[0] += ilen;
+    ctx.total[0] &= 0xFFFFFFFF;
 
-    if (ctx->total[0] < ilen)
-        ctx->total[1]++;
+    if (ctx.total[0] < ilen)
+        ctx.total[1]++;
 
     if (left && ilen >= fill) {
-        memcpy((ctx->buffer + left), input, fill);
-        sha256_process(ctx, ctx->buffer);
+        memcpy((ctx.buffer + left), input, fill);
+        sha256_process(ctx, ctx.buffer);
 
         input += fill;
         ilen  -= fill;
@@ -169,8 +169,9 @@ void sha256_update(Sha256::State *ctx, const byte input[], Sha256::size_type ile
         ilen  -= 64;
     }
 
-    if (ilen > 0)
-        memcpy((ctx->buffer + left), input, ilen);
+    if (ilen > 0) {
+        memcpy((ctx.buffer + left), input, ilen);
+    }
 }
 
 
@@ -201,7 +202,7 @@ Sha256::size_type Sha256::getDigestLength() const {
 
 
 HashingAlgorithm& Sha256::update(const MemoryView& input) {
-    sha256_update(&_state, input.dataAddress(), input.size());
+    sha256_update(_state, input.dataAddress(), input.size());
 
     return (*this);
 }
@@ -221,8 +222,8 @@ MessageDigest Sha256::digest() {
     const uint32 last = _state.total[0] & 0x3F;
     const uint32 padn = (last < 56) ? (56 - last) : (120 - last);
 
-    sha256_update(&_state, sha256_padding, padn);
-    sha256_update(&_state, msglen, 8);
+    sha256_update(_state, sha256_padding, padn);
+    sha256_update(_state, msglen, 8);
 
     putUint32_BE(_state.state[0], result,  0);
     putUint32_BE(_state.state[1], result,  4);

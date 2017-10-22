@@ -236,9 +236,9 @@ inline void swap(MemoryView& a, MemoryView& b) {
  */
 inline
 void getUint32_BE(uint32& n, const byte* b, size_t i) {
-    n =   static_cast<uint32>(b[i    ] << 24)
-        | static_cast<uint32>(b[i + 1] << 16)
-        | static_cast<uint32>(b[i + 2] <<  8)
+    n =   static_cast<uint32>(b[i    ]) << 24
+        | static_cast<uint32>(b[i + 1]) << 16
+        | static_cast<uint32>(b[i + 2]) <<  8
         | static_cast<uint32>(b[i + 3]);
 }
 
@@ -257,9 +257,9 @@ void putUint32_BE(uint32& n, byte* b, size_t i) {
 inline
 void getUint32_LE(uint32& n, const byte* b, size_t i) {
     n =   static_cast<uint32>(b[i   ])
-        | static_cast<uint32>(b[i + 1] <<  8)
-        | static_cast<uint32>(b[i + 2] << 16)
-        | static_cast<uint32>(b[i + 3] << 24);
+        | static_cast<uint32>(b[i + 1]) <<  8
+        | static_cast<uint32>(b[i + 2]) << 16
+        | static_cast<uint32>(b[i + 3]) << 24;
 }
 
 inline
@@ -270,6 +270,33 @@ void putUint32_LE(uint32& n, byte* b, size_t i) {
     b[i + 3] = static_cast<byte>((n >> 24) & 0xFF);
 }
 
+
+/*
+ * 64-bit integer manipulation macros (little endian)
+ */
+inline
+void getUint64_LE(uint64& n, const byte* b, size_t i) {
+    n =   static_cast<uint64>(b[i   ])
+        | static_cast<uint64>(b[i + 1]) <<  8
+        | static_cast<uint64>(b[i + 2]) << 16
+        | static_cast<uint64>(b[i + 3]) << 24
+        | static_cast<uint64>(b[i + 4]) << 32
+        | static_cast<uint64>(b[i + 5]) << 40
+        | static_cast<uint64>(b[i + 6]) << 48
+        | static_cast<uint64>(b[i + 7]) << 56;
+}
+
+inline
+void putUint64_LE(uint64& n, byte* b, size_t i) {
+    b[i    ] = static_cast<byte>((n)       & 0xFF);
+    b[i + 1] = static_cast<byte>((n >>  8) & 0xFF);
+    b[i + 2] = static_cast<byte>((n >> 16) & 0xFF);
+    b[i + 3] = static_cast<byte>((n >> 24) & 0xFF);
+    b[i + 4] = static_cast<byte>((n >> 32) & 0xFF);
+    b[i + 5] = static_cast<byte>((n >> 40) & 0xFF);
+    b[i + 6] = static_cast<byte>((n >> 48) & 0xFF);
+    b[i + 7] = static_cast<byte>((n >> 56) & 0xFF);
+}
 
 }  // End of namespace Solace
 #endif  // SOLACE_MEMORYVIEW_HPP
