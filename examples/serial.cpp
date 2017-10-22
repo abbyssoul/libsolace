@@ -90,8 +90,7 @@ int main(int argc, const char **argv) {
         while (keepOnRunning) {
             for (auto event : selector.poll()) {
 
-                if (event.events & Solace::IO::Selector::Events::Read &&
-                    event.data == &serial) {
+                if ((event.events & Solace::IO::Selector::Events::Read) && (event.data == &serial)) {
                     const auto bytesRead = serial.read(readBuffer);
                     if (bytesRead) {
                         auto dataView = readBuffer.viewWritten();

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.2)
 project(solace)
 
 include(CheckCXXCompilerFlag)
@@ -10,17 +10,18 @@ option(COVERALLS "Generate coveralls data" OFF)
 option(SANITIZE "Enable 'sanitize' compiler flag" OFF)
 
 
-
 # libsolace requires at least C++14
-#set(CMAKE_CXX_STANDARD 14)
-#set(CMAKE_CXX_STANDARD_REQUIRED on)
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED on)
 
-check_cxx_compiler_flag(-std=c++14 HAVE_STD_CPP14_FLAG)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pipe -pedantic -pedantic-errors") #  -fno-rtti
+#check_cxx_compiler_flag(-std=c++14 HAVE_STD_CPP14_FLAG)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors") #  -fno-rtti
 
 # Enable stack-protector if compiler supports it (it should)
 check_cxx_compiler_flag("-fstack-protector" WITH_STACK_PROTECTOR)
 check_cxx_compiler_flag("-fno-omit-frame-pointer" WITH_FRAME_POINTER)
+check_cxx_compiler_flag("-fvtable-verify" WITH_VTABLE_VERIFY)
+
 
 
 # Enable all the warnings one can get
@@ -50,25 +51,32 @@ endif()
 
 
 if (WITH_STACK_PROTECTOR)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-strong")
 endif (WITH_STACK_PROTECTOR)
 
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
 
 # Debug flags
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG}   -O0 -ggdb3 -D _DEBUG -D DEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb3 -D _DEBUG -D DEBUG")
 set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -fstack-protector-all")
 
 if (WITH_FRAME_POINTER)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer")
 endif (WITH_FRAME_POINTER)
 
+if (WITH_VTABLE_VERIFY)
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fvtable-verify=std")
+endif (WITH_VTABLE_VERIFY)
+
+
 # Release Optimization flags
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG")
 
 
 if (SANITIZE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS_DEBUG} -fsanitize=address,undefined,leak")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined,leak")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize-address-use-after-scope")
+
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
 endif()
@@ -95,3 +103,9 @@ include_directories(include)
 add_subdirectory(src)
 add_subdirectory(test)
 add_subdirectory(examples)
+
+message(STATUS, "BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
+message(STATUS, "CXXFLAGS: ${CMAKE_CXX_FLAGS}")
+message(STATUS, "SANITIZE: ${SANITIZE}")
+message(STATUS, "COVERALLS: ${COVERALLS}")
+

@@ -56,7 +56,7 @@ protected:
     MemoryManager _memoryManager;
 
     UUID moveMe(const MemoryView& b) {
-        return std::move(b);
+        return b;
     }
 
 public:

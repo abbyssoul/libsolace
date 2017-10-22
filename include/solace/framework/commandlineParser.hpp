@@ -149,9 +149,8 @@ public:
         template<typename F,
                  typename R = typename std::result_of<F(Context&)>::type
                  >
-        Option(char shortName, const char* longName, const char* description,
-               F&& f,
-               OptionArgument expectsArgument = OptionArgument::Required) :
+        Option(char shortName, const char* longName, const char* description, OptionArgument expectsArgument,
+               F&& f) :
             _longName(longName),
             _description(description),
             _shortName(shortName),
@@ -216,9 +215,6 @@ public:
         char                                _shortName;
 
         OptionArgument                      _expectsArgument;
-
-//        delegate<Optional<Error> (Context&)>    _callback;
-
         std::function<Optional<Error> (Context&)>    _callback;
     };
 
@@ -239,18 +235,12 @@ public:
         Argument(const char* name, const char* description, float64* value);
         Argument(const char* name, const char* description, bool* value);
 
+        template<typename F>
         Argument(const char* name, const char* description,
-                 const std::function<Optional<Error> (Context&)>& callback) :
+                 F&& callback) :
             _name(name),
             _description(description),
-            _callback(std::move(callback))
-        {}
-
-        Argument(const char* name, const char* description,
-                 std::function<Optional<Error> (Context&)>&& callback) :
-            _name(name),
-            _description(description),
-            _callback(std::move(callback))
+            _callback(std::forward<F>(callback))
         {}
 
         Argument(const Argument& rhs) noexcept :
@@ -296,6 +286,7 @@ public:
         const char*                                 _description;
         std::function<Optional<Error>(Context&)>    _callback;
     };
+
 
 public:
 

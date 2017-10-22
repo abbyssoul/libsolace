@@ -171,7 +171,7 @@ public:
     }
 
 
-    T move() {
+    T&& move() {
         if (isNone())
             raiseInvalidStateError();
 

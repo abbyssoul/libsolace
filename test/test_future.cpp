@@ -1214,7 +1214,7 @@ public:
         CPPUNIT_ASSERT(!futureArrayReady);
         CPPUNIT_ASSERT(!futureArrayErrored);
 
-        promises.forEachIndexed([failEach](int index, Promise<int>& promise) {
+        promises.forEachIndexed([](int index, Promise<int>& promise) {
             if ((index % failEach) == 0) {
                 promise.setError(Error("failed", 321));
             } else {

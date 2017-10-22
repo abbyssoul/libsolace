@@ -236,7 +236,11 @@ public:
     }
 
     void parseUInt64_Overflow() {
+        testIntOverflow<uint64>("9898847598475978947899839987438957");
         testIntOverflow<uint64>("92233720368547758072");
+
+        // FIXME: Uncomment to cause gcc7+address sanitized to crash.
+//        testIntOverflow<uint64>("423");
     }
 
     void parseUInt64_NegativeArgument() {
@@ -253,6 +257,7 @@ public:
 
         bool xValue = false;
         int vValue = 0;
+        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "--xxx", "-V", "321", nullptr};
         const int argc = 4;
 
@@ -288,7 +293,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
-                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
+                .orElse([&parsedSuccessully](Error&&){parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -309,7 +314,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
-                .orElse([&parsedSuccessully](Error) {parsedSuccessully = false;});
+                .orElse([&parsedSuccessully](Error&&) {parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -331,7 +336,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
-                .orElse([&parsedSuccessully](Error) {parsedSuccessully = false;});
+                .orElse([&parsedSuccessully](Error&&) {parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -353,7 +358,7 @@ public:
                           })
                 .parse(argc, argv)
                 .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
-                .orElse([&parsedSuccessully](Error){parsedSuccessully = false;});
+                .orElse([&parsedSuccessully](Error&&){parsedSuccessully = false;});
 
 
         CPPUNIT_ASSERT(!parsedSuccessully);
@@ -454,7 +459,8 @@ public:
         const char* appDesc = "Something awesome";
         CommandlineParser(appDesc, {
                               {'x', "xxx", "Something", &xValue},
-                              {'z', "zva", "Custom arg", [&customCalled, &zValue](CommandlineParser::Context& c) {
+                              {'z', "zva", "Custom arg", CommandlineParser::OptionArgument::Required,
+                               [&customCalled, &zValue](CommandlineParser::Context& c) {
                                    customCalled = true;
                                    zValue = c.value;
 
@@ -487,7 +493,8 @@ public:
         const char* appDesc = "Something awesome";
         CommandlineParser(appDesc, {
                               {'x', "xxx", "Something", &xValue},
-                              {'z', "zve", "Custom arg", [&customCalled, &zValue](CommandlineParser::Context& c) {
+                              {'z', "zve", "Custom arg", CommandlineParser::OptionArgument::Required,
+                               [&customCalled, &zValue](CommandlineParser::Context& c) {
                                    customCalled = true;
                                    zValue = c.value;
 
@@ -518,12 +525,13 @@ public:
         const char* appDesc = "Something awesome";
         CommandlineParser(appDesc, {
                               {'x', "xxx", "Something", &xValue},
-                              {'z', "zve", "Custom arg", [&customCalled, &zValue](CommandlineParser::Context& c) {
+                              {'z', "zve", "Custom arg", CommandlineParser::OptionArgument::Required
+                               , [&customCalled, &zValue](CommandlineParser::Context& c) {
                                    customCalled = true;
                                    zValue = c.value;
 
                                    return None();
-                               }, CommandlineParser::OptionArgument::Required }
+                               }}
                           })
                 .parse(argc, argv)
                 .then([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
@@ -541,18 +549,18 @@ public:
         bool parsedSuccessully = false;
         bool customCalled = false;
         int xValue = 0;
-        const char* zValue = nullptr;
         const char* argv[] = {"prog", "--xxx", "756", "-z", nullptr};
         const int argc = 4;
 
         const char* appDesc = "Something awesome";
         CommandlineParser(appDesc, {
                               {'x', "xxx", "Something", &xValue},
-                              {'z', "zve", "Custom arg", [&customCalled, &zValue](CommandlineParser::Context&) {
+                              {'z', "zve", "Custom arg", CommandlineParser::OptionArgument::NotRequired,
+                               [&customCalled](CommandlineParser::Context&) {
                                    customCalled = true;
 
                                    return None();
-                               }, CommandlineParser::OptionArgument::NotRequired }
+                               } }
                           })
                 .parse(argc, argv)
                 .then([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })

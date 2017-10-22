@@ -38,6 +38,11 @@ for arg in "$@"; do
         echo 'all invalid options are silently ignored'
         exit 0
         ;;
+
+    *)
+        echo "Unexpected option '$arg'"
+        exit 0
+        ;;
     esac
 done
 

@@ -744,7 +744,7 @@ public:
         return _maybeError.get();
     }
 
-    E moveError() {
+    E&& moveError() {
         return _maybeError.move();
     }
 
