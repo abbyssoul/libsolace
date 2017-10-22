@@ -19,6 +19,7 @@ addons:
    - clang-5.0
    - gcc-7
    - g++-7
+   - binutils-2.26
    - cmake
    - doxygen
    - python-pip
@@ -42,11 +43,13 @@ before_install:
 install:
   - gcov --version
   - lcov --version
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 60 --slave /usr/bin/g++ g++ /usr/bin/g++-7
+  - sudo apt-get install -qq --yes --force-yes binutils
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 90 --slave /usr/bin/g++ g++ /usr/bin/g++-7
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-7 90
   - if [ "$CXX" = "clang++" ]; then export CXX="clang++-5.0" CC="clang-5.0"; fi
   - echo $CXX
   - $CXX --version
+  - ld --version
 
 script:
   - ./configure --enable-sanitizer
@@ -54,7 +57,8 @@ script:
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make codecheck; fi
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make -j2 test; fi
   - make clean
-  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; ./configure --disable-sanitizer --enable-debug && make verify ; fi
+  - ./configure --disable-sanitizer --enable-debug
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make verify ; fi
 
 after_success:
   - make clean && make coverage_report
