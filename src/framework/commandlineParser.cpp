@@ -251,7 +251,6 @@ bool CommandlineParser::Option::operator == (const CommandlineParser::Option& ot
 
 
 
-// cppcheck-suppress uninitMemberVar
 CommandlineParser::Argument::Argument(const char* name, const char* description, int8* value):
     Argument(name, description, [value](Context& context) { return parseIntArgument(context, value); })
 {
