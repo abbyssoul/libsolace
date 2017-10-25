@@ -7,121 +7,122 @@ libSolace
 
 libSolace is a toolkit for building mission critical application.
 Idea of this library is inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).
-The library aims to provide building blocks for fast and reliable applications using Modern C++ dialect.
-The implementation attempts to respect P10 rules to practically possible extent, but it is an ongoing effort.
 
+That is the library aims to provide building blocks for fast and reliable applications using modern C++ dialect (At least C++14).
+Note: the implementation attempts to respect P10 rules only to extent practical. It is an ongoing effort.
 ### Simple
-In this context simple means that it provides minimal nessessery set of tools to solve a problem.
-
+In this context simple means that it provides minimal necessary set of tools to solve a problem.
 ### Motivation
-Solace is intended the development of systems of communicating process that solve a problem collaboratively. Thus
-it feautures an async IO framework. The main difference from other similar frameworks is that solace focuses on
-performance and gives fire grain control. As such it will never spawn a thread or allocate memory after initialization.
+Solace is used to provide building primitives to develop a systems of communicating process that solve a problem via collaboration (aka cluster application / actor system). As such it will never spawn a thread or allocate memory after initialisation.
 
+## Contributions
+The framework is in active development.
+Contributions are welcomed. Please see [coding convention](docs/coding_convention.md) about code style.
+In order to maintain code quality a set of static code analysis tools used as part of the build process.
 
-Please fill free to contribute.
 
 
 ## Building
+The project build is managed via CMake with a Makefile provided to automate some common actions during development process.
 ### Build tool dependencies
 In order to build this project following tools must be present in the system:
+* git (to check out project and it’s external modules, see dependencies section)
 * cmake (version 3.0 and above)
 * cppunit (Unit testing framework for C++)
 * doxygen (for documentation)
-* cppcheck (for static code analysis, latest version from git is used as part of the 'codecheck' step)
+* cppcheck (static code analysis, latest version from git is used as part of the 'codecheck' step)
 * cpplint (for static code analysis in addition to cppcheck)
-* valgrind (for runtime code verification)
+* valgrind (for runtime code quality verification)
 
-This project extensively using C++14 features. The minimal required version of gcc is gcc-4.9.
-
-
+This project is using C++14 features extensively. The minimal tested/required version of gcc is gcc-4.9.
+CI is using clang-5 and gcc-7.
 To install build tools on Debian based Linux distribution:
 ```shell
-sudo apt-get update -qq
-sudo apt-get install cmake doxygen python-pip valgrind ggcov libcppunit-dev
-sudo pip install cpplint
+    sudo apt-get update -qq
+    sudo apt-get install cmake doxygen python-pip valgrind ggcov libcppunit-dev
+    sudo pip install cpplint
 ```
-
-The library has one extranal dependency: [libfmt](http://fmtlib.net/latest/index.html) - an awesome string formatting library.
-It is managed as git submodule. Please make sure to use `git clone --recursive` when clonning the project for the first time.
+The library has one external dependency: [libfmt](http://fmtlib.net/latest/index.html) - an awesome string formatting library.
+It is managed as `git submodule`. Please make sure to use `git clone --recursive` when cloning the project for the first time.
 You can also update existing clone with:
 ```
-git submodule update --init --recursive
+    git submodule update --init --recursive
 ```
 
-## Building using CMake
-Current build system used for the project is cmake. You can build the library and test using familiar cmake steps:
-Please make sure that the system has cmake installed. Minimal confirmed version is 3.0
-    $ cmake --version
 
-To build the project:
+## Building the project
+Current build system used for the project is `cmake`.
+Please make sure that the system has `cmake` installed. Minimal confirmed version is 3.0
+	$ cmake --version
+
 ```shell
-$ mkdir build && cd build
-$ cmake ..
-$ make
-```
+# In the project check-out directory:
+# To build debug version with sanitizer enabled (recommended for development)
+	./configure --enable-debug --enable-sanitizer
 
-### Using make
-Makefile automating some of the common tasks is provided:
-```shell
-# To build the library:
-make
-```
+# To build the library it self
+	make
 
-To build and run unit tests:
-```shell
-make test
-```
+# To build and run unit tests:
+	make test
 
-To build API documentation:
-```shell
-make doc
-```
+# To run valgrind on test suit:
+# Please note – doesn’t work with ./configure --enable-sanitize option
+	make verify
 
+#To build API documentation using doxygen:
+
+	make doc
+```
 To install locally for testing:
 ```shell
 make --prefix=/user/home/<username>/test/lib install
 ```
-
-To install system wide (as root)(TBD):
+To install system wide (as root):
 ```shell
 make install
 ```
-
+To run code quality check before submission of a patch:
 ```shell
 # Verify code quality before submission
 make codecheck
 ```
 
 
+
 ### Target Platforms
 The library is designed with the following platforms in mind:
- * [Raspberry Pi](https://www.raspberrypi.org/)
  * [Parallella](https://www.parallella.org/)
+ * [Raspberry Pi](https://www.raspberrypi.org/)
  * [BeagleBone](http://beagleboard.org/)
+ * NVIDIA Jetson TX2
 
 
 ## Design
-Design of the libraty is significantly inspired by [https://github.com/3rdparty/stout](Stout), but with the focus on performance including compile time.
+Design of the library is inspired by various functional language elements that can be found in other languages such as Rust and Java.
+- Fixed size integral types:
+	- Fix sized integral types:
+		- int{8,16,32}
+		- uint{8,16,32}
+		- float{32,64}
+- OOP Memory management interface:
+	- MemoryView – a OOP way of dealing with raw memory that knows it’s size and has associated destructor.
+	- MemoryManager – a custom memory allocator that can be locked to control memory allocation after initialisation.
+- Immutable String (for those who are from Java land) with StringBuilder.
+- Optional<> - optional monad.
+- Result<> - Either monad. A good alternative to throwing an exception.
+- Fixed size collections:
+    - ArrayView: a memory view as a collection of objects.
+    - Array: Fixed-size array (dynamically allocated on the heap)
+    - ArrayBuilder: variable-length collection
+- Text utilities:
+    - Formatting
+    - Encoding
+- Path – immutable hierarchy of string elements.
+- PathBuilder – a builder object for path.
+- Promise / Future – convenience for async programming.
 
- - Primitives:
-	- Fixed size integral types: 
-		- Fix sized numeric types: 
-			- int{8,16,32}
-			- uint{8,16,32}
-			- float{32,64}
-	- Immutable String (for thouse who are from Java land)
-	- Optional<>
-	- Result<> - a possible alternative to throwing an exception.
-	- Collections (WIP):
-		- Array: Fixed-size array (dynamically allocated on the heap)
-		- (TBD):List/Vector: variable-length collection
-		- (TBD):Dictionary: key/value hash collection
-	- Exception (extending std::exception)
-	- Text utilities:
-		- Formatting
-		- Encoding
-		- String builder (WIP)
+
 
 
 ### Exceptions policy
@@ -132,15 +133,8 @@ Given the language choice library is designed with the idea tha exceptions can b
 
 
 ## Dependencies
-Actually only fmtlib.
+The project only external dependency managed via `git submodule`:
 * [fmt](https://github.com/fmtlib/fmt) - C++ Format is an open-source formatting library for C++ [More info](http://fmtlib.net/latest/index.html)
-
-Other useful libraries to consider:
-* [jemalloc](http://www.canonware.com/jemalloc) - General-purpose scalable concurrent malloc implementation.
-* [bzip2](http://www.bzip.org/) - a high-quality data compressor.
-* [libsigc++](http://libsigc.sourceforge.net/) - typesafe callback system for standard C++
-* [utf8cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweight generic library for handling UTF-8 encoded strings.
-* [spdlog](https://github.com/gabime/spdlog) - Very fast, header only, C++ logging library.
 
 
 ## Testing
@@ -167,13 +161,21 @@ make verify
 ```
 
 
-## Similar projects
-Some other awesome projects and library that can be very usefull:
+## Other useful libraries to consider:
+* [jemalloc](http://www.canonware.com/jemalloc) - General-purpose scalable concurrent malloc implementation.
+* [bzip2](http://www.bzip.org/) - a high-quality data compressor.
+* [libsigc++](http://libsigc.sourceforge.net/) - typesafe callback system for standard C++
+* [utf8cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweight generic library for handling UTF-8 encoded strings.
+* [spdlog](https://github.com/gabime/spdlog) - Very fast, header only, C++ logging library.
+
+
+
+## Projects that might be similar in some aspects:
 * [Folly](https://github.com/facebook/folly)
+* [Stout](https://github.com/3rdparty/stout)
 * [Poco](http://pocoproject.org/)
 * [NSPR](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSPR)
 * [APR](http://apr.apache.org/)
-* [Stout](https://github.com/3rdparty/stout)
 * [SDL](http://www.libsdl.org/)
 * [Qt(Core)](http://doc.qt.nokia.com/)
 * [Marmalade](http://www.madewithmarmalade.com/marmalade)
@@ -187,4 +189,3 @@ Please see LICENSE file for details.
 
 ## Authors
 Please see AUTHORS file for the list of contributors.
-
