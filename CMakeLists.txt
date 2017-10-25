@@ -21,10 +21,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors") #  -f
 check_cxx_compiler_flag("-fstack-protector" WITH_STACK_PROTECTOR)
 check_cxx_compiler_flag("-fno-omit-frame-pointer" WITH_FRAME_POINTER)
 check_cxx_compiler_flag("-fvtable-verify" WITH_VTABLE_VERIFY)
-
+check_cxx_compiler_flag("-fsanitize-address-use-after-scope" WITH_SANITIZE_ADDRESS_USE_AFTER_SCOPE)
 check_cxx_compiler_flag("-Wimplicit-fallthrough=2" WITH_IMPLICIT_FALLTHROUGH)
+check_cxx_compiler_flag("-fuse-ld=gold" WITH_GOLD_LINKER)
 
-
+if (WITH_GOLD_LINKER)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=gold")
+endif (WITH_GOLD_LINKER)
 
 # Enable all the warnings one can get
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wmissing-include-dirs -Wpacked -Wredundant-decls")
@@ -82,7 +85,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG")
 
 if (SANITIZE)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined,leak")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize-address-use-after-scope")
+    if (WITH_SANITIZE_ADDRESS_USE_AFTER_SCOPE)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize-address-use-after-scope")
+    endif(WITH_SANITIZE_ADDRESS_USE_AFTER_SCOPE)
 
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
