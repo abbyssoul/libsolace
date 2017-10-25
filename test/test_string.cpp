@@ -593,7 +593,7 @@ public:
         const String ident(someConstString);
 
         int summ = 0;
-        for (auto c : ident.getBytes()) {
+        for (auto c : ident.view()) {
             summ += c;
         }
 

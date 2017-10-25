@@ -383,12 +383,6 @@ String String::join(const String& by, const Array<String>& list) {
 }
 
 
-const MemoryView String::getBytes() const {
-    // FIXME: How about buffer for CONST data!
-    return wrapMemory(const_cast<char*>(_str.data()), _str.length());
-}
-
-
 const String& String::forEach(const std::function<void(const value_type&)>& f) const {
 
     for (auto c : _str) {

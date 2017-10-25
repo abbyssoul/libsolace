@@ -49,23 +49,24 @@ class String:   public IFormattable,
                 public Iterable<String, Char>
 {
 public:
-    typedef MemoryView::size_type   size_type;
-    typedef Char                    value_type;
+
+    /// String size_type is intentionally small to disallow long strings.
+    typedef uint16      size_type;
+
+    typedef Char        value_type;
 
 public:
 
-    virtual ~String() = default;
-
-	//!< Default constructor constructs an null(empty) string
+    //!< Default constructor constructs an empty string.
 	String() noexcept;
 
-	//!< Copy string from an other one
+    //!< Move-construct a string.
+    String(String&& s) noexcept;
+
+    //!< Copy string content from another string.
 	String(const String& s) noexcept;
 
-	//!< Move-construct an object
-	String(String&& s) noexcept;
-
-    //!< Construct a string from a raw null-terminated (C-style) string
+    //!< Construct a string from a raw null-terminated (C-style) string.
 	String(const char* data);
 
     //!< Construct a string from a raw byte buffer of a given size
@@ -112,7 +113,6 @@ public:  // Basic collection operations:
 	 *
 	 * @return Size of buffer in bytes.
 	 * @note Always (size() >= length())
-	 *
 	 */
 	size_type size() const noexcept;
 
@@ -311,11 +311,6 @@ public:  // Basic collection operations:
 	 */
 	String toString() const override { return *this; }
 
-	/**
-     * Get bytes of the encoded representation of the string.
-	 */
-    const MemoryView getBytes() const;
-
     /** Array index operator. Obtain a copy of the character at the given
 	 * offset in the string.
 	 *
@@ -340,6 +335,10 @@ public:  // Basic collection operations:
 	{	return substring(from, to);}
 
 
+    /**
+     * Get raw bytes of the string.
+     * @return Ummutable Memory View into the string data.
+     */
     const ImmutableMemoryView view() const noexcept {
         return wrapMemory(c_str(), size());
     }
@@ -468,9 +467,10 @@ public:
 
 private:
 
-    // FIXME(abbyssoul): Come up a better implementation
+    // FIXME(abbyssoul): Come up with a better implementation based on MemoryView
     std::string _str;
 };
+
 
 inline bool operator< (const String& lhs, const String& rhs) {
 	return lhs.compareTo(rhs) < 0;
@@ -483,11 +483,11 @@ inline void swap(String& lhs, String& rhs) noexcept {
 
 
 // FIXME: std dependence, used for Unit Testing only
-inline std::ostream& operator<<(std::ostream& ostr, const String& str) {
+inline std::ostream& operator<< (std::ostream& ostr, const String& str) {
     return ostr << str.c_str();
 }
 
-inline std::ostream& operator<<(std::ostream& ostr, const IFormattable& form) {
+inline std::ostream& operator<< (std::ostream& ostr, const IFormattable& form) {
     return ostr << form.toString();
 }
 
