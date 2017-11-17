@@ -21,6 +21,7 @@
 
 #include "solace/framework/commandlineParser.hpp"
 #include "solace/framework/commandlineUtils.hpp"
+#include "solace/parseUtils.hpp"
 #include "solace/path.hpp"
 
 #include <fmt/format.h>
@@ -28,12 +29,9 @@
 #include <cstring>
 #include <cstdlib>
 
-#include <limits>
 #include <iomanip>
 #include <iostream>
 #include <sstream>  // std::stringstream
-#include <limits.h>
-#include <type_traits>  // std::is_signed
 
 
 using namespace Solace;
@@ -42,73 +40,15 @@ using namespace Solace::Framework;
 
 const char CommandlineParser::DefaultPrefix = '-';
 
-auto conversionError(const char* fmt, const char* name, const char* value) {
-    return Err<Error>(fmt::format(fmt, name, value));
-}
-
 Optional<Error> conversionError2(const char* fmt, const char* name, const char* value) {
     return Optional<Error>::of(fmt::format(fmt, name, value));
 }
 
 
-template<typename T, bool isSigned = std::is_signed<T>::value>
-struct Longest {
-};
-
-template<typename T>
-struct Longest<T, true> {
-
-    using type = int64;  // long long;
-
-    static Result<type, Error> parse(const char* name, const char* value) {
-        errno = 0;
-        char* pEnd = nullptr;
-        const auto result = strtoll(value, &pEnd, 0);
-
-        if ((errno == ERANGE && (result == LLONG_MAX || result == LLONG_MIN)) || (errno != 0 && result == 0))
-            return conversionError("Argument '{}' is outside of parsable int range: '{}'", name, value);
-
-        if (!pEnd || pEnd == value)  // No conversion has been done
-            return conversionError("Argument '{}' is not a valid value: '{}'", name, value);
-
-        if (result > std::numeric_limits<T>::max() ||
-            result < std::numeric_limits<T>::min())
-            return conversionError("Argument '{}' is outside of bounds: '{}'", name, value);
-
-        return Ok(result);
-    }
-};
-
-
-template<typename T>
-struct Longest<T, false> {
-
-    using type = uint64;  // unsigned long long;
-
-    static Result<type, Error> parse(const char* name, const char* value) {
-        errno = 0;
-        char* pEnd = nullptr;
-        const auto result = strtoull(value, &pEnd, 0);
-
-        if ((errno == ERANGE && (result == ULLONG_MAX)) || (errno != 0 && result == 0))
-            return conversionError("Argument '{}' is outside of parsable int range: '{}'", name, value);
-
-        if (!pEnd || pEnd == value)  // No conversion has been done
-            return conversionError("Argument '{}' is not a valid value: '{}'", name, value);
-
-        if (result > std::numeric_limits<T>::max() ||
-            result < std::numeric_limits<T>::min())
-            return conversionError("Argument '{}' is outside of bounds: '{}'", name, value);
-
-        return Ok(result);
-    }
-};
-
-
 
 template<typename T>
 Optional<Error> parseIntArgument(CommandlineParser::Context& context, T* value) {
-    auto val = Longest<T>::parse(context.name, context.value);
+    auto val = tryParse<T>(context.value, context.name);
 
     if (val) {
         *value = static_cast<T>(val.unwrap());

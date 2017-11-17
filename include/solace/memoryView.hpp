@@ -128,7 +128,7 @@ public:
      * @param source Source of data to be written into this location.
      * @param offset Offset location into this buffer to copy data to.
      */
-    void write(const MemoryView& source, size_type offset = 0);
+    void write(const ImmutableMemoryView& source, size_type offset = 0);
 
     /**
      * Copy data from this buffer into the given one.

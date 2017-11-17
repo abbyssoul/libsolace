@@ -288,7 +288,7 @@ public:
         mappedStorage.reserve(thisSize);
 
         for (const auto& x : _storage) {
-            mappedStorage.push_back(f(x));
+            mappedStorage.emplace_back(f(x));
         }
 
         return mappedStorage;
@@ -302,7 +302,7 @@ public:
         mappedStorage.reserve(thisSize);
 
         for (size_type i = 0; i < thisSize; ++i) {
-            mappedStorage.push_back(f(i, _storage[i]));
+            mappedStorage.emplace_back(f(i, _storage[i]));
         }
 
         return mappedStorage;

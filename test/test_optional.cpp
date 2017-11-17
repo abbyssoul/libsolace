@@ -37,9 +37,14 @@ class TestOptional : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE(TestOptional);
         CPPUNIT_TEST(testConstructionIntegrals);
         CPPUNIT_TEST(testConstruction);
-        CPPUNIT_TEST(testConstrucorTypeConvertion);
-        CPPUNIT_TEST(testAssignment);
+        CPPUNIT_TEST(testConstructionOf);
+        CPPUNIT_TEST(testMoveConstructionOf);
+
+        CPPUNIT_TEST(testConstructorTypeConvertion);
+//        CPPUNIT_TEST(testAssignment);
         CPPUNIT_TEST(testSwap);
+        CPPUNIT_TEST(testMoveAssignemnt);
+        CPPUNIT_TEST(testEquals);
 
         CPPUNIT_TEST(testEmpty);
         CPPUNIT_TEST(testString);
@@ -55,6 +60,19 @@ class TestOptional : public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE_END();
 
 private:
+
+    Optional<String> moveOptionalString(String&& value) {
+        return Optional<String>::of(value);
+    }
+
+    SimpleType moveSimpleType(int x, int y, int z) {
+        return SimpleType{x, y, z};
+    }
+
+    MoveOnlyType moveMoveonlyType(int value) {
+        return MoveOnlyType{value};
+    }
+
 public:
 
     void setUp() override {
@@ -101,46 +119,26 @@ public:
         }
     }
 
-    Optional<String> moveOptionalString(const String& str) {
-        return Optional<String>::of(str);
+    void testConstructionOf() {
+        SimpleType t(1, -32, 3);
+        CPPUNIT_ASSERT(Optional<SimpleType>::of(t).isSome());
     }
 
-    SimpleType moveSimpleType(int x, int y, int z) {
-        return SimpleType{x, y, z};
+    void testMoveConstructionOf() {
+        CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
+
+        const int randomNumber = 3987;
+        auto v2 = Optional<MoveOnlyType>::of(moveMoveonlyType(randomNumber));
+        CPPUNIT_ASSERT(v2.isSome());
+        CPPUNIT_ASSERT_EQUAL(randomNumber, v2.get().x_);
+        CPPUNIT_ASSERT_EQUAL(1, MoveOnlyType::InstanceCount);
     }
 
     void testConstruction() {
         {
-            const Optional<SimpleType> v;
-            CPPUNIT_ASSERT(v.isNone());
+            CPPUNIT_ASSERT(Optional<int>().isNone());
+            CPPUNIT_ASSERT(Optional<SimpleType>().isNone());
 
-            SimpleType t(1, -32, 3);
-            auto v2 = Optional<SimpleType>::of(t);
-            CPPUNIT_ASSERT(v2.isSome());
-        }
-
-        {
-            const String test("hello");
-
-            const Optional<String> v0;
-            CPPUNIT_ASSERT(v0.isNone());
-
-            Optional<String> v1("hello");
-            CPPUNIT_ASSERT(v1.isSome());
-
-            v1 = v0;
-            CPPUNIT_ASSERT(v0.isNone());
-            CPPUNIT_ASSERT_EQUAL(v1, v0);
-
-            v1 = moveOptionalString(test);
-            CPPUNIT_ASSERT(v1.isSome());
-            CPPUNIT_ASSERT_EQUAL(test, v1.get());
-
-            const Optional<String> v3(moveOptionalString(test));
-            CPPUNIT_ASSERT(v3.isSome());
-            CPPUNIT_ASSERT_EQUAL(test, v3.get());
-
-            CPPUNIT_ASSERT_EQUAL(v1, v3);
         }
 
         {
@@ -148,15 +146,10 @@ public:
             const Optional<MoveOnlyType> v;
             CPPUNIT_ASSERT(v.isNone());
             CPPUNIT_ASSERT_EQUAL(0, MoveOnlyType::InstanceCount);
-
-            MoveOnlyType t(3987);
-            auto v2 = Optional<MoveOnlyType>::of(std::move(t));
-            CPPUNIT_ASSERT(v2.isSome());
-            CPPUNIT_ASSERT_EQUAL(2, MoveOnlyType::InstanceCount);
         }
     }
 
-    void testConstrucorTypeConvertion() {
+    void testConstructorTypeConvertion() {
         CPPUNIT_ASSERT_EQUAL(0, PimitiveType::InstanceCount);
 
         Optional<PimitiveType> ptype = Optional<int>::of(321);
@@ -165,6 +158,7 @@ public:
         CPPUNIT_ASSERT_EQUAL(321, ptype.get().x);
     }
 
+    /*
     void testAssignment() {
         {
             auto v1 = Optional<SimpleType>::none();
@@ -192,7 +186,7 @@ public:
             CPPUNIT_ASSERT_EQUAL(2, SimpleType::InstanceCount);
         }
     }
-
+*/
 
     void testSwap() {
         {
@@ -265,6 +259,34 @@ public:
             CPPUNIT_ASSERT_EQUAL(998, v1.get().x_);
             CPPUNIT_ASSERT_THROW(v2.get(), NoSuchElementException);
         }
+    }
+
+    void testMoveAssignemnt() {
+        String test("hello");
+
+        Optional<String> v1;
+        CPPUNIT_ASSERT(v1.isNone());
+
+        v1 = moveOptionalString(std::move(test));
+        CPPUNIT_ASSERT(v1.isSome());
+        CPPUNIT_ASSERT_EQUAL(String("hello"), v1.get());
+
+        String test2("something different");
+        v1 = std::move(test2);
+
+        CPPUNIT_ASSERT(v1.isSome());
+        CPPUNIT_ASSERT_EQUAL(String("something different"), v1.get());
+    }
+
+    void testEquals() {
+
+        String test("hello");
+        const Optional<String> v1(moveOptionalString(std::move(test)));
+
+        String alsoHello("hello");
+        const Optional<String> v3(moveOptionalString(std::move(alsoHello)));
+
+        CPPUNIT_ASSERT_EQUAL(v1, v3);
     }
 
 
@@ -388,16 +410,24 @@ public:
     }
 
     void testFilter() {
-        CPPUNIT_ASSERT(Optional<SimpleType>::none()
-                        .filter([](const SimpleType& t) { return t.x != 0;})
-                        .isNone());
-
         CPPUNIT_ASSERT(Optional<int>::of(4412)
                         .filter([](int t) { return t > 20;})
                         .isSome());
 
-        CPPUNIT_ASSERT(Optional<SimpleType>::of({32, 72, -858})
+        CPPUNIT_ASSERT(Optional<int>::none()
+                        .filter([](int t) { return t > 0;})
+                        .isNone());
+
+        CPPUNIT_ASSERT(Optional<SimpleType>::none()
                         .filter([](const SimpleType& t) { return t.x != 0;})
+                        .isNone());
+
+        CPPUNIT_ASSERT(Optional<SimpleType>::of({32, 72, -858})
+                        .filter([](const SimpleType& t) { return t.x >= 0;})
+                        .isSome());
+
+        CPPUNIT_ASSERT(Optional<MoveOnlyType>::of({32})
+                        .filter([](const MoveOnlyType& t) { return t.x_ != 0;})
                         .isSome());
     }
 

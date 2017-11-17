@@ -563,18 +563,8 @@ public:
      * @param err Err value to move from
      */
     Result(types::Err<E>&& err):
-        _maybeError(std::move(err.val_))
+        _maybeError(Optional<E>::of(std::move(err.val_)))
     {}
-
-
-    /**
-     * Copy construct Result of the same type
-     * @param rhs Source to copy values from
-     */
-    Result(const Result& rhs) noexcept :
-        _maybeError(rhs._maybeError)
-    {
-    }
 
     /**
      * Move-Construct Result of the same type
@@ -582,8 +572,7 @@ public:
      */
     Result(Result&& rhs) noexcept :
         _maybeError(std::move(rhs._maybeError))
-    {
-    }
+    {}
 
 public:
 
@@ -663,7 +652,7 @@ public:
     std::enable_if_t<isResult<void, E, R>::value, typename isResult<void, E, R>::type>
     orElse(F&& f) {
         if (isOk()) {
-            return *this;
+            return Ok();
         }
 
         return f(moveError());
@@ -673,9 +662,8 @@ public:
              typename R = typename std::result_of<F(E)>::type>
     std::enable_if_t<!std::is_same<void, R>::value && !isResult<void, E, R>::value, Result<R, E>>
     orElse(F&& f) {
-
         if (isOk()) {
-            return *this;
+            return Ok();
         }
 
         return Ok<R>(f(moveError()));
@@ -685,9 +673,8 @@ public:
              typename U = typename std::result_of<F(E)>::type>
     std::enable_if_t<std::is_same<void, U>::value, Result<U, E>>
     orElse(F&& f) {
-
         if (isOk()) {
-            return *this;
+            return Ok();
         }
 
         f(moveError());

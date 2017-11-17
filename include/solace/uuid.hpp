@@ -217,7 +217,7 @@ inline void swap(UUID& lhs, UUID& rhs) noexcept {
 }
 
 
-ByteBuffer& operator >> (ByteBuffer& buffer, UUID& id);
+ReadBuffer& operator >> (ReadBuffer& buffer, UUID& id);
 
 ByteBuffer& operator << (ByteBuffer& buffer, const UUID& id);
 

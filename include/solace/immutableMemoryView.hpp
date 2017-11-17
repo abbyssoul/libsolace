@@ -196,6 +196,14 @@ public:
      */
     ImmutableMemoryView viewImmutableShallow() const;
 
+    /**
+     * Get the same view but with a custom disposer.
+     * Note this is a dangerous operation!
+     * If this object has a valid disposer it won't be called when a new view goes out of scope.
+     * However it is possible that original view will be disposed possibly making derived view (access-after-free).
+     * @return A new view to the same memory block with custom disposer.
+     */
+    ImmutableMemoryView repackage(const MemoryViewDisposer*);
 
     friend ImmutableMemoryView wrapMemory(const byte*,
                                           size_type,

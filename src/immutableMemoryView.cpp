@@ -125,3 +125,11 @@ ImmutableMemoryView
 ImmutableMemoryView::viewImmutableShallow() const {
     return wrapMemory(dataAddress(), size());
 }
+
+
+ImmutableMemoryView
+ImmutableMemoryView::repackage(const MemoryViewDisposer* disposer) {
+    // TODO(abbyssoul): check if this (_disposer != nullptr)
+
+    return wrapMemory(dataAddress(), size(), disposer);
+}

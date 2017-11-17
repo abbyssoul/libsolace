@@ -84,24 +84,18 @@ public:
         _engaged(false)
     {}
 
-    /**
-     * Construct an non-empty optional value moving value.
-     */
-    Optional(T&& t) noexcept(std::is_nothrow_copy_constructible<T>::value) :
-        _payload(std::move(t)),
-        _engaged(true)
-    {}
 
-    Optional(Optional<T>&& other) noexcept(std::is_nothrow_copy_constructible<T>::value) {
-        if (other.isSome())
+    Optional(Optional<T>&& other) noexcept(std::is_nothrow_move_constructible<T>::value) {
+        if (other.isSome()) {
             construct(std::move(other._payload));
+        }
     }
 
-    Optional(const Optional<T>& other) noexcept(std::is_nothrow_copy_constructible<T>::value) {
-        if (other.isSome())
-            construct(other._payload);
-    }
-
+//    Optional(const Optional<T>& other) noexcept(std::is_nothrow_copy_constructible<T>::value) {
+//        if (other.isSome()) {
+//            construct(other._payload);
+//        }
+//    }
 
     template<typename D>
     Optional(Optional<D>&& other) {
@@ -138,14 +132,21 @@ public:
         return (*this);
     }
 
-    Optional<T>& operator= (const Optional<T>& rhs) noexcept {
-        Optional<T>(rhs).swap(*this);
+//    Optional<T>& operator= (const Optional<T>& rhs) noexcept {
+//        Optional<T>(rhs).swap(*this);
 
-        return *this;
-    }
+//        return *this;
+//    }
 
     Optional<T>& operator= (Optional<T>&& rhs) noexcept {
         return swap(rhs);
+    }
+
+    Optional<T>& operator= (T&& rhs) noexcept {
+        destroy();
+        construct(std::move(rhs));
+
+        return *this;
     }
 
     constexpr explicit operator bool() const noexcept {
@@ -187,7 +188,7 @@ public:
 
     template <typename F,
               typename U = typename std::result_of<F(T&)>::type>
-    Optional<U> map(F f) {
+    Optional<U> map(F&& f) {
         return (isSome())
                 ? Optional<U>::of(f(_payload))
                 : Optional<U>::none();
@@ -195,7 +196,7 @@ public:
 
     template <typename F,
               typename U = typename std::result_of<F(T)>::type>
-    Optional<U> map(F f) const {
+    Optional<U> map(F&& f) const {
         return (isSome())
                 ? Optional<U>::of(f(_payload))
                 : Optional<U>::none();
@@ -210,19 +211,31 @@ public:
     }
 
     template <typename F>
-    Optional<T> filter(F predicate) const {
+    const Optional<T>& filter(F&& predicate) const {
         return (isSome())
-                ? (predicate(_payload) ? *this : Optional<T>::none())
-                : Optional<T>::none();
+                ? (predicate(_payload) ? *this : _emptyInstance)
+                : _emptyInstance;
     }
 
 protected:
 
-    Optional(const T& t) :
+    /**
+     * Construct an non-empty optional value by copying-value.
+     */
+    Optional(const T& t) noexcept(std::is_nothrow_copy_constructible<T>::value) :
         _payload(t),
         _engaged(true)
-    {
-    }
+    {}
+
+
+    /**
+     * Construct an non-empty optional value moving value.
+     */
+    Optional(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value) :
+        _payload(std::move(t)),
+        _engaged(true)
+    {}
+
 
     void construct(const T& t) {
         if (_engaged)
@@ -252,6 +265,8 @@ protected:
 
 private:
 
+    static Optional<T> _emptyInstance;
+
     template <class>
     friend class Optional;
 
@@ -265,6 +280,9 @@ private:
 
     bool _engaged = false;
 };
+
+template <typename T>
+Optional<T> Optional<T>::_emptyInstance = Optional<T>::none();
 
 // TODO(abbyssoul): Specialization of Optional<T&> and Optional<T*>
 

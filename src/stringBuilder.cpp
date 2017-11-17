@@ -80,13 +80,13 @@ StringBuilder& StringBuilder::append(const String& str) {
 
 
 String StringBuilder::toString() const {
-    return _buffer.empty()
+    return (_buffer.position() == 0)
             ? String::Empty
             : String(_buffer.viewWritten());
 }
 
 bool StringBuilder::empty() const {
-	return _buffer.empty();
+    return (_buffer.position() == 0);
 }
 
 

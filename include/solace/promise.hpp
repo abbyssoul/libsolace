@@ -51,7 +51,6 @@ struct CallbackBase : public std::enable_shared_from_this<CallbackBase<T>> {
 template<typename T>
 class Core {
 public:
-    virtual ~Core() = default;
 
     Core() :
         _completionHandler()
@@ -71,7 +70,7 @@ public:
         return _isDetached.load() && _result.isNone();
     }
 
-    virtual void setCallback(std::shared_ptr<details::CallbackBase<T>>&& func) {
+    void setCallback(std::shared_ptr<details::CallbackBase<T>>&& func) {
         _completionHandler = std::move(func);
 
         if (_result.isSome()) {
@@ -81,7 +80,7 @@ public:
         }
     }
 
-    virtual void setResult(Result<T, Error>&& result) {
+    void setResult(Result<T, Error>&& result) {
         if (_fired.exchange(true)) {
             raiseInvalidStateError("Future value already set");
         }

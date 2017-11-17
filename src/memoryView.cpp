@@ -79,7 +79,7 @@ MemoryView::fill(byte value, size_type from, size_type to) {
 }
 
 
-void MemoryView::write(const MemoryView& source, size_type offset) {
+void MemoryView::write(const ImmutableMemoryView& source, size_type offset) {
     const auto thisSize = size();
 
     if (offset > thisSize) {  // Make sure that offset is within [0, size())
@@ -139,7 +139,7 @@ MemoryView& MemoryView::fill(byte value) {
 MemoryView& MemoryView::lock() {
     if (mlock(dataAddress(), size()) < 0) {
         // TODO(abbyssoul): shold use ErrnoException
-        raise<Exception>("failed to lock memory");
+        raise<Exception>("failed to lock the memory buffer");
     }
 
     return (*this);
@@ -150,7 +150,7 @@ MemoryView&
 MemoryView::unlock() {
     if (munlock(dataAddress(), size()) < 0) {
         // TODO(abbyssoul): shold use ErrnoException
-        raise<Exception>("failed to lock memory");
+        raise<Exception>("failed to unlock the memory buffer");
     }
 
     return (*this);

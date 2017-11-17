@@ -244,12 +244,12 @@ UUID UUID::parse(const String& str) {
 
 
 
-ByteBuffer& operator >> (ByteBuffer& buffer, UUID& id) {
+ReadBuffer& Solace::operator >> (ReadBuffer& buffer, UUID& id) {
     auto view = id.view();
     return buffer.read(view);
 }
 
 
-ByteBuffer& operator << (ByteBuffer& buffer, const UUID& id) {
+ByteBuffer& Solace::operator << (ByteBuffer& buffer, const UUID& id) {
     return buffer.write(id.view());
 }

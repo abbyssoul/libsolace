@@ -132,7 +132,7 @@ MemoryView MemoryManager::create(size_type dataSize) {
     }
 
     if (isLocked()) {
-        raise<Exception>("locked");
+        raise<Exception>("Cannot allocate memory block: allocator is locked.");
     }
 
     auto data = new MemoryView::value_type[dataSize];

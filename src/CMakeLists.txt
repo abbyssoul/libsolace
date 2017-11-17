@@ -5,7 +5,9 @@ set(SOURCE_FILES
         immutableMemoryView.cpp
         memoryManager.cpp
         byteBuffer.cpp
+        readBuffer.cpp
         char.cpp
+        parseUtils.cpp
         uuid.cpp
         string.cpp
         stringBuilder.cpp
