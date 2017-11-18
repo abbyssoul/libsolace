@@ -138,6 +138,14 @@ public:
     Future(const Future& ) = delete;
     Future& operator= (const Future& rhs) = delete;
 
+    /**
+     * Default constructable Future.
+     * Not very useful by itself but can accept values via move-assignement.
+     */
+    Future() :
+        _core(std::make_shared<Core<T>>())
+    {}
+
 
     Future(Future&& rhs) noexcept :
         _core(std::move(rhs._core))
@@ -252,6 +260,14 @@ public:
 
     Future(const Future& ) = delete;
     Future& operator= (const Future& rhs) = delete;
+
+    /**
+     * Default constructable Future.
+     * Not very useful by itself but can accept values via move-assignement.
+     */
+    Future() :
+        _core(std::make_shared<Core<void>>())
+    {}
 
     Future(Future&& rhs) noexcept :
         _core(std::move(rhs._core))
