@@ -34,6 +34,7 @@
 namespace Solace {
 
 
+class ImmutableMemoryView;
 class MemoryView;
 class ByteBuffer;
 
@@ -48,8 +49,8 @@ public:
     using IOResult = Result<size_type, Error>;
 
 public:
-    virtual ~IOObject() = default;
 
+    virtual ~IOObject() = default;
 
     /** Test if this io object is ready for IO operations.
      * @return True if object is ready for IO.
@@ -84,18 +85,6 @@ public:
     virtual void close() = 0;
 
 
-    /** Read data from the io object into the given memory location/buffer.
-     * The read operation will attepmt to read as much data as fits into the buffer (using buffer.size()),
-     * however @note that it is not an error if less data has been read.
-     * Depending on the undelaying implementaiton it is possible to read 0 byte, for example if EOF was reached or
-     * socket connection has been closed.
-     *
-     * @param destBuffer Destanation buffer to read data into
-     * @return Result of number of bytes actually read if successful or an error.
-     */
-    virtual IOResult read(MemoryView& destBuffer) = 0;
-
-
     /** Read data from the io object into the given byte stream.
      * The read operation will attepmt to read as much data as fits into the buffer (using buffer.size()),
      * however @note that it is not an error if less data has been read.
@@ -105,7 +94,9 @@ public:
      * @param buffer Byte buffer to read data into.
      * @return Number of bytes actually read.
      */
-    IOResult read(ByteBuffer& destBuffer);
+    IOResult read(ByteBuffer& destBuffer) {
+        return read(destBuffer, destBuffer.remaining());
+    }
 
 
     /** Read data from this io object into the given byte stream.
@@ -120,16 +111,16 @@ public:
     IOResult read(ByteBuffer& destBuffer, size_type bytesToRead);
 
 
-    /** Write data from the given byte buffer into this io object.
-     * The write operation attempts to write as much data as availiable the given buffer.
-     * however @note that it is not an error if less data has been actually written.
+    /** Read data from the io object into the given memory location/buffer.
+     * The read operation will attepmt to read as much data as fits into the buffer (using buffer.size()),
+     * however @note that it is not an error if less data has been read.
+     * Depending on the undelaying implementaiton it is possible to read 0 byte, for example if EOF was reached or
+     * socket connection has been closed.
      *
-     * @param data Bytes to write into this file object.
-
-     * @return Number of bytes actually writen
+     * @param destBuffer Destanation buffer to read data into
+     * @return Result of number of bytes actually read if successful or an error.
      */
-    virtual IOResult write(const MemoryView& srcBuffer) = 0;
-
+    virtual IOResult read(MemoryView& destBuffer) = 0;
 
     /** Write data from the given byte buffer into this io object.
      * The write operation attempts to write as much data as availiable the given buffer.
@@ -141,7 +132,9 @@ public:
 
      * @return Number of bytes actually writen
      */
-    IOResult write(ByteBuffer& srcBuffer);
+    IOResult write(ByteBuffer& srcBuffer) {
+        return write(srcBuffer, srcBuffer.remaining());
+    }
 
 
     /** Write data from the given byte buffer into this io object.
@@ -156,6 +149,17 @@ public:
      * @return Number of bytes actually writen
      */
     IOResult write(ByteBuffer& srcBuffer, size_type bytesToWrite);
+
+
+    /** Write data from the given byte buffer into this io object.
+     * The write operation attempts to write as much data as availiable the given buffer.
+     * however @note that it is not an error if less data has been actually written.
+     *
+     * @param data Bytes to write into this file object.
+
+     * @return Number of bytes actually writen
+     */
+    virtual IOResult write(const ImmutableMemoryView& srcBuffer) = 0;
 
 };
 

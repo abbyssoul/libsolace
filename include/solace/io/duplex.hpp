@@ -42,6 +42,7 @@ public:
     using IOObject::write;
 
 public:
+
     ~Duplex();
 
     Duplex(const Duplex& rhs) = delete;
@@ -52,9 +53,9 @@ public:
      * @param inFid File descriptor opened for read
      * @param outFid File descriptor opened for write
      */
-    Duplex(poll_id inFid, poll_id outFid): Duplex(File::fromFd(inFid), File::fromFd(outFid)) {
-
-    }
+    Duplex(poll_id inFid, poll_id outFid) :
+        Duplex(File::fromFd(inFid), File::fromFd(outFid))
+    {}
 
     Duplex(File && inFile, File && outFile) :
         _in(std::move(inFile)),
@@ -96,23 +97,23 @@ public:
         return _in.read(buffer);
     }
 
-    IOObject::IOResult write(const MemoryView& buffer) override {
+    IOObject::IOResult write(const ImmutableMemoryView& buffer) override {
         return _out.write(buffer);
     }
 
     bool isOpened() const override {
         return (_in.isOpened() || _out.isOpened());
     }
+
     void close() override;
 
     virtual void flush();
 
-
-    File& getReadEnd() {
+    File& getReadEnd() noexcept {
         return _in;
     }
 
-    const File& getReadEnd() const {
+    const File& getReadEnd() const noexcept {
         return _in;
     }
 
@@ -120,7 +121,7 @@ public:
         return _out;
     }
 
-    const File& getWriteEnd() const {
+    const File& getWriteEnd() const noexcept {
         return _out;
     }
 

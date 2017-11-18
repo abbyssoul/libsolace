@@ -24,7 +24,6 @@
 #ifndef SOLACE_UUID_HPP
 #define SOLACE_UUID_HPP
 
-
 #include "solace/types.hpp"
 #include "solace/traits/iformattable.hpp"
 #include "solace/traits/icomparable.hpp"
@@ -36,11 +35,11 @@
 namespace Solace {
 
 /**
- * Universally Unique Identifier - as per RFC 4122, eg. unique 128 bit number
+ * Universally Unique Identifier - as per RFC 4122, eg. unique 128 bit number.
+ * UUID is a collection of bytes or a single unique 128bit nubmer.
  */
 class UUID :
         public IComparable<UUID>,
-        public Iterable<UUID, byte>,
         public IFormattable {
 public:
     typedef uint32 size_type;
@@ -63,9 +62,9 @@ public:
 
 
     /** Create random UUID
-     * This method uses system's random number generator
+     * This method uses system's random number generator to generate a new random UUID.
      */
-    static UUID random();
+    static UUID random() noexcept;
 
     /**
      * Parse a UUID object from a string.
@@ -76,10 +75,6 @@ public:
      * TODO: Parse family of functions should return Result<UUID, ParseError>
      */
     static UUID parse(const String& str);
-
-    static constexpr size_type static_size() {
-        return StaticSize;
-    }
 
 public:
 
@@ -134,18 +129,19 @@ public:
 
     /** Test if the UUID is empty
      * UUID is never empty. It can be nil but it always has bytes
-     * @return Always False as UUID is never empty
+     * @return Always False as UUID is never empty.
      */
     bool empty() const noexcept {
         return false;
     }
 
-    /** Get the size of UUID.
-     * UUID has a fixed size of 32 bytes as per RFC
-     * @return The size of UUID which is always 32
+    /** Get the size in bytes of this UUID.
+     * UUID has a fixed size of 16 bytes (128bit) as per RFC.
+     *
+     * @return The size of UUID which is always 16 bytes.
      */
     size_type size() const noexcept {
-        return static_size();
+        return StaticSize;
     }
 
     const_iterator begin() const noexcept {
@@ -171,11 +167,8 @@ public:
     value_type operator[] (size_type index) const;
 
     // TODO(abbyssoul): should be ImmutableMemoryView
-    const MemoryView view() const;
-    MemoryView view();
-
-    /** @see Iterable::forEach */
-    const UUID& forEach(const std::function<void(const_reference)> &f) const override;
+    ImmutableMemoryView view() const noexcept;
+    MemoryView view() noexcept;
 
     /** @see IFormattable::toString() */
     String toString() const override;

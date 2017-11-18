@@ -145,7 +145,8 @@ bool File::isOpened() const {
 }
 
 
-IOObject::IOResult File::read(MemoryView& buffer) {
+IOObject::IOResult
+File::read(MemoryView& buffer) {
     const auto fd = validateFd();
     const auto bytesRead = ::read(fd, buffer.dataAddress(), buffer.size());
 
@@ -157,7 +158,8 @@ IOObject::IOResult File::read(MemoryView& buffer) {
 }
 
 
-IOObject::IOResult File::write(const MemoryView& buffer) {
+IOObject::IOResult
+File::write(const Solace::ImmutableMemoryView& buffer) {
     const auto fd = validateFd();
     const auto bytesWritten = ::write(fd, buffer.dataAddress(), buffer.size());
 

@@ -134,12 +134,12 @@ public:
 
     void testByteRead() {
         const byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
-        constexpr size_type testSize = sizeof(bytes);
-        byte readBytes[testSize];
+        constexpr size_type kTestSize = sizeof(bytes);
+        byte readBytes[kTestSize];
 
         ReadBuffer buffer(wrapMemory(bytes));
 
-        for (size_type i = 0; i < testSize; ++i) {
+        for (size_type i = 0; i < kTestSize; ++i) {
             buffer >> readBytes[i];
         }
 

@@ -85,4 +85,4 @@ Result<uint64, Error> tryParse<uint64>(const char* value, const char* name) { re
 
 
 }  // End of namespace Solace
-#endif // SOLACE_PARSEUTILS_HPP
+#endif  // SOLACE_PARSEUTILS_HPP

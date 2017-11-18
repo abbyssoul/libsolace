@@ -206,7 +206,7 @@ public:
      *
      * @throws IOException if underlaying system call failed
      */
-    IOResult write(const MemoryView& buffer) override;
+    IOResult write(const ImmutableMemoryView& buffer) override;
 
 
 	/*

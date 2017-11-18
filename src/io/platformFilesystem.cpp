@@ -60,7 +60,7 @@ PlatformFilesystem::BufferedFile::read(MemoryView& buffer) {
 
 
 IOObject::IOResult
-PlatformFilesystem::BufferedFile::write(const MemoryView& buffer) {
+PlatformFilesystem::BufferedFile::write(const ImmutableMemoryView& buffer) {
     if (!_fp) {
         raise<NotOpen>();
     }

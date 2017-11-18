@@ -85,22 +85,23 @@ public:
     {}
 
 
-    Optional(Optional<T>&& other) noexcept(std::is_nothrow_move_constructible<T>::value) {
+    Optional(Optional<T>&& other) noexcept(std::is_nothrow_move_constructible<T>::value) :
+        _empty(),
+        _engaged(false)
+    {
         if (other.isSome()) {
             construct(std::move(other._payload));
         }
     }
 
-//    Optional(const Optional<T>& other) noexcept(std::is_nothrow_copy_constructible<T>::value) {
-//        if (other.isSome()) {
-//            construct(other._payload);
-//        }
-//    }
-
     template<typename D>
-    Optional(Optional<D>&& other) {
-        if (other.isSome())
+    Optional(Optional<D>&& other) noexcept(std::is_nothrow_move_constructible<T>::value) :
+        _empty(),
+        _engaged(false)
+    {
+        if (other.isSome()) {
             construct(std::move(other._payload));
+        }
     }
 
 
@@ -132,12 +133,6 @@ public:
         return (*this);
     }
 
-//    Optional<T>& operator= (const Optional<T>& rhs) noexcept {
-//        Optional<T>(rhs).swap(*this);
-
-//        return *this;
-//    }
-
     Optional<T>& operator= (Optional<T>&& rhs) noexcept {
         return swap(rhs);
     }
@@ -165,23 +160,26 @@ public:
     }
 
     T& get() {
-        if (isNone())
+        if (isNone()) {
             raiseInvalidStateError();
+        }
 
         return _payload;
     }
 
 
     T&& move() {
-        if (isNone())
+        if (isNone()) {
             raiseInvalidStateError();
+        }
 
         return std::move(_payload);
     }
 
     const T& orElse(const T& t) const noexcept {
-        if (isNone())
+        if (isNone()) {
             return t;
+        }
 
         return _payload;
     }
@@ -281,10 +279,9 @@ private:
     bool _engaged = false;
 };
 
+
 template <typename T>
 Optional<T> Optional<T>::_emptyInstance = Optional<T>::none();
-
-// TODO(abbyssoul): Specialization of Optional<T&> and Optional<T*>
 
 
 /** "None" is a syntactic sugar for options
@@ -302,7 +299,7 @@ public:
 
 
 template<typename T>
-bool operator == (const Optional<T>& a, const Optional<T>& b) {
+bool operator== (const Optional<T>& a, const Optional<T>& b) {
     if (&a == &b) {
         return true;
     }

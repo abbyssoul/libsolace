@@ -53,7 +53,7 @@ public:
         using File::write;
 
         IOObject::IOResult read(MemoryView& buffer) override;
-        IOObject::IOResult write(const MemoryView& buffer) override;
+        IOObject::IOResult write(const ImmutableMemoryView& buffer) override;
 
         size_type seek(size_type offset, File::Seek type) override;
         void close() override;

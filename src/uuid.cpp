@@ -16,10 +16,8 @@
 /*******************************************************************************
  * libSolace
  *	@file		uuid.cpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	ID:			$Id$
  ******************************************************************************/
+
 #include "solace/uuid.hpp"
 #include "solace/exception.hpp"
 
@@ -37,7 +35,7 @@ constexpr UUID::size_type UUID::StaticSize;
 constexpr UUID::size_type UUID::StringSize;
 
 
-UUID UUID::random() {
+UUID UUID::random() noexcept {
     return UUID();
 }
 
@@ -139,23 +137,13 @@ bool Solace::operator < (const UUID& lhs, const UUID& rhs) noexcept {
 }
 
 
-const MemoryView UUID::view() const {
+ImmutableMemoryView UUID::view() const noexcept {
     return wrapMemory(const_cast<byte*>(_bytes), size());
 }
 
 
-MemoryView UUID::view() {
+MemoryView UUID::view() noexcept {
     return wrapMemory(const_cast<byte*>(_bytes), size());
-}
-
-
-const UUID& UUID::forEach(const std::function<void(const_reference)> &f) const {
-
-    for (const auto& b : _bytes) {
-        f(b);
-    }
-
-    return *this;
 }
 
 
@@ -200,7 +188,7 @@ char char2int(char input) {
     }
 
 /*
- Alternative down is unsafe as we don't controll input string and bytes def can be > 128
+ Alternative down is unsafe as we don't control input string and bytes def can be > 128
     static const char hex_to_bin[128] = {
              -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,  //
              -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,  //

@@ -96,7 +96,10 @@ ReadBuffer::read(MemoryView& dest, size_type bytesToRead) {
 ReadBuffer&
 ReadBuffer::read(void* dest, size_type count) {
     if (remaining() < count) {
-        raise<OverflowException>(_position + count, _position, _limit);
+        raise<OverflowException>("Reading 'count' bytes will overflow",
+                                 _position + count,
+                                 _position,
+                                 _limit);
     }
 
     const void* srcAddr = _storage.dataAddress(_position);

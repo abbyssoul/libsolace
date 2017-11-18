@@ -32,7 +32,8 @@ namespace Solace { namespace IO {
 /**
  * A wrapper for Unix unnamed pipe
  */
-class Pipe: public Duplex {
+class Pipe :
+        public Duplex {
 public:
     using Duplex::poll_id;
 
@@ -46,8 +47,7 @@ public:
      * @param outFid FD to be a write end of the pipe
      */
     Pipe(poll_id inFid, poll_id outFid): Duplex(inFid, outFid)
-    {
-    }
+    {}
 
     Pipe(Duplex&& duplex);
     Pipe(Pipe&& duplex);

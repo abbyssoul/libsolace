@@ -56,6 +56,10 @@ ByteBuffer& ByteBuffer::write(const ImmutableMemoryView& data, size_type bytesTo
 }
 
 ByteBuffer& ByteBuffer::write(const void* data, size_type count) {
+    if (count == 0) {
+        return *this;
+    }
+
     if (remaining() < count) {
          raise<OverflowException>(position() + count, position(), remaining());
     }

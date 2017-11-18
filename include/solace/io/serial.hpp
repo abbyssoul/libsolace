@@ -219,47 +219,6 @@ public:
     }
 
 
-    /** Read a given number of bytes from the serial port into a the buffer.
-    *
-    * The read function will return in one of three cases:
-    *  * The number of requested bytes was read.
-    *    * In this case the number of bytes requested will match the size_t
-    *      returned by read.
-    *  * A timeout occurred, in this case the number of bytes read will not
-    *    match the amount requested, but no exception will be thrown.  One of
-    *    two possible timeouts occurred:
-    *    * The inter byte timeout expired, this means that number of
-    *      milliseconds elapsed between receiving bytes from the serial port
-    *      exceeded the inter byte timeout.
-    *    * The total timeout expired, which is calculated by multiplying the
-    *      read timeout multiplier by the number of requested bytes and then
-    *      added to the read timeout constant.  If that total number of
-    *      milliseconds elapses after the initial call to read a timeout will
-    *      occur.
-    *  * An exception occurred, in this case an actual exception will be thrown.
-    *
-    * \param buffer A write buffer to write date into
-    * \param bytesToRead Number of bytes to be read.
-    *
-    * \return The number of bytes actually read.
-    *
-    * \throw serial::SerialException
-    */
-//    size_type read(ByteBuffer& buffer, ByteBuffer::size_type bytesToRead) override;
-
-
-    /*! Write given number of bytes into the serial port.
-    *
-    * \param data The data buffer to be written to the serial port.
-    * \param bytesToWrite How many bytes should be written from the buffer.
-    *
-    * \return The number of bytes actually written to the serial port.
-    *
-    * \throw serial::SerialException
-    * \throw serial::IOException
-    */
-//    size_type write(MemoryView& data, MemoryView::size_type bytesToWrite) override;
-
     /**
      * \see File:flush
      */

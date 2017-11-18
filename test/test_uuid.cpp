@@ -69,7 +69,6 @@ public:
     void testStaticConstraints() {
         CPPUNIT_ASSERT_EQUAL(static_cast<UUID::size_type>(16), UUID::StaticSize);
         CPPUNIT_ASSERT_EQUAL(static_cast<UUID::size_type>(36), UUID::StringSize);
-        CPPUNIT_ASSERT_EQUAL(UUID::StaticSize, UUID::static_size());
     }
 
     void testRandom() {
@@ -155,11 +154,12 @@ public:
     void testIterable() {
 
         byte startValue = 15;
-        UUID({15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0}).forEach([&startValue] (const byte& v) {
+        UUID uuid({15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0});
+		
+		for (auto v : uuid) {
             CPPUNIT_ASSERT_EQUAL(startValue, v);
             startValue--;
-        });
-
+        }
         CPPUNIT_ASSERT_EQUAL(static_cast<byte>(-1), startValue);
 
         CPPUNIT_ASSERT_THROW(UUID().operator [](UUID::StaticSize), IndexOutOfRangeException);
@@ -225,8 +225,8 @@ public:
 
             CPPUNIT_ASSERT_EQUAL(uids[2], uids[0]);
 
-            for (UUID::size_type i = 0; i < UUID::static_size(); ++i) {
-                CPPUNIT_ASSERT_EQUAL(uids[3][UUID::static_size() - 1 - i], uids[0][i]);
+            for (UUID::size_type i = 0; i < UUID::StaticSize; ++i) {
+                CPPUNIT_ASSERT_EQUAL(uids[3][UUID::StaticSize - 1 - i], uids[0][i]);
             }
         }
 
