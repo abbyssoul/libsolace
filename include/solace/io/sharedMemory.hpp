@@ -92,6 +92,20 @@ public:
 
 public:
 
+    /**
+     * Default distructor.
+     */
+    virtual ~SharedMemory();
+
+
+    /**
+     * Create a 'empty' shared memory file-like object.
+     * No 'file' will be opened or memory allocated.
+     * This is pretty useles state except for a container.
+     */
+    SharedMemory() noexcept;
+
+
     /// Deleted as no point in copying shared memory handle.
     SharedMemory(const SharedMemory&) = delete;
 
@@ -103,11 +117,6 @@ public:
      * @param other A file object to move from
      */
     SharedMemory(SharedMemory&& other);
-
-    /**
-     * Default distructor.
-     */
-    virtual ~SharedMemory();
 
 
     /**

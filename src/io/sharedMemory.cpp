@@ -36,11 +36,30 @@ static constexpr size_t NAME_MAX = 255;
 #endif
 
 
+SharedMemory::~SharedMemory() {
+    // FIXME: This can throw! Is there any way to avoid it?
+
+    if (isOpened()) {
+        close();
+
+        if (_linkedPath) {
+            // Unlinking quietly - if the file has been unlinked alredy - we don't care.
+            shm_unlink(_linkedPath.toString().c_str());
+        }
+    }
+}
+
+
+SharedMemory::SharedMemory() noexcept :
+    SharedMemory(File::InvalidFd)
+{
+}
+
+
 SharedMemory::SharedMemory(const poll_id fd) noexcept :
     _fd(fd),
     _linkedPath()
 {
-
 }
 
 
@@ -61,19 +80,6 @@ SharedMemory::SharedMemory(SharedMemory&& other):
     // Note: It's ok if we have moved content from a closed file to have this->_fd == InvalidFd
 }
 
-
-SharedMemory::~SharedMemory() {
-    // FIXME: This can throw! Is there any way to avoid it?
-
-    if (isOpened()) {
-        close();
-    }
-
-    if (_linkedPath) {
-        // Unlinking quietly - if the file has been unlinked alredy - we don't care.
-        shm_unlink(_linkedPath.toString().c_str());
-    }
-}
 
 SharedMemory::poll_id SharedMemory::validateFd() const {
     if (!isOpened()) {
