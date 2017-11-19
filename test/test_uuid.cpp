@@ -155,7 +155,7 @@ public:
 
         byte startValue = 15;
         UUID uuid({15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0});
-		
+
 		for (auto v : uuid) {
             CPPUNIT_ASSERT_EQUAL(startValue, v);
             startValue--;

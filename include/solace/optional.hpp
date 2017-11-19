@@ -50,6 +50,7 @@ namespace Solace {
     unit: Optional.of()
     bind: Optional.flatMap()
  */
+// cppcheck-suppress copyCtorAndEqOperator
 template<typename T>
 class Optional {
 public:
