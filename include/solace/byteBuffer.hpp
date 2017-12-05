@@ -18,7 +18,7 @@
  *	@file		solace/byteBuffer.hpp
  *	@author		$LastChangedBy: $
  *	@date		$LastChangedDate: $
- *	@brief		Byte write buffer
+ *	@brief		Byte buffer
  *	ID:			$Id: $
  ******************************************************************************/
 #pragma once

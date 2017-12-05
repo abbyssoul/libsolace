@@ -4,6 +4,7 @@ set(SOURCE_FILES
         memoryView.cpp
         immutableMemoryView.cpp
         memoryManager.cpp
+        base64.cpp
         byteBuffer.cpp
         readBuffer.cpp
         char.cpp

@@ -20,6 +20,7 @@ set(TEST_SOURCE_FILES
         test_arrayView.cpp
         test_memoryView.cpp
         test_memoryManager.cpp
+        test_base64.cpp
         test_byteBuffer.cpp
         test_readBuffer.cpp
         test_optional.cpp
