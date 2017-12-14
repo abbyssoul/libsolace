@@ -14,22 +14,23 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Base64 encoder/decoder
- *	@file		solace/base64.hpp
- *	@brief		Base64 encoder/decoder classes
+ * libSolace: Base16 encoder/decoder.
+ *	@file		solace/base16.hpp
+ *	@brief		Base16 encoder/decoder classes
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_BASE64_HPP
-#define SOLACE_BASE64_HPP
+#ifndef SOLACE_BASE16_HPP
+#define SOLACE_BASE16_HPP
 
 #include "solace/encoder.hpp"
+
 
 namespace Solace {
 
 /**
- * RFC-4648 compatible Base64 encoder.
+ * RFC-4648 compatible Base16 encoder.
  */
-class Base64Encoder : public Encoder {
+class Base16Encoder : public Encoder {
 public:
     using Encoder::size_type;
 
@@ -37,33 +38,7 @@ public:
 
 public:
 
-    Base64Encoder(ByteBuffer& dest) :
-        Encoder(dest)
-    {}
-
-
-    size_type encodedSize(const ImmutableMemoryView& data) const override {
-        return encodedSize(data.size());
-    }
-
-    using Encoder::encode;
-
-    void encode(const ImmutableMemoryView& src) override;
-};
-
-
-/**
- * RFC-4648 compatible Base64 decoder.
- */
-class Base64Decoder  : public Encoder {
-public:
-    using Encoder::size_type;
-
-    static size_type decodedSize(const ImmutableMemoryView& data);
-
-public:
-
-    Base64Decoder(ByteBuffer& dest) :
+    Base16Encoder(ByteBuffer& dest) :
         Encoder(dest)
     {}
 
@@ -72,8 +47,30 @@ public:
     using Encoder::encode;
 
     void encode(const ImmutableMemoryView& src) override;
+};
 
+
+/**
+ * RFC-4648 compatible Base16 decoder.
+ */
+class Base16Decoder : public Encoder {
+public:
+    using Encoder::size_type;
+
+    static size_type encodedSize(size_type len);
+
+public:
+
+    Base16Decoder(ByteBuffer& dest) :
+        Encoder(dest)
+    {}
+
+    size_type encodedSize(const ImmutableMemoryView& data) const override;
+
+    using Encoder::encode;
+
+    void encode(const ImmutableMemoryView& src) override;
 };
 
 }  // End of namespace Solace
-#endif  // SOLACE_BASE64_HPP
+#endif  // SOLACE_BASE16_HPP

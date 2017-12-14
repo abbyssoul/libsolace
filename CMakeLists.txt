@@ -18,12 +18,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED on)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors") #  -fno-rtti
 
 # Enable stack-protector if compiler supports it (it should)
-check_cxx_compiler_flag("-fstack-protector" WITH_STACK_PROTECTOR)
-check_cxx_compiler_flag("-fno-omit-frame-pointer" WITH_FRAME_POINTER)
 check_cxx_compiler_flag("-fvtable-verify" WITH_VTABLE_VERIFY)
-check_cxx_compiler_flag("-fsanitize-address-use-after-scope" WITH_SANITIZE_ADDRESS_USE_AFTER_SCOPE)
 check_cxx_compiler_flag("-Wimplicit-fallthrough=2" WITH_IMPLICIT_FALLTHROUGH)
 check_cxx_compiler_flag("-fuse-ld=gold" WITH_GOLD_LINKER)
+check_cxx_compiler_flag("-fstack-protector" WITH_STACK_PROTECTOR)
+check_cxx_compiler_flag("-fno-omit-frame-pointer" WITH_FRAME_POINTER)
+check_cxx_compiler_flag("-fsanitize-address-use-after-scope" WITH_SANITIZE_ADDRESS_USE_AFTER_SCOPE)
+check_cxx_compiler_flag("-fsanitize=signed-integer-overflow" WITH_SANITIZE_SIGNED_INTEGER_OVERFLOW)
+check_cxx_compiler_flag("-fsanitize=unsigned-integer-overflow" WITH_SANITIZE_UNSIGNED_INTEGER_OVERFLOW)
+
 
 if (WITH_GOLD_LINKER)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=gold")
@@ -88,6 +91,15 @@ if (SANITIZE)
     if (WITH_SANITIZE_ADDRESS_USE_AFTER_SCOPE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize-address-use-after-scope")
     endif(WITH_SANITIZE_ADDRESS_USE_AFTER_SCOPE)
+
+    if (WITH_SANITIZE_SIGNED_INTEGER_OVERFLOW)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=signed-integer-overflow")
+    endif(WITH_SANITIZE_SIGNED_INTEGER_OVERFLOW)
+
+    if (WITH_SANITIZE_UNSIGNED_INTEGER_OVERFLOW)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=unsigned-integer-overflow")
+    endif(WITH_SANITIZE_UNSIGNED_INTEGER_OVERFLOW)
+
 
     set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")

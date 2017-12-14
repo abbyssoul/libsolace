@@ -146,41 +146,41 @@ public:
         Base64Decoder decoder(dest);
 
         //  BASE64("") = ""
-        decoder.decode(wrapMemory("", 0));
+        decoder.encode(wrapMemory("", 0));
         CPPUNIT_ASSERT(dest.viewWritten().empty());
 
         //  BASE64("f") = "Zg=="
         dest.rewind();
-        decoder.decode(wrapMemory("Zg==", 4));
+        decoder.encode(wrapMemory("Zg==", 4));
         CPPUNIT_ASSERT_EQUAL(wrapMemory("f", 1), dest.viewWritten().viewImmutableShallow());
 
         //  BASE64("fo") = "Zm8="
         dest.rewind();
-        decoder.decode(wrapMemory("Zm8=", 4));
+        decoder.encode(wrapMemory("Zm8=", 4));
         CPPUNIT_ASSERT_EQUAL(wrapMemory("fo", 2), dest.viewWritten().viewImmutableShallow());
 
         //  BASE64("foo") = "Zm9v"
         dest.rewind();
-        decoder.decode(wrapMemory("Zm9v", 4));
+        decoder.encode(wrapMemory("Zm9v", 4));
         CPPUNIT_ASSERT_EQUAL(wrapMemory("foo", 3), dest.viewWritten().viewImmutableShallow());
 
         //  BASE64("foob") = "Zm9vYg=="
         dest.rewind();
-        decoder.decode(wrapMemory("Zm9vYg==", 8));
+        decoder.encode(wrapMemory("Zm9vYg==", 8));
         CPPUNIT_ASSERT_EQUAL(wrapMemory("foob", 4), dest.viewWritten().viewImmutableShallow());
 
         //  BASE64("fooba") = "Zm9vYmE="
         dest.rewind();
-        decoder.decode(wrapMemory("Zm9vYmE=", 8));
+        decoder.encode(wrapMemory("Zm9vYmE=", 8));
         CPPUNIT_ASSERT_EQUAL(wrapMemory("fooba", 5), dest.viewWritten().viewImmutableShallow());
 
         //  BASE64("foobar") = "Zm9vYmFy"
         dest.rewind();
-        decoder.decode(wrapMemory("Zm9vYmFy", 8));
+        decoder.encode(wrapMemory("Zm9vYmFy", 8));
         CPPUNIT_ASSERT_EQUAL(wrapMemory("foobar", 6), dest.viewWritten().viewImmutableShallow());
 
         dest.rewind();
-        decoder.decode(wrapMemory("VGhpcyBpcyB0ZXN0IG1lc3NhZ2Ugd2Ugd2FudCB0byBlbmNvZGU=", 53));
+        decoder.encode(wrapMemory("VGhpcyBpcyB0ZXN0IG1lc3NhZ2Ugd2Ugd2FudCB0byBlbmNvZGU=", 53));
         CPPUNIT_ASSERT_EQUAL(wrapMemory("This is test message we want to encode", 38),
                              dest.viewWritten().viewImmutableShallow());
 
@@ -194,8 +194,9 @@ public:
         const char* expectedMsg =
                 "VGhpcyBpcyBsaW5lIG9uZQpUaGlzIGlzIGxpbmUgdHdvClRoaXMgaXMgbGluZSB0aHJlZQpBbmQgc28gb24uLi4K";
 
-        Base64Encoder v(dest);
-        v.encode(wrapMemory(srcMem, strlen(srcMem)));
+        Base64Encoder(dest)
+                .encode(wrapMemory(srcMem, strlen(srcMem)));
+
         CPPUNIT_ASSERT_EQUAL(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten().viewImmutableShallow());
     }
 
@@ -206,8 +207,9 @@ public:
         const char* expectedMsg = "This is line one\nThis is line two\nThis is line three\nAnd so on...\n";
         const char* srcMem = "VGhpcyBpcyBsaW5lIG9uZQpUaGlzIGlzIGxpbmUgdHdvClRoaXMgaXMgbGluZSB0aHJlZQpBbmQgc28gb24uLi4K";
 
-        Base64Decoder v(dest);
-        v.decode(wrapMemory(srcMem, strlen(srcMem)));
+        Base64Decoder(dest)
+                .encode(wrapMemory(srcMem, strlen(srcMem)));
+
         CPPUNIT_ASSERT_EQUAL(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten().viewImmutableShallow());
     }
 
@@ -218,8 +220,9 @@ public:
         const char* srcMem = "foo © bar 𝌆 baz";
         const char* expectedMsg = "Zm9vIMKpIGJhciDwnYyGIGJheg==";
 
-        Base64Encoder v(dest);
-        v.encode(wrapMemory(srcMem, strlen(srcMem)));
+        Base64Encoder(dest)
+                .encode(wrapMemory(srcMem, strlen(srcMem)));
+
         CPPUNIT_ASSERT_EQUAL(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten().viewImmutableShallow());
     }
 
@@ -230,8 +233,9 @@ public:
         const char* srcMem = "Zm9vIMKpIGJhciDwnYyGIGJheg==";
         const char* expectedMsg = "foo © bar 𝌆 baz";
 
-        Base64Decoder v(dest);
-        v.decode(wrapMemory(srcMem, strlen(srcMem)));
+        Base64Decoder(dest)
+                .encode(wrapMemory(srcMem, strlen(srcMem)));
+
         CPPUNIT_ASSERT_EQUAL(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten().viewImmutableShallow());
     }
 };

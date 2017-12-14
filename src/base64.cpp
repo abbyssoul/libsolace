@@ -38,35 +38,30 @@ Base64Encoder::encodedSize(size_type len) {
 }
 
 
-void Base64Encoder::encode(ReadBuffer& src) {
-    const auto remaining = src.remaining();
-    encode(src.viewRemaining());
-    src.advance(remaining);
-}
-
 
 void Base64Encoder::encode(const ImmutableMemoryView& src) {
+    auto& dest = *getDestBuffer();
     ImmutableMemoryView::size_type i = 0;
 
     for (; i + 2 < src.size(); i += 3) {
-        *_dest << kBase64Alphabet[ (src[i] >> 2) & 0x3F];
-        *_dest << kBase64Alphabet[((src[i] & 0x3) << 4)     | (static_cast<int>(src[i + 1] & 0xF0) >> 4)];
-        *_dest << kBase64Alphabet[((src[i + 1] & 0xF) << 2) | (static_cast<int>(src[i + 2] & 0xC0) >> 6)];
-        *_dest << kBase64Alphabet[  src[i + 2] & 0x3F];
+        dest << kBase64Alphabet[ (src[i] >> 2) & 0x3F];
+        dest << kBase64Alphabet[((src[i] & 0x3) << 4)     | (static_cast<int>(src[i + 1] & 0xF0) >> 4)];
+        dest << kBase64Alphabet[((src[i + 1] & 0xF) << 2) | (static_cast<int>(src[i + 2] & 0xC0) >> 6)];
+        dest << kBase64Alphabet[  src[i + 2] & 0x3F];
     }
 
 
     if (i < src.size()) {
-        *_dest << kBase64Alphabet[(src[i] >> 2) & 0x3F];
+        dest << kBase64Alphabet[(src[i] >> 2) & 0x3F];
         if (i + 1 == src.size()) {
-            *_dest << kBase64Alphabet[((src[i] & 0x3) << 4)];
-            *_dest << '=';
+            dest << kBase64Alphabet[((src[i] & 0x3) << 4)];
+            dest << '=';
         } else {
-            *_dest << kBase64Alphabet[((src[i] & 0x3) << 4) | (static_cast<int>(src[i + 1] & 0xF0) >> 4)];
-            *_dest << kBase64Alphabet[((src[i + 1] & 0xF) << 2)];
+            dest << kBase64Alphabet[((src[i] & 0x3) << 4) | (static_cast<int>(src[i + 1] & 0xF0) >> 4)];
+            dest << kBase64Alphabet[((src[i + 1] & 0xF) << 2)];
         }
 
-        *_dest << '=';
+        dest << '=';
     }
 }
 
@@ -105,13 +100,13 @@ Base64Decoder::decodedSize(const ImmutableMemoryView& data) {
 }
 
 
-void Base64Decoder::decode(ReadBuffer& src) {
-    const auto remaining = src.remaining();
-    decode(src.viewRemaining());
-    src.advance(remaining);
+Base64Decoder::size_type
+Base64Decoder::encodedSize(const ImmutableMemoryView& data) const {
+    return decodedSize(data);
 }
 
-void Base64Decoder::decode(const ImmutableMemoryView& src) {
+
+void Base64Decoder::encode(const ImmutableMemoryView& src) {
     const byte* bufin = src.dataAddress();
     while (pr2six[*(bufin++)] <= 63)
     {}
@@ -119,10 +114,11 @@ void Base64Decoder::decode(const ImmutableMemoryView& src) {
     long nprbytes = (bufin - src.dataAddress()) - 1;  // NOLINT(runtime/int)
     bufin = src.dataAddress();
 
+    auto& dest = *getDestBuffer();
     while (nprbytes > 4) {
-        *_dest << static_cast<byte>(pr2six[bufin[0]] << 2 | pr2six[bufin[1]] >> 4);
-        *_dest << static_cast<byte>(pr2six[bufin[1]] << 4 | pr2six[bufin[2]] >> 2);
-        *_dest << static_cast<byte>(pr2six[bufin[2]] << 6 | pr2six[bufin[3]]);
+        dest << static_cast<byte>(pr2six[bufin[0]] << 2 | pr2six[bufin[1]] >> 4);
+        dest << static_cast<byte>(pr2six[bufin[1]] << 4 | pr2six[bufin[2]] >> 2);
+        dest << static_cast<byte>(pr2six[bufin[2]] << 6 | pr2six[bufin[3]]);
 
         bufin += 4;
         nprbytes -= 4;
@@ -130,12 +126,12 @@ void Base64Decoder::decode(const ImmutableMemoryView& src) {
 
     /* Note: (nprbytes == 1) would be an error, so just ingore that case */
     if (nprbytes > 1) {
-        *_dest << static_cast<byte>(pr2six[bufin[0]] << 2 | pr2six[bufin[1]] >> 4);
+        dest << static_cast<byte>(pr2six[bufin[0]] << 2 | pr2six[bufin[1]] >> 4);
     }
     if (nprbytes > 2) {
-        *_dest << static_cast<byte>(pr2six[bufin[1]] << 4 | pr2six[bufin[2]] >> 2);
+        dest << static_cast<byte>(pr2six[bufin[1]] << 4 | pr2six[bufin[2]] >> 2);
     }
     if (nprbytes > 3) {
-        *_dest << static_cast<byte>(pr2six[bufin[2]] << 6 | pr2six[bufin[3]]);
+        dest << static_cast<byte>(pr2six[bufin[2]] << 6 | pr2six[bufin[3]]);
     }
 }

@@ -1,22 +1,27 @@
 
 set(SOURCE_FILES
         assert.cpp
+        exception.cpp
+        error.cpp
+        char.cpp
+
         memoryView.cpp
         immutableMemoryView.cpp
         memoryManager.cpp
+        base16.cpp
+#        base32.cpp
         base64.cpp
         byteBuffer.cpp
         readBuffer.cpp
-        char.cpp
         parseUtils.cpp
         uuid.cpp
         string.cpp
         stringBuilder.cpp
-        exception.cpp
+
         ioobject.cpp
         version.cpp
         path.cpp
-        error.cpp
+        encoder.cpp
 
         io/file.cpp
         io/duplex.cpp
