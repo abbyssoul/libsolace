@@ -55,7 +55,7 @@ public:
 /**
  * RFC-4648 compatible Base64 decoder.
  */
-class Base64Decoder  : public Encoder {
+class Base64Decoder : public Encoder {
 public:
     using Encoder::size_type;
 
@@ -73,6 +73,48 @@ public:
 
     void encode(const ImmutableMemoryView& src) override;
 
+};
+
+
+/**
+ * URL safe variant of Base64 encoder.
+ */
+class Base64UrlEncoder : public Base64Encoder {
+public:
+    using Base64Encoder::size_type;
+    using Base64Encoder::encodedSize;
+
+public:
+
+    Base64UrlEncoder(ByteBuffer& dest) :
+        Base64Encoder(dest)
+    {}
+
+    using Base64Encoder::encode;
+
+    void encode(const ImmutableMemoryView& src) override;
+};
+
+
+/**
+ * URL safe variant of Base64 decoder.
+ */
+class Base64UrlDecoder : public Base64Decoder {
+public:
+    using Base64Decoder::size_type;
+
+    using Base64Decoder::decodedSize;
+    using Base64Decoder::encodedSize;
+
+public:
+
+    Base64UrlDecoder(ByteBuffer& dest) :
+        Base64Decoder(dest)
+    {}
+
+    using Base64Decoder::encode;
+
+    void encode(const ImmutableMemoryView& src) override;
 };
 
 }  // End of namespace Solace

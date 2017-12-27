@@ -56,6 +56,9 @@ class TestBase64: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testBasicEncoding);
         CPPUNIT_TEST(testBasicDecoding);
 
+        CPPUNIT_TEST(testBasicUrlEncoding);
+        CPPUNIT_TEST(testBasicUrlDecoding);
+
         CPPUNIT_TEST(testMultilineMessageEncoding);
         CPPUNIT_TEST(testMultilineMessageDecoding);
 
@@ -188,6 +191,29 @@ public:
                              dest.viewWritten().viewImmutableShallow());
 
     }
+
+    void testBasicUrlEncoding() {
+        byte buffer[70];
+        ByteBuffer dest(wrapMemory(buffer));
+
+        Base64UrlEncoder encoder(dest);
+
+        encoder.encode(wrapMemory("This is test message encoded as a URL safe base64", 49));
+        CPPUNIT_ASSERT_EQUAL(wrapMemory("VGhpcyBpcyB0ZXN0IG1lc3NhZ2UgZW5jb2RlZCBhcyBhIFVSTCBzYWZlIGJhc2U2NA==", 68),
+                             dest.viewWritten().viewImmutableShallow());
+    }
+
+    void testBasicUrlDecoding() {
+        byte buffer[70];
+        ByteBuffer dest(wrapMemory(buffer));
+
+        Base64UrlDecoder encoder(dest);
+
+        encoder.encode(wrapMemory("VGhpcyBpcyB0ZXN0IG1lc3NhZ2UgZW5jb2RlZCBhcyBhIFVSTCBzYWZlIGJhc2U2NA==", 68));
+        CPPUNIT_ASSERT_EQUAL(wrapMemory("This is test message encoded as a URL safe base64", 49),
+                             dest.viewWritten().viewImmutableShallow());
+    }
+
 
     void testMultilineMessageEncoding() {
         byte buffer[90];
