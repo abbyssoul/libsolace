@@ -95,6 +95,7 @@ protected:
         bool parsedSuccessully = false;
         T xValue = 0;
 
+        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "-x", strArg, nullptr};
         const int argc = 3;
 
@@ -257,6 +258,7 @@ public:
 
         bool xValue = false;
         int vValue = 0;
+
         // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "--xxx", "-V", "321", nullptr};
         const int argc = 4;

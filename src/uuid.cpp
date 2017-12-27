@@ -20,6 +20,7 @@
 
 #include "solace/uuid.hpp"
 #include "solace/exception.hpp"
+#include "solace/base16.hpp"
 
 
 #include <cstring>  // memcmp (should review)
@@ -147,77 +148,36 @@ MemoryView UUID::view() noexcept {
 }
 
 
-void nibbleData(char* buffer, const byte* data, size_t len) {
-//    static const char NibbleToHex[] = "0123456789ABCDEF";
-    static const char NibbleToHex[] = "0123456789abcdef";
-
-    for (size_t i = 0; i < len; ++i) {
-        buffer[2 * i]       = NibbleToHex[data[i] >> 4 ];
-        buffer[2 * i + 1]   = NibbleToHex[data[i] & 0x0F];
-    }
-}
-
 String UUID::toString() const {
     char buffer[StringSize];
-    buffer[8] = '-';
-    buffer[13] = '-';
-    buffer[18] = '-';
-    buffer[23] = '-';
 
+    ByteBuffer dest(wrapMemory(buffer));
+    Base16Encoder encoder(dest);
+
+    auto dataView = view();
     // 123e4567-e89b-12d3-a456-426655440000
     // 8-4-4-4-12
-    nibbleData(buffer + 0,  &(_bytes[0]),  4);
-    nibbleData(buffer + 9,  &(_bytes[4]),  2);
-    nibbleData(buffer + 14, &(_bytes[6]),  2);
-    nibbleData(buffer + 19, &(_bytes[8]),  2);
-    nibbleData(buffer + 24, &(_bytes[10]), 6);
+    encoder.encode(dataView.slice(0,   4));
+    dest << '-';
+    encoder.encode(dataView.slice(4,   6));
+    dest << '-';
+    encoder.encode(dataView.slice(6,   8));
+    dest << '-';
+    encoder.encode(dataView.slice(8,  10));
+    dest << '-';
+    encoder.encode(dataView.slice(10, 16));
 
     return String(buffer, StringSize);
 }
 
 
-char char2int(char input) {
-    if (input >= '0' && input <= '9') {
-        return input - '0';
-    }
-    if (input >= 'A' && input <= 'F') {
-        return input - 'A' + 10;
-    }
-    if (input >= 'a' && input <= 'f') {
-        return input - 'a' + 10;
-    }
-
-/*
- Alternative down is unsafe as we don't control input string and bytes def can be > 128
-    static const char hex_to_bin[128] = {
-             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,  //
-             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,  //
-             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,  //
-              0, 1, 2, 3, 4, 5, 6, 7, 8, 9,-1,-1,-1,-1,-1,-1,  // 0..9
-             -1,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,  // A..F
-             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,  //
-             -1,10,11,12,13,14,15,-1,-1,-1,-1,-1,-1,-1,-1,-1,  // a..f
-             -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1 };  //
-*/
-//    return hex_to_bin[input];
-
-    // FIXME(abbyssoul): We should just return an error!
-    Solace::raise<IllegalArgumentException>("Invalid input string");
-    return 0;
-}
 
 // This function assumes src to be a zero terminated sanitized string with
 // an even number of [0-9a-f] characters, and target to be sufficiently large
 void hex2bin(byte* dest, const char* src, size_t srcSize) {
-    for (size_t i = 0; i < srcSize; ++i) {
-        if (src[i] != '-') {
-            *(dest++) = char2int(src[i])*16 + char2int(src[i + 1]);
-            i += 1;
-        }
-    }
 }
 
-
+char charToBin(byte c);
 
 UUID UUID::parse(const String& str) {
     if (str.size() != StringSize) {
@@ -225,7 +185,24 @@ UUID UUID::parse(const String& str) {
     }
 
     byte data[StaticSize];
+
+
     hex2bin(data, str.c_str(), StringSize);
+    byte* dest = data;
+    const char* src = str.c_str();
+    for (size_type i = 0; i < StringSize; ++i) {
+        if (src[i] != '-') {
+            const char high = charToBin(src[i]);
+            const char low =  charToBin(src[i + 1]);
+
+            if (high < 0 || low < 0) {
+                raise<IllegalArgumentException>("Failed to decode UUID string: value is not in base16 alphabet");
+            }
+
+            *(dest++) = static_cast<byte>(high << 4) + static_cast<byte>(low);
+            i += 1;
+        }
+    }
 
     return UUID(wrapMemory(data, sizeof(data)));
 }

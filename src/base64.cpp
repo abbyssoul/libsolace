@@ -34,7 +34,7 @@ static const byte kBase64Alphabet[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklm
 
 Base64Encoder::size_type
 Base64Encoder::encodedSize(size_type len) {
-    return ((len + 2) / 3 * 4) + 1;
+    return ((4 * len / 3) + 3) & ~3;
 }
 
 
@@ -89,14 +89,21 @@ static const byte pr2six[256] = {
 
 Base64Decoder::size_type
 Base64Decoder::decodedSize(const ImmutableMemoryView& data) {
-    const byte *bufin = data.dataAddress();
+    if (data.empty())
+        return 0;
 
-    while (pr2six[*(bufin++)] <= 63)
-    {}
+    if (data.size() % 4)
+        return 0;  // FIXME: Probably throw!
 
-    const size_type nprbytes = (bufin - data.dataAddress()) - 1;
+    size_type nprbytes = 0;
+    for (const auto& b : data) {
+        if (pr2six[b] <= 63)
+            ++nprbytes;
+        else
+            break;
+    }
 
-    return ((nprbytes + 3) / 4) * 3 + 1;
+    return (nprbytes * 3 / 4);
 }
 
 
@@ -108,6 +115,10 @@ Base64Decoder::encodedSize(const ImmutableMemoryView& data) const {
 
 void Base64Decoder::encode(const ImmutableMemoryView& src) {
     const byte* bufin = src.dataAddress();
+    if (!bufin || src.size() == 0) {
+        return;
+    }
+
     while (pr2six[*(bufin++)] <= 63)
     {}
 

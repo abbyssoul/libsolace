@@ -30,6 +30,9 @@ using namespace Solace;
 class TestBase16: public CppUnit::TestFixture  {
 
     CPPUNIT_TEST_SUITE(TestBase16);
+        CPPUNIT_TEST(testEncodedSize);
+        CPPUNIT_TEST(testDecodedSize);
+
         CPPUNIT_TEST(testBasicEncoding);
         CPPUNIT_TEST(testBasicDecoding);
 

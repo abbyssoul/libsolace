@@ -20,6 +20,8 @@
  ******************************************************************************/
 #include "solace/hashing/messageDigest.hpp"
 
+#include "solace/base16.hpp"
+
 #include <sstream>      // std::stringstream, std::stringbuf
 
 
@@ -34,10 +36,15 @@ std::ostream& operator<< (std::ostream& ostr, const MessageDigest& a) {
     ostr << '[';
 
     char buffer[3];
+    ByteBuffer dest(wrapMemory(buffer));
+    Base16Encoder encoder(dest);
+
     for (MessageDigest::size_type end = a.size(), i = 0; i < end; ++i) {
-        nibbleData(buffer, &a[i], 1);
+        encoder.encode(wrapMemory(&a[i], 1));
+
         ostr << "0x";
         ostr.write(buffer, 2);
+        dest.rewind();
     }
     ostr << ']';
 
@@ -50,8 +57,12 @@ String MessageDigest::toString() const {
     std::stringstream ss;
 
     char buffer[3];
+    ByteBuffer dest(wrapMemory(buffer));
+    Base16Encoder encoder(dest);
+
     for (MessageDigest::size_type len = size(), i = 0; i < len; ++i) {
-        nibbleData(buffer, &_storage[i], 1);
+        encoder.encode(wrapMemory(&_storage[i], 1));
+        dest.rewind();
 
         ss.write(buffer, 2);
     }
