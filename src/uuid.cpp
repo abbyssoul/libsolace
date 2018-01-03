@@ -171,13 +171,9 @@ String UUID::toString() const {
 }
 
 
-
-// This function assumes src to be a zero terminated sanitized string with
-// an even number of [0-9a-f] characters, and target to be sufficiently large
-void hex2bin(byte* dest, const char* src, size_t srcSize) {
-}
-
+// Here we are stilling a function from base16.cpp
 char charToBin(byte c);
+
 
 UUID UUID::parse(const String& str) {
     if (str.size() != StringSize) {
@@ -185,9 +181,6 @@ UUID UUID::parse(const String& str) {
     }
 
     byte data[StaticSize];
-
-
-    hex2bin(data, str.c_str(), StringSize);
     byte* dest = data;
     const char* src = str.c_str();
     for (size_type i = 0; i < StringSize; ++i) {
@@ -204,7 +197,7 @@ UUID UUID::parse(const String& str) {
         }
     }
 
-    return UUID(wrapMemory(data, sizeof(data)));
+    return UUID(wrapMemory(data));
 }
 
 

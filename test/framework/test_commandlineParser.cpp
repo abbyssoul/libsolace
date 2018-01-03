@@ -95,7 +95,6 @@ protected:
         bool parsedSuccessully = false;
         T xValue = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "-x", strArg, nullptr};
         const int argc = 3;
 
@@ -239,9 +238,6 @@ public:
     void parseUInt64_Overflow() {
         testIntOverflow<uint64>("9898847598475978947899839987438957");
         testIntOverflow<uint64>("92233720368547758072");
-
-        // FIXME: Uncomment to cause gcc7+address sanitized to crash.
-//        testIntOverflow<uint64>("423");
     }
 
     void parseUInt64_NegativeArgument() {
@@ -259,7 +255,6 @@ public:
         bool xValue = false;
         int vValue = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "--xxx", "-V", "321", nullptr};
         const int argc = 4;
 
@@ -286,7 +281,6 @@ public:
         bool parsedSuccessully = false;
         int xValue = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "--xxx", "756", "--unknown", nullptr};
         const int argc = 4;
 
@@ -308,7 +302,6 @@ public:
         bool parsedSuccessully = false;
         bool xValue = false;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "-v", "--unknown", "blah!", nullptr};
         const int argc = 4;
 
@@ -331,7 +324,6 @@ public:
         bool parsedSuccessully = false;
         int xValue = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "-x", nullptr};
         const int argc = 2;
 
@@ -354,7 +346,6 @@ public:
         bool parsedSuccessully = false;
         int xValue = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "--xxx", nullptr};
         const int argc = 2;
 
@@ -377,7 +368,6 @@ public:
         bool parsedSuccessully = false;
         int xValue = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "--xxx", "BHAL!", nullptr};
         const int argc = 3;
 
@@ -399,7 +389,6 @@ public:
         bool parsedSuccessully = false;
         int xValue = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "", "-xy", "32", nullptr};
         const int argc = 4;
 
@@ -419,7 +408,6 @@ public:
         bool parsedSuccessully = false;
         int xValue = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "-", "32", nullptr};
         const int argc = 3;
 
@@ -439,7 +427,6 @@ public:
         bool parsedSuccessully = false;
         int xValue = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "--", "BHAL!", nullptr};
         const int argc = 3;
 
@@ -463,7 +450,6 @@ public:
         const char* zValue = nullptr;
         const char* zExpValue = "somethin";
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "--xxx", "756", "--zva", "somethin", nullptr};
         const int argc = 5;
 
@@ -498,7 +484,6 @@ public:
         const char* zValue = nullptr;
         const char* zExpValue = "somethin2";
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "--xxx", "756", "-z", "somethin2", nullptr};
         const int argc = 5;
 
@@ -532,7 +517,6 @@ public:
         int xValue = 0;
         const char* zValue = nullptr;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "--xxx", "756", "-z", nullptr};
         const int argc = 4;
 
@@ -564,7 +548,6 @@ public:
         bool customCalled = false;
         int xValue = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "--xxx", "756", "-z", nullptr};
         const int argc = 4;
 
@@ -594,7 +577,6 @@ public:
         int xValue = 0;
         int mandatoryArg = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "-x", "756", "98765", nullptr};
         const int argc = 4;
 
@@ -619,7 +601,6 @@ public:
         bool parsedSuccessully = false;
         String mandatoryArg;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "awesome-value", nullptr};
         const int argc = 2;
 
@@ -638,12 +619,10 @@ public:
     }
 
     void testMandatoryArgumentWithoutGivenFlags() {
-
         bool parsedSuccessully = false;
         int xValue = 0;
         String mandatoryArg;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "awesome-value", nullptr};
         const int argc = 2;
 
@@ -665,12 +644,10 @@ public:
 
 
     void testMandatoryArgumentMissing() {
-
         bool parsedSuccessully = false;
         int xValue = 0;
         int mandatoryArg = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "-x", "756", nullptr};
         const int argc = 3;
 
@@ -699,7 +676,6 @@ public:
         int mandatoryArgInt = 0;
         int mandatoryArgInt2 = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "do", "321", nullptr};
         const int argc = 3;
 
@@ -726,7 +702,6 @@ public:
         String mandatoryArgStr;
         int mandatoryArgInt = 0;
 
-        // cppcheck-suppress constStatement
         const char* argv[] = {"prog", "some", "756", "other", nullptr};
         const int argc = 4;
 

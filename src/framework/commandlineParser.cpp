@@ -143,8 +143,9 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
         char* pEnd = nullptr;
         auto val = strtof(context.value, &pEnd);
 
-        if (!pEnd || pEnd == context.value)  // No conversion has been done
+        if (!pEnd || pEnd == context.value) {  // No conversion has been done
             return conversionError2("Option '{}' is not float32 value: '{}'", context.name, context.value);
+        }
 
         *value = static_cast<float32>(val);
 
@@ -159,8 +160,9 @@ CommandlineParser::Option::Option(char shortName, const char* longName, const ch
         char* pEnd = nullptr;
         auto val = strtod(context.value, &pEnd);
 
-        if (!pEnd || pEnd == context.value)  // No conversion has been done
+        if (!pEnd || pEnd == context.value) {  // No conversion has been done
             return conversionError2("Option '{}' is not float64 value: '{}'", context.name, context.value);
+        }
 
         *value = static_cast<float64>(val);
 
