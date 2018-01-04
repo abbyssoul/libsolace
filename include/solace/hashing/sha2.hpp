@@ -33,7 +33,7 @@ namespace hashing {
 
 /**
  * Implementation of Sha-2 cryptographic hashing algorithm.
- * This is SHA-256 with 256 bit digest.
+ * This is SHA-256 with 256-bit (32 bytes) digest.
  */
 class Sha256 : public HashingAlgorithm {
 public:
@@ -68,7 +68,7 @@ public:
      * @param input A memory view to read data from.
      * @return A reference to self for a fluent interface.
      */
-    HashingAlgorithm& update(const MemoryView& input) override;
+    HashingAlgorithm& update(const ImmutableMemoryView& input) override;
 
     /*
      * Completes the hash computation by performing final operations such as padding.

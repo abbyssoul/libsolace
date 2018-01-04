@@ -33,7 +33,7 @@ namespace hashing {
 
 /**
  * Implementation of Sha-1 cryptographic hashing algorithm.
- * SHA-1 produces a 160-bit (20-byte) hash.
+ * SHA-1 produces a 160-bit (20-bytes) hash.
  */
 class Sha1 : public HashingAlgorithm {
 public:
@@ -68,7 +68,7 @@ public:
      * @param input A memory view to read data from.
      * @return A reference to self for a fluent interface.
      */
-    HashingAlgorithm& update(const MemoryView& input) override;
+    HashingAlgorithm& update(const ImmutableMemoryView& input) override;
 
     /*
      * Completes the hash computation by performing final operations such as padding.

@@ -35,6 +35,7 @@ static const byte sha1_padding[64] = {
 };
 
 
+__attribute__((no_sanitize("unsigned-integer-overflow")))
 void sha1_process(Sha1::State& ctx, const byte data[64]) {
     uint32_t temp, W[16], A, B, C, D, E;
 
@@ -249,7 +250,7 @@ Sha1::size_type Sha1::getDigestLength() const {
 }
 
 
-HashingAlgorithm& Sha1::update(const MemoryView& input) {
+HashingAlgorithm& Sha1::update(const ImmutableMemoryView& input) {
     sha1_update(_state, input.dataAddress(), input.size());
 
     return (*this);

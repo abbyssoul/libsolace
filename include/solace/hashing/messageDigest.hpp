@@ -40,8 +40,8 @@ class MessageDigest : public IFormattable {
 public:
 
     typedef byte                                value_type;
-    typedef uint32                              size_type;
     typedef Array<byte>                         Storage;
+    typedef Storage::size_type                  size_type;
 
     typedef Storage::const_iterator    const_iterator;
     typedef Storage::const_reference   const_reference;
@@ -60,7 +60,7 @@ public:
     MessageDigest(byte* bytes, size_type digestSize) : _storage(digestSize, bytes)
     { }
 
-    MessageDigest(const MemoryView& viewBytes) : _storage(viewBytes.size(), viewBytes.dataAddress())
+    MessageDigest(const ImmutableMemoryView& viewBytes) : _storage(viewBytes.size(), viewBytes.dataAddress())
     { }
 
     MessageDigest(const Storage& bytes) : _storage(bytes)

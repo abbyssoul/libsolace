@@ -36,6 +36,7 @@ static const byte md5_padding[64] = {
 };
 
 
+__attribute__((no_sanitize("unsigned-integer-overflow")))
 void md5_process(MD5::State& ctx, const byte data[64]) {
     uint32_t X[16], A, B, C, D;
 
@@ -57,16 +58,13 @@ void md5_process(MD5::State& ctx, const byte data[64]) {
     getUint32_LE(X[15], data, 60);
 
 #define S(x, n) ((x << n) | ((x & 0xFFFFFFFF) >> (32 - n)))
-
-#define P(a, b, c, d, k, s, t)                                \
-{ a += F(b, c, d) + X[k] + t; a = S(a, s) + b; }
+#define F(x, y, z) (z ^ (x & (y ^ z)))
+#define P(a, b, c, d, k, s, t) { a += F(b, c, d) + X[k] + t; a = S(a, s) + b; }
 
     A = ctx.state[0];
     B = ctx.state[1];
     C = ctx.state[2];
     D = ctx.state[3];
-
-#define F(x, y, z) (z ^ (x & (y ^ z)))
 
     P(A, B, C, D,  0,  7, 0xD76AA478);
     P(D, A, B, C,  1, 12, 0xE8C7B756);
@@ -215,8 +213,7 @@ MD5::size_type MD5::getDigestLength() const {
 }
 
 
-HashingAlgorithm& MD5::update(const MemoryView& input) {
-
+HashingAlgorithm& MD5::update(const ImmutableMemoryView& input) {
     md5_update(_state, input.dataAddress(), input.size());
 
     return (*this);

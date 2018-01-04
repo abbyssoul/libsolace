@@ -36,8 +36,7 @@ namespace hashing {
  */
 class HashingAlgorithm {
 public:
-
-    typedef uint32 size_type;
+    typedef ImmutableMemoryView::size_type size_type;
 
 public:
 
@@ -60,7 +59,7 @@ public:
      * @param input A memory view to read data from.
      * @return A reference to self for a fluent interface.
      */
-    virtual HashingAlgorithm& update(const MemoryView& input) = 0;
+    virtual HashingAlgorithm& update(const ImmutableMemoryView& input) = 0;
 
     /**
      * Update the digest with the given input.
@@ -68,7 +67,6 @@ public:
      * @return A reference to self for a fluent interface.
      */
     virtual HashingAlgorithm& update(ByteBuffer& input) {
-
         auto memView = input.viewRemaining();
         update(memView);
         input.advance(memView.size());

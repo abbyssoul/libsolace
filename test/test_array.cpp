@@ -220,14 +220,14 @@ public:
             CPPUNIT_ASSERT(!a2.empty());
 
             for (Array<int>::size_type i = 0; i < a2.size(); ++i) {
-                a2[i] = static_cast<int>(2*i - 1);
+                a2[i] = static_cast<int>(2*i) - 1;
             }
 
             a1 = a2;
             CPPUNIT_ASSERT(!a1.empty());
             CPPUNIT_ASSERT_EQUAL(a1.size(), a2.size());
             for (Array<int>::size_type i = 0; i < a1.size(); ++i) {
-                CPPUNIT_ASSERT_EQUAL(static_cast<int>(2*i - 1), a1[i]);
+                CPPUNIT_ASSERT_EQUAL(static_cast<int>(2*i) - 1, a1[i]);
             }
         }
 	}

@@ -118,7 +118,6 @@ String::size_type Path::length(const String& delim) const noexcept {
 
 int Path::compareTo(const Path& other) const {
     const size_type minLen = std::min(getComponentsCount(), other.getComponentsCount());
-    const int difference = getComponentsCount() - other.getComponentsCount();
 
     // Find where this path diverges from other:
     for (size_type i = 0; i < minLen; ++i) {
@@ -131,7 +130,8 @@ int Path::compareTo(const Path& other) const {
         }
     }
 
-    return difference;
+
+    return static_cast<int>(getComponentsCount()) - static_cast<int>(other.getComponentsCount());
 }
 
 

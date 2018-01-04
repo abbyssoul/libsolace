@@ -83,6 +83,8 @@ static const uint32 K[64] = {
     d += temp1; h = temp1 + temp2;              \
 }
 
+
+__attribute__((no_sanitize("unsigned-integer-overflow")))
 void sha256_process(Sha256::State& ctx, const byte data[64] ) {
     uint32 temp1, temp2, W[64];
     uint32 A[8];
@@ -201,7 +203,7 @@ Sha256::size_type Sha256::getDigestLength() const {
 }
 
 
-HashingAlgorithm& Sha256::update(const MemoryView& input) {
+HashingAlgorithm& Sha256::update(const ImmutableMemoryView& input) {
     sha256_update(_state, input.dataAddress(), input.size());
 
     return (*this);

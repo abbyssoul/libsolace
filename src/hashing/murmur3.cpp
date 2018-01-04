@@ -68,6 +68,7 @@ FORCE_INLINE uint64 getblock64(const uint64* p, int i) {
 //-----------------------------------------------------------------------------
 // Finalization mix - force all bits of a hash block to avalanche
 
+__attribute__((no_sanitize("unsigned-integer-overflow")))
 FORCE_INLINE uint32 fmix32(uint32 h) {
     h ^= h >> 16;
     h *= 0x85ebca6b;
@@ -79,7 +80,7 @@ FORCE_INLINE uint32 fmix32(uint32 h) {
 }
 
 //----------
-
+__attribute__((no_sanitize("unsigned-integer-overflow")))
 FORCE_INLINE uint64 fmix64(uint64 k) {
     k ^= k >> 33;
     k *= BIG_CONSTANT(0xff51afd7ed558ccd);
@@ -91,67 +92,56 @@ FORCE_INLINE uint64 fmix64(uint64 k) {
 }
 
 //-----------------------------------------------------------------------------
+__attribute__((no_sanitize("unsigned-integer-overflow")))
+uint32 murmurhash3_x86_32(const byte* data, const Murmur3_128::size_type len, uint32 seed) {
+    const int nblocks = static_cast<int>(len / 4);
+    uint32 h1 = seed;
 
-uint32
-murmurhash3_x86_32(const byte *data, uint32 len, uint32 seed) {
-    uint32 c1 = 0xcc9e2d51;
-    uint32 c2 = 0x1b873593;
-    uint32 r1 = 15;
-    uint32 r2 = 13;
-    uint32 m = 5;
-    uint32 n = 0xe6546b64;
-    uint32 h = 0;
-    uint32 k = 0;
-    int i = 0;
-    const int l = len / 4;  // chunk length
+    const uint32 c1 = 0xcc9e2d51;
+    const uint32 c2 = 0x1b873593;
 
-    h = seed;
-    const uint32* chunks = reinterpret_cast<const uint32*>(data + l * 4);  // body
-    const uint8* tail = reinterpret_cast<const uint8*>(data + l * 4);  // last 8 byte chunk of `key'
+    //----------
+    // body
 
-    // for each 4 byte chunk of `key'
-    for (i = -l; i != 0; ++i) {
-        // next 4 byte chunk of `key'
-        k = chunks[i];
+    const uint32* blocks = reinterpret_cast<const uint32*>(data + nblocks*4);
+    for (int i = -nblocks; i; i++) {
+        uint32 k1 = getblock32(blocks, i);
 
-        // encode next 4 byte chunk of `key'
-        k *= c1;
-        k = (k << r1) | (k >> (32 - r1));
-        k *= c2;
+        k1 *= c1;
+        k1 = ROTL32(k1, 15);
+        k1 *= c2;
 
-        // append to hash
-        h ^= k;
-        h = (h << r2) | (h >> (32 - r2));
-        h = h * m + n;
+        h1 ^= k1;
+        h1 = ROTL32(h1, 13);
+        h1 = h1 * 5 + 0xe6546b64;
     }
 
-    k = 0;
+    //----------
+    // tail
 
-    // remainder
-    switch (len & 3) {  // `len % 4'
-    case 3: k ^= static_cast<uint32>(tail[2] << 16);  /* Falls through. */
-    case 2: k ^= static_cast<uint32>(tail[1] << 8);   /* Falls through. */
-    case 1:
-      k ^= tail[0];
-      k *= c1;
-      k = (k << r1) | (k >> (32 - r1));
-      k *= c2;
-      h ^= k;
+    const byte* tail = static_cast<const byte*>(data + nblocks*4);
+    uint32 k1 = 0;
+    switch (len & 3) {
+    case 3: k1 ^= static_cast<uint32>(tail[2] << 16);  /* Falls through. */
+    case 2: k1 ^= static_cast<uint32>(tail[1] << 8);   /* Falls through. */
+    case 1: k1 ^= tail[0];
+          k1 *= c1; k1 = ROTL32(k1, 15); k1 *= c2; h1 ^= k1;
     }
 
-    h ^= len;
-    h ^= (h >> 16);
-    h *= 0x85ebca6b;
-    h ^= (h >> 13);
-    h *= 0xc2b2ae35;
-    h ^= (h >> 16);
+    //----------
+    // finalization
+    h1 ^= len;
+    h1 = fmix32(h1);
 
-    return h;
+    return h1;
 }
 
+
 //-----------------------------------------------------------------------------
+__attribute__((no_sanitize("unsigned-integer-overflow")))
 void MurmurHash3_x86_128(const byte* data, const Murmur3_128::size_type len, uint32 seed, void* out) {
-    const int nblocks = len / 16;
+    const int blockSize = 16;
+    const int nblocks = static_cast<int>(len / blockSize);
 
     uint32 h1 = seed;
     uint32 h2 = seed;
@@ -166,19 +156,12 @@ void MurmurHash3_x86_128(const byte* data, const Murmur3_128::size_type len, uin
     //----------
     // body
 
-    const uint32* blocks = reinterpret_cast<const uint32 *>(data + nblocks*16);
+    const uint32* blocks = reinterpret_cast<const uint32 *>(data + nblocks*blockSize);
     for (int i = -nblocks; i; i++) {
         uint32 k1 = getblock32(blocks, i*4+0);
         uint32 k2 = getblock32(blocks, i*4+1);
         uint32 k3 = getblock32(blocks, i*4+2);
         uint32 k4 = getblock32(blocks, i*4+3);
-
-//        uint32 k1, k2, k3, k4;
-//        getUint32_LE(k1, reinterpret_cast<const byte*>(&blocks[i*4 + 0]), 0);
-//        getUint32_LE(k2, reinterpret_cast<const byte*>(&blocks[i*4 + 1]), 0);
-//        getUint32_LE(k3, reinterpret_cast<const byte*>(&blocks[i*4 + 2]), 0);
-//        getUint32_LE(k4, reinterpret_cast<const byte*>(&blocks[i*4 + 3]), 0);
-
 
         k1 *= c1; k1  = ROTL32(k1, 15); k1 *= c2; h1 ^= k1;
 
@@ -200,7 +183,7 @@ void MurmurHash3_x86_128(const byte* data, const Murmur3_128::size_type len, uin
     //----------
     // tail
 
-    const byte* tail = (data + nblocks*16);
+    const byte* tail = (data + nblocks*blockSize);
 
     uint32 k1 = 0;
     uint32 k2 = 0;
@@ -255,9 +238,10 @@ void MurmurHash3_x86_128(const byte* data, const Murmur3_128::size_type len, uin
 }
 
 //-----------------------------------------------------------------------------
-
+__attribute__((no_sanitize("unsigned-integer-overflow")))
 void MurmurHash3_x64_128(const byte* data, const Murmur3_128::size_type len, uint32 seed, uint64 out[2]) {
-    const int nblocks = len / 16;
+    const int blockSize = 16;
+    const int nblocks = static_cast<int>(len / blockSize);
 
     uint64 h1 = seed;
     uint64 h2 = seed;
@@ -272,23 +256,19 @@ void MurmurHash3_x64_128(const byte* data, const Murmur3_128::size_type len, uin
         uint64 k1 = getblock64(blocks, i*2 + 0);
         uint64 k2 = getblock64(blocks, i*2 + 1);
 
-//        uint64 k1, k2;
-//        getUint64_LE(k1, reinterpret_cast<const byte*>(&blocks[i*2 + 0]), 0);
-//        getUint64_LE(k2, reinterpret_cast<const byte*>(&blocks[i*2 + 1]), 0);
-
         k1 *= c1; k1  = ROTL64(k1, 31); k1 *= c2; h1 ^= k1;
 
-        h1 = ROTL64(h1, 27); h1 += h2; h1 = h1*5+0x52dce729;
+        h1 = ROTL64(h1, 27); h1 += h2; h1 = h1 * 5 + 0x52dce729;
 
         k2 *= c2; k2  = ROTL64(k2, 33); k2 *= c1; h2 ^= k2;
 
-        h2 = ROTL64(h2, 31); h2 += h1; h2 = h2*5+0x38495ab5;
+        h2 = ROTL64(h2, 31); h2 += h1; h2 = h2 * 5 + 0x38495ab5;
     }
 
     //----------
     // tail
 
-    const byte* tail = (data + nblocks*16);
+    const byte* tail = (data + nblocks*blockSize);
     uint64 k1 = 0;
     uint64 k2 = 0;
 
@@ -354,7 +334,7 @@ Murmur3_32::getDigestLength() const {
 }
 
 
-HashingAlgorithm& Murmur3_32::update(const MemoryView& input) {
+HashingAlgorithm& Murmur3_32::update(const ImmutableMemoryView& input) {
     _hash[0] = murmurhash3_x86_32(input.dataAddress(), input.size(), _seed);
 
     return (*this);
@@ -366,7 +346,7 @@ MessageDigest Murmur3_32::digest() {
 
     putUint32_BE(_hash[0], result, 0);
 
-    return MessageDigest(result, getDigestLength());
+    return MessageDigest(result, sizeof(result));
 }
 
 
@@ -391,7 +371,7 @@ Murmur3_128::size_type Murmur3_128::getDigestLength() const {
 }
 
 
-HashingAlgorithm& Murmur3_128::update(const MemoryView& input) {
+HashingAlgorithm& Murmur3_128::update(const ImmutableMemoryView& input) {
 #if  defined(__i386__) || defined(__arm__)
     MurmurHash3_x86_128(input.dataAddress(), input.size(), _seed, _hash);
 #elif  defined(__x86_64__) ||  defined(__aarch64__)
@@ -405,6 +385,6 @@ HashingAlgorithm& Murmur3_128::update(const MemoryView& input) {
 
 
 MessageDigest Murmur3_128::digest() {
-    return MessageDigest(reinterpret_cast<byte*>(_hash), getDigestLength());
+    return MessageDigest(reinterpret_cast<byte*>(_hash), sizeof(_hash));
 }
 

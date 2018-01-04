@@ -41,7 +41,7 @@ T* generateTestArray(T (&carray)[N], F generator) {
 }
 
 int fillOdd(size_t i) {
-    return static_cast<int>(2*i - 1);
+    return static_cast<int>(2*i) - 1;
 }
 
 int fillEven(size_t i) {
@@ -297,7 +297,7 @@ public:
 
         // Check that the data is the same:
         for (ArrayView<int>::size_type i = 0; i < a1.size(); ++i) {
-            CPPUNIT_ASSERT_EQUAL(static_cast<int>(2*i - 1), a1[i]);
+            CPPUNIT_ASSERT_EQUAL(static_cast<int>(2*i) - 1, a1[i]);
         }
 
         // Check that changing values in the original C-array changes ArrayView values:
