@@ -6,24 +6,25 @@ libSolace
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 libSolace is a toolkit for building mission critical application.
-Idea of this library is inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).
-
+Idea of this library is partually inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).
 That is the library aims to provide building blocks for fast and reliable applications using modern C++ dialect (At least C++14).
 Note: the implementation attempts to respect P10 rules only to extent practical. It is an ongoing effort.
-### Simple
 In this context simple means that it provides minimal necessary set of tools to solve a problem.
 ### Motivation
 Solace is used to provide building primitives to develop a systems of communicating process that solve a problem via collaboration (aka cluster application / actor system). As such it will never spawn a thread or allocate memory after initialisation.
 
-## Contributions
-The framework is in active development.
-Contributions are welcomed. Please see [coding convention](docs/coding_convention.md) about code style.
-In order to maintain code quality a set of static code analysis tools used as part of the build process.
+## Contributing changes
+The framework is work in progress and contributions are very welcomed.
+Please see  [`CONTRIBUTING.md`](CONTRIBUTING.md) for details on how to contribute to
+this project.
 
+Please note that in order to maintain code quality a set of static code analysis tools is used as part of the build process.
+Thus all contributions must be verifyed by this tools before PR can be accepted.
 
 
 ## Building
 The project build is managed via CMake with a Makefile provided to automate some common actions during development process.
+
 ### Build tool dependencies
 In order to build this project following tools must be present in the system:
 * git (to check out project and it’s external modules, see dependencies section)
@@ -38,42 +39,49 @@ This project is using C++14 features extensively. The minimal tested/required ve
 CI is using clang-5 and gcc-7.
 To install build tools on Debian based Linux distribution:
 ```shell
-    sudo apt-get update -qq
-    sudo apt-get install cmake doxygen python-pip valgrind ggcov libcppunit-dev
-    sudo pip install cpplint
+sudo apt-get update -qq
+sudo apt-get install cmake doxygen python-pip valgrind ggcov libcppunit-dev
+sudo pip install cpplint
 ```
+
 The library has one external dependency: [libfmt](http://fmtlib.net/latest/index.html) - an awesome string formatting library.
 It is managed as `git submodule`. Please make sure to use `git clone --recursive` when cloning the project for the first time.
 You can also update existing clone with:
+```sh
+git submodule update --init --recursive
 ```
-    git submodule update --init --recursive
+If you have an existing checkout that you need to initialise to use submodules:
+```sh
+git submodule init
 ```
-
 
 ## Building the project
 Current build system used for the project is `cmake`.
 Please make sure that the system has `cmake` installed. Minimal confirmed version is 3.0
-	$ cmake --version
+```sh
+> cmake --version
+cmake version 3.0.1
+```
 
 ```shell
 # In the project check-out directory:
 # To build debug version with sanitizer enabled (recommended for development)
-	./configure --enable-debug --enable-sanitizer
+./configure --enable-debug --enable-sanitizer
 
 # To build the library it self
-	make
+make
 
 # To build and run unit tests:
-	make test
+make test
 
 # To run valgrind on test suit:
 # Please note – doesn’t work with ./configure --enable-sanitize option
-	make verify
+make verify
 
-#To build API documentation using doxygen:
-
-	make doc
+# To build API documentation using doxygen:
+make doc
 ```
+
 To install locally for testing:
 ```shell
 make --prefix=/user/home/<username>/test/lib install
@@ -95,7 +103,7 @@ The library is designed with the following platforms in mind:
  * [Parallella](https://www.parallella.org/)
  * [Raspberry Pi](https://www.raspberrypi.org/)
  * [BeagleBone](http://beagleboard.org/)
- * NVIDIA Jetson TX2
+ * [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/)
 
 
 ## Design
@@ -120,7 +128,7 @@ Design of the library is inspired by various functional language elements that c
     - Encoding
 - Path – immutable hierarchy of string elements.
 - PathBuilder – a builder object for path.
-- Promise / Future – convenience for async programming.
+- [Promise / Future](doc/future.md) – convenience for async programming.
 
 
 
@@ -128,7 +136,7 @@ Design of the library is inspired by various functional language elements that c
 ### Exceptions policy
 Given the language choice library is designed with the idea tha exceptions can be thrown and functions that don't throw are annotated accordingly. The design is the resutl of a few ideas:
  - Regular functions that return values but which invocations can result in an error (due to invalid internal state or invalid agruments) - this functions should signal that fact by returning Result<Value, Error> (the idea borrowed from Rust language)
- - Object constructors can't return value thus they are allowed to throw. 
+ - Object constructors can't return value thus they are allowed to throw.
  - All API clients that whant to use 'safe' interface should use object factories that return Result<> with possible error but don't throw.
 
 
@@ -141,7 +149,7 @@ The project only external dependency managed via `git submodule`:
 The library is equiped with the [cppunit](https://sourceforge.net/projects/cppunit/) test suit.
 The source code for unit test located is in:
 ```
-./test 
+./test
 ```
 
 Test can (and should) be run via:
@@ -182,10 +190,9 @@ make verify
 * [GLibMM](http://developer.gnome.org/glibmm/)
 
 
-## License
+## Licensing
 The library available under Apache License 2.0
-Please see LICENSE file for details.
-
+Please see [`LICENSE`](LICENSE) for details.
 
 ## Authors
-Please see AUTHORS file for the list of contributors.
+Please see [`AUTHORS`](AUTHORS) file for the list of contributors.
