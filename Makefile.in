@@ -20,8 +20,8 @@ LIB_TAGRET = $(BUILD_DIR)/$(SRC_DIR)/$(LIBNAME)
 TESTNAME = test_$(PROJECT)
 TEST_TAGRET = $(BUILD_DIR)/$(TEST_DIR)/$(TESTNAME)
 
-DOC_DIR = doc
-DOC_TARGET = $(DOC_DIR)/html
+DOC_DIR = docs
+DOC_TARGET_HTML = $(DOC_DIR)/html
 
 COVERAGE_REPORT = coverage.info
 
@@ -83,11 +83,11 @@ test: $(LIB_TAGRET) $(TEST_TAGRET)
 #-------------------------------------------------------------------------------
 # Build docxygen documentation
 #-------------------------------------------------------------------------------
-$(DOC_TARGET):
-	doxygen doc/Doxyfile
+$(DOC_TARGET_HTML):
+	doxygen $(DOC_DIR)/Doxyfile
 
-# Build project doxygen docs doxyfile.inc 
-doc: $(MODULE_HEADERS) $(MODULE_SRC) $(DOC_TARGET)
+# Build project doxygen docs doxyfile.inc
+doc: $(MODULE_HEADERS) $(MODULE_SRC) $(DOC_TARGET_HTML)
 
 
 #-------------------------------------------------------------------------------
@@ -119,10 +119,10 @@ cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
 	cpplint --recursive --exclude=${TEST_DIR}/ci/* ${INCLUDE_DIR} ${SRC_DIR} ${TEST_DIR}
 
 
-# TODO: Extra cppcheck options to consider: --enable=style --inconclusive
+# TODO: Extra cppcheck options to consider: --enable=style,unusedFunction --inconclusive
 cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) tools/cppcheck/cppcheck
 	tools/cppcheck/cppcheck --std=c++11 --std=posix -D __linux__ -D __x86_64__ --inline-suppr -q --error-exitcode=2 \
-	--enable=warning,performance,portability,missingInclude,information,unusedFunction \
+	--enable=warning,performance,portability,missingInclude,information \
 	-I include -i test/ci ${SRC_DIR} ${TEST_DIR} examples
 
 
@@ -213,6 +213,6 @@ debian-clean:
 
 .PHONY: clean
 clean:
-	$(RM) -rf $(DOC_TARGET) $(BUILD_DIR) $(COVERAGE_REPORT)
+	$(RM) -rf $(DOC_TARGET_HTML) $(BUILD_DIR) $(COVERAGE_REPORT)
 	$(RM) tools/cppcheck/cppcheck
 	$(RM) tools/FlintPlusPlus/flint/flint++
