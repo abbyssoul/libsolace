@@ -42,12 +42,15 @@
 
 namespace Solace {
 
-/** Fixed-size indexed collection of elements aka array.
- * Array is a collection template that has a fixed size specified at the time of its creation
+/** Fixed-size indexed collection of elements aka Array.
+ * Array is a collection that has a fixed number of elements specified at the time of its creation.
+ * Each element can be accessed via its index. As such array is an associative container that maps index -> element.
+ * Note - unlike vector, in array all elents are constructed in the moment of array creation.
+ *
+ * Array destroys elements when collection is desctoryed.
  */
 template<typename T>
-class Array
-{
+class Array {
 public:
     typedef T                                   value_type;
     typedef std::vector<T> Storage;
