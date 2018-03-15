@@ -75,17 +75,17 @@ public:
 public:
 
 	/** Empty version constructor */
-	Version() :	majorNumber(0), minorNumber(0),	patchNumber(0), preRelease(), build()
+    /*constexpr */Version() :	majorNumber(0), minorNumber(0),	patchNumber(0), preRelease(), build()
 	{}
 
 	/** Construct the version object by specifying only numeric components */
-	Version(value_type aMajor, value_type aMinor, value_type aPatch) :
+    /*constexpr*/ Version(value_type aMajor, value_type aMinor, value_type aPatch) :
 			majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
 			preRelease(), build()
 	{}
 
     /** Construct the version object by specifying all components */
-    Version(value_type aMajor, value_type aMinor, value_type aPath, const String& aPre):
+    /*constexpr*/ Version(value_type aMajor, value_type aMinor, value_type aPath, const String& aPre):
             majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPath),
 			preRelease(aPre), build()
     {}

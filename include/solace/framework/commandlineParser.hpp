@@ -85,7 +85,7 @@ public:
      */
     struct Context {
         /// Number of arguments passed to parse method.
-        const int argc;
+        const uint argc;
 
         /// Individual command line arguments the parse method has been given.
         const char** argv;
@@ -101,7 +101,7 @@ public:
 
         bool isStopRequired;
 
-        Context(int inArgc, const char *inArgv[],
+        Context(uint inArgc, const char *inArgv[],
                 const char* inName, const char* inValue, const CommandlineParser& self) :
             argc(inArgc),
             argv(inArgv),
@@ -197,8 +197,8 @@ public:
 
         bool operator == (const Option& other) const noexcept;
 
+        bool isMatch(const char* agr, char shortPrefix) const noexcept;
 
-        bool isMatch(const char* name, char shortPrefix) const noexcept;
         Optional<Error> match(Context& c) const;
 
         char        shortName() const noexcept      { return _shortName; }
@@ -219,9 +219,12 @@ public:
     };
 
 
+    /** Mandatory argument
+     * This class represent a mandtory argument to be expected by a parser.
+     * It is a pasring error if no mandatory arguments is provided.
+     */
     class Argument {
     public:
-        // Mandatory positional arguments
         Argument(const char* name, const char* description, String* value);
         Argument(const char* name, const char* description, int8* value);
         Argument(const char* name, const char* description, uint8* value);
@@ -288,32 +291,129 @@ public:
     };
 
 
+    /**
+     * Command for CLI
+     */
+    class Command {
+    public:
+
+        ~Command() = default;
+
+        Command(const Command& rhs) noexcept :
+            _name(rhs._name),
+            _description(rhs._description),
+            _callback(rhs._callback),
+            _options(rhs._options)
+        {}
+
+        Command(Command&& rhs) noexcept :
+            _name(std::move(rhs._name)),
+            _description(std::move(rhs._description)),
+            _callback(std::move(rhs._callback)),
+            _options(std::move(rhs._options))
+        {}
+
+        template<typename F>
+        Command(const char* name, const char* description,
+                 F&& callback) :
+            _name(name),
+            _description(description),
+            _callback(std::forward<F>(callback)),
+            _options()
+        {}
+
+        template<typename F>
+        Command(const char* name, const char* description,
+                 F&& callback,
+                const std::initializer_list<Option>& options) :
+            _name(name),
+            _description(description),
+            _callback(std::forward<F>(callback)),
+            _options(options)
+        {}
+
+
+        Command& operator= (const Command& rhs) noexcept {
+            Command(rhs).swap(*this);
+
+            return *this;
+        }
+
+        Command& operator= (Command&& rhs) noexcept {
+            return swap(rhs);
+        }
+
+        Command& swap(Command& rhs) noexcept {
+            std::swap(_name, rhs._name);
+            std::swap(_description, rhs._description);
+            std::swap(_callback, rhs._callback);
+            std::swap(_options, rhs._options);
+
+            return (*this);
+        }
+
+//        bool operator== (const Option& other) const noexcept;
+
+        bool isMatch(const char* arg) const noexcept;
+        Optional<Error> match(Context& cntx) const;
+
+        const char* name() const noexcept           { return _name; }
+        const char* description() const noexcept    { return _description; }
+        const Array<Option>&   options() const noexcept { return _options; }
+
+    private:
+        const char*                                 _name;
+        const char*                                 _description;
+        std::function<Optional<Error>(Context&)>    _callback;
+
+        /// Commad line options / flags that the command accepts.
+        Array<Option>   _options;
+    };
+
+
 public:
 
+    //!< Default prefix for flags and options
     static const char DefaultPrefix;
 
 public:
 
     ~CommandlineParser() = default;
 
+    /**
+     * Construct default command line parser that expects no arguments.
+     * @param appDescription Human readable application description used by 'help'-type commands.
+     * Note: it is a parsing error to provide any flag/option to a default constructed parser,
+     * thus any flags encountered by a parser constructed via this particular constructor - will result in an error.
+     * That includes '--help' and '--version' options (which makes this constructor of limited use).
+     */
     CommandlineParser(const char* appDescription);
-    CommandlineParser(const char* appDescription, const std::initializer_list<Option>& options);
+
+    CommandlineParser(const char* appDescription,
+                      const std::initializer_list<Option>& options);
+
     CommandlineParser(const char* appDescription,
                       const std::initializer_list<Option>& options,
                       const std::initializer_list<Argument>& arguments);
+
+//    CommandlineParser(const char* appDescription,
+//                      const std::initializer_list<Option>& options,
+//                      const std::initializer_list<Command>& commands);
 
     CommandlineParser(const CommandlineParser& rhs) :
         _prefix(rhs._prefix),
         _description(rhs._description),
         _options(rhs._options),
-        _arguments(rhs._arguments)
+        _arguments(rhs._arguments),
+        _commands(rhs._commands)
     {}
 
     CommandlineParser(CommandlineParser&& rhs) noexcept :
-        _prefix(rhs._prefix),
-        _description(std::move(rhs._description)),
+        _prefix(exchange(rhs._prefix, DefaultPrefix)),
+        _description(exchange(rhs._description, nullptr)),
         _options(std::move(rhs._options)),
-        _arguments(std::move(rhs._arguments))
+        _arguments(std::move(rhs._arguments)),
+        _commands(std::move(rhs._commands))
     {}
 
     CommandlineParser& operator= (const CommandlineParser& rhs) noexcept {
@@ -332,34 +432,86 @@ public:
         swap(_description, rhs._description);
         swap(_options, rhs._options);
         swap(_arguments, rhs._arguments);
+        swap(_commands, rhs._commands);
 
         return (*this);
     }
 
-    Result<const CommandlineParser*, Error> parse(int argc, const char* argv[]) const;
+
+    /**
+     * Parse command line arguments and process all the flags.
+     * @param argc Number of command line arguments including name of the program at argv[0]
+     * @param argv An array of string that represent command line argument tokens.
+     * @return Result of parsing: Either a pointer to the parser or an error.
+     */
+    Result<const CommandlineParser*, Error>
+    parse(int argc, const char* argv[]) const;
 
 
-    // TODO(abbyssoul):
+    /**
+     * Add an option to print application version.
+     * @param appName Name of the application to print along with version.
+     * @param appVersion Application version to be printed.
+     * @return A parser option that when given by a user will result in a printing of the version info.
+     */
     static Option printVersion(const char* appName, const Version& appVersion);
+
+    /**
+     * Add an option to print application help summary.
+     * @return A parser option that when given by a user will result in a printing of
+     * short options summary.
+     */
     static Option printHelp();
 
-    // printUsage() const
-
+    /**
+     * Get prefix used to identify flags and options.
+     * @return prefix for flags and options.
+     */
     char optionPrefix() const noexcept { return _prefix; }
+
+    /**
+     * Set prefix used to identify flags and options.
+     * @param prefixChar A new value for the prefix character.
+     * @return Reference to this for fluent interface.
+     */
     CommandlineParser& optionPrefix(char prefixChar) noexcept {
         _prefix = prefixChar;
         return *this;
     }
 
+    /**
+     * Get human readable description of the application, dispayed by help and version commands.
+     * @return Human readable application description string.
+     */
     const char* description() const noexcept { return _description; }
+
+    /**
+     * Set human-readable application description, to be dispayed by 'help' and 'version' commands.
+     * @param desc New value for human-readable application description string.
+     * @return Reference to this for fluent interface.
+     */
     CommandlineParser& description(const char* desc) noexcept {
         _description = desc;
 
         return *this;
     }
 
-    const Array<Option>& options() const noexcept { return _options; }
-    const Array<Argument>& arguments() const noexcept { return _arguments; }
+    const Array<Option>& options() const noexcept       { return _options; }
+    CommandlineParser& options(Array<Option>&& options) {
+        _options = std::move(options);
+
+        return *this;
+    }
+
+//    const Array<Argument>& arguments() const noexcept   { return _arguments; }
+    const Array<Command>& commands() const noexcept     { return _commands; }
+    CommandlineParser& commands(std::initializer_list<Command> commands) {
+//        CommandlineParser& commands(const Array<Command>& commands) {
+//        _commands = std::move(commands);
+        _commands = commands;
+
+        return *this;
+    }
 
 public:
 
@@ -376,6 +528,9 @@ private:
 
     /// Mandatory arguments application requires.
     Array<Argument> _arguments;
+
+    /// Mandatory commands application expects.
+    Array<Command>  _commands;
 };
 
 

@@ -86,6 +86,12 @@ class TestCommandlineParser: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testMandatoryArgumentNotEnought);
         CPPUNIT_TEST(testMandatoryArgumentTooMany);
 
+        CPPUNIT_TEST(testCommandGivenButNotExpected);
+        CPPUNIT_TEST(testMandatoryCommandNotGiven);
+        CPPUNIT_TEST(testMandatoryCommandWithNoArgumentsSuccess);
+        CPPUNIT_TEST(testMandatoryCommandWithNoArguments_InvalidCommand);
+        CPPUNIT_TEST(testMandatoryCommandInvalidArguments);
+
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -721,6 +727,135 @@ public:
         CPPUNIT_ASSERT_EQUAL(0, mandatoryArgInt);
     }
 
+
+    void testCommandGivenButNotExpected() {
+        bool parsedSuccessully = false;
+        bool commandExecuted = false;
+        bool givenOpt = false;
+
+        const char* argv[] = {"prog", "command", nullptr};
+        const int argc = 2;
+
+        const char* appDesc = "Something awesome";
+        CommandlineParser(appDesc, {{'b', "bsome", "Some option", &givenOpt}})
+                .parse(argc, argv)
+                .then([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
+
+
+        CPPUNIT_ASSERT(!parsedSuccessully);
+        CPPUNIT_ASSERT(!commandExecuted);
+    }
+
+
+    void testMandatoryCommandNotGiven() {
+        bool parsedSuccessully = false;
+        bool commandExecuted = false;
+
+        const char* argv[] = {"prog", nullptr};
+        const int argc = 1;
+
+        const char* appDesc = "Something awesome";
+        CommandlineParser(appDesc)
+                .commands({
+                              {"doThings", "Mandatory command",
+                               [&commandExecuted](CommandlineParser::Context&) -> Optional<Error> {
+                                   commandExecuted = true;
+
+                                   return None();
+                               }
+                              }
+                        })
+                .parse(argc, argv)
+                .then([&parsedSuccessully](const CommandlineParser*) { parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
+
+
+        CPPUNIT_ASSERT(!commandExecuted);
+        CPPUNIT_ASSERT(!parsedSuccessully);
+    }
+
+    void testMandatoryCommandWithNoArgumentsSuccess() {
+        bool parsedSuccessully = false;
+        bool commandExecuted = false;
+
+        const char* argv[] = {"prog", "doIt", nullptr};
+        const int argc = 2;
+
+        const char* appDesc = "Something awesome";
+        CommandlineParser(appDesc)
+                .commands({
+                              {"doIt", "Pass the test",
+                               [&commandExecuted](CommandlineParser::Context&) -> Optional<Error> {
+                                   commandExecuted = true;
+                                   return None();
+                               }, {}}
+                          })
+                .parse(argc, argv)
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
+
+
+        CPPUNIT_ASSERT(parsedSuccessully);
+        CPPUNIT_ASSERT(commandExecuted);
+    }
+
+    void testMandatoryCommandWithNoArguments_InvalidCommand() {
+        bool parsedSuccessully = false;
+        bool commandExecuted = false;
+
+        const char* argv[] = {"prog", "somethingElse", nullptr};
+        const int argc = 2;
+
+        const char* appDesc = "Something awesome";
+        CommandlineParser(appDesc)
+                .commands({
+                              {"doIt", "Pass the test",
+                               [&commandExecuted](CommandlineParser::Context&) -> Optional<Error> {
+                                   commandExecuted = true;
+                                   return None();
+                               }, {}}
+                          })
+                .parse(argc, argv)
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
+
+
+        CPPUNIT_ASSERT(!parsedSuccessully);
+        CPPUNIT_ASSERT(!commandExecuted);
+    }
+
+
+    void testMandatoryCommandInvalidArguments() {
+        bool parsedSuccessully = false;
+        bool commandExecuted = false;
+
+        const char* argv[] = {"prog", "somethingElse", "b", "blah!", nullptr};
+        const int argc = 4;
+
+        struct CmdCntx {
+            bool all;
+        } cmdCntx;
+
+        const char* appDesc = "Something awesome";
+        CommandlineParser(appDesc)
+                .commands({
+                              {"doIt", "Pass the test",
+                               [&commandExecuted](CommandlineParser::Context&) -> Optional<Error> {
+                                   commandExecuted = true;
+                                   return None();
+                               }, {
+                                   {'a', "all", "Do something everywhere", &cmdCntx.all}
+                               }}
+                          })
+                .parse(argc, argv)
+                .then([&parsedSuccessully](const CommandlineParser*) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
+
+
+        CPPUNIT_ASSERT(!parsedSuccessully);
+        CPPUNIT_ASSERT(!commandExecuted);
+    }
 
 };
 

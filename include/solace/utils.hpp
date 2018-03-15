@@ -92,4 +92,12 @@ T&& fwd(DontInfer<T>& t) noexcept {
 }
 
 
+template<class T, class U = T>
+T exchange(T& obj, U&& newValue) {
+    T old_value = std::move(obj);
+    obj = std::forward<U>(newValue);
+
+    return old_value;
+}
+
 #endif  // SOLACE_UTILS_HPP

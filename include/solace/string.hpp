@@ -58,13 +58,13 @@ public:
 public:
 
     //!< Default constructor constructs an empty string.
-	String() noexcept;
+    /*constexpr*/ String() noexcept;
 
     //!< Move-construct a string.
-    String(String&& s) noexcept;
+    /*constexpr*/ String(String&& s) noexcept;
 
     //!< Copy string content from another string.
-	String(const String& s) noexcept;
+    /*constexpr*/ String(const String& s) noexcept;
 
     //!< Construct a string from a raw null-terminated (C-style) string.
 	String(const char* data);
