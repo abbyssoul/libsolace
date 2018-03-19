@@ -309,7 +309,7 @@ CommandlineParser::CommandlineParser(const char* appDescription) :
     _prefix(DefaultPrefix),
     _description(appDescription),
     _options(),
-    _arguments()
+    _commands()
 {
 }
 
@@ -319,18 +319,18 @@ CommandlineParser::CommandlineParser(const char* appDescription,
     _prefix(DefaultPrefix),
     _description(appDescription),
     _options(options),
-    _arguments()
+    _commands()
 {
 }
 
 
 CommandlineParser::CommandlineParser(const char* appDescription,
                                      const std::initializer_list<Option>& options,
-                                     const std::initializer_list<Argument>& arguments) :
+                                     const std::initializer_list<Command>& commands) :
     _prefix(DefaultPrefix),
     _description(appDescription),
     _options(options),
-    _arguments(arguments)
+    _commands(commands)
 {
 }
 
@@ -492,39 +492,44 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
 
     // Positional arguments processing
     if (firstPositionalArgument >= nbOfArguments)
-        return (_arguments.empty() && _commands.empty())
+        return (/*_arguments.empty() && */_commands.empty())
                 ? Ok(this)
                 : fail("No mandatory arguments given");
 
     const auto nbPositionalArguments = nbOfArguments - firstPositionalArgument;
 
-    if (_commands.empty()) {
-        if (nbPositionalArguments > _arguments.size()) {
-            return fail("Too many arguments given {}, expected: {}",
-                        nbPositionalArguments,
-                        _arguments.size());
-        }
+    if (nbPositionalArguments != 0 && _commands.empty())
+        return fail("No command given");
+
+//    if (_commands.empty()) {
+//        if (nbPositionalArguments > _arguments.size()) {
+//            return fail("Too many arguments given {}, expected: {}",
+//                        nbPositionalArguments,
+//                        _arguments.size());
+//        }
 
 
-        if (nbPositionalArguments < _arguments.size()) {
-            return fail("No value given for argument {} '{}'",
-                        _arguments.size() - nbPositionalArguments,
-                        _arguments[_arguments.size() - nbPositionalArguments - 1].name());
-        }
+//        if (nbPositionalArguments < _arguments.size()) {
+//            return fail("No value given for argument {} '{}'",
+//                        _arguments.size() - nbPositionalArguments,
+//                        _arguments[_arguments.size() - nbPositionalArguments - 1].name());
+//        }
 
-        for (uint i = 0; i < nbPositionalArguments; ++i) {
-            Context cntx {nbOfArguments, argv,
-                        _arguments[i].name(),
-                        argv[firstPositionalArgument + i],
-                        *this};
+//        for (uint i = 0; i < nbPositionalArguments; ++i) {
+//            Context cntx {nbOfArguments, argv,
+//                        _arguments[i].name(),
+//                        argv[firstPositionalArgument + i],
+//                        *this};
 
-            _arguments[i].match(cntx);
+//            _arguments[i].match(cntx);
 
-            if (cntx.isStopRequired) {
-                return Err(Error("", 0));
-            }
-        }
-    } else {
+//            if (cntx.isStopRequired) {
+//                return Err(Error("", 0));
+//            }
+//        }
+
+//    } else {
+    if (!_commands.empty()) {
 
         if (nbPositionalArguments < 1) {
             return fail("No command given");

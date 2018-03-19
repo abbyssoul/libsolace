@@ -394,7 +394,7 @@ public:
 
     CommandlineParser(const char* appDescription,
                       const std::initializer_list<Option>& options,
-                      const std::initializer_list<Argument>& arguments);
+                      const std::initializer_list<Command>& arguments);
 
 //    CommandlineParser(const char* appDescription,
 //                      const std::initializer_list<Option>& options,
@@ -404,7 +404,7 @@ public:
         _prefix(rhs._prefix),
         _description(rhs._description),
         _options(rhs._options),
-        _arguments(rhs._arguments),
+//        _arguments(rhs._arguments),
         _commands(rhs._commands)
     {}
 
@@ -412,7 +412,7 @@ public:
         _prefix(exchange(rhs._prefix, DefaultPrefix)),
         _description(exchange(rhs._description, nullptr)),
         _options(std::move(rhs._options)),
-        _arguments(std::move(rhs._arguments)),
+//        _arguments(std::move(rhs._arguments)),
         _commands(std::move(rhs._commands))
     {}
 
@@ -431,7 +431,7 @@ public:
         swap(_prefix, rhs._prefix);
         swap(_description, rhs._description);
         swap(_options, rhs._options);
-        swap(_arguments, rhs._arguments);
+//        swap(_arguments, rhs._arguments);
         swap(_commands, rhs._commands);
 
         return (*this);
@@ -527,7 +527,7 @@ private:
     Array<Option>   _options;
 
     /// Mandatory arguments application requires.
-    Array<Argument> _arguments;
+//    Array<Argument> _arguments;
 
     /// Mandatory commands application expects.
     Array<Command>  _commands;

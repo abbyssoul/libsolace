@@ -78,13 +78,12 @@ class TestCommandlineParser: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testCustomNoValue);
         CPPUNIT_TEST(testCustomNoValueExpected);
 
-        CPPUNIT_TEST(testMandatoryArgument);
-        CPPUNIT_TEST(testMandatoryArgumentMissing);
-        CPPUNIT_TEST(testMandatoryArgumentWithoutGivenFlags);
-        CPPUNIT_TEST(testMandatoryArgumentOnly);
-
-        CPPUNIT_TEST(testMandatoryArgumentNotEnought);
-        CPPUNIT_TEST(testMandatoryArgumentTooMany);
+//        CPPUNIT_TEST(testMandatoryArgument);
+//        CPPUNIT_TEST(testMandatoryArgumentMissing);
+//        CPPUNIT_TEST(testMandatoryArgumentWithoutGivenFlags);
+//        CPPUNIT_TEST(testMandatoryArgumentOnly);
+//        CPPUNIT_TEST(testMandatoryArgumentNotEnought);
+//        CPPUNIT_TEST(testMandatoryArgumentTooMany);
 
         CPPUNIT_TEST(testCommandGivenButNotExpected);
         CPPUNIT_TEST(testMandatoryCommandNotGiven);
@@ -576,7 +575,7 @@ public:
         CPPUNIT_ASSERT(customCalled);
         CPPUNIT_ASSERT_EQUAL(756, xValue);
     }
-
+/*
     void testMandatoryArgument() {
 
         bool parsedSuccessully = false;
@@ -726,7 +725,7 @@ public:
         CPPUNIT_ASSERT(mandatoryArgStr.empty());
         CPPUNIT_ASSERT_EQUAL(0, mandatoryArgInt);
     }
-
+*/
 
     void testCommandGivenButNotExpected() {
         bool parsedSuccessully = false;

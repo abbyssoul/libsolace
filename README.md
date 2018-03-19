@@ -1,9 +1,20 @@
 libSolace
 ===============
-[![Build Status](https://travis-ci.org/abbyssoul/libsolace.png?branch=master)](https://travis-ci.org/abbyssoul/libsolace)
-[![Coverity Scan](https://scan.coverity.com/projects/9728/badge.svg)](https://scan.coverity.com/projects/abbyssoul-libsolace)
-[![Coverage Status](https://coveralls.io/repos/github/abbyssoul/libsolace/badge.svg?branch=master)](https://coveralls.io/github/abbyssoul/libsolace?branch=master)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Build Status][travis-shield]]][travis-link]
+[![Coverity Scan][coverity-shield]][coverity-link]
+[![Coverage Status][coveralls-shield]][coveralls-link]
+[![License][license-shield]][license-link]
+
+[travis-shield]: https://travis-ci.org/abbyssoul/libsolace.png?branch=master
+[travis-link]: https://travis-ci.org/abbyssoul/libsolace
+[codecov-shield]: https://codecov.io/gh/abbyssoul/libsolace/branch/master/graph/badge.svg
+[codecov-link]: https://codecov.io/gh/abbyssoul/libsolace
+[coverity-shield]: https://scan.coverity.com/projects/9728/badge.svg
+[coverity-link]: https://scan.coverity.com/projects/abbyssoul-libsolace
+[coveralls-shield]: https://coveralls.io/repos/github/abbyssoul/libsolace/badge.svg?branch=master
+[coveralls-link]: https://coveralls.io/github/abbyssoul/libsolace?branch=master
+[license-shield]: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+[license-link]: https://opensource.org/licenses/Apache-2.0
 
 libSolace is a toolkit for building mission critical application.
 Idea of this library is partually inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).

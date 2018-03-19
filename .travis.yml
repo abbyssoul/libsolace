@@ -61,4 +61,5 @@ script:
 
 after_success:
   - make clean && make coverage_report
+  - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
   - coveralls-lcov --repo-token ${COVERALLS_TOKEN} coverage.info  # uploads to coveralls
