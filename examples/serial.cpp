@@ -47,6 +47,7 @@ int main(int argc, const char **argv) {
 
     uint32 boudRate = 115200;
     uint32 bufferSize = 120;
+    String strPath;
     Solace::Path file;
 
     const auto parseResult = CommandlineParser("Serial port example",
@@ -54,14 +55,13 @@ int main(int argc, const char **argv) {
                           CommandlineParser::printHelp(),
                           CommandlineParser::printVersion("serial", getBuildVersion()),
                           {'b', "boudRate",     "COM port boud rate",   &boudRate},
-                          {0,   "bufferSize",   "Read buffer size",     &bufferSize}
-                        },
-                        {{ "fileName", "Name of the file/device to open", [&file](CommandlineParser::Context& c) {
-                               file = Solace::Path::parse(c.value);
-
-                               return None();
-                           }
-                         }}
+                          { 0,  "bufferSize",   "Read buffer size",     &bufferSize},
+                          {'f', "fileName",     "File/device name to open", &strPath}
+//                        [&file](CommandlineParser::Context& c) {
+//                               file = Solace::Path::parse(c.value);                                                   
+//                               return None();
+//                           }
+                        }
                       )
             .parse(argc, argv);
 
@@ -99,11 +99,11 @@ int main(int argc, const char **argv) {
 
                         readBuffer.rewind();
                     } else {
-                        std::cout << "Serial was ready but no bytes read: " << bytesRead.getError() << ". Aborting." << std::endl;
+                        std::cout << "Serial port signaled as ready but no bytes read: " << bytesRead.getError() << ". Aborting." << std::endl;
                         keepOnRunning = false;
                     }
                 } else {
-                    std::cout << "Serial fid reported odd events: '" << event.events << "'. Aborting." << std::endl;
+                    std::cout << "Serial port fid reported unexpected events: '" << event.events << "'. Aborting." << std::endl;
                     keepOnRunning = false;
                 }
             }

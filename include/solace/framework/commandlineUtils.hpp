@@ -93,7 +93,7 @@ public:
 protected:
 
     void formatOption(char prefixChar, const CommandlineParser::Option& option);
-    void formatCommand(const CommandlineParser::Command& cmd);
+    void formatCommand(const String& name, const CommandlineParser::Command& cmd);
 
 private:
     std::ostream& _output;

@@ -39,7 +39,8 @@ public:
 
     using Application::init;
 
-    Result<void, Error> init(int argc, const char *argv[]) override {
+    Result<void, Error>
+    init(int argc, const char *argv[]) override {
 
         int someParam = 0;
 
@@ -53,7 +54,8 @@ public:
                 .then([](const CommandlineParser*) { return; });
     }
 
-    Solace::Result<int, Solace::Error> run() {
+    Solace::Result<int, Solace::Error>
+    run() {
         std::cout << "Hello";
 
         if (Solace::isBigendian())

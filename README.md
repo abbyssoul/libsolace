@@ -1,8 +1,8 @@
 libSolace
 ===============
-[![Build Status][travis-shield]][travis-link]
+[![TravisCI][travis-shield]][travis-link]
 [![Codecov][codecov-shield]][codecov-link]
-[![Coverity Scan][coverity-shield]][coverity-link]
+[![Coverity][coverity-shield]][coverity-link]
 [![Coverage Status][coveralls-shield]][coveralls-link]
 [![License][license-shield]][license-link]
 

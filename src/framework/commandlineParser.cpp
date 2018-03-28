@@ -192,7 +192,7 @@ bool CommandlineParser::Option::operator == (const CommandlineParser::Option& ot
 }
 
 
-
+/*
 CommandlineParser::Argument::Argument(const char* name, const char* description, int8* value):
     Argument(name, description, [value](Context& context) { return parseIntArgument(context, value); })
 {
@@ -303,7 +303,7 @@ bool CommandlineParser::Argument::operator == (const CommandlineParser::Argument
     return ((_description == other._description)
             || (_description && other._description && strcmp(_description, other._description) == 0));
 }
-
+*/
 
 CommandlineParser::CommandlineParser(const char* appDescription) :
     _prefix(DefaultPrefix),
@@ -326,7 +326,7 @@ CommandlineParser::CommandlineParser(const char* appDescription,
 
 CommandlineParser::CommandlineParser(const char* appDescription,
                                      const std::initializer_list<Option>& options,
-                                     const std::initializer_list<Command>& commands) :
+                                     const std::initializer_list<std::map<String, Command>::value_type>& commands) :
     _prefix(DefaultPrefix),
     _description(appDescription),
     _options(options),
@@ -359,21 +359,15 @@ CommandlineParser::Option::match(Context& cntx) const {
 }
 
 
+/*
 Optional<Error>
 CommandlineParser::Argument::match(Context& cntx) const {
     return _callback(cntx);
 }
+*/
 
 
-bool CommandlineParser::Command::isMatch(const char* arg) const noexcept {
-    if (arg && _name && strcmp(arg, _name) == 0)  {
-        return true;
-    }
-
-    return false;
-}
-
-Optional<Error>
+Result<void, Error>
 CommandlineParser::Command::match(Context& cntx) const {
     return _callback(cntx);
 }
@@ -478,8 +472,9 @@ parseOptions(const uint argc, const char *argv[],
 
 Result<const CommandlineParser*, Error>
 CommandlineParser::parse(int argc, const char *argv[]) const {
-    if (argc < 0)
+    if (argc < 0) {
         return fail("Negative nubmer of arguments");
+    }
 
     // Casting positive Int to UInt should be ok
     const uint nbOfArguments = static_cast<uint>(argc);
@@ -501,34 +496,6 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
     if (nbPositionalArguments != 0 && _commands.empty())
         return fail("No command given");
 
-//    if (_commands.empty()) {
-//        if (nbPositionalArguments > _arguments.size()) {
-//            return fail("Too many arguments given {}, expected: {}",
-//                        nbPositionalArguments,
-//                        _arguments.size());
-//        }
-
-
-//        if (nbPositionalArguments < _arguments.size()) {
-//            return fail("No value given for argument {} '{}'",
-//                        _arguments.size() - nbPositionalArguments,
-//                        _arguments[_arguments.size() - nbPositionalArguments - 1].name());
-//        }
-
-//        for (uint i = 0; i < nbPositionalArguments; ++i) {
-//            Context cntx {nbOfArguments, argv,
-//                        _arguments[i].name(),
-//                        argv[firstPositionalArgument + i],
-//                        *this};
-
-//            _arguments[i].match(cntx);
-
-//            if (cntx.isStopRequired) {
-//                return Err(Error("", 0));
-//            }
-//        }
-
-//    } else {
     if (!_commands.empty()) {
 
         if (nbPositionalArguments < 1) {
@@ -536,29 +503,30 @@ CommandlineParser::parse(int argc, const char *argv[]) const {
         }
 
         auto positionalArgument = firstPositionalArgument;
-        for (auto& cmd : _commands) {
-            const char* arg = argv[positionalArgument];
+        const char* arg = argv[positionalArgument];
+        const auto cmdIt = _commands.find(arg);
+        if (cmdIt == _commands.end())
+            return fail("Command '{}' not supported", arg);
 
-            if (cmd.isMatch(arg)) {
-                auto parsed = parseOptions(nbOfArguments, argv, positionalArgument + 1, _prefix, cmd.options(), *this);
+        const auto& cmd = cmdIt->second;
 
-                if (!parsed) {
-                    return Err(parsed.moveError());
-                }
+        auto parsed = parseOptions(nbOfArguments, argv, positionalArgument + 1, _prefix, cmd.options(), *this);
+        if (!parsed) {
+            return Err(parsed.moveError());
+        }
 
-                positionalArgument = parsed.unwrap();
-                Context cntx {nbOfArguments, argv,
-                            cmd.name(),
-                            arg,
-                            *this};
+        positionalArgument = parsed.unwrap();
+        if (positionalArgument != nbOfArguments)
+            return fail("Unexpected arguments were not processed: {}", argv[positionalArgument]);
 
-                cmd.match(cntx);
+        Context cntx {nbOfArguments, argv,
+                    arg,
+                    arg,
+                    *this};
 
-                if (cntx.isStopRequired) {
-                    return Err(Error("", 0));
-                }
-
-            }
+        const auto execResult = cmd.match(cntx);
+        if (!execResult) {
+            return Err(execResult.getError());
         }
 
         // All command arguments must be consumed!
@@ -578,11 +546,11 @@ Optional<Error> HelpFormatter::operator() (CommandlineParser::Context& c) {
         _output << " [options]";
     }
 
-    if (!c.parser.commands().empty()) {
-        for (const auto& arg : c.parser.commands()) {
-            _output << " " << arg.name();
-        }
-    }
+//    if (!c.parser.commands().empty()) {
+//        for (const auto& arg : c.parser.commands()) {
+//            _output << " " << arg.name();
+//        }
+//    }
     _output << std::endl;
     _output << c.parser.description() << std::endl;
 
@@ -596,7 +564,7 @@ Optional<Error> HelpFormatter::operator() (CommandlineParser::Context& c) {
     if (!c.parser.commands().empty()) {
         _output << "Commands:" << std::endl;
         for (const auto& cmd : c.parser.commands()) {
-            formatCommand(cmd);
+            formatCommand(cmd.first, cmd.second);
         }
     }
 
@@ -623,9 +591,9 @@ void HelpFormatter::formatOption(char prefixChar, const CommandlineParser::Optio
 }
 
 
-void HelpFormatter::formatCommand(const CommandlineParser::Command& cmd) {
+void HelpFormatter::formatCommand(const String& name, const CommandlineParser::Command& cmd) {
     _output << std::left << std::setw(26)
-            << "  " << cmd.name() << " - " << cmd.description() << std::endl;
+            << "  " << name << " - " << cmd.description() << std::endl;
 }
 
 

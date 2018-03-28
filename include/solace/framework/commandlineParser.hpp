@@ -36,6 +36,7 @@
 #include "solace/utils.hpp"
 #include "solace/delegate.hpp"
 
+#include <map>  // TODO(abbyssoul): Replace with fix-memory map
 
 namespace Solace { namespace Framework {
 
@@ -47,8 +48,7 @@ namespace Solace { namespace Framework {
  * \code{.cpp}
  int main(int argc, argv) {
 
-  CommandlineParser("My application",
-            {
+  CommandlineParser("My application", {
                 // Custom handler example:
                 CommandlineParser::printVersion("my_app", Version(1, 2, 3, "dev")),
                 CommandlineParser::printHelp(),
@@ -56,10 +56,13 @@ namespace Solace { namespace Framework {
                 // Regular argument of integal type
                 { 's', "size", "Buffer size", &settings.bufferSize },
                 { 'u', "userName", "User name", &settings.userName }
-            },
-            {
-                // Mandatory arguments support:
+            })
+            .command("doSomething", {
+                // Commands support optional arguments:
                 { "Mandatory argument", &settings.param },
+                [] () {   // Action to execute.
+                    std::cout << "Executing command" << std:endl;
+                }
             })
             .parse(argc, argv)
             .then(...consume parsing results...
@@ -111,8 +114,9 @@ public:
             isStopRequired(false)
         {}
 
-        void stopParsing() noexcept {
-            isStopRequired = true;
+
+        bool stopParsing() noexcept {
+            return exchange(isStopRequired, true);
         }
 
     };
@@ -120,10 +124,10 @@ public:
     /**
      * Argument proccessing policy for custom callbacks
      */
-    enum class OptionArgument : byte {
-        Required,          //!< Argument is required. It is an error if the option is given without an argument.
+    enum class OptionArgument {
+        Required,          //!< Argument is required. It is an error if the option is given without an value.
         Optional,          //!< Argument is optional. It is not an error to have option with or without an agrument.
-        NotRequired        //!< Argument is not expected. It is an error to give an option with an agrument.
+        NotRequired        //!< Argument is not expected. It is an error to give an option with an agrument value.
     };
 
 
@@ -223,6 +227,7 @@ public:
      * This class represent a mandtory argument to be expected by a parser.
      * It is a pasring error if no mandatory arguments is provided.
      */
+    /*
     class Argument {
     public:
         Argument(const char* name, const char* description, String* value);
@@ -289,6 +294,7 @@ public:
         const char*                                 _description;
         std::function<Optional<Error>(Context&)>    _callback;
     };
+    */
 
 
     /**
@@ -300,33 +306,28 @@ public:
         ~Command() = default;
 
         Command(const Command& rhs) noexcept :
-            _name(rhs._name),
             _description(rhs._description),
             _callback(rhs._callback),
             _options(rhs._options)
         {}
 
         Command(Command&& rhs) noexcept :
-            _name(std::move(rhs._name)),
             _description(std::move(rhs._description)),
             _callback(std::move(rhs._callback)),
             _options(std::move(rhs._options))
         {}
 
         template<typename F>
-        Command(const char* name, const char* description,
-                 F&& callback) :
-            _name(name),
+        Command(const char* description, F&& callback) :
             _description(description),
             _callback(std::forward<F>(callback)),
             _options()
         {}
 
         template<typename F>
-        Command(const char* name, const char* description,
+        Command(const char* description,
                  F&& callback,
                 const std::initializer_list<Option>& options) :
-            _name(name),
             _description(description),
             _callback(std::forward<F>(callback)),
             _options(options)
@@ -344,7 +345,6 @@ public:
         }
 
         Command& swap(Command& rhs) noexcept {
-            std::swap(_name, rhs._name);
             std::swap(_description, rhs._description);
             std::swap(_callback, rhs._callback);
             std::swap(_options, rhs._options);
@@ -352,19 +352,14 @@ public:
             return (*this);
         }
 
-//        bool operator== (const Option& other) const noexcept;
+        const char* description() const noexcept        { return _description; }
+        const Array<Option>& options() const noexcept   { return _options; }
 
-        bool isMatch(const char* arg) const noexcept;
-        Optional<Error> match(Context& cntx) const;
-
-        const char* name() const noexcept           { return _name; }
-        const char* description() const noexcept    { return _description; }
-        const Array<Option>&   options() const noexcept { return _options; }
+        Result<void, Error> match(Context& cntx) const;
 
     private:
-        const char*                                 _name;
-        const char*                                 _description;
-        std::function<Optional<Error>(Context&)>    _callback;
+        const char*                                     _description;
+        std::function<Result<void, Error>(Context&)>    _callback;
 
         /// Commad line options / flags that the command accepts.
         Array<Option>   _options;
@@ -394,17 +389,12 @@ public:
 
     CommandlineParser(const char* appDescription,
                       const std::initializer_list<Option>& options,
-                      const std::initializer_list<Command>& arguments);
-
-//    CommandlineParser(const char* appDescription,
-//                      const std::initializer_list<Option>& options,
-//                      const std::initializer_list<Command>& commands);
+                      const std::initializer_list<std::map<String, Command>::value_type>& arguments);
 
     CommandlineParser(const CommandlineParser& rhs) :
         _prefix(rhs._prefix),
         _description(rhs._description),
         _options(rhs._options),
-//        _arguments(rhs._arguments),
         _commands(rhs._commands)
     {}
 
@@ -412,7 +402,6 @@ public:
         _prefix(exchange(rhs._prefix, DefaultPrefix)),
         _description(exchange(rhs._description, nullptr)),
         _options(std::move(rhs._options)),
-//        _arguments(std::move(rhs._arguments)),
         _commands(std::move(rhs._commands))
     {}
 
@@ -431,7 +420,6 @@ public:
         swap(_prefix, rhs._prefix);
         swap(_description, rhs._description);
         swap(_options, rhs._options);
-//        swap(_arguments, rhs._arguments);
         swap(_commands, rhs._commands);
 
         return (*this);
@@ -503,11 +491,8 @@ public:
         return *this;
     }
 
-//    const Array<Argument>& arguments() const noexcept   { return _arguments; }
-    const Array<Command>& commands() const noexcept     { return _commands; }
-    CommandlineParser& commands(std::initializer_list<Command> commands) {
-//        CommandlineParser& commands(const Array<Command>& commands) {
-//        _commands = std::move(commands);
+    const std::map<String, Command>& commands() const noexcept     { return _commands; }
+    CommandlineParser& commands(std::initializer_list<std::map<String, Command>::value_type> commands) {
         _commands = commands;
 
         return *this;
@@ -530,7 +515,7 @@ private:
 //    Array<Argument> _arguments;
 
     /// Mandatory commands application expects.
-    Array<Command>  _commands;
+    std::map<String, Command>  _commands;
 };
 
 
@@ -540,7 +525,7 @@ inline void swap(CommandlineParser::Option& lhs, CommandlineParser::Option& rhs)
     lhs.swap(rhs);
 }
 
-inline void swap(CommandlineParser::Argument& lhs, CommandlineParser::Argument& rhs) noexcept {
+inline void swap(CommandlineParser::Command& lhs, CommandlineParser::Command& rhs) noexcept {
     lhs.swap(rhs);
 }
 
