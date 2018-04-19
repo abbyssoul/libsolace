@@ -15,15 +15,15 @@
 */
 /*******************************************************************************
  * libSolace: Command line parser
- *	@file		solace/framework/commandlineParser.hpp
+ *	@file		solace/cli/commandlineParser.hpp
  *	@author		$LastChangedBy: $
  *	@date		$LastChangedDate: $
  *	@brief		Command line parser
  *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_FRAMEWORK_COMMANDLINE_PARSER_HPP
-#define SOLACE_FRAMEWORK_COMMANDLINE_PARSER_HPP
+#ifndef SOLACE_CLI_PARSER_HPP
+#define SOLACE_CLI_PARSER_HPP
 
 #include "solace/string.hpp"
 #include "solace/result.hpp"
@@ -31,12 +31,12 @@
 #include "solace/array.hpp"
 #include "solace/version.hpp"
 
+//TODO(abbyssoul): consider moving away from std::function #include "solace/delegate.hpp"
 #include "solace/utils.hpp"
-#include "solace/delegate.hpp"
 
 #include <map>  // TODO(abbyssoul): Replace with fix-memory map
 
-namespace Solace { namespace Framework {
+namespace Solace { namespace cli {
 
 /**
  * Command line parser
@@ -504,7 +504,12 @@ public:
         return *this;
     }
 
-public:
+    const Array<Argument>& arguments() const noexcept       { return _defaultAction.arguments(); }
+    CommandlineParser& arguments(std::initializer_list<Argument> arguments) {
+        _defaultAction.arguments(arguments);
+
+        return *this;
+    }
 
 private:
 
@@ -532,6 +537,6 @@ inline void swap(CommandlineParser& lhs, CommandlineParser& rhs) noexcept {
     lhs.swap(rhs);
 }
 
-}  // End of namespace Framework
+}  // End of namespace cli
 }  // End of namespace Solace
-#endif  // SOLACE_FRAMEWORK_COMMANDLINE_PARSER_HPP
+#endif  // SOLACE_CLI_PARSER_HPP

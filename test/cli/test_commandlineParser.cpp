@@ -20,13 +20,13 @@
  *
  * Created on: 20/06/2016
 *******************************************************************************/
-#include <solace/framework/commandlineParser.hpp>  // Class being tested
+#include <solace/cli/commandlineParser.hpp>  // Class being tested
 
 #include <cppunit/extensions/HelperMacros.h>
 
 
 using namespace Solace;
-using namespace Solace::Framework;
+using namespace Solace::cli;
 
 
 class TestCommandlineParser: public CppUnit::TestFixture  {

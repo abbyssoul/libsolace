@@ -2,7 +2,7 @@
 set(SOURCE_FILES
         ../include/solace/stringView.hpp
         ../include/solace/string.hpp
-        ../include/solace/framework/commandlineParser.hpp
+        ../include/solace/cli/commandlineParser.hpp
 
 
         assert.cpp
@@ -45,7 +45,8 @@ set(SOURCE_FILES
         process/env.cpp
 
         cli/helpPrinter.cpp
-        framework/commandlineParser.cpp
+        cli/commandlineParser.cpp
+
         framework/application.cpp
 
         hashing/messageDigest.cpp
@@ -57,13 +58,8 @@ set(SOURCE_FILES
         )
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
-#    rt
 target_link_libraries(${PROJECT_NAME} PRIVATE
     fmt-header-only)
-
-# Required on Unix OS family to be able to be linked into shared libraries.
-#set_target_properties(${PROJECT_NAME}
-#                      PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION lib

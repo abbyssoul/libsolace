@@ -19,14 +19,15 @@
  *
  */
 
+#include <solace/cli/commandlineParser.hpp>
 #include <solace/framework/application.hpp>
-#include <solace/framework/commandlineParser.hpp>
 
 
 #include <iostream>
 
 
 using namespace Solace;
+using namespace Solace::cli;
 using namespace Solace::Framework;
 
 
@@ -47,8 +48,8 @@ public:
         return CommandlineParser("Solace app-framework example", {
                     CommandlineParser::printHelp(),
                     CommandlineParser::printVersion("application", getVersion()),
-                    {{"some-param"}, "Some useless parameter for the demo", &someParam}
-//                    {{"u", "name"}, "Name to call", &_name}
+                    {{"some-param"}, "Some useless parameter for the demo", &someParam},
+                    {{"u", "name"}, "Name to call", &_name}
                 })
                 .parse(argc, argv)
                 .then([](CommandlineParser::ParseResult&&) { return; });

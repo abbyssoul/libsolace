@@ -14,13 +14,13 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * @file: framework/helpPrinter.cpp
+ * @file: cli/helpPrinter.cpp
  *
  *  Created by soultaker on 18/04/18.
 *******************************************************************************/
 
-#include "solace/framework/commandlineParser.hpp"
-#include "solace/framework/commandlineUtils.hpp"
+#include "solace/cli/commandlineParser.hpp"
+#include "solace/cli/commandlineUtils.hpp"
 #include "solace/parseUtils.hpp"
 #include "solace/path.hpp"
 
@@ -33,7 +33,7 @@
 
 
 using namespace Solace;
-using namespace Solace::Framework;
+using namespace Solace::cli;
 
 
 void
@@ -77,12 +77,19 @@ void HelpFormatter::formatOption(char prefixChar, const CommandlineParser::Optio
     std::stringstream s;
     s << "  ";
 
+    bool chained = false;
     for (const auto& optName : option.names()) {
+        if (chained) {
+            s << ", ";
+        }
+
         if (optName.length() == 1) {
             s << prefixChar << optName;
         } else {
-            s << ", " << prefixChar << prefixChar << optName;
+            s << prefixChar << prefixChar << optName;
         }
+
+        chained = true;
     }
 
     _output << std::left << std::setw(26) << s.str() << option.description() << std::endl;

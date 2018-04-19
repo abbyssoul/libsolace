@@ -19,7 +19,7 @@
 #include <solace/io/serial.hpp>
 #include <solace/version.hpp>
 #include <solace/exception.hpp>
-#include <solace/framework/commandlineParser.hpp>
+#include <solace/cli/commandlineParser.hpp>
 
 
 #include <iostream>
@@ -27,7 +27,7 @@
 
 
 using namespace Solace;
-using namespace Solace::Framework;
+using namespace Solace::cli;
 
 
 void enumerateDevices() {
@@ -47,7 +47,6 @@ int main(int argc, const char **argv) {
 
     uint32 boudRate = 115200;
     uint32 bufferSize = 120;
-    String strPath;
     Solace::Path file;
 
     const auto parseResult = CommandlineParser("Serial port example",
@@ -55,13 +54,15 @@ int main(int argc, const char **argv) {
                           CommandlineParser::printHelp(),
                           CommandlineParser::printVersion("serial", getBuildVersion()),
                           {{"b", "boudRate"},   "COM port boud rate",   &boudRate},
-                          {{"bufferSize"},      "Read buffer size",     &bufferSize},
-                          {{"f", "fileName"},   "File/device name to open", &strPath}
-//                        [&file](CommandlineParser::Context& c) {
-//                               file = Solace::Path::parse(c.value);                                                   
-//                               return None();
-//                           }
+                          {{"bufferSize"},      "Read buffer size",     &bufferSize}
                         })
+            .arguments({
+                          { "fileName", "File/device name to open",
+                        [&file](const StringView& value, const CommandlineParser::Context&) {
+                                file = Solace::Path::parse(value);
+                                return None();
+                           }
+                        }})
             .parse(argc, argv);
 
     if (!parseResult) {

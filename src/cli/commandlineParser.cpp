@@ -14,13 +14,13 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * @file: framework/commandlineParser.cpp
+ * @file: cli/commandlineParser.cpp
  *
  *  Created by soultaker on 18/08/16.
 *******************************************************************************/
 
-#include "solace/framework/commandlineParser.hpp"
-#include "solace/framework/commandlineUtils.hpp"
+#include "solace/cli/commandlineParser.hpp"
+#include "solace/cli/commandlineUtils.hpp"
 #include "solace/parseUtils.hpp"
 
 #include <fmt/format.h>
@@ -37,7 +37,7 @@
 
 
 using namespace Solace;
-using namespace Solace::Framework;
+using namespace Solace::cli;
 
 
 const char CommandlineParser::DefaultPrefix = '-';

@@ -24,8 +24,8 @@
  *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_FRAMEWORK_COMMANDLINEUTILS_HPP
-#define SOLACE_FRAMEWORK_COMMANDLINEUTILS_HPP
+#ifndef SOLACE_CLI_COMMANDLINEUTILS_HPP
+#define SOLACE_CLI_COMMANDLINEUTILS_HPP
 
 #include "solace/types.hpp"
 #include "solace/string.hpp"
@@ -35,7 +35,7 @@
 #include <ostream>
 
 
-namespace Solace { namespace Framework {
+namespace Solace { namespace cli {
 
 /**
  * A helper class to print application version string into an output stream.
@@ -104,6 +104,6 @@ private:
 };
 
 
-}  // End of namespace Framework
+}  // End of namespace cli
 }  // End of namespace Solace
-#endif  // SOLACE_FRAMEWORK_COMMANDLINEUTILS_HPP
+#endif  // SOLACE_CLI_COMMANDLINEUTILS_HPP
