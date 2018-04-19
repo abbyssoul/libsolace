@@ -1,3 +1,5 @@
+#include <utility>
+
 /*
 *  Copyright 2016 Ivan Ryabov
 *
@@ -36,7 +38,7 @@
 namespace Solace { namespace Framework {
 
 /**
- * A helper class to print application version string into an ouput stream.
+ * A helper class to print application version string into an output stream.
  * This helper follows GNU '--version' effect description minus copyright string.
  * See https://www.gnu.org/prep/standards/standards.html#g_t_002d_002dversion for more details.
  *
@@ -46,7 +48,7 @@ namespace Solace { namespace Framework {
  * The output line is meant to be easy to parse and contains the canonical name for of the program:
  *   my_app 1.3.21-release
  *
- * The program’s name should be provided to the construcor and it is not recommended to use argv[0] as
+ * The program’s name should be provided to the constructor and it is not recommended to use argv[0] as
  * it is possible for the same program to be called via different file names / links.
  *
  * GNU standards also recommend that if a program is a part of a package, mention the package name in parentheses:
@@ -56,39 +58,39 @@ namespace Solace { namespace Framework {
 class VersionPrinter {
 public:
 
-    VersionPrinter(const char* canonicalAppName, const Version& v, std::ostream& output) :
-        _canonicalAppName(canonicalAppName),
-        _version(v),
-        _output(output)
+    VersionPrinter(StringView canonicalAppName, const Version& version) :
+        _canonicalAppName(std::move(canonicalAppName)),
+        _version(version)
     {
     }
 
-    Optional<Error> operator() (CommandlineParser::Context& c) {
-        _output << _canonicalAppName << " " << _version << std::endl;
-
-        c.stopParsing();
-        return None();
-    }
+    void operator() (std::ostream& dest);
 
 private:
-    const char*     _canonicalAppName;
-    Version         _version;
-
-    std::ostream&   _output;
+    const StringView              _canonicalAppName;
+    const Version                 _version;
 };
 
 
 /**
+ * A helper class to print application help info into an output stream.
+ * This helper follows GNU '--help' effect description.
  *
+ * The handler is intended to respond to '--help' option to print usage info to standard output and then exit.
+ * Following options will be ignored after this handler has been invoked.
  */
 class HelpFormatter {
 public:
 
-    HelpFormatter(std::ostream& output):
+    HelpFormatter(std::ostream& output, char optionsPrefix = CommandlineParser::DefaultPrefix) :
+        _optionsPrefix(optionsPrefix),
         _output(output)
     {}
 
-    Optional<Error> operator() (CommandlineParser::Context& c);
+    void operator() (StringView name,
+                     const StringView& desc,
+                     const Array<CommandlineParser::Option>& options,
+                     const CommandlineParser::CommandDict& commands);
 
 protected:
 
@@ -96,6 +98,8 @@ protected:
     void formatCommand(const String& name, const CommandlineParser::Command& cmd);
 
 private:
+
+    const char _optionsPrefix;
     std::ostream& _output;
 };
 

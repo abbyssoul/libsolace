@@ -22,13 +22,11 @@
  *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_FRAMEWORK_COMMANDLINEPARSER_HPP
-#define SOLACE_FRAMEWORK_COMMANDLINEPARSER_HPP
+#ifndef SOLACE_FRAMEWORK_COMMANDLINE_PARSER_HPP
+#define SOLACE_FRAMEWORK_COMMANDLINE_PARSER_HPP
 
-#include "solace/types.hpp"
 #include "solace/string.hpp"
 #include "solace/result.hpp"
-#include "solace/unit.hpp"
 #include "solace/error.hpp"
 #include "solace/array.hpp"
 #include "solace/version.hpp"
@@ -41,7 +39,7 @@
 namespace Solace { namespace Framework {
 
 /**
- * Comman line parser
+ * Command line parser
  * This is a helper class to handle processing of command line arguments.
  *
  * @example
@@ -53,7 +51,7 @@ namespace Solace { namespace Framework {
                 CommandlineParser::printVersion("my_app", Version(1, 2, 3, "dev")),
                 CommandlineParser::printHelp(),
 
-                // Regular argument of integal type
+                // Regular argument of integral type
                 { 's', "size", "Buffer size", &settings.bufferSize },
                 { 'u', "userName", "User name", &settings.userName }
             })
@@ -72,62 +70,56 @@ namespace Solace { namespace Framework {
     \endcode
 
 
- * Note: Commandline parsing is meant ot be performed at the start of an application so that
- * memory allocation limits / strategy can be passed via options.
- * Thus it is essential that parser don't allocate any memory during parsing.
- *
+ * Note: Command line parsing is meant to be performed at the start of an application.
+ * In that case memory allocation limits / strategy can be configured via options.
+ * That is why it is desirable that parser don't allocate any memory during parsing.
+ * To support that - parser work with StringView and StringLiteral types that don't take ownership of the string buffer.
  */
 class CommandlineParser {
 public:
 
     /**
-     * Command line parsing context.
-     * This object represents the state of current parsing.
-     * It designed to be used by a callback function to get access to the parameters and parser object itself.
-     * It also can be used to communicate back to the parser an interaption.
+     * Parser context.
+     * This object represents the current state of parsing.
+     * It is designed to be used by a callback function to get access to the parameters and parser object itself.
+     * It also can be used to communicate back to the parser if an interruption is required.
      */
     struct Context {
-        /// Number of arguments passed to parse method.
+
+        /// Initial number of arguments passed to the 'parse' method.
         const uint argc;
 
         /// Individual command line arguments the parse method has been given.
         const char** argv;
 
-        /// Name of the option / argument being parsed.
-        const char* const name;
+        /// Current parser offset into argv.
+        const uint offset;
 
-        /// Current option raw value.
-        const char* const value;
+        /// Name of the option / argument being parsed.
+        const StringView name;
 
         /// Reference to the instance of the parser that invokes the callback.
         const CommandlineParser& parser;
 
-        bool isStopRequired;
-
-        Context(uint inArgc, const char *inArgv[],
-                const char* inName, const char* inValue, const CommandlineParser& self) :
+        Context(uint inArgc, const char *inArgv[], uint inOffset,
+                StringView inName,
+                const CommandlineParser& self) :
             argc(inArgc),
             argv(inArgv),
+            offset(inOffset),
             name(inName),
-            value(inValue),
-            parser(self),
-            isStopRequired(false)
+            parser(self)
         {}
-
-
-        bool stopParsing() noexcept {
-            return exchange(isStopRequired, true);
-        }
 
     };
 
     /**
-     * Argument proccessing policy for custom callbacks
+     * Argument processing policy for custom callbacks
      */
     enum class OptionArgument {
         Required,          //!< Argument is required. It is an error if the option is given without an value.
-        Optional,          //!< Argument is optional. It is not an error to have option with or without an agrument.
-        NotRequired        //!< Argument is not expected. It is an error to give an option with an agrument value.
+        Optional,          //!< Argument is optional. It is not an error to have option with or without an argument.
+        NotRequired        //!< Argument is not expected. It is an error to give an option with an argument value.
     };
 
 
@@ -136,47 +128,34 @@ public:
      */
     class Option {
     public:
-        Option(char shortName, const char* longName, const char* description, String* value);
-        Option(char shortName, const char* longName, const char* description, int8* value);
-        Option(char shortName, const char* longName, const char* description, uint8* value);
-        Option(char shortName, const char* longName, const char* description, int16* value);
-        Option(char shortName, const char* longName, const char* description, uint16* value);
-        Option(char shortName, const char* longName, const char* description, int32* value);
-        Option(char shortName, const char* longName, const char* description, uint32* value);
-        Option(char shortName, const char* longName, const char* description, int64* value);
-        Option(char shortName, const char* longName, const char* description, uint64* value);
-        Option(char shortName, const char* longName, const char* description, float32* value);
-        Option(char shortName, const char* longName, const char* description, float64* value);
-        Option(char shortName, const char* longName, const char* description, bool* value);
+        Option(std::initializer_list<StringLiteral> names, StringLiteral description, StringView* value);
+        Option(std::initializer_list<StringLiteral> names, StringLiteral description, int8* value);
+        Option(std::initializer_list<StringLiteral> names, StringLiteral description, uint8* value);
+        Option(std::initializer_list<StringLiteral> names, StringLiteral description, int16* value);
+        Option(std::initializer_list<StringLiteral> names, StringLiteral description, uint16* value);
+        Option(std::initializer_list<StringLiteral> names, StringLiteral description, int32* value);
+        Option(std::initializer_list<StringLiteral> names, StringLiteral description, uint32* value);
+        Option(std::initializer_list<StringLiteral> names, StringLiteral description, int64* value);
+        Option(std::initializer_list<StringLiteral> names, StringLiteral description, uint64* value);
+        Option(std::initializer_list<StringLiteral> names, StringLiteral description, float32* value);
+        Option(std::initializer_list<StringLiteral> names, StringLiteral description, float64* value);
+        Option(std::initializer_list<StringLiteral> names, StringLiteral description, bool* value);
 
         /// Common constructor:
-        template<typename F,
-                 typename R = typename std::result_of<F(Context&)>::type
-                 >
-        Option(char shortName, const char* longName, const char* description, OptionArgument expectsArgument,
+        template<typename F>
+        Option(std::initializer_list<StringLiteral> names,
+               StringLiteral description,
+               OptionArgument expectsArgument,
                F&& f) :
-            _longName(longName),
-            _description(description),
-            _shortName(shortName),
+            _names(names),
+            _description(std::move(description)),
             _expectsArgument(expectsArgument),
             _callback(std::forward<F>(f))
         {}
 
-        Option(const Option& rhs) noexcept :
-            _longName(rhs._longName),
-            _description(rhs._description),
-            _shortName(rhs._shortName),
-            _expectsArgument(rhs._expectsArgument),
-            _callback(rhs._callback)
-        {}
+        Option(const Option& rhs) = default;
 
-        Option(Option&& rhs) noexcept :
-            _longName(std::move(rhs._longName)),
-            _description(std::move(rhs._description)),
-            _shortName(std::move(rhs._shortName)),
-            _expectsArgument(rhs._expectsArgument),
-            _callback(std::move(rhs._callback))
-        {}
+        Option(Option&& rhs) noexcept = default;
 
         Option& operator= (const Option& rhs) noexcept {
             Option(rhs).swap(*this);
@@ -190,8 +169,7 @@ public:
 
         Option& swap(Option& rhs) noexcept {
             using std::swap;
-            swap(_shortName, rhs._shortName);
-            swap(_longName, rhs._longName);
+            swap(_names, rhs._names);
             swap(_description, rhs._description);
             swap(_callback, rhs._callback);
             swap(_expectsArgument, rhs._expectsArgument);
@@ -199,69 +177,60 @@ public:
             return (*this);
         }
 
-        bool operator == (const Option& other) const noexcept;
+        bool isMatch(StringView argName) const noexcept;
 
-        bool isMatch(const char* agr, char shortPrefix) const noexcept;
+        Optional<Error> match(const Optional<StringView>& value, const Context& c) const;
 
-        Optional<Error> match(Context& c) const;
-
-        char        shortName() const noexcept      { return _shortName; }
-        const char* name() const noexcept           { return _longName; }
-        const char* description() const noexcept    { return _description; }
+        const Array<StringLiteral>& names() const noexcept      { return _names; }
+        const StringLiteral& description() const noexcept       { return _description; }
 
         OptionArgument getArgumentExpectations() const noexcept { return _expectsArgument; }
 
     private:
+        //!< Long name of the option, Maybe empty if not specified.
+        Array<StringLiteral>                _names;
 
+        //!< Human-readable description of the option.
+        StringLiteral                       _description;
 
-        const char*                         _longName;
-        const char*                         _description;
-        char                                _shortName;
-
+        //!< Enum to indicate if this option expects a value or not.
         OptionArgument                      _expectsArgument;
-        std::function<Optional<Error> (Context&)>    _callback;
+
+        //!< A callback to be called when this option is encountered in the input cmd line.
+        std::function<Optional<Error> (const Optional<StringView>&, const Context&)>    _callback;
     };
 
 
     /** Mandatory argument
-     * This class represent a mandtory argument to be expected by a parser.
-     * It is a pasring error if no mandatory arguments is provided.
+     * This class represent a mandatory argument to be expected by a parser.
+     * It is a parsing error if no mandatory arguments is provided.
      */
-    /*
     class Argument {
     public:
-        Argument(const char* name, const char* description, String* value);
-        Argument(const char* name, const char* description, int8* value);
-        Argument(const char* name, const char* description, uint8* value);
-        Argument(const char* name, const char* description, int16* value);
-        Argument(const char* name, const char* description, uint16* value);
-        Argument(const char* name, const char* description, int32* value);
-        Argument(const char* name, const char* description, uint32* value);
-        Argument(const char* name, const char* description, int64* value);
-        Argument(const char* name, const char* description, uint64* value);
-        Argument(const char* name, const char* description, float32* value);
-        Argument(const char* name, const char* description, float64* value);
-        Argument(const char* name, const char* description, bool* value);
+        Argument(StringLiteral name, StringLiteral description, StringView* value);
+        Argument(StringLiteral name, StringLiteral description, int8* value);
+        Argument(StringLiteral name, StringLiteral description, uint8* value);
+        Argument(StringLiteral name, StringLiteral description, int16* value);
+        Argument(StringLiteral name, StringLiteral description, uint16* value);
+        Argument(StringLiteral name, StringLiteral description, int32* value);
+        Argument(StringLiteral name, StringLiteral description, uint32* value);
+        Argument(StringLiteral name, StringLiteral description, int64* value);
+        Argument(StringLiteral name, StringLiteral description, uint64* value);
+        Argument(StringLiteral name, StringLiteral description, float32* value);
+        Argument(StringLiteral name, StringLiteral description, float64* value);
+        Argument(StringLiteral name, StringLiteral description, bool* value);
 
         template<typename F>
-        Argument(const char* name, const char* description,
+        Argument(StringLiteral name, StringLiteral description,
                  F&& callback) :
-            _name(name),
-            _description(description),
+            _name(std::move(name)),
+            _description(std::move(description)),
             _callback(std::forward<F>(callback))
         {}
 
-        Argument(const Argument& rhs) noexcept :
-            _name(rhs._name),
-            _description(rhs._description),
-            _callback(rhs._callback)
-        {}
+        Argument(const Argument& rhs) = default;
 
-        Argument(Argument&& rhs) noexcept :
-            _name(std::move(rhs._name)),
-            _description(std::move(rhs._description)),
-            _callback(std::move(rhs._callback))
-        {}
+        Argument(Argument&& rhs) noexcept = default;
 
         Argument& operator= (const Argument& rhs) noexcept {
             Argument(rhs).swap(*this);
@@ -281,21 +250,21 @@ public:
             return (*this);
         }
 
-        bool operator == (const Argument& other) const noexcept;
-
-        const char* name() const noexcept {
+        StringLiteral name() const noexcept {
             return _name;
         }
 
-        Optional<Error> match(Context& c) const;
+        Optional<Error> match(const StringView& value, const Context& c) const;
 
     private:
-        const char*                                 _name;
-        const char*                                 _description;
-        std::function<Optional<Error>(Context&)>    _callback;
+        StringLiteral                               _name;
+        StringLiteral                               _description;
+        std::function<Optional<Error> (const StringView&, const Context&)>    _callback;
     };
-    */
 
+
+    class Command;
+    using CommandDict = std::map<StringView, Command>;
 
     /**
      * Command for CLI
@@ -305,32 +274,26 @@ public:
 
         ~Command() = default;
 
-        Command(const Command& rhs) noexcept :
-            _description(rhs._description),
-            _callback(rhs._callback),
-            _options(rhs._options)
-        {}
+        Command(const Command& rhs) = default;
 
-        Command(Command&& rhs) noexcept :
-            _description(std::move(rhs._description)),
-            _callback(std::move(rhs._callback)),
-            _options(std::move(rhs._options))
-        {}
+        Command(Command&& rhs) noexcept  = default;
 
         template<typename F>
-        Command(const char* description, F&& callback) :
-            _description(description),
+        Command(StringView description, F&& callback) :
+            _description(std::move(description)),
             _callback(std::forward<F>(callback)),
             _options()
         {}
 
         template<typename F>
-        Command(const char* description,
+        Command(StringView description,
                  F&& callback,
                 const std::initializer_list<Option>& options) :
-            _description(description),
+            _description(std::move(description)),
             _callback(std::forward<F>(callback)),
-            _options(options)
+            _options(options),
+            _commands(),
+            _arguments()
         {}
 
 
@@ -348,21 +311,52 @@ public:
             std::swap(_description, rhs._description);
             std::swap(_callback, rhs._callback);
             std::swap(_options, rhs._options);
+            std::swap(_commands, rhs._commands);
+            std::swap(_arguments, rhs._arguments);
 
             return (*this);
         }
 
-        const char* description() const noexcept        { return _description; }
-        const Array<Option>& options() const noexcept   { return _options; }
+        const StringView& description() const noexcept           { return _description; }
+        Command& description(StringView description) noexcept {
+            _description = description;
+            return *this;
+        }
 
-        Result<void, Error> match(Context& cntx) const;
+        const Array<Option>& options() const noexcept               { return _options; }
+        Command& options(std::initializer_list<Option> options) {
+            _options = options;
+            return *this;
+        }
+
+        const CommandDict&  commands() const noexcept  { return _commands; }
+        Command& commands(std::initializer_list<CommandDict::value_type> commands) {
+            _commands = commands;
+            return *this;
+        }
+
+        const Array<Argument>& arguments() const noexcept           { return _arguments; }
+        Command& arguments(std::initializer_list<Argument> arguments) {
+            _arguments = arguments;
+            return *this;
+        }
+
+        std::function<Result<void, Error>()> callback() const {
+            return _callback;
+        }
 
     private:
-        const char*                                     _description;
-        std::function<Result<void, Error>(Context&)>    _callback;
+        StringView                              _description;
+        std::function<Result<void, Error>()>    _callback;
 
-        /// Commad line options / flags that the command accepts.
+        /// Options / flags that the command accepts.
         Array<Option>   _options;
+
+        /// Sub-commands
+        CommandDict     _commands;
+
+        /// Mandatory positional arguments
+        Array<Argument> _arguments;
     };
 
 
@@ -371,39 +365,33 @@ public:
     //!< Default prefix for flags and options
     static const char DefaultPrefix;
 
+    //!< Default value separator
+    static const char DefaultValueSeparator;
+
 public:
 
     ~CommandlineParser() = default;
 
+    /// Default copy-constructor
+    CommandlineParser(const CommandlineParser& rhs) = default;
+
+    /// Default move-constructor
+    CommandlineParser(CommandlineParser&& rhs) noexcept = default;
+
     /**
-     * Construct default command line parser that expects no arguments.
-     * @param appDescription Human readable application description used by 'help'-type commands.
-     * Note: it is a parsing error to provide any flag/option to a default constructed parser,
-     * thus any flags encountered by a parser constructed via this particular constructor - will result in an error.
-     * That includes '--help' and '--version' options (which makes this constructor of limited use).
+     * Construct default command line parser.
+     *
+     * @param appDescription Human readable application description to be used by 'help'-type commands.
      */
-    CommandlineParser(const char* appDescription);
+    CommandlineParser(StringView appDescription);
 
-    CommandlineParser(const char* appDescription,
+    /**
+     * Construct a commandline parser with application description and a list of expected options.
+     * @param appDescription Hyman readable application description to be used by 'help'-type commands.
+     * @param options Initializer-list of command line options. @see CommandlineParser::options() for more info.
+     */
+    CommandlineParser(StringView appDescription,
                       const std::initializer_list<Option>& options);
-
-    CommandlineParser(const char* appDescription,
-                      const std::initializer_list<Option>& options,
-                      const std::initializer_list<std::map<String, Command>::value_type>& arguments);
-
-    CommandlineParser(const CommandlineParser& rhs) :
-        _prefix(rhs._prefix),
-        _description(rhs._description),
-        _options(rhs._options),
-        _commands(rhs._commands)
-    {}
-
-    CommandlineParser(CommandlineParser&& rhs) noexcept :
-        _prefix(exchange(rhs._prefix, DefaultPrefix)),
-        _description(exchange(rhs._description, nullptr)),
-        _options(std::move(rhs._options)),
-        _commands(std::move(rhs._commands))
-    {}
 
     CommandlineParser& operator= (const CommandlineParser& rhs) noexcept {
         CommandlineParser(rhs).swap(*this);
@@ -418,21 +406,21 @@ public:
     CommandlineParser& swap(CommandlineParser& rhs) noexcept {
         using std::swap;
         swap(_prefix, rhs._prefix);
-        swap(_description, rhs._description);
-        swap(_options, rhs._options);
-        swap(_commands, rhs._commands);
+        swap(_valueSeparator, rhs._valueSeparator);
+        swap(_defaultAction, rhs._defaultAction);
 
         return (*this);
     }
 
 
+    using ParseResult = std::function<Result<void, Error>()>;
     /**
      * Parse command line arguments and process all the flags.
      * @param argc Number of command line arguments including name of the program at argv[0]
      * @param argv An array of string that represent command line argument tokens.
      * @return Result of parsing: Either a pointer to the parser or an error.
      */
-    Result<const CommandlineParser*, Error>
+    Result<ParseResult, Error>
     parse(int argc, const char* argv[]) const;
 
 
@@ -442,7 +430,7 @@ public:
      * @param appVersion Application version to be printed.
      * @return A parser option that when given by a user will result in a printing of the version info.
      */
-    static Option printVersion(const char* appName, const Version& appVersion);
+    static Option printVersion(StringView appName, const Version& appVersion);
 
     /**
      * Add an option to print application help summary.
@@ -450,6 +438,7 @@ public:
      * short options summary.
      */
     static Option printHelp();
+
 
     /**
      * Get prefix used to identify flags and options.
@@ -468,32 +457,49 @@ public:
     }
 
     /**
+     * Get prefix used to identify flags and options.
+     * @return prefix for flags and options.
+     */
+    char valueSeparator() const noexcept { return _valueSeparator; }
+
+    /**
+     * Set prefix used to identify flags and options.
+     * @param prefixChar A new value for the prefix character.
+     * @return Reference to this for fluent interface.
+     */
+    CommandlineParser& valueSeparator(char value) noexcept {
+        _valueSeparator = value;
+        return *this;
+    }
+
+
+    /**
      * Get human readable description of the application, dispayed by help and version commands.
      * @return Human readable application description string.
      */
-    const char* description() const noexcept { return _description; }
+    const StringView& description() const noexcept { return _defaultAction.description(); }
 
     /**
      * Set human-readable application description, to be dispayed by 'help' and 'version' commands.
      * @param desc New value for human-readable application description string.
      * @return Reference to this for fluent interface.
      */
-    CommandlineParser& description(const char* desc) noexcept {
-        _description = desc;
+    CommandlineParser& description(StringView desc) noexcept {
+        _defaultAction.description(desc);
 
         return *this;
     }
 
-    const Array<Option>& options() const noexcept       { return _options; }
-    CommandlineParser& options(Array<Option>&& options) {
-        _options = std::move(options);
+    const Array<Option>& options() const noexcept       { return _defaultAction.options(); }
+    CommandlineParser& options(std::initializer_list<Option> options) {
+        _defaultAction.options(options);
 
         return *this;
     }
 
-    const std::map<String, Command>& commands() const noexcept     { return _commands; }
-    CommandlineParser& commands(std::initializer_list<std::map<String, Command>::value_type> commands) {
-        _commands = commands;
+    const CommandDict& commands() const noexcept        { return _defaultAction.commands(); }
+    CommandlineParser& commands(std::initializer_list<CommandDict::value_type> commands) {
+        _defaultAction.commands(commands);
 
         return *this;
     }
@@ -505,19 +511,12 @@ private:
     /// Option prefix
     char            _prefix;
 
-    /// Human readable description of the application.
-    const char*     _description;
+    /// Value separator
+    char            _valueSeparator;
 
-    /// Commad line options / flags that application accepts.
-    Array<Option>   _options;
-
-    /// Mandatory arguments application requires.
-//    Array<Argument> _arguments;
-
-    /// Mandatory commands application expects.
-    std::map<String, Command>  _commands;
+    /// Default action to be produced when no other commands specified.
+    Command         _defaultAction;
 };
-
 
 
 
@@ -535,4 +534,4 @@ inline void swap(CommandlineParser& lhs, CommandlineParser& rhs) noexcept {
 
 }  // End of namespace Framework
 }  // End of namespace Solace
-#endif  // SOLACE_FRAMEWORK_COMMANDLINEPARSER_HPP
+#endif  // SOLACE_FRAMEWORK_COMMANDLINE_PARSER_HPP

@@ -234,7 +234,8 @@ private:
 
     delegate(void* const o, stub_ptr_type const m) noexcept :
         object_ptr_(o),
-        stub_ptr_(m)
+        stub_ptr_(m),
+        store_size_(0)
     { }
 
     friend struct std::hash<delegate>;

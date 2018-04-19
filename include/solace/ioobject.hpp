@@ -14,11 +14,11 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: MemoryView
- *	@file		solace/memoryView.hpp
+ * libSolace: IOObject
+ *	@file		solace/ioobject.hpp
  *	@author		$LastChangedBy: $
  *	@date		$LastChangedDate: $
- *	@brief		MemoryView object
+ *	@brief		Interface for IO objects
  *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
@@ -29,6 +29,8 @@
 #include "solace/assert.hpp"
 #include "solace/result.hpp"
 #include "solace/error.hpp"
+
+#include "solace/byteBuffer.hpp"
 
 
 namespace Solace {

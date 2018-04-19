@@ -14,18 +14,16 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * @file: framework/commanalineParser.cpp
+ * @file: parseUtils.cpp
  *
  *  Created by soultaker on 18/08/16.
 *******************************************************************************/
 
 #include "solace/parseUtils.hpp"
 
-
-#include <fmt/format.h>
-
 #include <cstring>
 #include <cstdlib>
+#include <sstream>      // std::stringstream, std::stringbuf
 
 #include <type_traits>  // std::is_signed
 #include <climits>
@@ -35,8 +33,11 @@
 using namespace Solace;
 
 
-auto conversionError(const char* fmt, const char* name, const char* value) {
-    return Err<Error>(fmt::format(fmt, name, value));
+auto conversionError(const char* fmt, StringView value) {
+    std::stringstream ss(fmt);
+    ss.write(value.data(), value.size());
+
+    return Err<Error>(ss.str());
 }
 
 
@@ -49,20 +50,21 @@ struct Longest<T, true> {
 
     using type = int64;  // long long;
 
-    static Result<type, Error> parse(const char* name, const char* value) {
+    static Result<type, Error> parse(StringView value) {
         errno = 0;
         char* pEnd = nullptr;
-        const auto result = strtoll(value, &pEnd, 0);
+        const auto result = strtoll(value.c_str(), &pEnd, 0);
 
-        if ((errno == ERANGE && (result == LLONG_MAX || result == LLONG_MIN)) || (errno != 0 && result == 0))
-            return conversionError("Argument '{}' is outside of parsable int range: '{}'", name, value);
+        if ((errno == ERANGE && (result == LLONG_MAX || result == LLONG_MIN)) || (errno != 0 && result == 0)) {
+            return conversionError("Value is outside of parsable int64 range: ", value);
+        }
 
-        if (!pEnd || pEnd == value)  // No conversion has been done
-            return conversionError("Argument '{}' is not a valid value: '{}'", name, value);
+        if (!pEnd || pEnd == value.data())  // No conversion has been done
+            return conversionError("Value is not a valid value: ", value);
 
         if (result > std::numeric_limits<T>::max() ||
             result < std::numeric_limits<T>::min())
-            return conversionError("Argument '{}' is outside of bounds: '{}'", name, value);
+            return conversionError("Value is outside of bounds: ", value);
 
         return Ok(result);
     }
@@ -74,47 +76,60 @@ struct Longest<T, false> {
 
     using type = uint64;  // unsigned long long;
 
-    static Result<type, Error> parse(const char* name, const char* value) {
+    static Result<type, Error> parse(StringView value) {
         errno = 0;
         char* pEnd = nullptr;
-        const auto result = strtoull(value, &pEnd, 0);
+        const auto result = strtoull(value.c_str(), &pEnd, 0);
 
-        if ((errno == ERANGE && (result == ULLONG_MAX)) || (errno != 0 && result == 0))
-            return conversionError("Argument '{}' is outside of parsable uint range: '{}'", name, value);
+        if ((errno == ERANGE && (result == ULLONG_MAX)) || (errno != 0 && result == 0)) {
+            return conversionError("Value is outside of parsable uint64 range: ", value);
+        }
 
-        if (!pEnd || pEnd == value)  // No conversion has been done
-            return conversionError("Argument '{}' is not a valid value: '{}'", name, value);
+        if (!pEnd || pEnd == value.data())  // No conversion has been done
+            return conversionError("Value is not a valid value: ", value);
 
         if (result > std::numeric_limits<T>::max() ||
             result < std::numeric_limits<T>::min())
-            return conversionError("Argument '{}' is outside of bounds: '{}'", name, value);
+            return conversionError("Value is outside of bounds: ", value);
 
         return Ok(result);
     }
 };
 
 
+Result<bool, Error>
+Solace::tryParseBoolean(StringView value) {
+    if (value.equals("1") || strcasecmp("true", value.c_str()) == 0) {
+        return Ok(true);
+    }
+
+    if (value.equals("0") || strcasecmp("false", value.c_str()) == 0) {
+        return Ok(false);
+    }
+
+    return conversionError("Can't parse as boolean: ", value);
+}
 
 Result<int8, Error>
-Solace::tryParseInt8(const char* value, const char* name) { return Longest<int8>::parse(name, value); }
+Solace::tryParseInt8(StringView value) { return Longest<int8>::parse(value); }
 
 Result<int16, Error>
-Solace::tryParseInt16(const char* value, const char* name) { return Longest<int16>::parse(name, value); }
+Solace::tryParseInt16(StringView value) { return Longest<int16>::parse(value); }
 
 Result<int32, Error>
-Solace::tryParseInt32(const char* value, const char* name) { return Longest<int32>::parse(name, value); }
+Solace::tryParseInt32(StringView value) { return Longest<int32>::parse(value); }
 
 Result<int64, Error>
-Solace::tryParseInt64(const char* value, const char* name) { return Longest<int64>::parse(name, value); }
+Solace::tryParseInt64(StringView value) { return Longest<int64>::parse(value); }
 
 Result<uint8, Error>
-Solace::tryParseUInt8(const char* value, const char* name) { return Longest<uint8>::parse(name, value); }
+Solace::tryParseUInt8(StringView value) { return Longest<uint8>::parse(value); }
 
 Result<uint16, Error>
-Solace::tryParseUInt16(const char* value, const char* name) { return Longest<uint16>::parse(name, value); }
+Solace::tryParseUInt16(StringView value) { return Longest<uint16>::parse(value); }
 
 Result<uint32, Error>
-Solace::tryParseUInt32(const char* value, const char* name) { return Longest<uint32>::parse(name, value); }
+Solace::tryParseUInt32(StringView value) { return Longest<uint32>::parse(value); }
 
 Result<uint64, Error>
-Solace::tryParseUInt64(const char* value, const char* name) { return Longest<uint64>::parse(name, value); }
+Solace::tryParseUInt64(StringView value) { return Longest<uint64>::parse(value); }

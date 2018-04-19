@@ -133,7 +133,7 @@ struct isSomeResult<Result<V, E>> : std::true_type {
 template <
         typename OV, typename OE,
         typename V, typename E>
-struct isResult<OV, OE, Result<V, E>> : std::true_type {
+struct isResult<OV, OE, Result<V, E>> : public std::true_type {
     using std::true_type::value;
 
     using type = Result<V, E>;
@@ -146,7 +146,7 @@ struct isResult<OV, OE, Result<V, E>> : std::true_type {
 template <
         typename OV, typename OE,
         typename V>
-struct isResult<OV, OE, types::Ok<V>> : std::true_type {
+struct isResult<OV, OE, types::Ok<V>> : public std::true_type {
     using std::true_type::value;
 
     using type = Result<V, OE>;
@@ -158,7 +158,7 @@ struct isResult<OV, OE, types::Ok<V>> : std::true_type {
 template <
         typename OV, typename OE,
         typename E>
-struct isResult<OV, OE, types::Err<E>> : std::true_type {
+struct isResult<OV, OE, types::Err<E>> : public std::true_type {
     using std::true_type::value;
 
     using type = Result<OV, E>;
@@ -201,7 +201,7 @@ public:
      * Move-Construct Ok result
      * @param value Ok value to move from
      */
-    constexpr Result(types::Ok<V>&& value) :
+    constexpr Result(types::Ok<V>&& value) noexcept(std::is_nothrow_move_constructible<V>::value) :
         _value(std::move(value.val_)),
         _engaged(true)
     {}
@@ -211,7 +211,7 @@ public:
      * @param value Ok value to move value from
      */
     template<typename DV>
-    constexpr Result(types::Ok<DV>&& value):
+    constexpr Result(types::Ok<DV>&& value) noexcept(std::is_nothrow_move_constructible<V>::value) :
         _value(std::move(value.val_)),
         _engaged(true)
     {}
@@ -221,7 +221,7 @@ public:
      * Move-Construct Err result by moving error value
      * @param err Err value to move from
      */
-    constexpr Result(types::Err<E>&& err):
+    constexpr Result(types::Err<E>&& err) noexcept(std::is_nothrow_move_constructible<E>::value) :
         _error(std::move(err.val_)),
         _engaged(false)
     {}
@@ -231,7 +231,7 @@ public:
      * Copy construct Result of the same type
      * @param rhs Source to copy values from
      */
-    Result(const Result& rhs) noexcept {
+    Result(const Result& rhs) /*noexcept*/ {
         if (rhs.isOk()) {
             ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(rhs._value);
             _engaged = true;
@@ -256,7 +256,7 @@ public:
     }
 
     template<typename DV>
-    Result(const Result<DV, E>& rhs) noexcept {
+    Result(const Result<DV, E>& rhs) /*noexcept*/ {
         if (rhs.isOk()) {
             ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(rhs._value);
             _engaged = true;
@@ -288,8 +288,9 @@ public:
      * @return Result<U, E> of the call of 'f' if this::isOk(), Err(this->getError()) otherwise
      */
     template<typename F,
-             typename R = typename std::result_of<F(V)>::type>
-    std::enable_if_t<isResult<V, E, R>::value, typename isResult<V, E, R>::type>
+             typename R = typename std::result_of<F(V)>::type,
+             typename ResT = isResult<V, E, R>>
+    std::enable_if_t<ResT::value, typename ResT::type>
     then(F&& f) {
 
         if (isOk()) {
@@ -297,7 +298,7 @@ public:
             return f(moveResult());
         }
 
-        return Err(moveError());
+        return Err<typename ResT::error_type>(moveError());
     }
 
     template <typename F,

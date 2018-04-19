@@ -16,7 +16,7 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  *	@file		test/test_string.cpp
- *	@author		soutaker
+ *	@author		abbyssoul
  *
  ******************************************************************************/
 #include <solace/string.hpp>  // Class being tested
@@ -341,7 +341,10 @@ public:
         CPPUNIT_ASSERT_EQUAL(target, hello.concat(", world!"));
 	}
 
-	void testSubstring() {
+    /**
+     * @see String::substring
+     */
+    void testSubstring() {
 		const String source("Hello, World! Good bye, World - and again!");
 		const String world("World");
         const String bye("bye");
@@ -355,8 +358,8 @@ public:
 	}
 
 	/**
-	 * Test string trim method.
-	 */
+     * @see String::trim
+     */
 	void testTrim() {
 		String testString;
 
@@ -487,7 +490,7 @@ public:
 	}
 
 	/**
-	 * Test string's 'startsWith'
+     * Test string's 'endsWith'
 	 */
 	void testEndsWith() {
 		const String source("Hello, world out there !");

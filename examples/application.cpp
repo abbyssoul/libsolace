@@ -33,8 +33,8 @@ using namespace Solace::Framework;
 class ExampleApp : public Application {
 public:
 
-    explicit ExampleApp(const String& name) : Application(Version(1, 0, 0, "Demo")),
-        _name(name)
+    explicit ExampleApp(StringView name) : Application(Version(1, 0, 0, "Demo")),
+        _name(std::move(name))
     {}
 
     using Application::init;
@@ -47,11 +47,11 @@ public:
         return CommandlineParser("Solace app-framework example", {
                     CommandlineParser::printHelp(),
                     CommandlineParser::printVersion("application", getVersion()),
-                    {0, "some-param", "Some useless parameter for the demo", &someParam},
-                    {'u', "name", "Name to call", &_name}
+                    {{"some-param"}, "Some useless parameter for the demo", &someParam}
+//                    {{"u", "name"}, "Name to call", &_name}
                 })
                 .parse(argc, argv)
-                .then([](const CommandlineParser*) { return; });
+                .then([](CommandlineParser::ParseResult&&) { return; });
     }
 
     Solace::Result<int, Solace::Error>
@@ -75,12 +75,11 @@ public:
 
 private:
 
-    Solace::String _name;
+    Solace::StringView _name;
 };
 
 
 int main(int argc, char **argv) {
-
     ExampleApp app("Demo App");
 
     return app.init(argc, argv)

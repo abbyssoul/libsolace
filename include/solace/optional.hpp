@@ -50,11 +50,10 @@ namespace Solace {
     unit: Optional.of()
     bind: Optional.flatMap()
  */
-// cppcheck-suppress copyCtorAndEqOperator
 template<typename T>
 class Optional {
 public:
-    typedef T value_type;
+    using value_type = T;
 
 public:
 
@@ -62,11 +61,11 @@ public:
         return Optional<T>();
     }
 
-    static Optional<T> of(const T& t) {
+    static Optional<T> of(const T& t) noexcept(std::is_nothrow_copy_constructible<T>::value) {
         return Optional<T>(t);
     }
 
-    static Optional<T> of(T&& t) {
+    static Optional<T> of(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value) {
         return Optional<T>(std::move(t));
     }
 
@@ -81,14 +80,12 @@ public:
      * Construct an new empty optional value.
      */
     Optional() :
-        _empty(),
-        _engaged(false)
+        _empty()
     {}
 
 
     Optional(Optional<T>&& other) noexcept(std::is_nothrow_move_constructible<T>::value) :
-        _empty(),
-        _engaged(false)
+        _empty()
     {
         if (other.isSome()) {
             construct(std::move(other._payload));
@@ -97,8 +94,7 @@ public:
 
     template<typename D>
     Optional(Optional<D>&& other) noexcept(std::is_nothrow_move_constructible<T>::value) :
-        _empty(),
-        _engaged(false)
+        _empty()
     {
         if (other.isSome()) {
             construct(std::move(other._payload));
@@ -250,6 +246,7 @@ protected:
             raiseInvalidStateError("logic error");
 
         ::new (reinterpret_cast<void *>(std::addressof(_payload))) Stored_type(std::move(t));
+
         _engaged = true;
     }
 

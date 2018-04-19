@@ -50,6 +50,7 @@ class TestResult : public CppUnit::TestFixture  {
 
         CPPUNIT_TEST(testVoidResult);
         CPPUNIT_TEST(testThen);
+        CPPUNIT_TEST(testThenArgumentIgnored);
         CPPUNIT_TEST(testThenChaining);
         CPPUNIT_TEST(testThenComposition);
         CPPUNIT_TEST(testThenComposition_cv);
@@ -414,6 +415,27 @@ public:
         }
     }
 
+    void testThenArgumentIgnored() {
+        /* TODO(abbyssoul): A separate PR is required
+        auto f = [](bool isOk) -> Result<int, const char*> {
+            if (isOk)
+                return Ok(42);
+            else
+                return Err("somthing wrong");
+        };
+
+        {  // Test that success handler is called on success
+            bool thenCalled = false;
+            f(true)
+                .then([&thenCalled]() {
+                    thenCalled = true;
+                });
+
+            // Make sure that success handler was called
+            CPPUNIT_ASSERT(thenCalled);
+        }
+*/
+    }
 
     void testThenChaining() {
 

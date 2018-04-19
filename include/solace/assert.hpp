@@ -73,6 +73,19 @@ T* assertNotNull(T* value) {
  */
 uint64 assertIndexInRange(uint64 index, uint64 from, uint64 to);
 
+
+/**
+ * Assert that the give index is within the give range. Throw if it is not.
+ * @param index Index value to be asserted.
+ * @param from Lower bound (inclusive).
+ * @param to Upper value bound (exclusive).
+ * @param Message identifying location.
+ *
+ * @return Index value if the index is in range. Throws otherwise.
+ */
+uint16 assertIndexInRange(uint16 index, uint16 from, uint16 to, const char* message);
+
+
 /**
  * Assert that the give index is within the give range. Throw if it is not.
  * @param index Index value to be asserted.

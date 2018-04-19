@@ -54,15 +54,14 @@ int main(int argc, const char **argv) {
                         {
                           CommandlineParser::printHelp(),
                           CommandlineParser::printVersion("serial", getBuildVersion()),
-                          {'b', "boudRate",     "COM port boud rate",   &boudRate},
-                          { 0,  "bufferSize",   "Read buffer size",     &bufferSize},
-                          {'f', "fileName",     "File/device name to open", &strPath}
+                          {{"b", "boudRate"},   "COM port boud rate",   &boudRate},
+                          {{"bufferSize"},      "Read buffer size",     &bufferSize},
+                          {{"f", "fileName"},   "File/device name to open", &strPath}
 //                        [&file](CommandlineParser::Context& c) {
 //                               file = Solace::Path::parse(c.value);                                                   
 //                               return None();
 //                           }
-                        }
-                      )
+                        })
             .parse(argc, argv);
 
     if (!parseResult) {

@@ -1,5 +1,10 @@
 
 set(SOURCE_FILES
+        ../include/solace/stringView.hpp
+        ../include/solace/string.hpp
+        ../include/solace/framework/commandlineParser.hpp
+
+
         assert.cpp
         exception.cpp
         error.cpp
@@ -17,6 +22,7 @@ set(SOURCE_FILES
         uuid.cpp
         string.cpp
         stringBuilder.cpp
+        stringView.cpp
 
         ioobject.cpp
         version.cpp
@@ -38,8 +44,9 @@ set(SOURCE_FILES
 
         process/env.cpp
 
-        framework/application.cpp
+        cli/helpPrinter.cpp
         framework/commandlineParser.cpp
+        framework/application.cpp
 
         hashing/messageDigest.cpp
         hashing/md5.cpp
@@ -47,13 +54,17 @@ set(SOURCE_FILES
         hashing/sha1.cpp
         hashing/sha2.cpp
         hashing/sha3.cpp
-    )
+        )
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
 #    rt
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    fmt::fmt-header-only)
+    fmt-header-only)
 
 # Required on Unix OS family to be able to be linked into shared libraries.
 #set_target_properties(${PROJECT_NAME}
 #                      PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+install(TARGETS ${PROJECT_NAME}
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib)

@@ -26,12 +26,10 @@
 #define SOLACE_STRING_HPP
 
 
-#include "solace/char.hpp"
 #include "solace/traits/iformattable.hpp"
 #include "solace/traits/iterable.hpp"
-#include "solace/byteBuffer.hpp"
+#include "solace/stringView.hpp"
 #include "solace/array.hpp"
-#include "solace/optional.hpp"
 
 
 #include <string>   // std::string
@@ -51,20 +49,22 @@ class String:   public IFormattable,
 public:
 
     /// String size_type is intentionally small to disallow long strings.
-    typedef uint16      size_type;
+    using size_type = StringView::size_type;
 
-    typedef Char        value_type;
+    using value_type = Char;
 
 public:
 
+     ~String() override = default;
+
     //!< Default constructor constructs an empty string.
-    /*constexpr*/ String() noexcept;
+    String() noexcept = default;
 
     //!< Move-construct a string.
-    /*constexpr*/ String(String&& s) noexcept;
+    String(String&& s) noexcept = default;
 
     //!< Copy string content from another string.
-    /*constexpr*/ String(const String& s) noexcept;
+    String(const String& s) = default;
 
     //!< Construct a string from a raw null-terminated (C-style) string.
 	String(const char* data);
@@ -75,8 +75,8 @@ public:
     //!< Construct a string from a nicely managed buffer
     String(const ImmutableMemoryView& buffer);
 
-    //!< Construct a string from a byte buffer
-    String(ByteBuffer& buffer);
+    //!< Construct a string from a StringView
+    String(StringView view);
 
     //!< Construct the string from std::string - STD compatibility method
 	String(const std::string& buffer) : _str(buffer) {}
@@ -212,8 +212,8 @@ public:  // Basic collection operations:
 	 * Returns a new string with all occurrences of 'what'
 	 * replaced with 'with'.
      * @param what A character to be replaced in the string
-     * @param with A replacement character that will replace all occurances of the given one in the string.
-     * @return A resulting string with all occurances of 'what' replaced with 'with'
+     * @param with A replacement character that will replace all occurrences of the given one in the string.
+     * @return A resulting string with all occurrences of 'what' replaced with 'with'
 	 */
 	String replace(const value_type& what, const value_type& with) const;
 
@@ -332,12 +332,12 @@ public:  // Basic collection operations:
      * @see String::substring
 	 */
     String operator() (size_type from, size_type to) const
-	{	return substring(from, to);}
+	{	return substring(from, to); }
 
 
     /**
      * Get raw bytes of the string.
-     * @return Ummutable Memory View into the string data.
+     * @return Immutable Memory View into the string data.
      */
     const ImmutableMemoryView view() const noexcept {
         return wrapMemory(c_str(), size());
