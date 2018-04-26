@@ -24,6 +24,8 @@
 
 #include <cppunit/extensions/HelperMacros.h>
 
+#include <solace/parseUtils.hpp>
+
 
 using namespace Solace;
 using namespace Solace::cli;
@@ -80,6 +82,9 @@ class TestCommandlineParser: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testCustomNoValueExpected);
         CPPUNIT_TEST(testInlineValues);
         CPPUNIT_TEST(testInlineValuesTypeMismatch);
+        CPPUNIT_TEST(testRepeatingOptions_Int);
+        CPPUNIT_TEST(testRepeatingOptionsCustomHandler);
+        CPPUNIT_TEST(testRepeatingOptionsWithDifferentType);
 
 //        CPPUNIT_TEST(testMandatoryArgument);
 //        CPPUNIT_TEST(testMandatoryArgumentMissing);
@@ -598,6 +603,102 @@ public:
                 .parse(countArgc(argv), argv);
 
         CPPUNIT_ASSERT(result.isError());
+    }
+
+
+    void testRepeatingOptions_Int() {
+        int vValue = 0;
+        bool unusedValue;
+        bool parsedSuccessully = false;
+
+        const char* argv[] = {"prog",
+                              "--intValue=32",
+                              "-i", "17",
+                              "-v",
+                              "--intValue", "918",
+                              nullptr};
+
+        CommandlineParser("Something awesome", {
+                              {{"i", "intValue"}, "Int Value", &vValue},
+                              {{"v"}, "Useless value", &unusedValue}
+                          })
+                .parse(countArgc(argv), argv)
+                .then([&parsedSuccessully](CommandlineParser::ParseResult&&) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error&& e) {
+                        parsedSuccessully = false;
+
+                        CPPUNIT_FAIL(e.toString().c_str());
+                    });
+
+        CPPUNIT_ASSERT(parsedSuccessully);
+        CPPUNIT_ASSERT_EQUAL(918, vValue);
+    }
+
+    void testRepeatingOptionsCustomHandler() {
+        int vValue = 0;
+        bool unusedValue;
+        bool parsedSuccessully = false;
+
+        const char* argv[] = {"prog",
+                              "--intValue=32",
+                              "-i", "17",
+                              "-v",
+                              "--intValue", "918",
+                              nullptr};
+
+        CommandlineParser("Something awesome")
+                .options({
+                              {{"i", "intValue"}, "Value",
+                               CommandlineParser::OptionArgument::Required,
+                               [&vValue](const Optional<StringView>& value, const CommandlineParser::Context&) -> Optional<Error>{
+                                   auto res = tryParse<int>(value.get());
+                                   if (res) {
+                                        vValue += res.unwrap();
+                                        return None();
+                                   } else {
+                                       return Optional<Error>::of(res.moveError());
+                                   }
+                               }},
+                              {{"v"}, "Useless value", &unusedValue}
+                          })
+                .parse(countArgc(argv), argv)
+                .then([&parsedSuccessully](CommandlineParser::ParseResult&&) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error&& e) {
+                        parsedSuccessully = false;
+
+                        CPPUNIT_FAIL(e.toString().c_str());
+                    });
+
+        CPPUNIT_ASSERT(parsedSuccessully);
+        CPPUNIT_ASSERT_EQUAL(918 + 32 + 17, vValue);
+    }
+
+    void testRepeatingOptionsWithDifferentType() {
+        int vValue = 0;
+        bool unusedValue;
+        bool parsedSuccessully = false;
+
+        const char* argv[] = {"prog",
+                              "--intValue=32",
+                              "-i", "Info",
+                              "-v",
+                              "--intValue", "918",
+                              nullptr};
+
+        CommandlineParser("Something awesome", {
+                              {{"i", "intValue"}, "Int Value", &vValue},
+                              {{"v"}, "Useless value", &unusedValue}
+                          })
+                .parse(countArgc(argv), argv)
+                .then([&parsedSuccessully](CommandlineParser::ParseResult&&) {parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error&& e) {
+                        parsedSuccessully = false;
+
+                        CPPUNIT_FAIL(e.toString().c_str());
+                    });
+
+        CPPUNIT_ASSERT(parsedSuccessully);
+        CPPUNIT_ASSERT_EQUAL(918, vValue);
     }
 
 /*
