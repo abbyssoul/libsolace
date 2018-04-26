@@ -56,10 +56,10 @@ if(UNIX AND NOT APPLE)
         ${PROJECT_NAME}
         ${CPPUNIT_LIBRARIES}
         rt
-        fmt::fmt-header-only)
+        fmt-header-only)
 else()
     target_link_libraries(test_${PROJECT_NAME} PRIVATE
         ${PROJECT_NAME}
         ${CPPUNIT_LIBRARIES}
-        fmt::fmt-header-only)
+        fmt-header-only)
 endif()

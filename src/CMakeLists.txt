@@ -50,9 +50,9 @@ set(SOURCE_FILES
     )
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
-#    rt
+
 target_link_libraries(${PROJECT_NAME} PRIVATE
-    fmt::fmt-header-only)
+    fmt-header-only)
 
 # Required on Unix OS family to be able to be linked into shared libraries.
 #set_target_properties(${PROJECT_NAME}
