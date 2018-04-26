@@ -55,10 +55,10 @@ public:
 
 public:
 
-     ~String() override = default;
+    ~String() override = default;
 
     //!< Default constructor constructs an empty string.
-    String() noexcept = default;
+    String() = default;
 
     //!< Move-construct a string.
     String(String&& s) noexcept = default;
