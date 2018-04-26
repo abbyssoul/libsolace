@@ -20,7 +20,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors") #  -f
 # Enable stack-protector if compiler supports it (it should)
 check_cxx_compiler_flag("-fvtable-verify" WITH_VTABLE_VERIFY)
 check_cxx_compiler_flag("-Wimplicit-fallthrough=2" WITH_IMPLICIT_FALLTHROUGH)
-check_cxx_compiler_flag("-fuse-ld=gold" WITH_GOLD_LINKER)
+check_cxx_compiler_flag("-Wl,-fuse-ld=gold" WITH_GOLD_LINKER)
 check_cxx_compiler_flag("-fstack-protector" WITH_STACK_PROTECTOR)
 check_cxx_compiler_flag("-fno-omit-frame-pointer" WITH_FRAME_POINTER)
 check_cxx_compiler_flag("-fsanitize-address-use-after-scope" WITH_SANITIZE_ADDRESS_USE_AFTER_SCOPE)
@@ -29,7 +29,8 @@ check_cxx_compiler_flag("-fsanitize=unsigned-integer-overflow" WITH_SANITIZE_UNS
 
 
 if (WITH_GOLD_LINKER)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fuse-ld=gold")
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
 endif (WITH_GOLD_LINKER)
 
 # Enable all the warnings one can get
@@ -87,7 +88,14 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG")
 
 
 if (SANITIZE)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined,leak")
+    check_cxx_compiler_flag("-fsanitize=leak" WITH_SANITIZE_LEAK)
+    if (WITH_SANITIZE_LEAK)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined,leak")
+    else()
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined")
+        message(STATUS, "Leak sanitizer not supported")
+    endif(WITH_SANITIZE_LEAK)
+
     if (WITH_SANITIZE_ADDRESS_USE_AFTER_SCOPE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize-address-use-after-scope")
     endif(WITH_SANITIZE_ADDRESS_USE_AFTER_SCOPE)
