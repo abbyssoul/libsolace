@@ -63,9 +63,29 @@ T* assertNotNull(T* value) {
     return value;
 }
 
+/**
+ * Assert that the give index is within the give range. Throw if it is not.
+ *
+ * @param index Index value to be asserted.
+ * @param from Lower bound (inclusive)
+ * @param to Upper value bound (exclusive)
+ * @return Index value if the index is in range. Throws otherwise.
+ */
+uint16 assertIndexInRange(uint16 index, uint16 from, uint16 to);
 
 /**
  * Assert that the give index is within the give range. Throw if it is not.
+ *
+ * @param index Index value to be asserted.
+ * @param from Lower bound (inclusive)
+ * @param to Upper value bound (exclusive)
+ * @return Index value if the index is in range. Throws otherwise.
+ */
+uint32 assertIndexInRange(uint32 index, uint32 from, uint32 to);
+
+/**
+ * Assert that the give index is within the give range. Throw if it is not.
+ *
  * @param index Index value to be asserted.
  * @param from Lower bound (inclusive)
  * @param to Upper value bound (exclusive)

@@ -39,23 +39,21 @@ namespace hashing {
 class MessageDigest : public IFormattable {
 public:
 
-    typedef byte                                value_type;
-    typedef Array<byte>                         Storage;
-    typedef Storage::size_type                  size_type;
+    using value_type = byte;
+    using Storage = Array<byte>;
+    using size_type = Storage::size_type;
 
-    typedef Storage::const_iterator    const_iterator;
-    typedef Storage::const_reference   const_reference;
-    typedef Storage::const_pointer     const_pointer;
+    using const_iterator = Storage::const_iterator;
+    using const_reference = Storage::const_reference;
+    using const_pointer = Storage::const_pointer;
 
 public:
 
-    ~MessageDigest() = default;
+    ~MessageDigest() override = default;
 
-    MessageDigest(const MessageDigest& rhs) : _storage(rhs._storage)
-    { }
+    MessageDigest(const MessageDigest& rhs) = default;
 
-    MessageDigest(MessageDigest&& rhs) : _storage(std::move(rhs._storage))
-    { }
+    MessageDigest(MessageDigest&& rhs) = default;
 
     MessageDigest(byte* bytes, size_type digestSize) : _storage(digestSize, bytes)
     { }

@@ -171,13 +171,13 @@ String UUID::toString() const {
 }
 
 
-// Here we are stilling a function from base16.cpp
-char charToBin(byte c);
+// Here we are stealing a function from base16.cpp
+byte charToBin(byte c);
 
 
 UUID UUID::parse(const String& str) {
     if (str.size() != StringSize) {
-        raise<IllegalArgumentException>("string");
+        raise<IllegalArgumentException>("string size");
     }
 
     byte data[StaticSize];
@@ -185,12 +185,8 @@ UUID UUID::parse(const String& str) {
     const char* src = str.c_str();
     for (size_type i = 0; i < StringSize; ++i) {
         if (src[i] != '-') {
-            const char high = charToBin(src[i]);
-            const char low =  charToBin(src[i + 1]);
-
-            if (high < 0 || low < 0) {
-                raise<IllegalArgumentException>("Failed to decode UUID string: value is not in base16 alphabet");
-            }
+            const byte high = charToBin(src[i]);
+            const byte low =  charToBin(src[i + 1]);
 
             *(dest++) = static_cast<byte>(high << 4) + static_cast<byte>(low);
             i += 1;

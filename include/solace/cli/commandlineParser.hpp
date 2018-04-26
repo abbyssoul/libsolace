@@ -31,7 +31,7 @@
 #include "solace/array.hpp"
 #include "solace/version.hpp"
 
-//TODO(abbyssoul): consider moving away from std::function #include "solace/delegate.hpp"
+// TODO(abbyssoul): consider moving away from std::function #include "solace/delegate.hpp"
 #include "solace/utils.hpp"
 
 #include <map>  // TODO(abbyssoul): Replace with fix-memory map
@@ -52,16 +52,16 @@ namespace Solace { namespace cli {
                 CommandlineParser::printHelp(),
 
                 // Regular argument of integral type
-                { 's', "size", "Buffer size", &settings.bufferSize },
-                { 'u', "userName", "User name", &settings.userName }
+                {{"size"}, "Buffer size", &settings.bufferSize },
+                {{"u", "userName"}, "User name", &settings.userName }
             })
-            .command("doSomething", {
+            .commands({"doSomething", {
                 // Commands support optional arguments:
                 { "Mandatory argument", &settings.param },
                 [] () {   // Action to execute.
                     std::cout << "Executing command" << std:endl;
                 }
-            })
+            }})
             .parse(argc, argv)
             .then(...consume parsing results...
             .orElse(...handle errors...);

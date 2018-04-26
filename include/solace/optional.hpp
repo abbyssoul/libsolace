@@ -51,6 +51,7 @@ namespace Solace {
     bind: Optional.flatMap()
  */
 template<typename T>
+// cppcheck-suppress copyCtorAndEqOperator
 class Optional {
 public:
     using value_type = T;

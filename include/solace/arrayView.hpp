@@ -220,10 +220,12 @@ public:
         return _memory;
     }
 
+    // cppcheck-suppress unusedFunction
     bool contains(const_reference value) const noexcept {
         return indexOf(value).isSome();
     }
 
+    // cppcheck-suppress unusedFunction
     Optional<size_type> indexOf(const_reference value) const noexcept {
         const auto len = size();
         auto it = begin();
