@@ -270,23 +270,26 @@ void reconfigurePort(int fd, uint32 baudrate, Serial::Bytesize bytesize,
             options.c_cflag &= ~(PARODD);
             options.c_cflag |=  (PARENB);
             break;
+
         case Serial::Parity::odd:
             options.c_cflag |=  (PARENB | PARODD);
             break;
-#ifdef CMSPAR
+
         case Serial::Parity::mark:
+#ifdef CMSPAR  // CMSPAR is not defined on OSX. So do not support mark or space parity.
             options.c_cflag |=  (PARENB | CMSPAR | PARODD);
+#else
+            Solace::raise<IllegalArgumentException>("OS does not support mark parity");
+#endif  // ifdef CMSPAR
             break;
         case Serial::Parity::space:
+#ifdef CMSPAR  // CMSPAR is not defined on OSX. So do not support mark or space parity.
             options.c_cflag |=  (PARENB | CMSPAR);
             options.c_cflag &= ~(PARODD);
-            break;
 #else
-        // CMSPAR is not defined on OSX. So do not support mark or space parity.
-    if (parity == Serial::Parity::mark || parity == Serial::Parity::space) {
-        Solace::raise<IllegalArgumentException>("OS does not support mark or space parity");
-    }
+            Solace::raise<IllegalArgumentException>("OS does not support space parity");
 #endif  // ifdef CMSPAR
+            break;
     }
 
     bool xonxoff_ = false;
@@ -563,16 +566,17 @@ bool Serial::waitReadable(uint32 timeout) {
 
 
 Serial::size_type Serial::available() const {
-    const auto fd = validateFd();
-
     int count = 0;
 
 #ifdef SOLACE_PLATFORM_LINUX
+    const auto fd = validateFd();
+
     if (-1 == ioctl(fd, TIOCINQ, &count)) {
         Solace::raise<IOException>(errno, "ioctl(TIOCINQ)");
     }
+#else
+    Solace::raise<IOException>("Not supported method on this OS");
 #endif
 
     return static_cast<size_type>(count);
 }
-
