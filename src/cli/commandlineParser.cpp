@@ -455,6 +455,12 @@ parseOptions(const CommandlineParser::Context& cntx,
     return Ok(firstPositionalArgument);
 }
 
+Result<uint, Error>
+parseArguments(const CommandlineParser::Context& cntx, const Array<CommandlineParser::Argument>& arguemnts) {
+
+// TODO(abbyssoul): Parse arguments
+}
+
 
 Result<CommandlineParser::ParseResult, Error>
 parseCommand(const CommandlineParser::Command& cmd, const CommandlineParser::Context& cntx) {
@@ -493,8 +499,7 @@ parseCommand(const CommandlineParser::Command& cmd, const CommandlineParser::Con
                         StringView(),
                         cntx.parser};
 
-            // TODO(abbyssoul): Parse arguments
-//            parseArguments(subcomandCntx, cmd.arguments());
+            auto parseResult = parseArguments(subcomandCntx, cmd.arguments());
 
             return Ok<CommandlineParser::ParseResult>(cmd.callback());
         } else {

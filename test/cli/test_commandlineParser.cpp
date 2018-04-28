@@ -86,12 +86,12 @@ class TestCommandlineParser: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testRepeatingOptionsCustomHandler);
         CPPUNIT_TEST(testRepeatingOptionsWithDifferentType);
 
-//        CPPUNIT_TEST(testMandatoryArgument);
-//        CPPUNIT_TEST(testMandatoryArgumentMissing);
-//        CPPUNIT_TEST(testMandatoryArgumentWithoutGivenFlags);
-//        CPPUNIT_TEST(testMandatoryArgumentOnly);
-//        CPPUNIT_TEST(testMandatoryArgumentNotEnought);
-//        CPPUNIT_TEST(testMandatoryArgumentTooMany);
+        CPPUNIT_TEST(testMandatoryArgument);
+        CPPUNIT_TEST(testMandatoryArgumentMissing);
+        CPPUNIT_TEST(testMandatoryArgumentWithoutGivenFlags);
+        CPPUNIT_TEST(testMandatoryArgumentOnly);
+        CPPUNIT_TEST(testMandatoryArgumentNotEnought);
+        CPPUNIT_TEST(testMandatoryArgumentTooMany);
 
         CPPUNIT_TEST(testCommandGivenButNotExpected);
         CPPUNIT_TEST(testMandatoryCommandNotGiven);
@@ -676,7 +676,6 @@ public:
     void testRepeatingOptionsWithDifferentType() {
         int vValue = 0;
         bool unusedValue;
-        bool parsedSuccessully = false;
 
         const char* argv[] = {"prog",
                               "--intValue=32",
@@ -685,35 +684,28 @@ public:
                               "--intValue", "918",
                               nullptr};
 
-        CommandlineParser("Something awesome", {
+        const auto result = CommandlineParser("Something awesome", {
                               {{"i", "intValue"}, "Int Value", &vValue},
                               {{"v"}, "Useless value", &unusedValue}
                           })
-                .parse(countArgc(argv), argv)
-                .then([&parsedSuccessully](CommandlineParser::ParseResult&&) {parsedSuccessully = true; })
-                .orElse([&parsedSuccessully](Error&& e) {
-                        parsedSuccessully = false;
+                .parse(countArgc(argv), argv);
 
-                        CPPUNIT_FAIL(e.toString().c_str());
-                    });
-
-        CPPUNIT_ASSERT(parsedSuccessully);
-        CPPUNIT_ASSERT_EQUAL(918, vValue);
+        CPPUNIT_ASSERT(result.isError());
     }
 
-/*
+
     void testMandatoryArgument() {
         bool parsedSuccessully = false;
         int xValue = 0;
         int mandatoryArg = 0;
 
         const char* argv[] = {"prog", "-x", "756", "98765", nullptr};
-        const char* appDesc = "Something awesome";
-        CommandlineParser(appDesc, {
-                              {'x', "xxx", "Something", &xValue}
-                          }, {
-                              {"manarg", "Mandatory argument", &mandatoryArg}
+        CommandlineParser("Something awesome", {
+                              {{"x", "xxx"}, "Something", &xValue}
                           })
+                .arguments({
+                    {"manarg", "Mandatory argument", &mandatoryArg}
+                })
                 .parse(countArgc(argv), argv)
                 .then([&parsedSuccessully](CommandlineParser::ParseResult&&) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false;});
@@ -727,35 +719,34 @@ public:
 
     void testMandatoryArgumentOnly() {
         bool parsedSuccessully = false;
-        String mandatoryArg;
+        StringView mandatoryArg;
 
         const char* argv[] = {"prog", "awesome-value", nullptr};
-        const char* appDesc = "Something awesome";
-        CommandlineParser(appDesc, {},
-                            {
-                              {"manarg", "Mandatory argument", &mandatoryArg}
-                          })
+        CommandlineParser("Something awesome")
+                .arguments({
+                    {"manarg", "Mandatory argument", &mandatoryArg}
+                })
                 .parse(countArgc(argv), argv)
                 .then([&parsedSuccessully](CommandlineParser::ParseResult&&) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
 
 
         CPPUNIT_ASSERT(parsedSuccessully);
-        CPPUNIT_ASSERT_EQUAL(String("awesome-value"), mandatoryArg);
+        CPPUNIT_ASSERT_EQUAL(StringView("awesome-value"), mandatoryArg);
     }
 
     void testMandatoryArgumentWithoutGivenFlags() {
         bool parsedSuccessully = false;
         int xValue = 0;
-        String mandatoryArg;
+        StringView mandatoryArg;
 
         const char* argv[] = {"prog", "awesome-value", nullptr};
-        const char* appDesc = "Something awesome";
-        CommandlineParser(appDesc, {
-                              {'x', "xxx", "Something", &xValue}
-                          }, {
-                              {"manarg", "Mandatory argument", &mandatoryArg}
+        CommandlineParser("Something awesome", {
+                              {{"x", "xxx"}, "Something", &xValue}
                           })
+                .arguments({
+                              {"manarg", "Mandatory argument", &mandatoryArg}
+                 })
                 .parse(countArgc(argv), argv)
                 .then([&parsedSuccessully](CommandlineParser::ParseResult&&) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
@@ -763,7 +754,7 @@ public:
 
         CPPUNIT_ASSERT(parsedSuccessully);
         CPPUNIT_ASSERT_EQUAL(0, xValue);
-        CPPUNIT_ASSERT_EQUAL(String("awesome-value"), mandatoryArg);
+        CPPUNIT_ASSERT_EQUAL(StringView("awesome-value"), mandatoryArg);
     }
 
 
@@ -773,13 +764,12 @@ public:
         int mandatoryArg = 0;
 
         const char* argv[] = {"prog", "-x", "756", nullptr};
-        const char* appDesc = "Something awesome";
-        CommandlineParser(appDesc, {
-                              {'x', "xxx", "Something", &xValue}
-                          }, {
+        CommandlineParser("Something awesome", {
+                              {{"x", "xxx"}, "Something", &xValue}
+                          })
+                .arguments({
                               {"manarg", "Mandatory argument", &mandatoryArg}
-                          }
-                          )
+                })
                 .parse(countArgc(argv), argv)
                 .then([&parsedSuccessully](CommandlineParser::ParseResult&&) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
@@ -794,18 +784,17 @@ public:
     void testMandatoryArgumentNotEnought() {
         bool parsedSuccessully = false;
 
-        String mandatoryArgStr;
+        StringView mandatoryArgStr;
         int mandatoryArgInt = 0;
         int mandatoryArgInt2 = 0;
 
         const char* argv[] = {"prog", "do", "321", nullptr};
-        const char* appDesc = "Something awesome";
-        CommandlineParser(appDesc, {}, {
-                              {"manarg1", "Mandatory argument", &mandatoryArgStr},
-                              {"manarg2", "Mandatory argument", &mandatoryArgInt},
-                              {"manarg3", "Mandatory argument", &mandatoryArgInt2}
-                          }
-                          )
+        CommandlineParser("Something awesome")
+                .arguments({
+                    {"manarg1", "Mandatory argument", &mandatoryArgStr},
+                    {"manarg2", "Mandatory argument", &mandatoryArgInt},
+                    {"manarg3", "Mandatory argument", &mandatoryArgInt2}
+                })
                 .parse(countArgc(argv), argv)
                 .then([&parsedSuccessully](CommandlineParser::ParseResult&&) { parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
@@ -819,16 +808,15 @@ public:
     void testMandatoryArgumentTooMany() {
         bool parsedSuccessully = false;
 
-        String mandatoryArgStr;
+        StringView mandatoryArgStr;
         int mandatoryArgInt = 0;
 
         const char* argv[] = {"prog", "some", "756", "other", nullptr};
-        const char* appDesc = "Something awesome";
-        CommandlineParser(appDesc, {}, {
-                              {"manarg1", "Mandatory argument", &mandatoryArgStr},
-                              {"manarg2", "Mandatory argument", &mandatoryArgInt}
-                          }
-                          )
+        CommandlineParser("Something awesome")
+                .arguments({
+                    {"manarg1", "Mandatory argument", &mandatoryArgStr},
+                    {"manarg2", "Mandatory argument", &mandatoryArgInt}
+                })
                 .parse(countArgc(argv), argv)
                 .then([&parsedSuccessully](CommandlineParser::ParseResult&&) {parsedSuccessully = true; })
                 .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
@@ -838,7 +826,7 @@ public:
         CPPUNIT_ASSERT(mandatoryArgStr.empty());
         CPPUNIT_ASSERT_EQUAL(0, mandatoryArgInt);
     }
-*/
+
 
     void testCommandGivenButNotExpected() {
         bool commandExecuted = false;
