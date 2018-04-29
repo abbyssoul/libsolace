@@ -456,9 +456,43 @@ parseOptions(const CommandlineParser::Context& cntx,
 }
 
 Result<uint, Error>
-parseArguments(const CommandlineParser::Context& cntx, const Array<CommandlineParser::Argument>& arguemnts) {
+parseArguments(const CommandlineParser::Context& cntx,
+               const Array<CommandlineParser::Argument>& arguments) {
 
-// TODO(abbyssoul): Parse arguments
+    const auto nbPositionalArguments = cntx.argc - cntx.offset;
+    if (nbPositionalArguments < arguments.size())
+        return failUint("Not enough arguments");
+    if (nbPositionalArguments > arguments.size())
+        return failUint("Too many arguments");
+
+    uint positionalArgument = cntx.offset;
+
+    // Parse array of strings until we error out or there is no more flags:
+    for (uint i = 0;
+         positionalArgument < cntx.argc && i < arguments.size();
+         ++i, ++positionalArgument) {
+
+        if (!cntx.argv[positionalArgument]) {
+            return failUint("Invalid number of arguments!");
+        }
+
+        const StringView arg {cntx.argv[positionalArgument]};
+        auto& targetArg = arguments[i];
+        const CommandlineParser::Context subCntx{cntx.argc,
+                    cntx.argv,
+                    positionalArgument,
+                    targetArg.name(),
+                    cntx.parser};
+
+        auto maybeError = targetArg.match(arg, subCntx);
+        if (maybeError) {
+            return Err(maybeError.move());
+        }
+    }
+
+    return (cntx.argc == positionalArgument)
+            ? Ok(positionalArgument)
+            : failUint("Not enough arguments");
 }
 
 
@@ -500,6 +534,8 @@ parseCommand(const CommandlineParser::Command& cmd, const CommandlineParser::Con
                         cntx.parser};
 
             auto parseResult = parseArguments(subcomandCntx, cmd.arguments());
+            if (!parseResult)
+                return Err(parseResult.moveError());
 
             return Ok<CommandlineParser::ParseResult>(cmd.callback());
         } else {

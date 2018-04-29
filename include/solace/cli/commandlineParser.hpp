@@ -287,7 +287,7 @@ public:
 
         template<typename F>
         Command(StringView description,
-                 F&& callback,
+                F&& callback,
                 const std::initializer_list<Option>& options) :
             _description(std::move(description)),
             _callback(std::forward<F>(callback)),
@@ -296,6 +296,17 @@ public:
             _arguments()
         {}
 
+        template<typename F>
+        Command(StringView description,
+                F&& callback,
+                const std::initializer_list<Option>& options,
+                const std::initializer_list<Argument>& arguments) :
+            _description(std::move(description)),
+            _callback(std::forward<F>(callback)),
+            _options(options),
+            _commands(),
+            _arguments(arguments)
+        {}
 
         Command& operator= (const Command& rhs) noexcept {
             Command(rhs).swap(*this);

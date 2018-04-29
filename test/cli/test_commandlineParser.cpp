@@ -90,7 +90,7 @@ class TestCommandlineParser: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testMandatoryArgumentMissing);
         CPPUNIT_TEST(testMandatoryArgumentWithoutGivenFlags);
         CPPUNIT_TEST(testMandatoryArgumentOnly);
-        CPPUNIT_TEST(testMandatoryArgumentNotEnought);
+        CPPUNIT_TEST(testMandatoryArgumentNotEnough);
         CPPUNIT_TEST(testMandatoryArgumentTooMany);
 
         CPPUNIT_TEST(testCommandGivenButNotExpected);
@@ -104,6 +104,7 @@ class TestCommandlineParser: public CppUnit::TestFixture  {
         CPPUNIT_TEST(multipleCommandWithSimilarOptions);
         CPPUNIT_TEST(commandExecutionFails);
 
+        CPPUNIT_TEST(multipleCommandWithOptionsAndArguments);
     CPPUNIT_TEST_SUITE_END();
 
 protected:
@@ -650,11 +651,11 @@ public:
                 .options({
                               {{"i", "intValue"}, "Value",
                                CommandlineParser::OptionArgument::Required,
-                               [&vValue](const Optional<StringView>& value, const CommandlineParser::Context&) -> Optional<Error>{
+                               [&vValue](const Optional<StringView>& value, const CommandlineParser::Context&) {
                                    auto res = tryParse<int>(value.get());
                                    if (res) {
                                         vValue += res.unwrap();
-                                        return None();
+                                        return Optional<Error>::none();
                                    } else {
                                        return Optional<Error>::of(res.moveError());
                                    }
@@ -781,50 +782,37 @@ public:
     }
 
 
-    void testMandatoryArgumentNotEnought() {
-        bool parsedSuccessully = false;
-
+    void testMandatoryArgumentNotEnough() {
         StringView mandatoryArgStr;
         int mandatoryArgInt = 0;
         int mandatoryArgInt2 = 0;
 
         const char* argv[] = {"prog", "do", "321", nullptr};
-        CommandlineParser("Something awesome")
+        const auto result = CommandlineParser("Something awesome")
                 .arguments({
                     {"manarg1", "Mandatory argument", &mandatoryArgStr},
                     {"manarg2", "Mandatory argument", &mandatoryArgInt},
                     {"manarg3", "Mandatory argument", &mandatoryArgInt2}
                 })
-                .parse(countArgc(argv), argv)
-                .then([&parsedSuccessully](CommandlineParser::ParseResult&&) { parsedSuccessully = true; })
-                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
+                .parse(countArgc(argv), argv);
 
-
-        CPPUNIT_ASSERT(!parsedSuccessully);
-        CPPUNIT_ASSERT_EQUAL(0, mandatoryArgInt);
+        CPPUNIT_ASSERT(result.isError());
     }
 
 
     void testMandatoryArgumentTooMany() {
-        bool parsedSuccessully = false;
-
         StringView mandatoryArgStr;
         int mandatoryArgInt = 0;
 
         const char* argv[] = {"prog", "some", "756", "other", nullptr};
-        CommandlineParser("Something awesome")
+        const auto result = CommandlineParser("Something awesome")
                 .arguments({
                     {"manarg1", "Mandatory argument", &mandatoryArgStr},
                     {"manarg2", "Mandatory argument", &mandatoryArgInt}
                 })
-                .parse(countArgc(argv), argv)
-                .then([&parsedSuccessully](CommandlineParser::ParseResult&&) {parsedSuccessully = true; })
-                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
+                .parse(countArgc(argv), argv);
 
-
-        CPPUNIT_ASSERT(!parsedSuccessully);
-        CPPUNIT_ASSERT(mandatoryArgStr.empty());
-        CPPUNIT_ASSERT_EQUAL(0, mandatoryArgInt);
+        CPPUNIT_ASSERT(result.isError());
     }
 
 
@@ -1075,6 +1063,86 @@ public:
         CPPUNIT_ASSERT(commandExecuted[1]);
     }
 
+
+    void multipleCommandWithOptionsAndArguments() {
+        bool commandExecuted[] = {false, false, false};
+
+
+        bool verbose = false;
+        int globalInt = 0;
+
+        struct Cmd2Options {
+            int commonFlag;
+            int value;
+            float32 otherValue;
+
+            StringView arg1;
+            StringView arg2;
+        } cmd2Options;
+
+        struct Cmd1Options {
+            int commonFlag;
+            StringView value;
+        } cmd1Options;
+
+
+        const char* argv[] = {"prog", "-v", "--intValue", "42", "comm-2", "-o", "11", "ArgValue1", "arg2", nullptr};
+        const auto result = CommandlineParser("Something awesome")
+                .options({
+                             {{"v", "verbose"}, "Verbose output", &verbose},
+                             {{"i", "intValue"}, "Global int", &globalInt}
+                         })
+                .commands({
+                              {"comm-1", {"Run 1st command",
+                               [&]() -> Result<void, Error> {
+                                   commandExecuted[0] = true;
+                                   return Ok();
+                               }, {
+                                   {{"c", "commonOption"}, "Common option", &cmd1Options.commonFlag},
+                                   {{"o", "uniqueOption"}, "Some unique option", &cmd1Options.value},
+                               }}},
+
+                              {"comm-2", {"Run 2nd command",
+                               [&]() -> Result<void, Error> {
+                                   commandExecuted[1] = true;
+                                   return Ok();
+                               }, {
+                                   {{"c", "commonOption"}, "Common option", &cmd2Options.commonFlag},
+                                   {{"o", "uniqueOption"}, "Some unique option", &cmd2Options.value}
+                               }, {
+                                   {"arg1", "Arg value1", &cmd2Options.arg1},
+                                   {"arg2", "Arg value2", &cmd2Options.arg2}
+
+                               }
+                               }},
+
+                              {"comm-3", {"Run 3rd command",
+                               [&]() -> Result<void, Error> {
+                                   commandExecuted[2] = true;
+
+                                   return Ok();
+                               }}}
+                          })
+                .parse(countArgc(argv), argv);
+
+        if (!result) {
+            CPPUNIT_FAIL(result.getError().toString().c_str());
+        } else {
+            CPPUNIT_ASSERT(result.unwrap()().isOk());
+        }
+
+        CPPUNIT_ASSERT(!commandExecuted[0]);
+        CPPUNIT_ASSERT(commandExecuted[1]);
+        CPPUNIT_ASSERT(!commandExecuted[2]);
+
+
+        CPPUNIT_ASSERT_EQUAL(true, verbose);
+        CPPUNIT_ASSERT_EQUAL(42, globalInt);
+
+        CPPUNIT_ASSERT_EQUAL(11, cmd2Options.value);
+        CPPUNIT_ASSERT_EQUAL(StringView("ArgValue1"), cmd2Options.arg1);
+        CPPUNIT_ASSERT_EQUAL(StringView("arg2"), cmd2Options.arg2);
+    }
 };
 
 CPPUNIT_TEST_SUITE_REGISTRATION(TestCommandlineParser);
