@@ -42,7 +42,7 @@ set(TEST_SOURCE_FILES
         io/test_pipe.cpp
 
         process/test_env.cpp
-        cli/test_commandlineParser.cpp
+        cli/test_parser.cpp
 
         hashing/test_md5.cpp
         hashing/test_murmur3.cpp

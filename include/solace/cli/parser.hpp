@@ -15,17 +15,17 @@
 */
 /*******************************************************************************
  * libSolace: Command line parser
- *	@file		solace/cli/commandlineParser.hpp
+ *	@file		solace/cli/parser.hpp
  *	@author		$LastChangedBy: $
  *	@date		$LastChangedDate: $
- *	@brief		Command line parser
+ *	@brief		Commandline arguments Parser
  *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_CLI_PARSER_HPP
 #define SOLACE_CLI_PARSER_HPP
 
-#include "solace/string.hpp"
+#include "solace/stringView.hpp"
 #include "solace/result.hpp"
 #include "solace/error.hpp"
 #include "solace/array.hpp"
@@ -46,21 +46,22 @@ namespace Solace { namespace cli {
  * \code{.cpp}
  int main(int argc, argv) {
 
-  CommandlineParser("My application", {
+  cli::Parser("My application", {
                 // Custom handler example:
                 CommandlineParser::printVersion("my_app", Version(1, 2, 3, "dev")),
                 CommandlineParser::printHelp(),
 
-                // Regular argument of integral type
+                // Regular options of integral type
                 {{"size"}, "Buffer size", &settings.bufferSize },
                 {{"u", "userName"}, "User name", &settings.userName }
             })
-            .commands({"doSomething", {
-                // Commands support optional arguments:
-                { "Mandatory argument", &settings.param },
-                [] () {   // Action to execute.
-                    std::cout << "Executing command" << std:endl;
-                }
+            .commands({
+                    {"doSomething", { // Commands support optional arguments:
+                        { "Mandatory argument", &settings.param },
+                        [] () {   // Action to execute.
+                            std::cout << "Executing command" << std:endl;
+                        }
+                    }
             }})
             .parse(argc, argv)
             .then(...consume parsing results...
@@ -75,7 +76,7 @@ namespace Solace { namespace cli {
  * That is why it is desirable that parser don't allocate any memory during parsing.
  * To support that - parser work with StringView and StringLiteral types that don't take ownership of the string buffer.
  */
-class CommandlineParser {
+class Parser {
 public:
 
     /**
@@ -99,11 +100,11 @@ public:
         const StringView name;
 
         /// Reference to the instance of the parser that invokes the callback.
-        const CommandlineParser& parser;
+        const Parser& parser;
 
         Context(uint inArgc, const char *inArgv[], uint inOffset,
                 StringView inName,
-                const CommandlineParser& self) :
+                const Parser& self) :
             argc(inArgc),
             argv(inArgv),
             offset(inOffset),
@@ -381,40 +382,40 @@ public:
 
 public:
 
-    ~CommandlineParser() = default;
+    ~Parser() = default;
 
     /// Default copy-constructor
-    CommandlineParser(const CommandlineParser& rhs) = default;
+    Parser(const Parser& rhs) = default;
 
     /// Default move-constructor
-    CommandlineParser(CommandlineParser&& rhs) noexcept = default;
+    Parser(Parser&& rhs) noexcept = default;
 
     /**
      * Construct default command line parser.
      *
      * @param appDescription Human readable application description to be used by 'help'-type commands.
      */
-    CommandlineParser(StringView appDescription);
+    Parser(StringView appDescription);
 
     /**
      * Construct a commandline parser with application description and a list of expected options.
      * @param appDescription Hyman readable application description to be used by 'help'-type commands.
      * @param options Initializer-list of command line options. @see CommandlineParser::options() for more info.
      */
-    CommandlineParser(StringView appDescription,
+    Parser(StringView appDescription,
                       const std::initializer_list<Option>& options);
 
-    CommandlineParser& operator= (const CommandlineParser& rhs) noexcept {
-        CommandlineParser(rhs).swap(*this);
+    Parser& operator= (const Parser& rhs) noexcept {
+        Parser(rhs).swap(*this);
 
         return *this;
     }
 
-    CommandlineParser& operator= (CommandlineParser&& rhs) noexcept {
+    Parser& operator= (Parser&& rhs) noexcept {
         return swap(rhs);
     }
 
-    CommandlineParser& swap(CommandlineParser& rhs) noexcept {
+    Parser& swap(Parser& rhs) noexcept {
         using std::swap;
         swap(_prefix, rhs._prefix);
         swap(_valueSeparator, rhs._valueSeparator);
@@ -443,12 +444,28 @@ public:
      */
     static Option printVersion(StringView appName, const Version& appVersion);
 
+
     /**
-     * Add an option to print application help summary.
+     * Add a command to print application's version.
+     * @param appName Name of the application to print along with version.
+     * @param appVersion Application version to be printed.
+     * @return A parser command that when given by a user will result in a printing of the version info.
+     */
+    static CommandDict::value_type printVersionCmd(StringView appName, const Version& appVersion);
+
+
+    /**
+     * Add an option to print help summary.
      * @return A parser option that when given by a user will result in a printing of
      * short options summary.
      */
     static Option printHelp();
+
+    /**
+     * Add a command to print help summary.
+     * @return A parser command that when given by a user will result in a printing of help summary.
+     */
+    static CommandDict::value_type printHelpCmd();
 
 
     /**
@@ -462,7 +479,7 @@ public:
      * @param prefixChar A new value for the prefix character.
      * @return Reference to this for fluent interface.
      */
-    CommandlineParser& optionPrefix(char prefixChar) noexcept {
+    Parser& optionPrefix(char prefixChar) noexcept {
         _prefix = prefixChar;
         return *this;
     }
@@ -478,7 +495,7 @@ public:
      * @param prefixChar A new value for the prefix character.
      * @return Reference to this for fluent interface.
      */
-    CommandlineParser& valueSeparator(char value) noexcept {
+    Parser& valueSeparator(char value) noexcept {
         _valueSeparator = value;
         return *this;
     }
@@ -495,32 +512,35 @@ public:
      * @param desc New value for human-readable application description string.
      * @return Reference to this for fluent interface.
      */
-    CommandlineParser& description(StringView desc) noexcept {
+    Parser& description(StringView desc) noexcept {
         _defaultAction.description(desc);
 
         return *this;
     }
 
     const Array<Option>& options() const noexcept       { return _defaultAction.options(); }
-    CommandlineParser& options(std::initializer_list<Option> options) {
+    Parser& options(std::initializer_list<Option> options) {
         _defaultAction.options(options);
 
         return *this;
     }
 
     const CommandDict& commands() const noexcept        { return _defaultAction.commands(); }
-    CommandlineParser& commands(std::initializer_list<CommandDict::value_type> commands) {
+    Parser& commands(std::initializer_list<CommandDict::value_type> commands) {
         _defaultAction.commands(commands);
 
         return *this;
     }
 
     const Array<Argument>& arguments() const noexcept       { return _defaultAction.arguments(); }
-    CommandlineParser& arguments(std::initializer_list<Argument> arguments) {
+    Parser& arguments(std::initializer_list<Argument> arguments) {
         _defaultAction.arguments(arguments);
 
         return *this;
     }
+
+    Command& defaultAction() noexcept { return _defaultAction; }
+    const Command& defaultAction() const noexcept { return _defaultAction; }
 
 private:
 
@@ -536,15 +556,15 @@ private:
 
 
 
-inline void swap(CommandlineParser::Option& lhs, CommandlineParser::Option& rhs) noexcept {
+inline void swap(Parser::Option& lhs, Parser::Option& rhs) noexcept {
     lhs.swap(rhs);
 }
 
-inline void swap(CommandlineParser::Command& lhs, CommandlineParser::Command& rhs) noexcept {
+inline void swap(Parser::Command& lhs, Parser::Command& rhs) noexcept {
     lhs.swap(rhs);
 }
 
-inline void swap(CommandlineParser& lhs, CommandlineParser& rhs) noexcept {
+inline void swap(Parser& lhs, Parser& rhs) noexcept {
     lhs.swap(rhs);
 }
 

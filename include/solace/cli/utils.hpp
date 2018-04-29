@@ -17,18 +17,18 @@
 */
 /*******************************************************************************
  * libSolace: Command line parser utilities
- *	@file		solace/framework/commandlineUtils.hpp
+ *	@file		solace/cli/utils.hpp
  *	@author		$LastChangedBy: $
  *	@date		$LastChangedDate: $
  *	@brief		Command line parser helpers
  *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_CLI_COMMANDLINEUTILS_HPP
-#define SOLACE_CLI_COMMANDLINEUTILS_HPP
+#ifndef SOLACE_CLI_UTILS_HPP
+#define SOLACE_CLI_UTILS_HPP
 
 #include "solace/types.hpp"
-#include "solace/string.hpp"
+#include "solace/stringView.hpp"
 #include "solace/optional.hpp"
 #include "solace/version.hpp"
 
@@ -82,28 +82,20 @@ private:
 class HelpFormatter {
 public:
 
-    HelpFormatter(std::ostream& output, char optionsPrefix = CommandlineParser::DefaultPrefix) :
-        _optionsPrefix(optionsPrefix),
-        _output(output)
+    HelpFormatter(char optionsPrefix = Parser::DefaultPrefix) :
+        _optionsPrefix(optionsPrefix)
     {}
 
-    void operator() (StringView name,
-                     const StringView& desc,
-                     const Array<CommandlineParser::Option>& options,
-                     const CommandlineParser::CommandDict& commands);
-
-protected:
-
-    void formatOption(char prefixChar, const CommandlineParser::Option& option);
-    void formatCommand(const String& name, const CommandlineParser::Command& cmd);
+    void operator() (std::ostream& output,
+                     const StringView& name,
+                     const Parser::Command& command);
 
 private:
 
     const char _optionsPrefix;
-    std::ostream& _output;
 };
 
 
 }  // End of namespace cli
 }  // End of namespace Solace
-#endif  // SOLACE_CLI_COMMANDLINEUTILS_HPP
+#endif  // SOLACE_CLI_UTILS_HPP

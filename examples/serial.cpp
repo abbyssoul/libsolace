@@ -19,7 +19,7 @@
 #include <solace/io/serial.hpp>
 #include <solace/version.hpp>
 #include <solace/exception.hpp>
-#include <solace/cli/commandlineParser.hpp>
+#include <solace/cli/parser.hpp>
 
 
 #include <iostream>
@@ -49,16 +49,15 @@ int main(int argc, const char **argv) {
     uint32 bufferSize = 120;
     Solace::Path file;
 
-    const auto parseResult = CommandlineParser("Serial port example",
-                        {
-                          CommandlineParser::printHelp(),
-                          CommandlineParser::printVersion("serial", getBuildVersion()),
+    const auto parseResult = Parser("Serial port example", {
+                          Parser::printHelp(),
+                          Parser::printVersion("serial", getBuildVersion()),
                           {{"b", "boudRate"},   "COM port boud rate",   &boudRate},
                           {{"bufferSize"},      "Read buffer size",     &bufferSize}
                         })
             .arguments({
                           { "fileName", "File/device name to open",
-                        [&file](const StringView& value, const CommandlineParser::Context&) {
+                            [&file](const StringView& value, const Parser::Context&) {
                                 file = Solace::Path::parse(value);
                                 return None();
                            }

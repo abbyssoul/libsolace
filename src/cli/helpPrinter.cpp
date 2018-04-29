@@ -19,8 +19,8 @@
  *  Created by soultaker on 18/04/18.
 *******************************************************************************/
 
-#include "solace/cli/commandlineParser.hpp"
-#include "solace/cli/commandlineUtils.hpp"
+#include "solace/cli/parser.hpp"
+#include "solace/cli/utils.hpp"
 #include "solace/parseUtils.hpp"
 #include "solace/path.hpp"
 
@@ -36,44 +36,8 @@ using namespace Solace;
 using namespace Solace::cli;
 
 
-void
-HelpFormatter::operator() (StringView name,
-                           const StringView& desc,
-                           const Array<CommandlineParser::Option>& options,
-                           const CommandlineParser::CommandDict& commands
-                           ) {
-    _output << "Usage: " << name;  // Path::parse(c.argv[0]).getBasename();
 
-    if (!options.empty()) {
-        _output << " [options]";
-    }
-
-    if (!commands.empty()) {
-        _output << " <command>";
-    }
-
-    _output << std::endl;
-    _output << desc << std::endl;
-
-    if (!options.empty()) {
-        _output << "Options:" << std::endl;
-
-        for (const auto& opt : options) {
-            formatOption(_optionsPrefix, opt);
-        }
-    }
-
-    if (!commands.empty()) {
-        _output << "Commands:" << std::endl;
-
-        for (const auto& cmd : commands) {
-            formatCommand(cmd.first, cmd.second);
-        }
-    }
-}
-
-
-void HelpFormatter::formatOption(char prefixChar, const CommandlineParser::Option& option) {
+void formatOption(std::ostream& output, char prefixChar, const Parser::Option& option) {
     std::stringstream s;
     s << "  ";
 
@@ -92,18 +56,61 @@ void HelpFormatter::formatOption(char prefixChar, const CommandlineParser::Optio
         chained = true;
     }
 
-    _output << std::left << std::setw(26) << s.str() << option.description() << std::endl;
+    output << std::left << std::setw(26) << s.str() << option.description() << std::endl;
 }
 
 
-void HelpFormatter::formatCommand(const String& name, const CommandlineParser::Command& cmd) {
-    _output << "  " << std::left << std::setw(14)
+void formatCommand(std::ostream& output, const String& name, const Parser::Command& cmd) {
+    output << "  " << std::left << std::setw(14)
             << name << cmd.description() << std::endl;
+}
+
+
+void
+HelpFormatter::operator() (std::ostream& output,
+                           const StringView& name,
+                           const Parser::Command& cmd
+                           ) {
+    output << "Usage: " << name;  // Path::parse(c.argv[0]).getBasename();
+
+    if (!cmd.options().empty()) {
+        output << " [options]";
+    }
+
+    if (!cmd.arguments().empty()) {
+        for (const auto& arg : cmd.arguments()) {
+            output << " [" << arg.name() <<"]";
+        }
+    }
+
+
+    if (!cmd.commands().empty()) {
+        output << " <command>";
+    }
+
+    output << std::endl;
+    output << cmd.description() << std::endl;
+
+    if (!cmd.options().empty()) {
+        output << "Options:" << std::endl;
+
+        for (const auto& opt : cmd.options()) {
+            formatOption(output, _optionsPrefix, opt);
+        }
+    }
+
+    if (!cmd.commands().empty()) {
+        output << "Commands:" << std::endl;
+
+        for (const auto& cmd : cmd.commands()) {
+            formatCommand(output, cmd.first, cmd.second);
+        }
+    }
 }
 
 
 
 void
-VersionPrinter::operator() (std::ostream& dest) {
-    dest << _canonicalAppName << " " << _version << std::endl;
+VersionPrinter::operator() (std::ostream& output) {
+    output << _canonicalAppName << " " << _version << std::endl;
 }

@@ -1,10 +1,5 @@
 
 set(SOURCE_FILES
-        ../include/solace/stringView.hpp
-        ../include/solace/string.hpp
-        ../include/solace/cli/commandlineParser.hpp
-
-
         assert.cpp
         exception.cpp
         error.cpp
@@ -45,7 +40,7 @@ set(SOURCE_FILES
         process/env.cpp
 
         cli/helpPrinter.cpp
-        cli/commandlineParser.cpp
+        cli/parser.cpp
 
         framework/application.cpp
 

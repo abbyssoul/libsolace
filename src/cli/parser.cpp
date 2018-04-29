@@ -14,13 +14,13 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * @file: cli/commandlineParser.cpp
+ * @file: cli/parser.cpp
  *
  *  Created by soultaker on 18/08/16.
 *******************************************************************************/
 
-#include "solace/cli/commandlineParser.hpp"
-#include "solace/cli/commandlineUtils.hpp"
+#include "solace/cli/parser.hpp"
+#include "solace/cli/utils.hpp"
 #include "solace/parseUtils.hpp"
 
 #include <fmt/format.h>
@@ -40,8 +40,8 @@ using namespace Solace;
 using namespace Solace::cli;
 
 
-const char CommandlineParser::DefaultPrefix = '-';
-const char CommandlineParser::DefaultValueSeparator = '=';
+const char Parser::DefaultPrefix = '-';
+const char Parser::DefaultValueSeparator = '=';
 
 
 
@@ -55,7 +55,7 @@ formatOptionalError(const char* fmt, Args&&... values) {
 
 template<typename T>
 Optional<Error>
-parseIntArgument(T* dest, const StringView& value, const CommandlineParser::Context&) {
+parseIntArgument(T* dest, const StringView& value, const Parser::Context&) {
     auto val = tryParse<T>(value);
 
     if (val) {
@@ -83,7 +83,7 @@ parseBoolean(bool* dest, StringView value) {
 }
 
 
-CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, StringView* dest) :
+Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, StringView* dest) :
     Option(names, desc, OptionArgument::Required,
            [dest](const Optional<StringView>& value, const Context&) -> Optional<Error> {
         *dest = value.get();
@@ -94,7 +94,7 @@ CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, St
 }
 
 
-CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, int8* dest):
+Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, int8* dest):
     Option(names, desc, OptionArgument::Required,
            [dest](const Optional<StringView>& value, const Context& context) {
                 return parseIntArgument(dest, value.get(), context);
@@ -102,7 +102,7 @@ CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, St
 {
 }
 
-CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, uint8* dest):
+Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, uint8* dest):
     Option(names, desc, OptionArgument::Required,
            [dest](const Optional<StringView>& value, const Context& context) {
                return parseIntArgument(dest, value.get(), context);
@@ -111,7 +111,7 @@ CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, St
 }
 
 
-CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, int16* dest):
+Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, int16* dest):
     Option(names, desc, OptionArgument::Required,
            [dest](const Optional<StringView>& value, const Context& context) {
                return parseIntArgument(dest, value.get(), context);
@@ -119,24 +119,7 @@ CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, St
 {
 }
 
-CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, uint16* dest):
-    Option(names, desc, OptionArgument::Required,
-           [dest](const Optional<StringView>& value, const Context& context) {
-               return parseIntArgument(dest, value.get(), context);
-           })
-{
-}
-
-
-CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, int32* dest):
-    Option(names, desc, OptionArgument::Required,
-           [dest](const Optional<StringView>& value, const Context& context) {
-               return parseIntArgument(dest, value.get(), context);
-           })
-{
-}
-
-CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, uint32* dest):
+Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, uint16* dest):
     Option(names, desc, OptionArgument::Required,
            [dest](const Optional<StringView>& value, const Context& context) {
                return parseIntArgument(dest, value.get(), context);
@@ -145,7 +128,7 @@ CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, St
 }
 
 
-CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, int64* dest):
+Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, int32* dest):
     Option(names, desc, OptionArgument::Required,
            [dest](const Optional<StringView>& value, const Context& context) {
                return parseIntArgument(dest, value.get(), context);
@@ -153,7 +136,7 @@ CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, St
 {
 }
 
-CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, uint64* dest):
+Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, uint32* dest):
     Option(names, desc, OptionArgument::Required,
            [dest](const Optional<StringView>& value, const Context& context) {
                return parseIntArgument(dest, value.get(), context);
@@ -161,7 +144,24 @@ CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, St
 {
 }
 
-CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, float32* dest) :
+
+Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, int64* dest):
+    Option(names, desc, OptionArgument::Required,
+           [dest](const Optional<StringView>& value, const Context& context) {
+               return parseIntArgument(dest, value.get(), context);
+           })
+{
+}
+
+Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, uint64* dest):
+    Option(names, desc, OptionArgument::Required,
+           [dest](const Optional<StringView>& value, const Context& context) {
+               return parseIntArgument(dest, value.get(), context);
+           })
+{
+}
+
+Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, float32* dest) :
     Option(names, desc, OptionArgument::Required,
            [dest](const Optional<StringView>& value, const Context& context) -> Optional<Error> {
         char* pEnd = nullptr;
@@ -178,7 +178,7 @@ CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, St
 {
 }
 
-CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, float64* dest) :
+Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, float64* dest) :
     Option(names, desc, OptionArgument::Required,
            [dest](const Optional<StringView>& value, const Context& context) -> Optional<Error> {
         char* pEnd = nullptr;
@@ -196,7 +196,7 @@ CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, St
 }
 
 
-CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, bool* dest) :
+Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral desc, bool* dest) :
      Option(names, desc, OptionArgument::Optional,
             [dest](const Optional<StringView>& value, const Context&) -> Optional<Error> {
          if (value.isSome()) {
@@ -212,61 +212,61 @@ CommandlineParser::Option::Option(std::initializer_list<StringLiteral> names, St
 
 
 
-CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral description, int8* dest):
+Parser::Argument::Argument(StringLiteral name, StringLiteral description, int8* dest):
     Argument(name, description,
              [dest](const StringView& value, const Context& context) { return parseIntArgument(dest, value, context); })
 {
 }
 
-CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral description, uint8* dest):
+Parser::Argument::Argument(StringLiteral name, StringLiteral description, uint8* dest):
     Argument(name, description,
              [dest](const StringView& value, const Context& context) { return parseIntArgument(dest, value, context); })
 {
 }
 
-CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral description, int16* dest):
-    Argument(name, description,
-             [dest](const StringView& value, const Context& context) { return parseIntArgument(dest, value, context); })
-
-{
-}
-
-CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral description, uint16* dest):
+Parser::Argument::Argument(StringLiteral name, StringLiteral description, int16* dest):
     Argument(name, description,
              [dest](const StringView& value, const Context& context) { return parseIntArgument(dest, value, context); })
 
 {
 }
 
-CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral description, int32* dest):
+Parser::Argument::Argument(StringLiteral name, StringLiteral description, uint16* dest):
     Argument(name, description,
              [dest](const StringView& value, const Context& context) { return parseIntArgument(dest, value, context); })
 
 {
 }
 
-CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral description, uint32* dest):
+Parser::Argument::Argument(StringLiteral name, StringLiteral description, int32* dest):
     Argument(name, description,
              [dest](const StringView& value, const Context& context) { return parseIntArgument(dest, value, context); })
 
 {
 }
 
-CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral description, int64* dest):
+Parser::Argument::Argument(StringLiteral name, StringLiteral description, uint32* dest):
     Argument(name, description,
              [dest](const StringView& value, const Context& context) { return parseIntArgument(dest, value, context); })
 
 {
 }
 
-CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral description, uint64* dest):
+Parser::Argument::Argument(StringLiteral name, StringLiteral description, int64* dest):
     Argument(name, description,
              [dest](const StringView& value, const Context& context) { return parseIntArgument(dest, value, context); })
 
 {
 }
 
-CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral description, float32* dest):
+Parser::Argument::Argument(StringLiteral name, StringLiteral description, uint64* dest):
+    Argument(name, description,
+             [dest](const StringView& value, const Context& context) { return parseIntArgument(dest, value, context); })
+
+{
+}
+
+Parser::Argument::Argument(StringLiteral name, StringLiteral description, float32* dest):
     Argument(name, description,
              [dest](const StringView& value, const Context& context) {
         char* pEnd = nullptr;
@@ -280,7 +280,7 @@ CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral descript
 }
 
 
-CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral description, float64* dest):
+Parser::Argument::Argument(StringLiteral name, StringLiteral description, float64* dest):
     Argument(name, description,
              [dest](const StringView& value, const Context& context) {
         char* pEnd = nullptr;
@@ -294,13 +294,13 @@ CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral descript
 }
 
 
-CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral description, bool* dest) :
+Parser::Argument::Argument(StringLiteral name, StringLiteral description, bool* dest) :
     Argument(name, description, [dest](const StringView& value, const Context&) { return parseBoolean(dest, value); })
 {
 }
 
 
-CommandlineParser::Argument::Argument(StringLiteral name, StringLiteral description, StringView* dest) :
+Parser::Argument::Argument(StringLiteral name, StringLiteral description, StringView* dest) :
     Argument(name, description, [dest](const StringView& value, const Context&) { *dest = value; return None(); })
 {
 }
@@ -312,7 +312,7 @@ idleAction() {
 }
 
 
-CommandlineParser::CommandlineParser(StringView appDescription) :
+Parser::Parser(StringView appDescription) :
     _prefix(DefaultPrefix),
     _valueSeparator(DefaultValueSeparator),
     _defaultAction(std::move(appDescription), idleAction)
@@ -320,7 +320,7 @@ CommandlineParser::CommandlineParser(StringView appDescription) :
 }
 
 
-CommandlineParser::CommandlineParser(StringView appDescription,
+Parser::Parser(StringView appDescription,
                                      const std::initializer_list<Option>& options) :
     _prefix(DefaultPrefix),
     _valueSeparator(DefaultValueSeparator),
@@ -329,7 +329,7 @@ CommandlineParser::CommandlineParser(StringView appDescription,
 }
 
 
-bool CommandlineParser::Option::isMatch(StringView name) const noexcept {
+bool Parser::Option::isMatch(StringView name) const noexcept {
     for (const auto& optName : _names) {
         if (optName == name) {
             return true;
@@ -341,14 +341,14 @@ bool CommandlineParser::Option::isMatch(StringView name) const noexcept {
 
 
 Optional<Error>
-CommandlineParser::Option::match(const Optional<StringView>& value, const Context& cntx) const {
+Parser::Option::match(const Optional<StringView>& value, const Context& cntx) const {
     return _callback(value, cntx);
 }
 
 
 
 Optional<Error>
-CommandlineParser::Argument::match(const StringView& value, const Context& cntx) const {
+Parser::Argument::match(const StringView& value, const Context& cntx) const {
     return _callback(value, cntx);
 }
 
@@ -390,8 +390,8 @@ parseOption(StringView arg, char prefix, char valueSeparator) {
 
 
 Result<uint, Error>
-parseOptions(const CommandlineParser::Context& cntx,
-             const Array<CommandlineParser::Option>& options,
+parseOptions(const Parser::Context& cntx,
+             const Array<Parser::Option>& options,
              char prefix, char separator) {
     uint firstPositionalArgument = cntx.offset;
 
@@ -428,11 +428,11 @@ parseOptions(const CommandlineParser::Context& cntx,
 
         uint numberMatched = 0;
 
-        const CommandlineParser::Context optCntx {cntx.argc, cntx.argv, i, argName, cntx.parser};
+        const Parser::Context optCntx {cntx.argc, cntx.argv, i, argName, cntx.parser};
         for (auto& option : options) {
             if (option.isMatch(argName)) {
                 if (argValue.isNone() &&
-                    option.getArgumentExpectations() == CommandlineParser::OptionArgument::Required) {
+                    option.getArgumentExpectations() == Parser::OptionArgument::Required) {
                     // Argument is required but none was given, error out!
                     return failUint("Option '{}' expects a value, none were given", optCntx.name);
                 }
@@ -456,8 +456,8 @@ parseOptions(const CommandlineParser::Context& cntx,
 }
 
 Result<uint, Error>
-parseArguments(const CommandlineParser::Context& cntx,
-               const Array<CommandlineParser::Argument>& arguments) {
+parseArguments(const Parser::Context& cntx,
+               const Array<Parser::Argument>& arguments) {
 
     const auto nbPositionalArguments = cntx.argc - cntx.offset;
     if (nbPositionalArguments < arguments.size())
@@ -478,7 +478,7 @@ parseArguments(const CommandlineParser::Context& cntx,
 
         const StringView arg {cntx.argv[positionalArgument]};
         auto& targetArg = arguments[i];
-        const CommandlineParser::Context subCntx{cntx.argc,
+        const Parser::Context subCntx{cntx.argc,
                     cntx.argv,
                     positionalArgument,
                     targetArg.name(),
@@ -496,8 +496,8 @@ parseArguments(const CommandlineParser::Context& cntx,
 }
 
 
-Result<CommandlineParser::ParseResult, Error>
-parseCommand(const CommandlineParser::Command& cmd, const CommandlineParser::Context& cntx) {
+Result<Parser::ParseResult, Error>
+parseCommand(const Parser::Command& cmd, const Parser::Context& cntx) {
 
     auto optionsParsingResult = parseOptions(cntx,
                                              cmd.options(),
@@ -519,7 +519,7 @@ parseCommand(const CommandlineParser::Command& cmd, const CommandlineParser::Con
                 return fail("Command '{}' not supported", subcmdName);
             }
 
-            const CommandlineParser::Context subcomandCntx{ cntx.argc,
+            const Parser::Context subcomandCntx{ cntx.argc,
                         cntx.argv,
                         positionalArgument + 1,
                         subcmdName,
@@ -527,7 +527,7 @@ parseCommand(const CommandlineParser::Command& cmd, const CommandlineParser::Con
 
             return parseCommand(cmdIt->second, subcomandCntx);
         } else if (!cmd.arguments().empty()) {
-            const CommandlineParser::Context subcomandCntx{cntx.argc,
+            const Parser::Context subcomandCntx{cntx.argc,
                         cntx.argv,
                         positionalArgument,
                         StringView(),
@@ -537,7 +537,7 @@ parseCommand(const CommandlineParser::Command& cmd, const CommandlineParser::Con
             if (!parseResult)
                 return Err(parseResult.moveError());
 
-            return Ok<CommandlineParser::ParseResult>(cmd.callback());
+            return Ok<Parser::ParseResult>(cmd.callback());
         } else {
             return fail("Unexpected arguments given");
         }
@@ -545,35 +545,35 @@ parseCommand(const CommandlineParser::Command& cmd, const CommandlineParser::Con
     } else {
 
         return (cmd.arguments().empty() && cmd.commands().empty())
-            ? Ok<CommandlineParser::ParseResult>(cmd.callback())
+            ? Ok<Parser::ParseResult>(cmd.callback())
             : fail("Not enough arguments");
     }
 }
 
-Result<CommandlineParser::ParseResult, Error>
-CommandlineParser::parse(int argc, const char *argv[]) const {
+Result<Parser::ParseResult, Error>
+Parser::parse(int argc, const char *argv[]) const {
     if (argc < 0) {
         return fail("Number of arguments can not be negative");
     }
 
     if (argc < 1) {
         return (_defaultAction.arguments().empty() && _defaultAction.commands().empty())
-                ? Ok<CommandlineParser::ParseResult>(_defaultAction.callback())
+                ? Ok<Parser::ParseResult>(_defaultAction.callback())
                 : fail("Not enough arguments");
     }
 
-    const CommandlineParser::Context cntx {static_cast<uint>(argc), argv, 1, argv[0], *this};
+    const Parser::Context cntx {static_cast<uint>(argc), argv, 1, argv[0], *this};
 
     return parseCommand(_defaultAction, cntx);
 }
 
 
-CommandlineParser::Option
-CommandlineParser::printVersion(StringView appName, const Version& appVersion) {
+Parser::Option
+Parser::printVersion(StringView appName, const Version& appVersion) {
     return {
         {"v", "version"},
         "Print version",
-        CommandlineParser::OptionArgument::NotRequired,
+        Parser::OptionArgument::NotRequired,
         [name = std::move(appName), version = std::move(appVersion)]
                 (const Optional<StringView>&, const Context&) -> Optional<Error> {
             VersionPrinter printer(name, version);
@@ -586,28 +586,26 @@ CommandlineParser::printVersion(StringView appName, const Version& appVersion) {
 }
 
 
-CommandlineParser::Option
-CommandlineParser::CommandlineParser::printHelp() {
+Parser::Option
+Parser::Parser::printHelp() {
     return {
         {"h", "help"},
         "Print help",
-        CommandlineParser::OptionArgument::NotRequired,
+        Parser::OptionArgument::NotRequired,
         [](const Optional<StringView>& value, const Context& cntx) -> Optional<Error> {
-            HelpFormatter printer(std::cout, cntx.parser.optionPrefix());
+            HelpFormatter printer(cntx.parser.optionPrefix());
 
             if (value.isNone()) {
-                printer(cntx.argv[0],
-                        cntx.parser.description(),
-                        cntx.parser.options(),
-                        cntx.parser.commands());
+                printer(std::cout,
+                        cntx.argv[0],
+                        cntx.parser.defaultAction());
             } else {
 
                 const auto& cmdIt = cntx.parser.commands().find(value.get());
                 if (cmdIt != cntx.parser.commands().end()) {
-                    printer(cmdIt->first,
-                            cmdIt->second.description(),
-                            cmdIt->second.options(),
-                            cmdIt->second.commands());
+                    printer(std::cout,
+                            cmdIt->first,
+                            cmdIt->second);
                 } else {
                     return Optional<Error>::of({"Unknown command"});
                 }
@@ -616,4 +614,31 @@ CommandlineParser::CommandlineParser::printHelp() {
             return None();
         }
     };
+}
+
+Parser::CommandDict::value_type
+Parser::printVersionCmd(StringView appName, const Version& appVersion) {
+    return {"version", {
+            "Print version",
+            [appName, appVersion]() -> Result<void, Error> {
+                 VersionPrinter printer(appName, appVersion);
+
+                 printer(std::cout);
+
+                 return Ok();
+            }
+        }};
+}
+
+Parser::CommandDict::value_type
+Parser::printHelpCmd() {
+    return {"help", {
+            "Print help",
+            []() -> Result<void, Error> {
+                HelpFormatter printer(Parser::DefaultPrefix);
+//                printer(std::cout);
+
+                return Ok();
+            }
+     }};
 }
