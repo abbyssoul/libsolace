@@ -359,7 +359,7 @@ public:
 
         String::size_type i = 0;
         for (auto& v : p) {
-            i++;
+            ++i;
             CPPUNIT_ASSERT_EQUAL(i, v.length());
         }
     }

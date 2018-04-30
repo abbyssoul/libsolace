@@ -30,6 +30,7 @@ set(TEST_SOURCE_FILES
         test_char.cpp
         test_string.cpp
         test_stringBuilder.cpp
+        test_stringView.cpp
         test_path.cpp
         test_version.cpp
         io/test_signalDispatcher.cpp
@@ -41,13 +42,13 @@ set(TEST_SOURCE_FILES
         io/test_pipe.cpp
 
         process/test_env.cpp
-        framework/test_commandlineParser.cpp
+        cli/test_parser.cpp
 
         hashing/test_md5.cpp
         hashing/test_murmur3.cpp
         hashing/test_sha1.cpp
         hashing/test_sha256.cpp
-    )
+        )
 
 add_executable(test_${PROJECT_NAME} ${TEST_SOURCE_FILES})
 

@@ -22,7 +22,6 @@
  *	ID:			$Id$
  ******************************************************************************/
 #include "solace/ioobject.hpp"
-#include "solace/byteBuffer.hpp"
 
 using namespace Solace;
 

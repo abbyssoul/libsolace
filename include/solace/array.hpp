@@ -133,6 +133,12 @@ public:
         return swap(rhs);
     }
 
+    Array<T>& operator= (std::initializer_list<T> rhs) noexcept {
+        _storage = rhs;
+
+        return *this;
+    }
+
     bool equals(const Array<T>& other) const noexcept {
         return ((&other == this) ||
                 (_storage == other._storage));

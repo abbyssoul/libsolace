@@ -40,7 +40,7 @@ class Error :
         public IFormattable {
 public:
 
-    ~Error() = default;
+    ~Error() override = default;
 
     //! Construct error with a message
     Error(std::string&& message, int code = -1) noexcept;
@@ -48,22 +48,16 @@ public:
     //! Construct error with a message
     Error(const std::string& message, int code = -1) noexcept;
 
-    Error(const Error& other) noexcept:
-        _code(other._code),
-        _message(other._message)
-    {}
+    Error(const Error& other) = default;
 
-    Error(Error&& other) noexcept :
-        _code(other._code),
-        _message(std::move(other._message))
-    {}
+    Error(Error&& other) noexcept = default;
 
 
     int value() const noexcept {
         return _code;
     }
 
-    bool operator == (const Error& rhs) const noexcept {
+    bool operator== (const Error& rhs) const noexcept {
         return value() == rhs.value();
     }
 

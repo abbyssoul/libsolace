@@ -35,16 +35,6 @@ const String TRUE_STRING("true");
 const String FALSE_STRING("false");
 
 
-String::String() noexcept: _str() {
-}
-
-String::String(const String& s) noexcept: _str(s._str) {
-}
-
-String::String(String&& s) noexcept {
-    _str.swap(s._str);
-}
-
 String::String(const char* data) :
     _str(assertNotNull(data)) {
 }
@@ -57,15 +47,10 @@ String::String(const ImmutableMemoryView& buffer):
 
 }
 
-String::String(ByteBuffer& buffer) {
-    // Consume ramaining buffer
-    auto memView = buffer.viewWritten();
-    _str.assign(reinterpret_cast<const char*>(memView.dataAddress()), memView.size());
-
-    // Update position accordingly
-    buffer.position(buffer.limit());
+String::String(StringView view) :
+        _str(view.data(), view.size())
+{
 }
-
 
 
 String& String::swap(String& rhs) noexcept {

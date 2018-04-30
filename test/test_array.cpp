@@ -136,7 +136,6 @@ protected:
 
 public:
 
-    // cppcheck-suppress unusedFunction
     void setUp() override {
         // TODO(abbyssoul): Debug::BeginMemCheck();
         CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
@@ -144,7 +143,6 @@ public:
         CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
 	}
 
-    // cppcheck-suppress unusedFunction
     void tearDown() override {
         // TODO(abbyssoul): Debug::EndMemCheck();
         CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);

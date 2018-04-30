@@ -19,8 +19,8 @@
  *
  */
 
+#include <solace/cli/parser.hpp>
 #include <solace/framework/application.hpp>
-#include <solace/framework/commandlineParser.hpp>
 
 
 #include <iostream>
@@ -33,27 +33,29 @@ using namespace Solace::Framework;
 class ExampleApp : public Application {
 public:
 
-    explicit ExampleApp(const String& name) : Application(Version(1, 0, 0, "Demo")),
-        _name(name)
+    explicit ExampleApp(StringView name) : Application(Version(1, 0, 0, "Demo")),
+        _name(std::move(name))
     {}
 
     using Application::init;
 
-    Result<void, Error> init(int argc, const char *argv[]) override {
+    Result<void, Error>
+    init(int argc, const char *argv[]) override {
 
         int someParam = 0;
 
-        return CommandlineParser("Solace app-framework example", {
-                    CommandlineParser::printHelp(),
-                    CommandlineParser::printVersion("application", getVersion()),
-                    {0, "some-param", "Some useless parameter for the demo", &someParam},
-                    {'u', "name", "Name to call", &_name}
+        return cli::Parser("Solace app-framework example", {
+                    cli::Parser::printHelp(),
+                    cli::Parser::printVersion("application", getVersion()),
+                    {{"some-param"}, "Some useless parameter for the demo", &someParam},
+                    {{"u", "name"}, "Name to call", &_name}
                 })
                 .parse(argc, argv)
-                .then([](const CommandlineParser*) { return; });
+                .then([](cli::Parser::ParseResult&&) { return; });
     }
 
-    Solace::Result<int, Solace::Error> run() {
+    Solace::Result<int, Solace::Error>
+    run() {
         std::cout << "Hello";
 
         if (Solace::isBigendian())
@@ -73,12 +75,11 @@ public:
 
 private:
 
-    Solace::String _name;
+    Solace::StringView _name;
 };
 
 
 int main(int argc, char **argv) {
-
     ExampleApp app("Demo App");
 
     return app.init(argc, argv)

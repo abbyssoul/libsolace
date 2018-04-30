@@ -14,7 +14,7 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Command line parser
+ * libSolace: Text parsing utils
  *	@file		solace/parseUtils.hpp
  *	@brief		Various text parsing utils that has not found a better home yet.
  ******************************************************************************/
@@ -29,59 +29,65 @@
 
 namespace Solace {
 
-Result<int8, Error> tryParseInt8(const char* value, const char* name);
+Result<bool, Error> tryParseBoolean(StringView value);
 
-Result<int16, Error> tryParseInt16(const char* value, const char* name);
+Result<int8, Error> tryParseInt8(StringView value);
 
-Result<int32, Error> tryParseInt32(const char* value, const char* name);
+Result<int16, Error> tryParseInt16(StringView value);
 
-Result<int64, Error> tryParseInt64(const char* value, const char* name);
+Result<int32, Error> tryParseInt32(StringView value);
 
-Result<uint8, Error> tryParseUInt8(const char* value, const char* name);
+Result<int64, Error> tryParseInt64(StringView value);
 
-Result<uint16, Error> tryParseUInt16(const char* value, const char* name);
+Result<uint8, Error> tryParseUInt8(StringView value);
 
-Result<uint32, Error> tryParseUInt32(const char* value, const char* name);
+Result<uint16, Error> tryParseUInt16(StringView value);
 
-Result<uint64, Error> tryParseUInt64(const char* value, const char* name);
+Result<uint32, Error> tryParseUInt32(StringView value);
+
+Result<uint64, Error> tryParseUInt64(StringView value);
 
 
 template<typename T>
-Result<T, Error> tryParse(const char* value, const char* name);
+Result<T, Error> tryParse(StringView value);
 
 
 template<>
 inline
-Result<int8, Error> tryParse<int8>(const char* value, const char* name) { return tryParseInt8(value, name); }
+Result<bool, Error> tryParse<bool>(StringView value) { return tryParseBoolean(value); }
 
 template<>
 inline
-Result<int16, Error> tryParse<int16>(const char* value, const char* name) { return tryParseInt16(value, name); }
+Result<int8, Error> tryParse<int8>(StringView value) { return tryParseInt8(value); }
 
 template<>
 inline
-Result<int32, Error> tryParse<int32>(const char* value, const char* name) { return tryParseInt32(value, name); }
+Result<int16, Error> tryParse<int16>(StringView value) { return tryParseInt16(value); }
 
 template<>
 inline
-Result<int64, Error> tryParse<int64>(const char* value, const char* name) { return tryParseInt64(value, name); }
+Result<int32, Error> tryParse<int32>(StringView value) { return tryParseInt32(value); }
+
+template<>
+inline
+Result<int64, Error> tryParse<int64>(StringView value) { return tryParseInt64(value); }
 
 
 template<>
 inline
-Result<uint8, Error> tryParse<uint8>(const char* value, const char* name) { return tryParseUInt8(value, name); }
+Result<uint8, Error> tryParse<uint8>(StringView value) { return tryParseUInt8(value); }
 
 template<>
 inline
-Result<uint16, Error> tryParse<uint16>(const char* value, const char* name) { return tryParseUInt16(value, name); }
+Result<uint16, Error> tryParse<uint16>(StringView value) { return tryParseUInt16(value); }
 
 template<>
 inline
-Result<uint32, Error> tryParse<uint32>(const char* value, const char* name) { return tryParseUInt32(value, name); }
+Result<uint32, Error> tryParse<uint32>(StringView value) { return tryParseUInt32(value); }
 
 template<>
 inline
-Result<uint64, Error> tryParse<uint64>(const char* value, const char* name) { return tryParseUInt64(value, name); }
+Result<uint64, Error> tryParse<uint64>(StringView value) { return tryParseUInt64(value); }
 
 
 }  // End of namespace Solace

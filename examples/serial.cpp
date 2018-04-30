@@ -19,7 +19,7 @@
 #include <solace/io/serial.hpp>
 #include <solace/version.hpp>
 #include <solace/exception.hpp>
-#include <solace/framework/commandlineParser.hpp>
+#include <solace/cli/parser.hpp>
 
 
 #include <iostream>
@@ -27,7 +27,7 @@
 
 
 using namespace Solace;
-using namespace Solace::Framework;
+using namespace Solace::cli;
 
 
 void enumerateDevices() {
@@ -49,20 +49,19 @@ int main(int argc, const char **argv) {
     uint32 bufferSize = 120;
     Solace::Path file;
 
-    const auto parseResult = CommandlineParser("Serial port example",
-                        {
-                          CommandlineParser::printHelp(),
-                          CommandlineParser::printVersion("serial", getBuildVersion()),
-                          {'b', "boudRate",     "COM port boud rate",   &boudRate},
-                          {0,   "bufferSize",   "Read buffer size",     &bufferSize}
-                        },
-                        {{ "fileName", "Name of the file/device to open", [&file](CommandlineParser::Context& c) {
-                               file = Solace::Path::parse(c.value);
-
-                               return None();
+    const auto parseResult = Parser("Serial port example", {
+                          Parser::printHelp(),
+                          Parser::printVersion("serial", getBuildVersion()),
+                          {{"b", "boudRate"},   "COM port boud rate",   &boudRate},
+                          {{"bufferSize"},      "Read buffer size",     &bufferSize}
+                        })
+            .arguments({
+                          { "fileName", "File/device name to open",
+                            [&file](const StringView& value, const Parser::Context&) {
+                                file = Solace::Path::parse(value);
+                                return None();
                            }
-                         }}
-                      )
+                        }})
             .parse(argc, argv);
 
     if (!parseResult) {
@@ -99,11 +98,11 @@ int main(int argc, const char **argv) {
 
                         readBuffer.rewind();
                     } else {
-                        std::cout << "Serial was ready but no bytes read: " << bytesRead.getError() << ". Aborting." << std::endl;
+                        std::cout << "Serial port signaled as ready but no bytes read: " << bytesRead.getError() << ". Aborting." << std::endl;
                         keepOnRunning = false;
                     }
                 } else {
-                    std::cout << "Serial fid reported odd events: '" << event.events << "'. Aborting." << std::endl;
+                    std::cout << "Serial port fid reported unexpected events: '" << event.events << "'. Aborting." << std::endl;
                     keepOnRunning = false;
                 }
             }

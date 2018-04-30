@@ -231,10 +231,11 @@ void MurmurHash3_x86_128(const byte* data, const Murmur3_128::size_type len, uin
     h1 += h2; h1 += h3; h1 += h4;
     h2 += h1; h3 += h1; h4 += h1;
 
-    reinterpret_cast<uint32*>(out)[0] = h1;
-    reinterpret_cast<uint32*>(out)[1] = h2;
-    reinterpret_cast<uint32*>(out)[2] = h3;
-    reinterpret_cast<uint32*>(out)[3] = h4;
+    uint32* outAlias = reinterpret_cast<uint32*>(out);
+    outAlias[0] = h1;
+    outAlias[1] = h2;
+    outAlias[2] = h3;
+    outAlias[3] = h4;
 }
 
 //-----------------------------------------------------------------------------

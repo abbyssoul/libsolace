@@ -37,10 +37,9 @@ static constexpr size_t NAME_MAX = 255;
 
 
 SharedMemory::~SharedMemory() {
-    // FIXME: This can throw! Is there any way to avoid it?
-
-    if (isOpened()) {
-        close();
+    if ((_fd != File::InvalidFd)) {
+        ::close(_fd);
+        _fd = File::InvalidFd;
 
         if (_linkedPath) {
             // Unlinking quietly - if the file has been unlinked alredy - we don't care.
@@ -112,7 +111,8 @@ void SharedMemory::close() {
 }
 
 
-SharedMemory::size_type SharedMemory::size() const {
+SharedMemory::size_type
+SharedMemory::size() const {
     const auto fd = validateFd();
 
     struct stat sb;
@@ -120,7 +120,11 @@ SharedMemory::size_type SharedMemory::size() const {
         raise<IOException>(errno, "fstat");
     }
 
-    return sb.st_size;
+    if (sb.st_size < 0) {
+        raise<IOException>(errno, "fstat: negative size");
+    }
+
+    return static_cast<size_type>(sb.st_size);
 }
 
 

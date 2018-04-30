@@ -51,7 +51,7 @@ class Version :	public IComparable<Version>,
                 public IFormattable
 {
 public:
-	typedef uint64 		        value_type;
+    using value_type = uint64;
 
 	//!< The major version, to be incremented on incompatible changes.
 	value_type 			majorNumber;
@@ -74,12 +74,14 @@ public:
 
 public:
 
+    ~Version() noexcept override = default;
+
 	/** Empty version constructor */
-	Version() :	majorNumber(0), minorNumber(0),	patchNumber(0), preRelease(), build()
+    Version() :	majorNumber(0), minorNumber(0),	patchNumber(0), preRelease(), build()
 	{}
 
 	/** Construct the version object by specifying only numeric components */
-	Version(value_type aMajor, value_type aMinor, value_type aPatch) :
+    Version(value_type aMajor, value_type aMinor, value_type aPatch) :
 			majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
 			preRelease(), build()
 	{}
@@ -97,20 +99,10 @@ public:
 	{}
 
 	/** Copy-constructor */
-	Version(const Version& v) :
-		majorNumber(v.majorNumber), minorNumber(v.minorNumber), patchNumber(v.patchNumber),
-        preRelease(v.preRelease), build(v.build)
-	{}
+    Version(const Version& v) = default;
 
 	/** Move-constructor */
-	Version(Version&& v) :
-		majorNumber(std::move(v.majorNumber)),
-		minorNumber(std::move(v.minorNumber)),
-		patchNumber(std::move(v.patchNumber)),
-        preRelease(std::move(v.preRelease)), build(std::move(v.build))
-	{}
-
-    virtual ~Version() noexcept = default;
+    Version(Version&& v) = default;
 
 public:
 

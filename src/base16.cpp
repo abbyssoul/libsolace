@@ -106,8 +106,14 @@ Base16Decoder::encodedSize(const ImmutableMemoryView& data) const {
 }
 
 
-char charToBin(byte c) {
-    return kHexToBin[c];
+byte charToBin(byte c) {
+    const auto value = kHexToBin[c];
+
+    if (value < 0) {
+        raise<IllegalArgumentException>("Failed to decode base16 string: value is not in base16 alphabet");
+    }
+
+    return static_cast<byte>(value);
 }
 
 
@@ -116,12 +122,8 @@ Base16Decoder::encode(const ImmutableMemoryView& src) {
     auto& dest = *getDestBuffer();
 
     for (size_type i = 0; i < src.size(); i += 2) {
-        const char high = charToBin(src[i]);
-        const char low =  charToBin(src[i + 1]);
-
-        if (high < 0 || low < 0) {
-            raise<Exception>("Failed to decode base16 string: value is not in base16 alphabet");
-        }
+        const byte high = charToBin(src[i]);
+        const byte low =  charToBin(src[i + 1]);
 
         const byte value = static_cast<byte>(high << 4) + static_cast<byte>(low);
         dest << value;

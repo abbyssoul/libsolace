@@ -14,7 +14,7 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Base class for applicatoins
+ * libSolace: Base class for applications
  *	@file		solace/framework/application.hpp
  *	@author		$LastChangedBy: $
  *	@date		$LastChangedDate: $
@@ -39,9 +39,10 @@ namespace Solace { namespace Framework {
  */
 class Application {
 public:
+
     virtual ~Application();
 
-    Application(const Version& version): _version(version)
+    Application(const Version& version) : _version(version)
     {}
 
 
@@ -78,7 +79,8 @@ public:
      * @return Initialization result which can be either runnable action that resulted from given command line or
      * an error if application failed to initialized.
      */
-    Result<void, Error> init(int argc, char *argv[]) {
+    Result<void, Error>
+    init(int argc, char *argv[]) {
         return init(argc, const_cast<const char**>(argv));
     }
 

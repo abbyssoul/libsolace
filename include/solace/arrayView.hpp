@@ -42,23 +42,22 @@ namespace Solace {
 template <typename T>
 class ArrayView {
 public:
-    typedef T           value_type;
-    typedef uint32      size_type;
+    using value_type = T;
+    using size_type = uint32;
 
-    typedef T*          Iterator;
-    typedef const T*    const_iterator;
+    using Iterator = T *;
+    using const_iterator = const T *;
 
-    typedef T&          reference;
-    typedef const T&    const_reference;
+    using reference = T &;
+    using const_reference = const T &;
 
-    typedef T*          pointer_type;
-    typedef const T*    const_pointer;
+    using pointer_type = T *;
+    using const_pointer = const T *;
 
 public:
 
     /** Construct an empty array */
-    constexpr ArrayView() noexcept
-    {}
+    constexpr ArrayView() noexcept = default;
 
     constexpr ArrayView(decltype(nullptr)) noexcept
     {}
@@ -221,10 +220,12 @@ public:
         return _memory;
     }
 
+    // cppcheck-suppress unusedFunction
     bool contains(const_reference value) const noexcept {
         return indexOf(value).isSome();
     }
 
+    // cppcheck-suppress unusedFunction
     Optional<size_type> indexOf(const_reference value) const noexcept {
         const auto len = size();
         auto it = begin();

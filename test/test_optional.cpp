@@ -348,6 +348,10 @@ public:
         CPPUNIT_ASSERT_EQUAL(testElse, v2.orElse(testElse));
     }
 
+    static int my_atoi(const char* c) {
+        return atoi(c);
+    }
+
     void testMap() {
         SimpleType test(32, 24, -3212);
 
@@ -371,7 +375,7 @@ public:
 
         // Test mapping using regular C-function
         const auto meaningOfLife = Optional<const char*>::of("42")
-                                        .map(atoi);
+                                        .map(my_atoi);
         CPPUNIT_ASSERT(meaningOfLife.isSome());
         CPPUNIT_ASSERT_EQUAL(42, meaningOfLife.get());
 
