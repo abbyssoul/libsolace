@@ -1102,17 +1102,16 @@ public:
                                    {{"o", "uniqueOption"}, "Some unique option", &cmd1Options.value},
                                }}},
 
-                              {"comm-2", {"Run 2nd command",
+                              {"comm-2", {"Run 2nd command", {
+                                  {"arg1", "Arg value1", &cmd2Options.arg1},
+                                  {"arg2", "Arg value2", &cmd2Options.arg2}
+                                },
                                [&]() -> Result<void, Error> {
                                    commandExecuted[1] = true;
                                    return Ok();
                                }, {
                                    {{"c", "commonOption"}, "Common option", &cmd2Options.commonFlag},
                                    {{"o", "uniqueOption"}, "Some unique option", &cmd2Options.value}
-                               }, {
-                                   {"arg1", "Arg value1", &cmd2Options.arg1},
-                                   {"arg2", "Arg value2", &cmd2Options.arg2}
-
                                }
                                }},
 

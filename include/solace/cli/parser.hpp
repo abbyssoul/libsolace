@@ -280,18 +280,18 @@ public:
         Command(Command&& rhs) = default;
 
         template<typename F>
-        Command(StringView description, F&& callback) :
+        Command(StringView description, F&& f) :
             _description(std::move(description)),
-            _callback(std::forward<F>(callback)),
+            _callback(std::forward<F>(f)),
             _options()
         {}
 
         template<typename F>
         Command(StringView description,
-                F&& callback,
+                F&& f,
                 const std::initializer_list<Option>& options) :
             _description(std::move(description)),
-            _callback(std::forward<F>(callback)),
+            _callback(std::forward<F>(f)),
             _options(options),
             _commands(),
             _arguments()
@@ -300,9 +300,9 @@ public:
         template<typename F>
         Command(StringView description,
                 const std::initializer_list<Argument>& arguments,
-                F&& callback) :
+                F&& f) :
             _description(std::move(description)),
-            _callback(std::forward<F>(callback)),
+            _callback(std::forward<F>(f)),
             _options(),
             _commands(),
             _arguments(arguments)
@@ -311,10 +311,10 @@ public:
         template<typename F>
         Command(StringView description,
                 const std::initializer_list<Argument>& arguments,
-                F&& callback,
+                F&& f,
                 const std::initializer_list<Option>& options) :
             _description(std::move(description)),
-            _callback(std::forward<F>(callback)),
+            _callback(std::forward<F>(f)),
             _options(options),
             _commands(),
             _arguments(arguments)
@@ -364,12 +364,12 @@ public:
             return *this;
         }
 
-        std::function<Result<void, Error>()> callback() const {
+        std::function<Result<void, Error>()> action() const {
             return _callback;
         }
 
         template<typename F>
-        Command& callback(F&& f) {
+        Command& action(F&& f) {
             _callback = std::forward<F>(f);
             return *this;
         }
@@ -562,7 +562,7 @@ public:
 
     template<typename F>
     const Command& defaultAction(F&& f) {
-        _defaultAction.callback(std::forward<F>(f));
+        _defaultAction.action(std::forward<F>(f));
         return _defaultAction;
     }
 

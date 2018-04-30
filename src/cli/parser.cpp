@@ -537,7 +537,7 @@ parseCommand(const Parser::Command& cmd, const Parser::Context& cntx) {
             if (!parseResult)
                 return Err(parseResult.moveError());
 
-            return Ok<Parser::ParseResult>(cmd.callback());
+            return Ok<Parser::ParseResult>(cmd.action());
         } else {
             return fail("Unexpected arguments given");
         }
@@ -545,7 +545,7 @@ parseCommand(const Parser::Command& cmd, const Parser::Context& cntx) {
     } else {
 
         return (cmd.arguments().empty() && cmd.commands().empty())
-            ? Ok<Parser::ParseResult>(cmd.callback())
+            ? Ok<Parser::ParseResult>(cmd.action())
             : fail("Not enough arguments");
     }
 }
@@ -558,7 +558,7 @@ Parser::parse(int argc, const char *argv[]) const {
 
     if (argc < 1) {
         return (_defaultAction.arguments().empty() && _defaultAction.commands().empty())
-                ? Ok<Parser::ParseResult>(_defaultAction.callback())
+                ? Ok<Parser::ParseResult>(_defaultAction.action())
                 : fail("Not enough arguments");
     }
 
