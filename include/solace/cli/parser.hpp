@@ -277,7 +277,7 @@ public:
 
         Command(const Command& rhs) = default;
 
-        Command(Command&& rhs) noexcept  = default;
+        Command(Command&& rhs) = default;
 
         template<typename F>
         Command(StringView description, F&& callback) :
@@ -299,9 +299,20 @@ public:
 
         template<typename F>
         Command(StringView description,
+                const std::initializer_list<Argument>& arguments,
+                F&& callback) :
+            _description(std::move(description)),
+            _callback(std::forward<F>(callback)),
+            _options(),
+            _commands(),
+            _arguments(arguments)
+        {}
+
+        template<typename F>
+        Command(StringView description,
+                const std::initializer_list<Argument>& arguments,
                 F&& callback,
-                const std::initializer_list<Option>& options,
-                const std::initializer_list<Argument>& arguments) :
+                const std::initializer_list<Option>& options) :
             _description(std::move(description)),
             _callback(std::forward<F>(callback)),
             _options(options),
@@ -356,6 +367,13 @@ public:
         std::function<Result<void, Error>()> callback() const {
             return _callback;
         }
+
+        template<typename F>
+        Command& callback(F&& f) {
+            _callback = std::forward<F>(f);
+            return *this;
+        }
+
 
     private:
         StringView                              _description;
@@ -541,6 +559,12 @@ public:
 
     Command& defaultAction() noexcept { return _defaultAction; }
     const Command& defaultAction() const noexcept { return _defaultAction; }
+
+    template<typename F>
+    const Command& defaultAction(F&& f) {
+        _defaultAction.callback(std::forward<F>(f));
+        return _defaultAction;
+    }
 
 private:
 
