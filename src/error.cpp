@@ -28,13 +28,6 @@ using namespace Solace;
 
 
 
-//Error::Error(const std::string& message, int code) noexcept :
-//    _code(code),
-//    _message(message)
-//{}
-
-
-
 String Error::toString() const {
     return _message;
 }
