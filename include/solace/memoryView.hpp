@@ -45,8 +45,8 @@ public:
     using ImmutableMemoryView::const_iterator;
     using ImmutableMemoryView::const_reference;
 
-    typedef value_type&         reference;
-    typedef value_type*         iterator;
+    using reference = value_type &;
+    using iterator = value_type *;
 
 public:
 

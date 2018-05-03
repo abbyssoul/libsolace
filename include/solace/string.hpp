@@ -339,8 +339,8 @@ public:  // Basic collection operations:
      * Get raw bytes of the string.
      * @return Immutable Memory View into the string data.
      */
-    const ImmutableMemoryView view() const noexcept {
-        return wrapMemory(c_str(), size());
+    const StringView view() const noexcept {
+        return {c_str(), size()};
     }
 
 	const char* c_str() const;
@@ -371,7 +371,7 @@ public:
      *
      * @return The resulting string
      */
-    static String join(const String& by, const Array<String>& list);
+    static String join(const StringView& by, const Array<String>& list);
 
     /**
      * Return String representation of value.

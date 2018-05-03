@@ -89,12 +89,12 @@ public:
 
 public:
 
+    ~PlatformFilesystem() override = default;
+
     /**
      * PlatformFilesystem default constructor. Nothing to see here.
      */
-    PlatformFilesystem();
-
-    ~PlatformFilesystem() = default;
+    PlatformFilesystem() = default;
 
     /**
      * Create a new file

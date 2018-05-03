@@ -452,8 +452,8 @@ public:
         bool parsedSuccessully = false;
         bool customCalled = false;
         int xValue = 0;
-        const char* zValue = nullptr;
-        const char* zExpValue = "somethin";
+        StringView zValue;
+        const StringView zExpValue("somethin");
 
         const char* argv[] = {"prog", "--xxx", "756", "--zva", "somethin", nullptr};
         const char* appDesc = "Something awesome";
@@ -462,7 +462,7 @@ public:
                       {{"z", "zva"}, "Custom arg", Parser::OptionArgument::Required,
                        [&customCalled, &zValue](const Optional<StringView>& value, const Parser::Context&) {
                            customCalled = true;
-                           zValue = value.get().c_str();
+                           zValue = value.get();
 
                            return None();
                        }}
@@ -483,8 +483,8 @@ public:
         bool parsedSuccessully = false;
         bool customCalled = false;
         int xValue = 0;
-        const char* zValue = nullptr;
-        const char* zExpValue = "somethin2";
+        StringView zValue;
+        const StringView zExpValue("somethin2");
 
         const char* argv[] = {"prog", "--xxx", "756", "-z", "somethin2", nullptr};
         const char* appDesc = "Something awesome";
@@ -493,7 +493,7 @@ public:
                       {{"z", "zve"}, "Custom arg", Parser::OptionArgument::Required,
                        [&customCalled, &zValue](const Optional<StringView>& value, const Parser::Context&) {
                            customCalled = true;
-                           zValue = value.get().c_str();
+                           zValue = value.get();
 
                            return None();
                        }}
@@ -511,29 +511,26 @@ public:
 
 
     void testCustomNoValue() {
-        bool parsedSuccessully = false;
         bool customCalled = false;
         int xValue = 0;
-        const char* zValue = nullptr;
+        StringView zValue;
 
         const char* argv[] = {"prog", "--xxx", "756", "-z", nullptr};
         const char* appDesc = "Something awesome";
-        Parser(appDesc, {
+        const auto result = Parser(appDesc, {
                       {{"x", "xxx"}, "Something", &xValue},
                       {{"z", "zve"}, "Custom arg", Parser::OptionArgument::Required,
                        [&customCalled, &zValue](const Optional<StringView>& value, const Parser::Context&) {
                            customCalled = true;
-                           zValue = value.get().c_str();
+                           zValue = value.get();
 
                            return None();
                        }}
                   })
-                .parse(countArgc(argv), argv)
-                .then([&parsedSuccessully](Parser::ParseResult&&) { parsedSuccessully = true; })
-                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
+                .parse(countArgc(argv), argv);
 
 
-        CPPUNIT_ASSERT(!parsedSuccessully);
+        CPPUNIT_ASSERT(!result);
         CPPUNIT_ASSERT(!customCalled);
         CPPUNIT_ASSERT_EQUAL(756, xValue);
     }

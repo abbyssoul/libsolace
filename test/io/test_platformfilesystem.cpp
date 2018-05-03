@@ -84,7 +84,7 @@ public:
 
     void testCreation() {
         const auto fileUID = UUID::random();
-        const auto filename = Path::parse(String::join("-", {"test", fileUID.toString()}));
+        const auto filename = Path::parse(String::join("-", {"test", fileUID.toString()}).view()).unwrap();
         const auto& fileUIDBytes = fileUID.view();
 
 
@@ -125,7 +125,7 @@ public:
 
     void testCreationAndRemoval() {
         const auto fileUID = UUID::random();
-        const auto filename = Path::parse(String::join("-", {"test", fileUID.toString()}));
+        const auto filename = Path::parse(String::join("-", {"test", fileUID.toString()}).view()).unwrap();
         const auto& fileUIDBytes = fileUID.view();
 
         auto fs = PlatformFilesystem();

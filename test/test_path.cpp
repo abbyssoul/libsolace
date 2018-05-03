@@ -263,34 +263,37 @@ public:
     }
 
     void testBasename() {
-        CPPUNIT_ASSERT_EQUAL(String::Empty, Path().getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView(), Path().getBasename());
         CPPUNIT_ASSERT_EQUAL(Path::Delimiter, Path({""}).getBasename());
-        CPPUNIT_ASSERT_EQUAL(String("file"), Path("file").getBasename());
-        CPPUNIT_ASSERT_EQUAL(String("file"), Path({"file"}).getBasename());
-        CPPUNIT_ASSERT_EQUAL(String("file"), Path({"", "file"}).getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView("file"), Path("file").getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView("file"), Path({"file"}).getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView("file"), Path({"", "file"}).getBasename());
 
-        CPPUNIT_ASSERT_EQUAL(String("."), Path({"."}).getBasename());
-        CPPUNIT_ASSERT_EQUAL(String(".."), Path({".."}).getBasename());
-        CPPUNIT_ASSERT_EQUAL(String("."), Path({"", "."}).getBasename());
-        CPPUNIT_ASSERT_EQUAL(String(".."), Path({"", ".."}).getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView("."), Path({"."}).getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView(".."), Path({".."}).getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView("."), Path({"", "."}).getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView(".."), Path({"", ".."}).getBasename());
 
-        CPPUNIT_ASSERT_EQUAL(String("etc"), Path({"", "etc"}).getBasename());
-        CPPUNIT_ASSERT_EQUAL(String(""), Path({"", "etc", ""}).getBasename());
-        CPPUNIT_ASSERT_EQUAL(String("file"), Path({"", "etc", "file"}).getBasename());
-        CPPUNIT_ASSERT_EQUAL(String(".."), Path({"", "etc", ".."}).getBasename());
-        CPPUNIT_ASSERT_EQUAL(String("."), Path({"etc", "..", "."}).getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView("etc"), Path({"", "etc"}).getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView(""), Path({"", "etc", ""}).getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView("file"), Path({"", "etc", "file"}).getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView(".."), Path({"", "etc", ".."}).getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView("."), Path({"etc", "..", "."}).getBasename());
 
-        CPPUNIT_ASSERT_EQUAL(String("file"), Path({"1", "2", "3", "4", "file"}).getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView("file"), Path({"1", "2", "3", "4", "file"}).getBasename());
     }
 
 
     void testUnixBasename() {
-        CPPUNIT_ASSERT_EQUAL(String("lib"), Path::parse("/usr/lib").getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView("lib"),
+                             Path::parse("/usr/lib").unwrap().getBasename());
 
         // FIXME(abbyssoul): This is directly from basename spec which we don't comply with atm :'(
-        CPPUNIT_ASSERT_EQUAL(String("usr"), Path::parse("/usr/").getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView("usr"),
+                             Path::parse("/usr/").unwrap().getBasename());
 
-        CPPUNIT_ASSERT_EQUAL(String("/"),   Path::parse("/").getBasename());
+        CPPUNIT_ASSERT_EQUAL(StringView("/"),
+                             Path::parse("/").unwrap().getBasename());
     }
 
 
@@ -349,7 +352,7 @@ public:
         CPPUNIT_ASSERT_EQUAL(Path({"etc", "file"}), Path::join(Path("etc"), "file"));
 
         CPPUNIT_ASSERT_EQUAL(Path({"etc", "some", "long", "path"}),
-                             Path::join({"etc", "some", "long", "path"}));
+                             Path({"etc", "some", "long", "path"}));
         CPPUNIT_ASSERT_EQUAL(Path({"etc", "some", "long", "path"}),
                              Path::join({Path({"etc", "some"}), Path("long"), Path("path")}));
     }
@@ -435,48 +438,48 @@ public:
     void testParsing() {
         {
             CPPUNIT_ASSERT_EQUAL(Path("some-long_path"),
-                                 Path::parse("some-long_path"));
+                                 Path::parse("some-long_path").unwrap());
         }
         {
             CPPUNIT_ASSERT_EQUAL(Path({"", "etc"}),
-                                 Path::parse("/etc"));
+                                 Path::parse("/etc").unwrap());
         }
         {
-            CPPUNIT_ASSERT_EQUAL(Path::Root, Path::parse(""));
-            CPPUNIT_ASSERT_EQUAL(Path::Root, Path::parse("/"));
-            CPPUNIT_ASSERT_EQUAL(Path::Root, Path::parse(Path::Delimiter));
-        }
-        {
-            CPPUNIT_ASSERT_EQUAL(Path({"some", "file", "path.321"}),
-                                 Path::parse("some/file/path.321"));
+            CPPUNIT_ASSERT_EQUAL(Path::Root, Path::parse("").unwrap());
+            CPPUNIT_ASSERT_EQUAL(Path::Root, Path::parse("/").unwrap());
+            CPPUNIT_ASSERT_EQUAL(Path::Root, Path::parse(Path::Delimiter).unwrap());
         }
         {
             CPPUNIT_ASSERT_EQUAL(Path({"some", "file", "path.321"}),
-                                 Path::parse("some/file/path.321/"));
+                                 Path::parse("some/file/path.321").unwrap());
+        }
+        {
+            CPPUNIT_ASSERT_EQUAL(Path({"some", "file", "path.321"}),
+                                 Path::parse("some/file/path.321/").unwrap());
         }
         {
             CPPUNIT_ASSERT_EQUAL(Path({"some", "file", "", "path.321"}),
-                                 Path::parse("some/file//path.321/"));
+                                 Path::parse("some/file//path.321/").unwrap());
         }
         {
-            const auto v = Path::parse("/!)/$@#&@#/some/file/path");
-            CPPUNIT_ASSERT_EQUAL(Path({"", "!)", "$@#&@#", "some", "file", "path"}), v);
+            CPPUNIT_ASSERT_EQUAL(Path({"", "!)", "$@#&@#", "some", "file", "path"}),
+                                 Path::parse("/!)/$@#&@#/some/file/path").unwrap());
         }
         {
-            const auto v = Path::parse("some.file.path", "\\.");
-            CPPUNIT_ASSERT_EQUAL(Path({"some", "file", "path"}), v);
+            CPPUNIT_ASSERT_EQUAL(Path({"some", "file", "path"}),
+                                 Path::parse("some.file.path", ".").unwrap());
         }
         {
-            const auto v = Path::parse("some.file..path", "\\.");
-            CPPUNIT_ASSERT_EQUAL(Path({"some", "file", "", "path"}), v);
+            CPPUNIT_ASSERT_EQUAL(Path({"some", "file", "", "path"}),
+                                 Path::parse("some.file..path", ".").unwrap());
         }
         {
             CPPUNIT_ASSERT_EQUAL(Path({"", "some", "file", "path"}),
-                                 Path::parse("{?some{?file{?path{?", "\\{\\?"));
+                                 Path::parse("{?some{?file{?path{?", "{?").unwrap());
         }
         {
             CPPUNIT_ASSERT_EQUAL(Path({"", "some", "", "file", "path"}),
-                                 Path::parse("{?some{?{?file{?path{?", "\\{\\?"));
+                                 Path::parse("{?some{?{?file{?path{?", "{?").unwrap());
         }
     }
 
@@ -486,36 +489,40 @@ public:
     void testParsing_and_ToString_are_consistent() {
         {
             const String src("some-long_path");
-            const auto v = Path::parse(src);
+            const auto v = Path::parse(src.view()).unwrap();
             CPPUNIT_ASSERT_EQUAL(src, v.toString());
         }
         {
             const String src("some/file/path.321");
-            const auto v = Path::parse(src);
+            const auto v = Path::parse(src.view()).unwrap();
             CPPUNIT_ASSERT_EQUAL(src, v.toString());
         }
         {
             CPPUNIT_ASSERT_EQUAL(String("some/file/path.321"),
-                                 Path::parse("some/file/path.321/").toString());
+                                 Path::parse("some/file/path.321/")
+                                 .unwrap()
+                                 .toString());
         }
         {
             const String src("/!)/$@#&@#/some/file/path");
-            const auto v = Path::parse(src);
+            const auto v = Path::parse(src.view()).unwrap();
             CPPUNIT_ASSERT_EQUAL(src, v.toString());
         }
         {
             const String src("some.file.path");
-            const auto v = Path::parse(src, "\\.");
+            const auto v = Path::parse(src.view(), "\\.").unwrap();
             CPPUNIT_ASSERT_EQUAL(src, v.toString("."));
         }
         {
             const String src("some.file..path");
-            const auto v = Path::parse(src, "\\.");
+            const auto v = Path::parse(src.view(), "\\.").unwrap();
             CPPUNIT_ASSERT_EQUAL(src, v.toString("."));
         }
         {
             CPPUNIT_ASSERT_EQUAL(String("{?some{?file{?path"),
-                                 Path::parse("{?some{?file{?path{?", "\\{\\?").toString("{?"));
+                                 Path::parse("{?some{?file{?path{?", "{?")
+                                 .unwrap()
+                                 .toString("{?"));
         }
     }
 

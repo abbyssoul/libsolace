@@ -113,9 +113,7 @@ PlatformFilesystem::BufferedFile::size_type PlatformFilesystem::BufferedFile::te
 }
 
 
-PlatformFilesystem::PlatformFilesystem() {
-    // No-op
-}
+
 
 
 std::shared_ptr<File> PlatformFilesystem::create(const Path& path) {
@@ -215,7 +213,7 @@ Path PlatformFilesystem::realPath(const Path& path) const {
     std::unique_ptr<char, decltype(std::free)*> real_path{realpath(pathString.c_str(), nullptr), std::free};
 
     return (real_path)
-            ? Path::parse(String(real_path.get()))
+            ? Path::parse(real_path.get()).unwrap()
             : Path::Root;
 }
 
@@ -241,7 +239,7 @@ Array<Path> PlatformFilesystem::glob(const String& pattern) const {
         pathsFound.reserve(globResults.gl_pathc);
 
         for (size_t i = 0; i < globResults.gl_pathc; ++i) {
-            pathsFound.push_back(Path::parse(globResults.gl_pathv[i]));
+            pathsFound.push_back(Path::parse(globResults.gl_pathv[i]).unwrap());
         }
     } else {
         if (ret == GLOB_NOSPACE) {
@@ -261,23 +259,24 @@ Array<Path> PlatformFilesystem::glob(const String& pattern) const {
 }
 
 
-Array<Path> PlatformFilesystem::glob(std::initializer_list<const char*> patterns) const {
+Array<Path>
+PlatformFilesystem::glob(std::initializer_list<const char*> patterns) const {
     std::vector<Path> pathsFound;
 
     if (patterns.size() == 0)
         return pathsFound;
 
     glob_t globResults;
-    ::glob(*(patterns.begin()), 0, nullptr, &globResults);
-
     auto iter = patterns.begin();
+
+    ::glob(*iter, 0, nullptr, &globResults);
     while (++iter != patterns.end()) {
         ::glob(*iter, GLOB_APPEND, nullptr, &globResults);
     }
 
     pathsFound.reserve(globResults.gl_pathc);
     for (size_t i = 0; i < globResults.gl_pathc; ++i) {
-        pathsFound.push_back(Path::parse(globResults.gl_pathv[i]));
+        pathsFound.push_back(Path::parse(globResults.gl_pathv[i]).unwrap());
     }
 
     globfree(&globResults);
@@ -297,7 +296,7 @@ Path PlatformFilesystem::getExecPath() const {
         execPath[bytesRead] = 0;
     }
 
-    return Path::parse(execPath);
+    return Path::parse(execPath).unwrap();
 }
 
 
@@ -309,7 +308,7 @@ Path PlatformFilesystem::getWorkingDirectory() const {
         raise<IOException>(errno);
     }
 
-    return Path::parse(buffer);
+    return Path::parse(buffer).unwrap();
 }
 
 

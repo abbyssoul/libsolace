@@ -23,6 +23,7 @@
 #define SOLACE_STRINGLITERAL_HPP
 
 #include "solace/char.hpp"
+#include "solace/array.hpp"
 #include "solace/optional.hpp"
 
 #include <ostream>
@@ -41,6 +42,8 @@ public:
     using size_type = uint16;
 
     using value_type = char;
+
+    using const_iterator = const value_type *;
 
 public:
 
@@ -103,10 +106,6 @@ public:
 
     constexpr size_type size() const noexcept {
         return _size;
-    }
-
-    constexpr const char* c_str() const noexcept {
-        return _data;
     }
 
     constexpr const char* data() const noexcept {
@@ -272,12 +271,32 @@ public:
         return substring(from, to);
     }
 
+    /** Splits the string around matches of expr
+     * @param delim A delimeter to split the string by.
+     * @return A list of substrings.
+     */
+    Array<StringView> split(const StringView& delim) const;
+
+    /** Splits the string around matches of expr
+     * @param delim A delimeter to split the string by.
+     * @return A list of substrings.
+     */
+    Array<StringView> split(value_type delim) const;
 
     /** Returns a hash code for this string.
      *
      * @return A hash code value for the string.
      */
-    uint64 hashCode() const;
+    uint64 hashCode() const noexcept;
+
+    const_iterator begin() const noexcept {
+        return empty()
+                ? nullptr
+                : _data;
+    }
+
+    const_iterator end() const noexcept { return begin() + size(); }
+
 
 private:
     size_type _size = 0;

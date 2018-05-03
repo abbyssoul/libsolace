@@ -57,9 +57,14 @@ int main(int argc, const char **argv) {
                         })
             .arguments({
                           { "fileName", "File/device name to open",
-                            [&file](const StringView& value, const Parser::Context&) {
-                                file = Solace::Path::parse(value);
-                                return None();
+                            [&file](const StringView& value, const Parser::Context&) -> Optional<Error> {
+                                auto result = Solace::Path::parse(value);
+                                if (!result) {
+                                    return Optional<Error>::of(result.moveError());
+                                } else {
+                                    file = result.moveResult();
+                                    return None();
+                                }
                            }
                         }})
             .parse(argc, argv);

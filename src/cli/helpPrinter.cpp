@@ -102,8 +102,8 @@ HelpFormatter::operator() (std::ostream& output,
     if (!cmd.commands().empty()) {
         output << "Commands:" << std::endl;
 
-        for (const auto& cmd : cmd.commands()) {
-            formatCommand(output, cmd.first, cmd.second);
+        for (const auto& subcmd : cmd.commands()) {
+            formatCommand(output, subcmd.first, subcmd.second);
         }
     }
 }

@@ -29,7 +29,7 @@
 #include "solace/traits/iformattable.hpp"
 #include "solace/string.hpp"
 
-/* FIXME: SUPPORT std::error
+/* TODO(abbyssoul): Add interop SUPPORT for std::error
 #include <system_error>
 */
 
@@ -43,10 +43,19 @@ public:
     ~Error() override = default;
 
     //! Construct error with a message
-    Error(std::string&& message, int code = -1) noexcept;
+    Error(const String& message, int code = -1) noexcept :
+        _code(code),
+        _message(message.to_str())
+    {}
 
     //! Construct error with a message
-    Error(const std::string& message, int code = -1) noexcept;
+    Error(String&& message, int code = -1) noexcept :
+        _code(code),
+        _message(message.to_str())
+    {}
+
+    //! Construct error with a message
+//    Error(const std::string& message, int code = -1) noexcept;
 
     Error(const Error& other) = default;
 

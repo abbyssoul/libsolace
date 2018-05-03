@@ -35,7 +35,7 @@ using Solace::Path;
 using Solace::IO::PlatformFilesystem;
 
 
-const Path SYS_TTY_PATH = Path::parse("/sys/class/tty/");
+const Path SYS_TTY_PATH = Path({"", "sys", "class", "tty"});
 const String HW_ID_NA = "n/a";
 
 

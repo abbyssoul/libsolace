@@ -345,7 +345,8 @@ String String::join(const String& by, std::initializer_list<String> list) {
 }
 
 /** Return jointed string from the given collection */
-String String::join(const String& by, const Array<String>& list) {
+String
+String::join(const StringView& by, const Array<String>& list) {
     std::string buffer;
     size_type total_size = 0;
     for (auto& s : list) {
@@ -353,15 +354,16 @@ String String::join(const String& by, const Array<String>& list) {
     }
 
     if (list.size() > 1) {
-        total_size += (list.size() - 1)*by.size();
+        total_size += (list.size() - 1) * by.size();
     }
     buffer.reserve(total_size);
 
     size_type i = 0;
     for (auto& s : list) {
         buffer.append(s._str);
-        if (++i < list.size())
-            buffer.append(by._str);
+        if (++i < list.size()) {
+            buffer.append(by.data(), by.size());
+        }
     }
 
     return String(buffer);

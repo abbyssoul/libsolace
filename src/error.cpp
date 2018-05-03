@@ -28,16 +28,10 @@ using namespace Solace;
 
 
 
-Error::Error(std::string&& message, int code) noexcept :
-    _code(code),
-    _message(std::move(message))
-{}
-
-
-Error::Error(const std::string& message, int code) noexcept :
-    _code(code),
-    _message(message)
-{}
+//Error::Error(const std::string& message, int code) noexcept :
+//    _code(code),
+//    _message(message)
+//{}
 
 
 

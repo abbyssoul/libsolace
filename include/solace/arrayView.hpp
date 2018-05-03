@@ -177,25 +177,25 @@ public:
     }
 
 
-    Iterator begin()     {
+    Iterator begin() noexcept {
         return _memory.empty()
                 ? nullptr
                 : _memory.dataAs<T>();
     }
 
-    Iterator end()       { return begin() + size(); }
-    reference front()    { return *begin(); }
-    reference back()     { return *(begin() + size() - 1); }
+    Iterator end() noexcept { return begin() + size(); }
+    reference front() noexcept { return *begin(); }
+    reference back() noexcept { return *(begin() + size() - 1); }
 
-    const_iterator begin()   const {
+    const_iterator begin() const noexcept {
         return _memory.empty()
                 ? nullptr
                 : _memory.dataAs<T>();
     }
 
-    const_iterator end()     const { return (begin() + size()); }
-    const_reference front()  const { return *begin(); }
-    const_reference back()   const { return *(begin() + size() - 1); }
+    const_iterator end()     const noexcept { return (begin() + size()); }
+    const_reference front()  const noexcept { return *begin(); }
+    const_reference back()   const noexcept { return *(begin() + size() - 1); }
 
 
     ArrayView<const T> slice(size_type from, size_type to) const {
@@ -285,6 +285,7 @@ public:
 
 private:
 
+    /// Memory where the array data is stored.
     MemoryView _memory;
 };
 

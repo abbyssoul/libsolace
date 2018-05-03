@@ -460,7 +460,7 @@ public:
      * @param appVersion Application version to be printed.
      * @return A parser option that when given by a user will result in a printing of the version info.
      */
-    static Option printVersion(StringView appName, const Version& appVersion);
+    static Option printVersion(const StringView& appName, const Version& appVersion);
 
 
     /**

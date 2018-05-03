@@ -64,11 +64,11 @@ public:
  */
 class ImmutableMemoryView {
 public:
-    typedef uint64              size_type;
-    typedef byte                value_type;
+    using size_type = uint64;
+    using value_type = byte;
 
-    typedef const value_type&   const_reference;
-    typedef const value_type*   const_iterator;
+    using const_reference = const value_type &;
+    using const_iterator = const value_type *;
 
 public:
 

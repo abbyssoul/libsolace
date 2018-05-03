@@ -26,9 +26,9 @@
 using namespace Solace;
 
 
-const String Path::Delimiter("/");
-const String SelfRef(".");
-const String ParentRef("..");
+const StringView Path::Delimiter("/");
+const StringView SelfRef(".");
+const StringView ParentRef("..");
 
 
 const Path Path::Root("");
@@ -72,7 +72,8 @@ Path Path::join(std::initializer_list<String> paths) {
 }
 
 
-Path Path::parse(const String& str, const String& delim) {
+Result<Path, Error>
+Path::parse(const StringView& str, const StringView& delim) {
     auto components = str.split(delim);
     const auto nbOfComponents = components.size();
 
@@ -80,19 +81,20 @@ Path Path::parse(const String& str, const String& delim) {
     nonEmptryComponents.reserve(nbOfComponents);
 
     for (decltype(components)::size_type i = 0; i < components.size(); ++i) {
-        if (i == components.size() - 1 && components[i].empty())
+        if (i + 1 == components.size() && components[i].empty())
             continue;
 
         nonEmptryComponents.push_back(std::move(components[i]));
     }
 
     return nonEmptryComponents.empty()
-            ? Path::Root
-            : Path(std::move(nonEmptryComponents));
+            ? Ok(Root)
+            : Ok(Path(std::move(nonEmptryComponents)));
 }
 
 
-String::size_type Path::length(const String& delim) const noexcept {
+String::size_type
+Path::length(const StringView& delim) const noexcept {
     const auto delimLen = delim.length();
 
     const auto nbComponents = _components.size();
@@ -247,10 +249,11 @@ Path Path::getParent() const {
     return Path(std::move(basePath));
 }
 
-const String& Path::getBasename() const {
+StringView
+Path::getBasename() const {
     return (isAbsolute() && _components.size() == 1)
             ? Delimiter
-            : last();
+            : last().view();
 }
 
 
@@ -325,7 +328,9 @@ const Path& Path::forEach(const std::function<void(const String&)> &f) const {
     return *this;
 }
 
-String Path::toString(const String& delim) const {
+
+String
+Path::toString(const StringView& delim) const {
     return (isAbsolute() && _components.size() == 1)
             ? delim
             : String::join(delim, _components);

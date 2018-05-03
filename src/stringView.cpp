@@ -20,6 +20,7 @@
 #include "solace/stringView.hpp"
 
 #include <cstring>  // strlen
+#include <regex>
 
 
 using namespace Solace;
@@ -171,12 +172,69 @@ StringView::trim() const {
 
 
 uint64
-StringView::hashCode() const {
+StringView::hashCode() const noexcept {
     uint64 result = 0;
     const uint64 prime = 31;
     for (size_t i = 0; i < _size; ++i) {
         result = _data[i] + (result * prime);
     }
+
+    return result;
+}
+
+
+Array<StringView>
+StringView::split(value_type delim) const {
+
+    size_type delimCount = 0;
+    for (const auto c : *this){
+        if (c == delim) {
+            ++delimCount;
+        }
+    }
+
+    Array<StringView> result(delimCount + 1);
+    Array<StringView>::size_type i = 0;
+    size_type to = 0, from = 0;
+    for (; to < size(); ++to) {
+        if (_data[to] == delim) {
+            result[i++] = substring(from, to - from);
+            from = to + 1;
+        }
+    }
+
+    result[i++] = substring(from, size() - from);
+
+
+    return result;
+}
+
+Array<StringView>
+StringView::split(const StringView& delim) const {
+
+    const auto delimLength = delim.length();
+    size_type delimCount = 0;
+
+    for (size_type i = 0; i < size() && delimLength + i <= size(); ++i){
+        if (substring(i, delimLength) == delim) {
+            ++delimCount;
+            i += delimLength - 1;
+        }
+    }
+
+    Array<StringView> result(delimCount + 1);
+    Array<StringView>::size_type i = 0;
+    size_type to = 0, from = 0;
+    for (; to < size() && delimLength + to <= size(); ++to) {
+        if (substring(to, delimLength) == delim) {
+            result[i++] = substring(from, to - from);
+            to += delimLength - 1;
+            from = to + 1;
+        }
+    }
+
+    result[i++] = substring(from, size() - from);
+
 
     return result;
 }

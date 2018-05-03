@@ -48,7 +48,7 @@ const char Parser::DefaultValueSeparator = '=';
 template <typename... Args>
 Optional<Error>
 formatOptionalError(const char* fmt, Args&&... values) {
-    return Optional<Error>::of(fmt::format(fmt, std::forward<Args>(values)...));
+    return Optional<Error>::of(String(fmt::format(fmt, std::forward<Args>(values)...)));
 }
 
 
@@ -165,7 +165,8 @@ Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral
     Option(names, desc, OptionArgument::Required,
            [dest](const Optional<StringView>& value, const Context& context) -> Optional<Error> {
         char* pEnd = nullptr;
-        auto val = strtof(value.get().c_str(), &pEnd);
+        // FIXME(abbyssoul): not safe use of data
+        auto val = strtof(value.get().data(), &pEnd);
 
         if (!pEnd || pEnd == value.get().data()) {  // No conversion has been done
             return formatOptionalError("Option '{}' is not float32 value: '{}'", context.name, value.get());
@@ -182,7 +183,8 @@ Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral
     Option(names, desc, OptionArgument::Required,
            [dest](const Optional<StringView>& value, const Context& context) -> Optional<Error> {
         char* pEnd = nullptr;
-        auto val = strtod(value.get().c_str(), &pEnd);
+        // FIXME(abbyssoul): not safe use of data
+        auto val = strtod(value.get().data(), &pEnd);
 
         if (!pEnd || pEnd == value.get().data()) {  // No conversion has been done
             return formatOptionalError("Option '{}' is not float64 value: '{}'", context.name, value.get());
@@ -270,7 +272,8 @@ Parser::Argument::Argument(StringLiteral name, StringLiteral description, float3
     Argument(name, description,
              [dest](const StringView& value, const Context& context) {
         char* pEnd = nullptr;
-        *dest = strtof(value.c_str(), &pEnd);
+        // FIXME(abbyssoul): not safe use of data
+        *dest = strtof(value.data(), &pEnd);
 
         return (!pEnd || pEnd == value.data())
                 ? formatOptionalError("Argument '{}' is not float32 value: '{}'", context.name, value)
@@ -284,7 +287,8 @@ Parser::Argument::Argument(StringLiteral name, StringLiteral description, float6
     Argument(name, description,
              [dest](const StringView& value, const Context& context) {
         char* pEnd = nullptr;
-        *dest = strtod(value.c_str(), &pEnd);
+        // FIXME(abbyssoul): not safe use of data
+        *dest = strtod(value.data(), &pEnd);
 
         return (!pEnd || pEnd == value.data())
                 ? formatOptionalError("Argument '{}' is not float64 value: '{}'", context.name, value)
@@ -569,14 +573,14 @@ Parser::parse(int argc, const char *argv[]) const {
 
 
 Parser::Option
-Parser::printVersion(StringView appName, const Version& appVersion) {
+Parser::printVersion(const StringView& appName, const Version& appVersion) {
     return {
         {"v", "version"},
         "Print version",
         Parser::OptionArgument::NotRequired,
-        [name = std::move(appName), version = std::move(appVersion)]
+        [appName, &appVersion]
                 (const Optional<StringView>&, const Context&) -> Optional<Error> {
-            VersionPrinter printer(name, version);
+            VersionPrinter printer(appName, appVersion);
 
             printer(std::cout);
 
@@ -607,7 +611,7 @@ Parser::Parser::printHelp() {
                             cmdIt->first,
                             cmdIt->second);
                 } else {
-                    return Optional<Error>::of({"Unknown command"});
+                    return Optional<Error>::of(Error("Unknown command"));
                 }
             }
 

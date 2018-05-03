@@ -84,8 +84,7 @@ private:
 template <>
 struct CollectContext<void> {
 
-    CollectContext()
-    {}
+    CollectContext() = default;
 
     ~CollectContext() {
         if (!threw.exchange(true)) {

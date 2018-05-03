@@ -38,7 +38,7 @@ auto conversionError(const char* fmt, StringView value) {
     ss << fmt;
     ss.write(value.data(), value.size());
 
-    return Err<Error>(ss.str());
+    return Err<Error>(String(ss.str()));
 }
 
 
@@ -54,7 +54,8 @@ struct Longest<T, true> {
     static Result<type, Error> parse(StringView value) {
         errno = 0;
         char* pEnd = nullptr;
-        const auto result = strtoll(value.c_str(), &pEnd, 0);
+        // FIXME(abbyssoul): The use of value.data() here is not safe for substrings.
+        const auto result = strtoll(value.data(), &pEnd, 0);
 
         if ((errno == ERANGE && (result == LLONG_MAX || result == LLONG_MIN)) || (errno != 0 && result == 0)) {
             return conversionError("Value is outside of parsable int64 range: ", value);
@@ -80,7 +81,8 @@ struct Longest<T, false> {
     static Result<type, Error> parse(StringView value) {
         errno = 0;
         char* pEnd = nullptr;
-        const auto result = strtoull(value.c_str(), &pEnd, 0);
+        // FIXME(abbyssoul): The use of value.data() here is not safe for substrings.
+        const auto result = strtoull(value.data(), &pEnd, 0);
 
         if ((errno == ERANGE && (result == ULLONG_MAX)) || (errno != 0 && result == 0)) {
             return conversionError("Value is outside of parsable uint64 range: ", value);
@@ -100,11 +102,13 @@ struct Longest<T, false> {
 
 Result<bool, Error>
 Solace::tryParseBoolean(StringView value) {
-    if (value.equals("1") || strcasecmp("true", value.c_str()) == 0) {
+    if (value.equals("1") || strncasecmp(value.data(), "true",
+                                         std::min<size_t>(value.length(), 4)) == 0) {
         return Ok(true);
     }
 
-    if (value.equals("0") || strcasecmp("false", value.c_str()) == 0) {
+    if (value.equals("0") || strncasecmp(value.data(), "false",
+                                        std::min<size_t>(value.length(), 5)) == 0) {
         return Ok(false);
     }
 

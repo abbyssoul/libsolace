@@ -28,6 +28,8 @@
 
 #include "solace/string.hpp"
 #include "solace/array.hpp"
+#include "solace/result.hpp"
+#include "solace/error.hpp"
 
 
 namespace Solace {
@@ -60,8 +62,8 @@ class Path :
         public IFormattable {
 public:
 
-	typedef Array<String>::size_type			size_type;
-    typedef Array<String>::const_iterator const_iterator;
+    using size_type = Array<String>::size_type;
+    using const_iterator = Array<String>::const_iterator;
 
 public:  // Static methods
 
@@ -69,7 +71,7 @@ public:  // Static methods
 	 * Default delimiter used form string representation of the path
 	 * Note: might be different from platform delimiter
 	 */
-	static const String Delimiter;
+    static const StringView Delimiter;
 
     /**
      * Root path object
@@ -83,13 +85,15 @@ public:  // Static methods
         return lhs.join(rhs);
     }
 
-    static Path join(const Path& lhs, const String& rhs) {
+    static Path join(const Path& lhs, const StringView& rhs) {
         return lhs.join(rhs);
     }
 
     static Path join(std::initializer_list<Path> paths);
 
     static Path join(std::initializer_list<String> paths);
+
+    static Path join(std::initializer_list<StringView> paths);
 
     /**
      * Parse a path object from a string.
@@ -100,14 +104,15 @@ public:  // Static methods
      *
      * TODO: Parse family of functions should return Result<Path, ParseError>
      */
-    static Path parse(const String& str, const String& delim = Delimiter);
+    static Result<Path, Error>
+    parse(const StringView& str, const StringView& delim = Delimiter);
 
 public:  // Object construction
 
-    virtual ~Path() noexcept = default;
+     ~Path() noexcept override = default;
 
 	/** Construct an empty path */
-    Path(): _components() {
+    Path() : _components() {
         // No-op
     }
 
@@ -214,7 +219,7 @@ public:  // Operation
      * @note: To get the number of components, please @see getComponentsCount
      * @return Size of the string representation of the path in characters.
      */
-    String::size_type length(const String& delim = Delimiter) const noexcept;
+    String::size_type length(const StringView& delim = Delimiter) const noexcept;
 
     //--------------------------------------------------------------------------
 	// --- Relational collection operations
@@ -293,7 +298,7 @@ public:  // Operation
      * Returns the name of the object this path leads to
      * @return The last element of the name sequence
      */
-    const String& getBasename() const;
+    StringView getBasename() const;
 
     /** Get number of components this path includes
      * @brief getComponentsCount
@@ -358,7 +363,7 @@ public:  // Operation
     const Path& forEach(const std::function<void(const String&)> &f) const override;
 
     /** Get string representation of the path object using give delimiter */
-    String toString(const String& delim) const;
+    String toString(const StringView& delim) const;
 
     /** @see IFormattable::toString() */
     String toString() const override {

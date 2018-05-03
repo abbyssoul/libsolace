@@ -48,7 +48,12 @@ CPPUNIT_TEST_SUITE(TestStringView);
         CPPUNIT_TEST(testStartsWith);
         CPPUNIT_TEST(testEndsWith);
         CPPUNIT_TEST(testHashCode);
+        CPPUNIT_TEST(testSplitByChar);
+        CPPUNIT_TEST(testSplitByStringToken);
     CPPUNIT_TEST_SUITE_END();
+
+public:
+    using array_size_t = Array<StringView>::size_type;
 
 public:
 
@@ -307,6 +312,103 @@ public:
 
         CPPUNIT_ASSERT(StringView("Hello otu there").hashCode() !=
                        StringView("Hello out there").hashCode());
+    }
+
+    void testSplitByChar() {
+
+        // Splitting empty string gives you 1 item in a collection - empty string
+        CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(1),
+                             StringView()
+                             .split('x')
+                             .size());
+
+        {   // Normal split
+            auto result = StringView("boo:and:foo").split(':');
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(3), result.size());
+            CPPUNIT_ASSERT_EQUAL(StringView("boo"), result[0]);
+            CPPUNIT_ASSERT_EQUAL(StringView("and"), result[1]);
+            CPPUNIT_ASSERT_EQUAL(StringView("foo"), result[2]);
+        }
+
+        {   // Normal split 2
+            auto result = StringView("warning,performance,portability,")
+                    .split(',');
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(4), result.size());
+            CPPUNIT_ASSERT_EQUAL(StringView("warning"), result[0]);
+            CPPUNIT_ASSERT_EQUAL(StringView("performance"), result[1]);
+            CPPUNIT_ASSERT_EQUAL(StringView("portability"), result[2]);
+            CPPUNIT_ASSERT_EQUAL(StringView(), result[3]);
+        }
+
+        {   // Normal split with empty token in the middle
+            auto result = StringView("boo::foo").split(':');
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(3), result.size());
+            CPPUNIT_ASSERT_EQUAL(StringView("boo"), result[0]);
+            CPPUNIT_ASSERT_EQUAL(StringView(),      result[1]);
+            CPPUNIT_ASSERT_EQUAL(StringView("foo"), result[2]);
+        }
+
+        {   // Normal split with empty token in the middle and in the end
+            auto result = StringView("boo::foo:").split(':');
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(4), result.size());
+            CPPUNIT_ASSERT_EQUAL(StringView("boo"), result[0]);
+            CPPUNIT_ASSERT_EQUAL(StringView(),      result[1]);
+            CPPUNIT_ASSERT_EQUAL(StringView("foo"), result[2]);
+            CPPUNIT_ASSERT_EQUAL(StringView(),      result[3]);
+        }
+
+        {   // No splitting token in the string
+            auto result = StringView("boo").split(':');
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(1), result.size());
+            CPPUNIT_ASSERT_EQUAL(StringView("boo"), result[0]);
+        }
+
+    }
+
+    void testSplitByStringToken() {
+        // Splitting empty string gives you 1 item in a collection - empty string
+        CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(1),
+                             StringView()
+                             .split("tok")
+                             .size());
+
+        {   // Narmal split
+            auto result = StringView("boo:!and:!foo").split(":!");
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(3), result.size());
+            CPPUNIT_ASSERT_EQUAL(StringView("boo"), result[0]);
+            CPPUNIT_ASSERT_EQUAL(StringView("and"), result[1]);
+            CPPUNIT_ASSERT_EQUAL(StringView("foo"), result[2]);
+        }
+        {   // Narmal split
+            auto result = StringView("boo:!and:!").split(":!");
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(3), result.size());
+            CPPUNIT_ASSERT_EQUAL(StringView("boo"), result[0]);
+            CPPUNIT_ASSERT_EQUAL(StringView("and"), result[1]);
+            CPPUNIT_ASSERT_EQUAL(StringView(), result[2]);
+        }
+        {   // Narmal split
+            auto result = StringView("boo:!:!foo:!").split(":!");
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(4), result.size());
+            CPPUNIT_ASSERT_EQUAL(StringView("boo"), result[0]);
+            CPPUNIT_ASSERT_EQUAL(StringView(),      result[1]);
+            CPPUNIT_ASSERT_EQUAL(StringView("foo"), result[2]);
+            CPPUNIT_ASSERT_EQUAL(StringView(),      result[3]);
+        }
+
+        {   // No splitting token in the string
+            auto result = StringView("boo").split("other");
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(1), result.size());
+            CPPUNIT_ASSERT_EQUAL(StringView("boo"), result[0]);
+        }
     }
 
 };
