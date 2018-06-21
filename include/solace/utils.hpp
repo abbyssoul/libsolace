@@ -26,12 +26,13 @@
 #include <utility>  // FIXME(later): remove after removal of std::true_type/false_type
 #include <functional>
 
+namespace Solace {
 
 /**
  * Use DontInfer<T>::value in place of T for a template function parameter to prevent inference of
  * the type based on the parameter value.
  */
-template <typename T> struct DontInfer { typedef T value; };
+template <typename T> struct DontInfer { using value = T; };
 template <typename T> using DontInfer_t = typename DontInfer<T>::value;
 
 /**
@@ -100,4 +101,6 @@ T exchange(T& obj, U&& newValue) {
     return old_value;
 }
 
+
+}  // End of namespace Solace
 #endif  // SOLACE_UTILS_HPP

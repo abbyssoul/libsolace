@@ -38,14 +38,12 @@ namespace Solace {
 class ByteBuffer: public ReadBuffer {
 public:
 
-//    typedef MemoryView          Storage;
     using ReadBuffer::size_type;
 
 public:
 
     /** Construct an empty buffer of size zero */
-    ByteBuffer() noexcept {
-    }
+    ByteBuffer() noexcept = default;
 
 
     ByteBuffer(const ByteBuffer& other) = delete;
@@ -60,10 +58,22 @@ public:
         ReadBuffer(std::move(other))
     {}
 
+    ByteBuffer(MemoryBuffer& buffer) :
+        ReadBuffer(buffer)
+    {}
+
+    ByteBuffer(MemoryBuffer&& buffer) :
+        ReadBuffer(std::move(buffer))
+    {}
+
     /**
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
+    ByteBuffer(const MemoryView& memView) :
+        ReadBuffer(memView)
+    {}
+
     ByteBuffer(MemoryView&& memView) :
         ReadBuffer(std::move(memView))
     {}
@@ -163,10 +173,6 @@ public:
     ByteBuffer& writeBE(uint32 value);
     ByteBuffer& writeBE(int64 value) { return writeBE(static_cast<uint64>(value)); }
     ByteBuffer& writeBE(uint64 value);
-
-private:
-
-//    Storage             _storage;
 };
 
 

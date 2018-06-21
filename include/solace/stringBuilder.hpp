@@ -36,38 +36,41 @@ namespace Solace {
  * String Builder to build a string if you really need mutable strings
  * FIXME(abbyssoul): This is not yet implemented.
  */
-class StringBuilder : public IFormattable {
+class StringBuilder {
 public:
-    typedef String::size_type	size_type;
+    using size_type = String::size_type;
 
 public:
 
-    virtual ~StringBuilder() = default;
+     ~StringBuilder() = default;
 
     /** Initialize a new instance of StringBuilder with a given storage */
-    StringBuilder(MemoryView&& buffer);
+    StringBuilder(MemoryView&& buffer) :
+        _buffer(std::move(buffer))
+    {}
 
     /** Initialize a new instance of StringBuilder with a given storage */
-    StringBuilder(MemoryView&& buffer, const char* str);
+    StringBuilder(MemoryBuffer&& buffer) :
+        _buffer(std::move(buffer))
+    {}
 
-    /** Initialize a new instance of StringBuilder with a given storage */
-    StringBuilder(MemoryView&& buffer, const String& str);
+    /** Initialize a new instance of StringBuilder with a given storage and initial string value.*/
+    StringBuilder(MemoryView&& buffer, const StringView& str);
 
-
-//    /** Initialize a new instance of StringBuilder with a given storage */
-//    StringBuilder(const ByteBuffer& buffer);
-
-//    /** New StringBuilder with the given storage and initial content */
-//    StringBuilder(const ByteBuffer& buffer, const char* str);
-
-//    /** New StringBuilder with the given storage and initial content */
-//    StringBuilder(const ByteBuffer& buffer, const String& str);
-
-//    /** New StringBuilder with the given storage and initial content */
-//    StringBuilder(const ByteBuffer& buffer, std::initializer_list<String> s);
+    /** Initialize a new instance of StringBuilder with a given storage and initial string value.*/
+    StringBuilder(MemoryBuffer&& buffer, const StringView& str);
 
     //!< Move construct string builder
+    StringBuilder(const StringBuilder&) = delete;
+
+    //!< Move construct string builder instance.
     StringBuilder(StringBuilder&& s);
+
+    StringBuilder& operator= (StringBuilder&& rhs) noexcept {
+        return swap(rhs);
+    }
+
+    StringBuilder& operator= (const StringBuilder&) = delete;
 
     StringBuilder& swap(StringBuilder& rhs) noexcept {
         using std::swap;
@@ -77,22 +80,18 @@ public:
         return *this;
     }
 
-    StringBuilder& operator= (const StringBuilder&) = delete;
-
-    StringBuilder& operator= (StringBuilder&& rhs) noexcept {
-        return swap(rhs);
-    }
 
 public:
 
 	StringBuilder& append(char c);
-    StringBuilder& append(const char* c);
     StringBuilder& append(const Char& c);
+    StringBuilder& append(const char* c);
+    StringBuilder& append(const StringView& str);
+    StringBuilder& append(const String& str);
     StringBuilder& append(const IFormattable& f);
-	StringBuilder& append(const String& str);
 
     StringBuilder& appendFormat(const char* fmt) {	return append(fmt); }
-	StringBuilder& appendFormat(const String& fmt) { return append(fmt); }
+    StringBuilder& appendFormat(const StringView& fmt) { return append(fmt); }
 
 //        template<typename T>
 //        StringBuilder& appendFormat(const String& fmt, T&& value) {
@@ -150,16 +149,13 @@ public:
     size_type replace(const Char& what, const Char& with);
 	size_type replace(const String& what, const String& by);
 
-	bool endsWith(const String& suffix) const;
-	bool endsWith(const Char& suffix) const;
-
-	size_type length() const;
+    size_type length() const noexcept;
 	bool empty() const;
 
-    MemoryView view() const noexcept;
+    StringView view() const noexcept;
 
-    /** From IFromattable */
-	String toString() const override;
+    /** Get resulting string */
+    String toString() const;
 
 private:
 

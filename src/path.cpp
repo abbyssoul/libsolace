@@ -77,19 +77,19 @@ Path::parse(const StringView& str, const StringView& delim) {
     auto components = str.split(delim);
     const auto nbOfComponents = components.size();
 
-    std::vector<String> nonEmptryComponents;
-    nonEmptryComponents.reserve(nbOfComponents);
+    std::vector<String> nonEmptyComponents;
+    nonEmptyComponents.reserve(nbOfComponents);
 
     for (decltype(components)::size_type i = 0; i < components.size(); ++i) {
         if (i + 1 == components.size() && components[i].empty())
             continue;
 
-        nonEmptryComponents.push_back(std::move(components[i]));
+        nonEmptyComponents.emplace_back(std::move(components[i]));
     }
 
-    return nonEmptryComponents.empty()
+    return nonEmptyComponents.empty()
             ? Ok(Root)
-            : Ok(Path(std::move(nonEmptryComponents)));
+            : Ok(Path(std::move(nonEmptyComponents)));
 }
 
 
@@ -291,14 +291,14 @@ Path Path::join(const Path& rhs) const {
     return Path::join({*this, rhs});
 }
 
-Path Path::join(const String& rhs) const {
-    Array<String> components(getComponentsCount() + 1);
+Path Path::join(const StringView& rhs) const {
+    std::vector<String> components;
+    components.reserve(getComponentsCount() + 1);
 
-    size_type i = 0;
     for (const auto& c : _components) {
-        components[i++] = c;
+        components.emplace_back(c);
     }
-    components[i++] = rhs;
+    components.emplace_back(rhs);
 
     return Path(std::move(components));
 }

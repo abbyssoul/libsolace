@@ -29,12 +29,8 @@
 #include <unistd.h>
 #include <cerrno>
 
-using Solace::MemoryView;
-using Solace::MemoryManager;
 
-using Solace::IllegalArgumentException;
-using Solace::OverflowException;
-using Solace::IOException;
+using namespace Solace;
 
 
 MemoryManager::MemoryManager(size_type allowedCapacity) :
@@ -114,19 +110,19 @@ MemoryManager::size_type MemoryManager::getNbAvailablePages() const {
 
 void
 MemoryManager::HeapMemoryDisposer::dispose(ImmutableMemoryView* view) const {
+    _self->free(view);
+}
+
+
+void MemoryManager::free(ImmutableMemoryView* view) {
     const auto size = view->size();
     delete [] view->dataAddress();
 
-    _self->free(size);
+    _size -= size;
 }
 
 
-void MemoryManager::free(size_type dataSize) {
-    _size -= dataSize;
-}
-
-
-MemoryView MemoryManager::create(size_type dataSize) {
+MemoryBuffer MemoryManager::create(size_type dataSize) {
     if (size() + dataSize > capacity()) {
         raise<OverflowException>("dataSize", dataSize, 0, capacity() - size());
     }
@@ -139,7 +135,7 @@ MemoryView MemoryManager::create(size_type dataSize) {
 
     _size += dataSize;
 
-    return wrapMemory(data, dataSize, &_disposer);
+    return MemoryBuffer(wrapMemory(data, dataSize), &_disposer);
 }
 
 

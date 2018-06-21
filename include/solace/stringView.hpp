@@ -63,7 +63,7 @@ public:
      * @param s A pointer to a character array or a C string to initialize the view with.
      * @param count Number of characters to include in the view.
      */
-    constexpr StringView(const char* s, size_type count) :
+    constexpr StringView(const char* s, size_type count) noexcept :
            _size(count),
            _data(s)
     {}
@@ -76,6 +76,7 @@ public:
      * @param s A pointer to a character array or a C string to initialize the view with.
      */
     StringView(const char* s);
+
 
     StringView& swap(StringView& rhs) noexcept {
         using std::swap;
@@ -117,14 +118,6 @@ public:
 
     bool operator== (StringView rhv) const noexcept {
         return equals(rhv);
-    }
-
-    bool operator== (const char* rhv) const noexcept {
-        return equals(rhv);
-    }
-
-    bool operator!= (const char* rhv) const noexcept {
-        return !equals(rhv);
     }
 
     bool operator!= (StringView rhv) const noexcept {
@@ -297,6 +290,9 @@ public:
 
     const_iterator end() const noexcept { return begin() + size(); }
 
+    ImmutableMemoryView view() const noexcept {
+        return wrapMemory(_data, _size);
+    }
 
 private:
     size_type _size = 0;
@@ -330,6 +326,27 @@ inline void
 swap(StringLiteral& lhs, StringLiteral& rhs) noexcept {
     lhs.swap(rhs);
 }
+
+inline
+bool operator== (const char* rhv, const StringView& str) noexcept {
+    return str.equals(rhv);
+}
+
+inline
+bool operator== (const StringView& str, const char* rhv) noexcept {
+    return str.equals(rhv);
+}
+
+inline
+bool operator!= (const char* rhv, const StringView& str) noexcept {
+    return !str.equals(rhv);
+}
+
+inline
+bool operator!= (const StringView& str, const char* rhv) noexcept {
+    return !str.equals(rhv);
+}
+
 
 inline std::ostream& operator<< (std::ostream& ostr, const StringView& str) {
     return ostr.write(str.data(), str.size());

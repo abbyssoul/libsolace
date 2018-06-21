@@ -92,8 +92,8 @@ public:
             CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(128), test.size());
             CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(128), memBlock.size());
 
-            memBlock.fill(128);
-            CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::value_type>(128), memBlock.last());
+            memBlock.view().fill(128);
+            CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::value_type>(128), memBlock.view().last());
         }
 
         CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(0), test.size());

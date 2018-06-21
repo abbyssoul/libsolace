@@ -1,5 +1,5 @@
 /*
-*  Copyright 2016 Ivan Ryabov
+*  Copyright 2018 Ivan Ryabov
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -20,10 +20,9 @@
  *
  * Created on: 03/07/2016
 *******************************************************************************/
-#include <solace/io/mappedMemory.hpp>  // Class being tested
+#include <solace/io/sharedMemory.hpp>  // Class being tested
 
 #include <solace/exception.hpp>
-#include <solace/string.hpp>
 #include <cppunit/extensions/HelperMacros.h>
 
 #include <cstring>
@@ -53,7 +52,7 @@ public:
 
 
     void testCreate_InvalidSize() {
-        CPPUNIT_ASSERT_THROW(auto mem = MappedMemoryView::create(0), IllegalArgumentException);
+        CPPUNIT_ASSERT_THROW(auto mem = SharedMemory::createAnon(0), IllegalArgumentException);
     }
 
 
@@ -61,34 +60,34 @@ public:
     }
 
     void testFill() {
-        auto buffer = MappedMemoryView::create(47);
+        auto buffer = SharedMemory::createAnon(47);
 
-        buffer.fill(0);
-        for (const auto& v : buffer) {
+        buffer.view().fill(0);
+        for (const auto& v : buffer.view()) {
             CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0), v);
         }
 
         MemoryView::size_type r = 0;
-        buffer.fill(1);
-        for (const auto& v : buffer) {
+        buffer.view().fill(1);
+        for (const auto& v : buffer.view()) {
             CPPUNIT_ASSERT_EQUAL(static_cast<byte>(1), v);
             r += v;
         }
         CPPUNIT_ASSERT_EQUAL(r, buffer.size());
 
-        buffer.fill(211);
-        for (const auto& v : buffer) {
+        buffer.view().fill(211);
+        for (const auto& v : buffer.view()) {
             CPPUNIT_ASSERT_EQUAL(static_cast<byte>(211), v);
         }
     }
 
 
     void testShareAndMap() {
-        const MappedMemoryView::size_type memSize = 24;
+        const SharedMemory::size_type memSize = 24;
         bool isChild = false;
         {
-            auto view = MappedMemoryView::create(memSize, MappedMemoryView::Access::Shared);
-            CPPUNIT_ASSERT_EQUAL(memSize, view.size());
+            auto memBuffer = SharedMemory::createAnon(memSize, SharedMemory::Access::Shared);
+            CPPUNIT_ASSERT_EQUAL(memSize, memBuffer.size());
 
             const auto childPid = fork();
             switch (childPid) {           /* Parent and child share mapping */
@@ -98,7 +97,7 @@ public:
 
             case 0: {                     /* Child: increment shared integer and exit */
                 isChild = true;
-                ByteBuffer sb(view.viewShallow());
+                ByteBuffer sb(memBuffer);
                 sb << getpid();
                 sb.write("child", 5);
 
@@ -114,7 +113,7 @@ public:
                 int viewedPid;
                 char message[10];
 
-                ByteBuffer sb(view.viewShallow());
+                ByteBuffer sb(memBuffer);
                 sb >> viewedPid;
                 CPPUNIT_ASSERT_EQUAL(childPid, viewedPid);
 

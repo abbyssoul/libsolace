@@ -63,14 +63,14 @@ public:
 
 	void testNullString() {
         CPPUNIT_ASSERT_THROW(const StringBuilder nullString(_memoryManager.create(5), nullptr),
-                             IllegalArgumentException);
+                             Exception);
 	}
 
 	/**
 	 * Test construction calls
 	 */
 	void testConstruction() {
-        const String constStr { someConstString };
+        const StringView constStr { someConstString };
 
         {   // empty buffer usage
             const StringBuilder empty(_memoryManager.create(0));  // No throw?
@@ -90,21 +90,21 @@ public:
             const StringBuilder sb(_memoryManager.create(strlen(someConstString)), someConstString);
 
 			CPPUNIT_ASSERT(!sb.empty());
-			CPPUNIT_ASSERT_EQUAL(constStr, sb.toString());
+            CPPUNIT_ASSERT_EQUAL(constStr, sb.view());
 		}
 
 		{
             const StringBuilder sb(_memoryManager.create(2 * constStr.size()), constStr);
 
 			CPPUNIT_ASSERT(!sb.empty());
-            CPPUNIT_ASSERT_EQUAL(constStr, sb.toString());
+            CPPUNIT_ASSERT_EQUAL(constStr, sb.view());
 		}
 
         {  // Test move construction
             const StringBuilder sb = moveMe();
 
             CPPUNIT_ASSERT(!sb.empty());
-            CPPUNIT_ASSERT_EQUAL(constStr, sb.toString());
+            CPPUNIT_ASSERT_EQUAL(constStr, sb.view());
 		}
 	}
 

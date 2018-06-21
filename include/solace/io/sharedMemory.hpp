@@ -25,10 +25,10 @@
 #define SOLACE_IO_SHAREDMEMORY_HPP
 
 
+#include "solace/memoryBuffer.hpp"
 #include "solace/path.hpp"
 #include "solace/io/selectable.hpp"
 #include "solace/io/file.hpp"           // File::Mode
-#include "solace/io/mappedMemory.hpp"
 
 
 namespace Solace { namespace IO {
@@ -43,7 +43,40 @@ public:
 
     using ISelectable::poll_id;
 
-    typedef MemoryView::size_type size_type;
+    using size_type = MemoryView::size_type;
+
+
+    /** Desired protection of the mapping
+     * It is either None for no protection
+     * or the bitwise OR of one or more of the flags
+     */
+    struct Protection {
+        static const int None;   //!< Pages may not be accessed.
+        static const int Exec;   //!< Pages may be executed.
+        static const int Read;   //!< Pages may be read.
+        static const int Write;  //!< Pages may be written.
+    };
+
+
+    /** Sharing access mode
+     * Determines whether updates to the mapping are visible to other processes mapping the same region,
+     * and whether updates are carried through to the underlying file (if any)
+     */
+    enum class Access {
+
+        /** Share this mapping.
+         * Updates to the mapping are visible to other processes that map this file,
+         * and are carried through to the underlying file.
+         */
+        Shared,
+
+        /** Create a private copy-on-write mapping.
+         * Updates to the mapping are not visible to other processes mapping the same file,
+         * and are not carried through to the underlying file.
+         */
+        Private
+    };
+
 
 public:
 
@@ -57,7 +90,7 @@ public:
     static SharedMemory fromFd(poll_id fid);
 
     /**
-     * Create a new named shared memory segment of the given size
+     * Create a new NAMED shared memory buffer of the given size
      *
      * @param pathname Name of the shared memory segment to create.
      * @param size Size in bytes of the shared memory sergment to create.
@@ -71,6 +104,21 @@ public:
                                File::AccessMode mode = File::AccessMode::ReadWrite,
                                int permissionsMode = (File::Mode::IRUSR | File::Mode::IWUSR));
 
+    /**
+     * Create new ANONYMOUS shared memory buffer.
+     *
+     * @param mapSize The size of a new memory buffer to create.
+     * @param mapping Mapping sharing mode. @see SharedMemory::Access
+     * @param protection Mapped page protection. @see SharedMemory::Protection
+     *
+     * @return Memory buffer of the mapped shared memory region.
+     * FIXME(abbyssoul): should return Result<MemoryBuffer, IOError>
+     */
+    static MemoryBuffer createAnon(size_type size,
+                                   Access mapping = Access::Private,
+                                   int protection = Protection::Read | Protection::Write) {
+        return mapMem(-1, size, mapping, protection);
+    }
 
     /**
      * Open already existing named shared memory region.
@@ -90,12 +138,26 @@ public:
      */
     static void unlink(const Path& pathname);
 
+
+    /**
+     * Map file / device into memory.
+     * @param fd File descriptor of the file to map or -1 for anonymous memory.
+     * @param memSize Number of bytes to map.
+     * @param mapping Whether updates to the mapping are visible to other processes mapping the same region, and whether
+       updates are carried through to the underlying file.
+     * @param protection Desired memory protection of the mapping.
+     * @return Mapped memory buffer or an error.
+     */
+    static MemoryBuffer mapMem(int fd, size_type memSize,
+                                Access mapping = Access::Private,
+                                int protection = Protection::Read | Protection::Write);
+
 public:
 
     /**
      * Default distructor.
      */
-    virtual ~SharedMemory();
+     ~SharedMemory() override;
 
 
     /**
@@ -153,8 +215,8 @@ public:
      *
      * @return Memory view of the mapped shared memory region.
      */
-    MappedMemoryView map(MappedMemoryView::Access mapping = MappedMemoryView::Access::Private,
-                   int access = MappedMemoryView::Protection::Read | MappedMemoryView::Protection::Write,
+    MemoryBuffer map(Access mapping = Access::Private,
+                   int access = Protection::Read | Protection::Write,
                    size_type mapSize = 0);
 
 

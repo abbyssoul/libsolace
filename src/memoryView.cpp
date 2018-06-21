@@ -34,13 +34,6 @@
 using namespace Solace;
 
 
-MemoryView::MemoryView(size_type newSize, void* data, const Solace::MemoryViewDisposer* disposer) :
-    ImmutableMemoryView(newSize, const_cast<const void*>(data), disposer)
-{
-}
-
-
-
 MemoryView::reference
 MemoryView::operator[] (size_type index) {
     return *const_cast<value_type*>(dataAddress(index));
@@ -173,10 +166,4 @@ MemoryView::slice(size_type from, size_type to) {
 
 
     return wrapMemory(const_cast<value_type*>(dataAddress(from)), to - from);
-}
-
-
-MemoryView
-MemoryView ::viewShallow() const {
-    return wrapMemory(const_cast<value_type*>(dataAddress()), size());
 }

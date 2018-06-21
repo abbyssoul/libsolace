@@ -56,8 +56,12 @@ public:
     /** Construct an empty memory view */
     MemoryView() noexcept = default;
 
-    MemoryView(const MemoryView&) = delete;
-    MemoryView& operator= (const MemoryView&) = delete;
+    MemoryView(void* data, size_type size) :
+        ImmutableMemoryView(data, size)
+    {}
+
+    MemoryView(const MemoryView&) noexcept = default;
+    MemoryView& operator= (const MemoryView&) noexcept = default;
 
     MemoryView(MemoryView&& rhs) noexcept:
         ImmutableMemoryView(std::move(rhs))
@@ -180,14 +184,17 @@ public:
     using ImmutableMemoryView::slice;
     MemoryView slice(size_type from, size_type to);
 
-    MemoryView viewShallow() const;
+    template<typename T, typename... Args>
+    T* construct(Args&&... args) {
+        assertIndexInRange(sizeof(T), 0, this->size() + 1);
 
-    friend MemoryView wrapMemory(byte*, MemoryView::size_type, const MemoryViewDisposer*);
+        return new (dataAddress()) T(std::forward<Args>(args)...);
+    }
 
-protected:
-
-    MemoryView(size_type size, void* data, const MemoryViewDisposer* disposer);
-
+    template<typename T>
+    void destruct(T* t) {
+        t->~T();
+    }
 };
 
 
@@ -201,26 +208,15 @@ protected:
  *
  * @return MemoryView object wrapping the memory address given
  */
-inline MemoryView wrapMemory(byte* data, MemoryView::size_type size,
-                             const MemoryViewDisposer* freeFunc = 0) {
-    return MemoryView{size, data, freeFunc};
-}
+inline MemoryView wrapMemory(void* data, MemoryView::size_type size) { return {data, size}; }
 
-inline MemoryView wrapMemory(void* data, MemoryView::size_type size,
-                             const MemoryViewDisposer* freeFunc = 0) {
-    return wrapMemory(reinterpret_cast<byte*>(data), size, freeFunc);
-}
+inline MemoryView wrapMemory(byte* data, MemoryView::size_type size) { return {data, size}; }
 
-inline MemoryView wrapMemory(char* data, MemoryView::size_type size,
-                             const MemoryViewDisposer* freeFunc = 0) {
-    return wrapMemory(reinterpret_cast<byte*>(data), size, freeFunc);
-}
+inline MemoryView wrapMemory(char* data, MemoryView::size_type size) { return {data, size}; }
 
 template<typename PodType, size_t N>
-inline MemoryView wrapMemory(PodType (&data)[N],
-                             const MemoryViewDisposer* freeFunc = 0)
-{
-    return wrapMemory(static_cast<void*>(data), N * sizeof(PodType), freeFunc);
+inline MemoryView wrapMemory(PodType (&data)[N]) {
+    return wrapMemory(static_cast<void*>(data), N * sizeof(PodType));
 }
 
 

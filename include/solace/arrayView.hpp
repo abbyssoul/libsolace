@@ -59,9 +59,11 @@ public:
     /** Construct an empty array */
     constexpr ArrayView() noexcept = default;
 
+    /** Construct an empty array */
     constexpr ArrayView(decltype(nullptr)) noexcept
     {}
 
+    /** Construct an array from C-style array with the given size */
     constexpr ArrayView(T* ptr, size_type arraySize) noexcept :
         _memory(wrapMemory(ptr, arraySize))
     {}
@@ -76,7 +78,7 @@ public:
     {}
 
     constexpr ArrayView(const ArrayView& other) noexcept :
-        _memory(other._memory.viewShallow())
+        _memory(other._memory)
     {}
 
     constexpr ArrayView(MemoryView&& memview) noexcept :

@@ -25,30 +25,19 @@
 #include "solace/exception.hpp"
 
 
-using Solace::Char;
-using Solace::String;
-using Solace::StringBuilder;
-using Solace::IllegalArgumentException;
-using Solace::Optional;
-using Solace::MemoryView;
-using Solace::ByteBuffer;
+using namespace Solace;
 
 
-StringBuilder::StringBuilder(MemoryView&& buffer): _buffer(std::move(buffer)) {
+
+StringBuilder::StringBuilder(MemoryView&& buffer, const StringView& str):
+    StringBuilder(std::move(buffer)) {
+    _buffer.write(str.data(), str.length());
 }
 
-StringBuilder::StringBuilder(MemoryView&& buffer, const char* cstr): _buffer(std::move(buffer)) {
-    if (!cstr) {
-        raise<IllegalArgumentException>("cstr");
-    }
-
-    _buffer.write(cstr, std::char_traits<char>::length(cstr));
+StringBuilder::StringBuilder(MemoryBuffer&& buffer, const StringView& str):
+    StringBuilder(std::move(buffer)) {
+    _buffer.write(str.data(), str.length());
 }
-
-StringBuilder::StringBuilder(MemoryView&& buffer, const String& str): _buffer(std::move(buffer)) {
-    _buffer.write(str.c_str(), str.length());
-}
-
 
 StringBuilder& StringBuilder::append(char c) {
 	_buffer << c;
@@ -78,8 +67,14 @@ StringBuilder& StringBuilder::append(const String& str) {
     return *this;
 }
 
+StringView
+StringBuilder::view() const noexcept {
+    return StringView(_buffer.viewWritten().dataAs<const char>(), _buffer.position());
+}
 
-String StringBuilder::toString() const {
+
+String
+StringBuilder::toString() const {
     return (_buffer.position() == 0)
             ? String::Empty
             : String(_buffer.viewWritten());
@@ -87,6 +82,11 @@ String StringBuilder::toString() const {
 
 bool StringBuilder::empty() const {
     return (_buffer.position() == 0);
+}
+
+StringBuilder::size_type
+StringBuilder::length() const noexcept {
+    return _buffer.position();
 }
 
 

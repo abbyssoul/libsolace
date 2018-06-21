@@ -21,8 +21,6 @@
  * Created on: 20 Jun 2016
 *******************************************************************************/
 #include <solace/memoryView.hpp>  // Class being tested
-#include <solace/memoryManager.hpp>
-
 
 #include <cppunit/extensions/HelperMacros.h>
 #include "mockTypes.hpp"
@@ -42,11 +40,8 @@ class TestMemoryView: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testReadingPastTheSize);
         CPPUNIT_TEST(testSlice);
         CPPUNIT_TEST(testZeroSizedSlice);
+        CPPUNIT_TEST(testPlacementConstruct);
     CPPUNIT_TEST_SUITE_END();
-
-protected:
-
-    MemoryManager manager;
 
 public:
 
@@ -56,11 +51,9 @@ public:
 
 public:
 
-    TestMemoryView(): manager(4096) {
-    }
-
     void testFill() {
-        MemoryView buffer = manager.create(48);
+        byte buff[48];
+        MemoryView buffer = wrapMemory(buff);
 
         buffer.fill(0);
         for (const auto& v : buffer) {
@@ -134,7 +127,8 @@ public:
 
     void testConstruction() {
         {   // Fixed size constructor
-            MemoryView test = manager.create(3102);
+            byte buff[3102];
+            MemoryView test = wrapMemory(buff);
 
             CPPUNIT_ASSERT(!test.empty());
             CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(3102), test.size());
@@ -172,8 +166,9 @@ public:
     }
 
     void testRead() {
-        MemoryView buffer = manager.create(128);
-        MemoryView dest = manager.create(24);
+        byte b1[128], b2[24];
+        MemoryView buffer = wrapMemory(b1);
+        MemoryView dest = wrapMemory(b2);
 
         dest.fill(0);
         buffer.fill(64);
@@ -277,8 +272,9 @@ public:
     }
 
     void testWrite() {
-        MemoryView buffer = manager.create(128);
-        MemoryView src = manager.create(24);
+        byte b1[128], b2[24];
+        MemoryView buffer = wrapMemory(b1);
+        MemoryView src = wrapMemory(b2);
 
         src.fill(32);
         buffer.fill(0);
@@ -382,6 +378,28 @@ public:
 
         CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(0), ImmutableMemoryView().slice(0, 0).size());
         CPPUNIT_ASSERT_EQUAL(static_cast<MemoryView::size_type>(0), MemoryView().slice(0, 0).size());
+    }
+
+
+    void testPlacementConstruct() {
+        {
+            byte src[3];
+            auto buffer = wrapMemory(src);
+            CPPUNIT_ASSERT_THROW(buffer.construct<SimpleType>(4, -2, 12), IndexOutOfRangeException);
+            CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
+        }
+
+        {
+            byte src[sizeof(SimpleType)];
+            auto buffer = wrapMemory(src);
+            auto simpleInstance = buffer.construct<SimpleType>(4, -2, 12);
+
+            CPPUNIT_ASSERT_EQUAL(-2, simpleInstance->y);
+            CPPUNIT_ASSERT_EQUAL(1, SimpleType::InstanceCount);
+
+            buffer.destruct(simpleInstance);
+            CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
+        }
     }
 
 };

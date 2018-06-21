@@ -33,7 +33,7 @@ using namespace Solace;
 
 
 MemoryView ByteBuffer::viewRemaining() {
-    auto destAddr = _storage.dataAddress(position());
+    auto destAddr = _storage.view().dataAddress(position());
 
     return wrapMemory(const_cast<byte*>(destAddr), remaining());
 //    return _storage.slice(position(), limit());
@@ -41,8 +41,8 @@ MemoryView ByteBuffer::viewRemaining() {
 
 
 MemoryView ByteBuffer::viewWritten() {
-    auto destAddr = _storage.dataAddress();
-    return wrapMemory(const_cast<byte*>(destAddr), position());
+    auto destAddr = _storage.view().dataAddress();
+    return wrapMemory(const_cast<ImmutableMemoryView::value_type*>(destAddr), position());
 //    return _storage.slice(0, position());
 }
 
@@ -65,8 +65,8 @@ ByteBuffer& ByteBuffer::write(const void* data, size_type count) {
     }
 
     const auto pos = position();
-    auto destAddr = _storage.dataAddress(pos);
-    void* dest = reinterpret_cast<void*>(const_cast<ReadBuffer::Storage::value_type*>(destAddr));
+    auto destAddr = _storage.view().dataAddress(pos);
+    void* dest = reinterpret_cast<void*>(const_cast<ImmutableMemoryView::value_type*>(destAddr));
     memmove(dest, data, count);
 
     advance(count);

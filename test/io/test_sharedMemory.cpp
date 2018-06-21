@@ -86,7 +86,7 @@ public:
             auto mem = SharedMemory::create(Path("/somename"), memSize);
             CPPUNIT_ASSERT(mem);
 
-            auto view = mem.map(MappedMemoryView::Access::Shared);
+            auto view = mem.map(SharedMemory::Access::Shared);
             CPPUNIT_ASSERT_EQUAL(memSize, mem.size());
             CPPUNIT_ASSERT_EQUAL(memSize, view.size());
 
@@ -101,7 +101,7 @@ public:
                 CPPUNIT_ASSERT_EQUAL(memSize, view.size());
 
                 isChild = true;
-                ByteBuffer sb(view.viewShallow());
+                ByteBuffer sb(view);
                 sb << getpid();
                 sb.write("child", 5);
 
@@ -117,7 +117,7 @@ public:
                 int viewedPid;
                 char message[10];
 
-                ByteBuffer sb(view.viewShallow());
+                ByteBuffer sb(view);
                 sb >> viewedPid;
                 CPPUNIT_ASSERT_EQUAL(childPid, viewedPid);
 

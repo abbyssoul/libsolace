@@ -27,11 +27,10 @@
 
 
 using namespace Solace;
-using namespace Solace::cli;
 
 
 void enumerateDevices() {
-	for (const auto& descriptor : Solace::IO::Serial::enumeratePorts()) {
+    for (const auto& descriptor : IO::Serial::enumeratePorts()) {
         std::cout << descriptor.file << ":" << std::endl;
         std::cout << "\t - " << descriptor.description << std::endl;
         std::cout << "\t - " << descriptor.hardwareId << std::endl;
@@ -47,18 +46,18 @@ int main(int argc, const char **argv) {
 
     uint32 boudRate = 115200;
     uint32 bufferSize = 120;
-    Solace::Path file;
+    Path file;
 
-    const auto parseResult = Parser("Serial port example", {
-                          Parser::printHelp(),
-                          Parser::printVersion("serial", getBuildVersion()),
+    const auto parseResult = cli::Parser("Serial port example", {
+                          cli::Parser::printHelp(),
+                          cli::Parser::printVersion("serial", getBuildVersion()),
                           {{"b", "boudRate"},   "COM port boud rate",   &boudRate},
                           {{"bufferSize"},      "Read buffer size",     &bufferSize}
                         })
             .arguments({
                           { "fileName", "File/device name to open",
-                            [&file](const StringView& value, const Parser::Context&) -> Optional<Error> {
-                                auto result = Solace::Path::parse(value);
+                            [&file](const StringView& value, const cli::Parser::Context&) -> Optional<Error> {
+                                auto result = Path::parse(value);
                                 if (!result) {
                                     return Optional<Error>::of(result.moveError());
                                 } else {
@@ -79,22 +78,21 @@ int main(int argc, const char **argv) {
               << "boudrate: " << boudRate << std::endl;
 
     try {
-        Solace::IO::Serial serial(file, boudRate);
+        IO::Serial serial(file, boudRate);
 
         std::cout << "press ^C to quit" << std::endl;
 
-        Solace::MemoryManager memManager(2048);
-
-        Solace::ByteBuffer readBuffer(memManager.create(bufferSize));
-        auto selector = Solace::IO::Selector::createPoll(2);
-        selector.add(&serial,   Solace::IO::Selector::Events::Read |
-                                Solace::IO::Selector::Events::Error);
+        MemoryManager memManager(2048);
+        ByteBuffer readBuffer(memManager.create(bufferSize));
+        auto selector = IO::Selector::createPoll(2);
+        selector.add(&serial,   IO::Selector::Events::Read |
+                                IO::Selector::Events::Error);
 
         bool keepOnRunning = true;
         while (keepOnRunning) {
             for (auto event : selector.poll()) {
 
-                if ((event.events & Solace::IO::Selector::Events::Read) && (event.data == &serial)) {
+                if ((event.events & IO::Selector::Events::Read) && (event.data == &serial)) {
                     const auto bytesRead = serial.read(readBuffer);
                     if (bytesRead) {
                         auto dataView = readBuffer.viewWritten();

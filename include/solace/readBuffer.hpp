@@ -24,29 +24,26 @@
 
 #include "solace/immutableMemoryView.hpp"
 #include "solace/memoryView.hpp"
+#include "solace/memoryBuffer.hpp"
 
 
 namespace Solace {
 
 /**
- * A byte storage with stream access semantic.
- * One can read and write into the byte buffer and this operations will advane current position.
+ * A byte buffer with stream access semantic.
+ * This is an adapter on top of Immutable Memory view (@see ImmutableMemoryView) to enable easy reading of data.
  *
  */
 class ReadBuffer {
 public:
 
-    typedef ImmutableMemoryView Storage;
-    typedef Storage::size_type  size_type;
+    using Storage = MemoryBuffer;
+    using size_type = Storage::size_type;
 
 public:
 
     /** Construct an empty buffer of size zero */
-    ReadBuffer() noexcept :
-        _position(0),
-        _limit(0),
-        _storage()
-    {}
+    ReadBuffer() noexcept = default;
 
 
     ReadBuffer(const ReadBuffer& other) = delete;
@@ -65,13 +62,45 @@ public:
 
 
     /**
+     * Construct the read buffer from an existing memory buffer object.
+     * Note: The caller of this method is responsible for the life-time of the memory buffer.
+     * Use move constructor if you want to delegate life-time management to the instance of the reader.
+     * @param other Other buffer to copy data from
+     */
+    ReadBuffer(MemoryBuffer& buffer) :
+        _limit(buffer.size()),
+        _storage(buffer.view(), nullptr)
+    {
+    }
+
+    /**
+     * Construct the byte buffer from the memory buffer object
+     * @param other Other buffer to copy data from
+     */
+    ReadBuffer(MemoryBuffer&& buffer) :
+        _limit(buffer.size()),
+        _storage(std::move(buffer))
+    {
+    }
+
+    /**
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    ReadBuffer(ImmutableMemoryView&& memView) :
-        _position(0),
-        _limit(memView.size()),
-        _storage(std::move(memView))
+    ReadBuffer(ImmutableMemoryView&& view) :
+        _limit(view.size()),
+        _storage(wrapMemory(const_cast<ImmutableMemoryView::value_type*>(view.dataAddress()), view.size()), nullptr)
+//        _storage(std::move(view))
+    {
+    }
+
+    /**
+     * Construct the byte buffer from the memory view object
+     * @param other Other buffer to copy data from
+     */
+    ReadBuffer(const ImmutableMemoryView& view) :
+        _limit(view.size()),
+        _storage(wrapMemory(const_cast<ImmutableMemoryView::value_type*>(view.dataAddress()), view.size()), nullptr)
     {
     }
 
@@ -207,11 +236,11 @@ public:
     }
 
     ImmutableMemoryView viewRemaining() const {
-        return _storage.slice(position(), limit());
+        return _storage.view().slice(position(), limit());
     }
 
     ImmutableMemoryView viewWritten() const {
-        return _storage.slice(0, position());
+        return _storage.view().slice(0, position());
     }
 
     // Endianess aware read/write
@@ -235,8 +264,8 @@ public:
 
 protected:
 
-    size_type           _position;
-    size_type           _limit;
+    size_type           _position{};
+    size_type           _limit{};
 
     Storage             _storage;
 

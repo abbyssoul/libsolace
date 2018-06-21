@@ -109,10 +109,10 @@ public:  // Static methods
 
 public:  // Object construction
 
-     ~Path() noexcept override = default;
+    ~Path() noexcept override = default;
 
 	/** Construct an empty path */
-    Path() : _components() {
+    Path() noexcept(std::is_nothrow_default_constructible<Array<String>>::value) : _components() {
         // No-op
     }
 
@@ -351,7 +351,7 @@ public:  // Operation
      * Append a component to this path
      * @return A new path with appended component
      */
-    Path join(const String& rhs) const;
+    Path join(const StringView& rhs) const;
 
     /** Tests this path for equality with the given object.
      * @param rhv A path to compare this one to.

@@ -25,7 +25,7 @@
 #ifndef SOLACE_MEMORYMANAGER_HPP
 #define SOLACE_MEMORYMANAGER_HPP
 
-#include "solace/memoryView.hpp"
+#include "solace/memoryBuffer.hpp"
 
 namespace Solace {
 
@@ -39,12 +39,18 @@ namespace Solace {
  */
 class MemoryManager {
 public:
-    typedef MemoryView::size_type       size_type;
-    typedef MemoryView::value_type      value_type;
+    using size_type = MemoryView::size_type;
+    using value_type = MemoryView::value_type;
 
-    typedef void* MemoryAddress;
+    using MemoryAddress = void *;
 
 public:
+
+    /** Destruct memory manager
+     * Note: All the memory allocated by the memory manager instance must be freed by the time
+     * when the manager is destroyed because allocated memory references this instance.
+     */
+    virtual ~MemoryManager() = default;
 
     /** Construct a new memory manager with the given capacity
      *
@@ -53,9 +59,6 @@ public:
     explicit MemoryManager(size_type allowedCapacity);
 
     MemoryManager(const MemoryManager&) = delete;
-
-    /** Deallocate memory */
-    virtual ~MemoryManager() = default;
 
     MemoryManager& swap(MemoryManager& rhs) noexcept;
     MemoryManager& operator= (MemoryManager&& rhs) noexcept;
@@ -100,7 +103,7 @@ public:
      * @return A newly allocated memory segment.
      * TODO(abbyssoul): should return Result<>
      */
-    MemoryView create(size_type dataSize);
+    MemoryBuffer create(size_type dataSize);
 
     /**
      * Prohibit memory allocations.
@@ -121,22 +124,14 @@ public:
      */
     void unlock();
 
-
-    template<typename T>
-    T* construct(MemoryAddress address) {
-        return new (address) T();
-    }
-
-    template<typename T>
-    void destruct(T* t) {
-        t->~T();
-    }
-
 protected:
 
+    /**
+     * A specialization of memory dispozer used by memory buffer to deallocate memory allocated via this manager.
+     */
     class HeapMemoryDisposer : public MemoryViewDisposer {
     public:
-        HeapMemoryDisposer(MemoryManager* self): _self(self)
+        HeapMemoryDisposer(MemoryManager* self) : _self(self)
         {}
 
         void dispose(ImmutableMemoryView* view) const override;
@@ -148,7 +143,7 @@ protected:
 
     friend class HeapMemoryDisposer;
 
-    void free(size_type size);
+    void free(ImmutableMemoryView* view);
 
 private:
 

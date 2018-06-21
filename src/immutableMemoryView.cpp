@@ -41,38 +41,17 @@ bool Solace::isBigendian() noexcept {
 }
 
 
-MemoryViewDisposer::~MemoryViewDisposer()
-{}
-
-
-
-ImmutableMemoryView::~ImmutableMemoryView() {
-    if (_disposer) {
-        _disposer->dispose(this);
-
-        _dataAddress = nullptr;
-        _size = 0;
-    }
-}
-
-
-
 ImmutableMemoryView::ImmutableMemoryView(ImmutableMemoryView&& rhs) noexcept :
-    _disposer(std::move(rhs._disposer)),
     _size(rhs._size),
     _dataAddress(rhs._dataAddress)
 {
     // Stuff rhs up so it won't destruct anything
     rhs._size = 0;
     rhs._dataAddress = nullptr;
-    rhs._disposer = nullptr;
 }
 
 
-ImmutableMemoryView::ImmutableMemoryView(size_type newSize,
-                                         const void* data,
-                                         const MemoryViewDisposer* disposer) :
-    _disposer(disposer),
+ImmutableMemoryView::ImmutableMemoryView(const void* data, size_type newSize) :
     _size(newSize),
     _dataAddress(reinterpret_cast<const value_type*>(data))
 {
@@ -124,12 +103,4 @@ ImmutableMemoryView::slice(size_type from, size_type to) const {
 ImmutableMemoryView
 ImmutableMemoryView::viewImmutableShallow() const {
     return wrapMemory(dataAddress(), size());
-}
-
-
-ImmutableMemoryView
-ImmutableMemoryView::repackage(const MemoryViewDisposer* disposer) {
-    // TODO(abbyssoul): check if this (_disposer != nullptr)
-
-    return wrapMemory(dataAddress(), size(), disposer);
 }

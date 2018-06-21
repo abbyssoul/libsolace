@@ -27,8 +27,7 @@
 
 #include "solace/types.hpp"
 #include "solace/assert.hpp"
-
-#include <utility>   // std::swap
+#include "solace/utils.hpp"
 
 namespace Solace {
 
@@ -37,20 +36,6 @@ namespace Solace {
  * @return True if running on a big endian system.
  */
 bool isBigendian() noexcept;
-
-
-// FWD declaration for disposer below.
-class ImmutableMemoryView;
-
-/**
- * Memory view disposer
- */
-class MemoryViewDisposer {
-public:
-    virtual ~MemoryViewDisposer();
-
-    virtual void dispose(ImmutableMemoryView* view) const = 0;
-};
 
 
 /* Fixed-length raw memory buffer/memory view.
@@ -64,6 +49,9 @@ public:
  */
 class ImmutableMemoryView {
 public:
+
+    using MemoryAddress = void *;
+
     using size_type = uint64;
     using value_type = byte;
 
@@ -73,36 +61,38 @@ public:
 public:
 
     /** Deallocate memory... maybe */
-    ~ImmutableMemoryView();
+    ~ImmutableMemoryView() = default;
 
     /** Construct an empty memory view */
-    ImmutableMemoryView() noexcept :
-        _disposer{nullptr},
-        _size(0),
-        _dataAddress{nullptr}
-    {
-    }
+    ImmutableMemoryView() noexcept = default;
 
-    ImmutableMemoryView(const ImmutableMemoryView&) = delete;
-    ImmutableMemoryView& operator= (const ImmutableMemoryView&) = delete;
+    /**
+     * Construct an memory view from a data ptr and a size
+     * @param data Memory address.
+     * @param size The size of the memory block.
+     * @note: it is illigal to pass null data with a non 0 size.
+    */
+    ImmutableMemoryView(const void* data, size_type size);
 
+    ImmutableMemoryView(const ImmutableMemoryView& rhs) noexcept = default;
+    ImmutableMemoryView& operator= (const ImmutableMemoryView&) noexcept = default;
+
+    /** Move construct an instance of the memory view **/
     ImmutableMemoryView(ImmutableMemoryView&& rhs) noexcept;
 
+    /** Move assignment **/
+    ImmutableMemoryView& operator= (ImmutableMemoryView&& rhs) noexcept {
+        return swap(rhs);
+    }
     ImmutableMemoryView& swap(ImmutableMemoryView& rhs) noexcept {
         using std::swap;
 
-        swap(_disposer, rhs._disposer);
         swap(_size, rhs._size);
         swap(_dataAddress, rhs._dataAddress);
 
         return (*this);
     }
 
-
-    /** Move assignment **/
-    ImmutableMemoryView& operator= (ImmutableMemoryView&& rhs) noexcept {
-        return swap(rhs);
-    }
 
     bool equals(const ImmutableMemoryView& other) const noexcept {
         if ((&other == this) ||
@@ -169,9 +159,12 @@ public:
     const value_type* dataAddress(size_type offset) const;
 
     template <typename T>
-    const T* dataAs(size_type offset = 0) const {
+    const T* dataAs() const noexcept { return reinterpret_cast<const T*>(_dataAddress); }
+
+    template <typename T>
+    const T* dataAs(size_type offset) const {
         assertIndexInRange(offset, 0, this->size());
-        assertIndexInRange(offset + sizeof(T), offset, this->size() + 1);
+        assertIndexInRange(offset + sizeof(T), offset, this->size());
 
         return reinterpret_cast<const T*>(_dataAddress + offset);
     }
@@ -196,29 +189,10 @@ public:
      */
     ImmutableMemoryView viewImmutableShallow() const;
 
-    /**
-     * Get the same view but with a custom disposer.
-     * Note this is a dangerous operation!
-     * If this object has a valid disposer it won't be called when a new view goes out of scope.
-     * However it is possible that original view will be disposed possibly making derived view (access-after-free).
-     * @return A new view to the same memory block with custom disposer.
-     */
-    ImmutableMemoryView repackage(const MemoryViewDisposer*);
-
-    friend ImmutableMemoryView wrapMemory(const byte*,
-                                          size_type,
-                                          const MemoryViewDisposer*);
-
-protected:
-
-    ImmutableMemoryView(size_type size, const void* data, const MemoryViewDisposer* disposer);
-
 private:
 
-    const MemoryViewDisposer*   _disposer;
-    size_type                   _size;
-    const byte*                 _dataAddress;
-
+    size_type                   _size{};
+    const byte*                 _dataAddress{nullptr};
 };
 
 
@@ -232,26 +206,15 @@ private:
  *
  * @return MemoryView object wrapping the memory address given
  */
-inline ImmutableMemoryView wrapMemory(const byte* data, ImmutableMemoryView::size_type size,
-                             const MemoryViewDisposer* freeFunc = 0) {
-    return ImmutableMemoryView{size, data, freeFunc};
-}
+inline ImmutableMemoryView wrapMemory(const void* data, ImmutableMemoryView::size_type size) { return {data, size}; }
 
-inline ImmutableMemoryView wrapMemory(const void* data, ImmutableMemoryView::size_type size,
-                             const MemoryViewDisposer* freeFunc = 0) {
-    return wrapMemory(reinterpret_cast<const byte*>(data), size, freeFunc);
-}
+inline ImmutableMemoryView wrapMemory(const byte* data, ImmutableMemoryView::size_type size) { return {data, size}; }
 
-inline ImmutableMemoryView wrapMemory(const char* data, ImmutableMemoryView::size_type size,
-                             const MemoryViewDisposer* freeFunc = 0) {
-    return wrapMemory(reinterpret_cast<const byte*>(data), size, freeFunc);
-}
+inline ImmutableMemoryView wrapMemory(const char* data, ImmutableMemoryView::size_type size) { return {data, size}; }
 
 template<typename PodType, size_t N>
-inline ImmutableMemoryView wrapMemory(const PodType (&data)[N],
-                             const MemoryViewDisposer* freeFunc = 0)
-{
-    return wrapMemory(static_cast<const void*>(data), N * sizeof(PodType), freeFunc);
+inline ImmutableMemoryView wrapMemory(const PodType (&data)[N]) {
+    return wrapMemory(static_cast<const void*>(data), N * sizeof(PodType));
 }
 
 

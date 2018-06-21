@@ -70,7 +70,7 @@ ReadBuffer::get() {
         raise<OverflowException>(_position + 1, _position, _limit);
     }
 
-    return _storage[_position++];
+    return _storage.view()[_position++];
 }
 
 byte
@@ -79,7 +79,7 @@ ReadBuffer::get(size_type pos) const {
         raise<IllegalArgumentException>("pos");
     }
 
-    return _storage[pos];
+    return _storage.view()[pos];
 }
 
 
@@ -102,7 +102,7 @@ ReadBuffer::read(void* dest, size_type count) {
                                  _limit);
     }
 
-    const void* srcAddr = _storage.dataAddress(_position);
+    const void* srcAddr = _storage.view().dataAddress(_position);
     memmove(dest, srcAddr, count);
     _position += count;
 
@@ -116,7 +116,7 @@ ReadBuffer::read(size_type offset, byte* dest, size_type bytesToRead) const {
         raise<OverflowException>(offset + bytesToRead, 0, _limit);
     }
 
-    const void* srcAddr = _storage.dataAddress(offset);
+    const void* srcAddr = _storage.view().dataAddress(offset);
     memmove(dest, srcAddr, bytesToRead);
 
     return (*this);

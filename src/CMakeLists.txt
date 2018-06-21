@@ -5,8 +5,9 @@ set(SOURCE_FILES
         error.cpp
         char.cpp
 
-        memoryView.cpp
         immutableMemoryView.cpp
+        memoryView.cpp
+        memoryBuffer.cpp
         memoryManager.cpp
         base16.cpp
 #        base32.cpp
@@ -35,7 +36,6 @@ set(SOURCE_FILES
         io/selector_epoll.cpp
         io/platformFilesystem.cpp
         io/sharedMemory.cpp
-        io/mappedMemory.cpp
 
         process/env.cpp
 

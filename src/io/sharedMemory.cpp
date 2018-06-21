@@ -36,6 +36,51 @@ static constexpr size_t NAME_MAX = 255;
 #endif
 
 
+const int SharedMemory::Protection::None = PROT_NONE;
+const int SharedMemory::Protection::Read = PROT_READ;
+const int SharedMemory::Protection::Write = PROT_WRITE;
+const int SharedMemory::Protection::Exec = PROT_EXEC;
+
+
+
+void* mapMemory(SharedMemory::size_type memSize, int protection, SharedMemory::Access mapping, int fd) {
+    if (memSize == 0) {
+        Solace::raise<IllegalArgumentException>("size");
+    }
+
+    int flags = (fd == -1) ? MAP_ANONYMOUS : 0;
+    switch (mapping) {
+    case SharedMemory::Access::Private: flags |= MAP_PRIVATE; break;
+    case SharedMemory::Access::Shared: flags |= MAP_SHARED; break;
+    }
+
+    auto addr = mmap(nullptr, memSize, protection, flags, fd, 0);
+    if (addr == MAP_FAILED) {
+        Solace::raise<IOException>(errno, "mmap");
+    }
+
+    return addr;
+}
+
+
+class MappedMemoryDisposer : public MemoryViewDisposer {
+public:
+
+    void dispose(ImmutableMemoryView* view) const override {
+        // FIXME(abbyssoul): Some return result check might help.
+        const auto size = view->size();
+        auto addr = const_cast<ImmutableMemoryView::value_type*>(view->dataAddress());
+        if (addr && size > 0) {
+            const auto result = munmap(addr, size);
+            if (result != 0) {
+                raise<IOException>(errno, "munmap");
+            }
+        }
+    }
+};
+
+static MappedMemoryDisposer g_mappedMemoryDisposer;
+
 SharedMemory::~SharedMemory() {
     if ((_fd != File::InvalidFd)) {
         ::close(_fd);
@@ -142,6 +187,14 @@ SharedMemory SharedMemory::fromFd(poll_id fid) {
 }
 
 
+MemoryBuffer
+SharedMemory::mapMem(int fd, size_type memSize, SharedMemory::Access mapping, int protection) {
+    auto addr = mapMemory(memSize, protection, mapping, fd);
+
+    return MemoryBuffer(wrapMemory(addr, memSize), &g_mappedMemoryDisposer);
+}
+
+
 SharedMemory SharedMemory::create(const Path& pathname, size_type memSize, File::AccessMode mode, int permissionsMode) {
 
     if (memSize == 0) {
@@ -220,14 +273,14 @@ void SharedMemory::unlink(const Path& pathname) {
 }
 
 
-MappedMemoryView
-SharedMemory::map(MappedMemoryView::Access mapping, int access, size_type mapSize) {
+MemoryBuffer
+SharedMemory::map(SharedMemory::Access mapping, int access, size_type mapSize) {
     const auto fd = validateFd();
 
     if (mapSize == 0) {
         mapSize = size();
     }
 
-    return MappedMemoryView::map(fd, mapSize, mapping, access);
+    return mapMem(fd, mapSize, mapping, access);
 }
 
