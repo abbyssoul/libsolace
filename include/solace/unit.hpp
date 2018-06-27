@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace: Unit type - void of functional programming
  *	@file		solace/unit.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	ID:			$Id$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_UNIT_HPP
@@ -40,9 +37,8 @@ namespace Solace {
  * @see Result<Unit, Error> that otherwise are impossible
  */
 struct Unit {
-
-    bool operator== (const Unit& /*rhs*/) const noexcept { return true; }
-    bool operator!= (const Unit& /*rhs*/) const noexcept { return false; }
+    bool operator== (Unit const& /*rhs*/) const noexcept { return true; }
+    bool operator!= (Unit const& /*rhs*/) const noexcept { return false; }
 };
 
 

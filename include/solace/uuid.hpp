@@ -74,7 +74,7 @@ public:
      *
      * TODO: Parse family of functions should return Result<UUID, ParseError>
      */
-    static UUID parse(const String& str);
+    static UUID parse(StringView const& str);
 
 public:
 
@@ -107,13 +107,13 @@ public:
         return swap(rhs);
     }
 
-    UUID& operator= (const UUID& rhs) noexcept {
+    UUID& operator= (UUID const& rhs) noexcept {
         UUID(rhs).swap(*this);
 
         return *this;
     }
 
-    bool equals(const UUID& rhs) const noexcept override;
+    bool equals(UUID const& rhs) const noexcept override;
 
     /**
      * Test if this is a 'special' case of a nil UUID
@@ -167,7 +167,7 @@ public:
     /** @see IFormattable::toString() */
     String toString() const override;
 
-    friend bool operator < (const UUID& lhs, const UUID& rhs) noexcept;
+    friend bool operator < (UUID const& lhs, UUID const& rhs) noexcept;
 
 private:
 
@@ -176,26 +176,26 @@ private:
 };
 
 
-bool operator< (const UUID& lhs, const UUID& rhs) noexcept;
+bool operator< (UUID const& lhs, UUID const& rhs) noexcept;
 
 
-inline bool operator == (const UUID& lhs, const UUID& rhs) noexcept {
+inline bool operator == (UUID const& lhs, UUID const& rhs) noexcept {
     return lhs.equals(rhs);
 }
 
-inline bool operator != (const UUID& lhs, const UUID& rhs) noexcept {
+inline bool operator != (UUID const& lhs, UUID const& rhs) noexcept {
     return !(lhs == rhs);
 }
 
-inline bool operator > (const UUID& lhs, const UUID& rhs) noexcept {
+inline bool operator > (UUID const& lhs, UUID const& rhs) noexcept {
     return rhs < lhs;
 }
 
-inline bool operator <= (const UUID& lhs, const UUID& rhs) noexcept {
+inline bool operator <= (UUID const& lhs, UUID const& rhs) noexcept {
     return !(rhs < lhs);
 }
 
-inline bool operator >= (const UUID& lhs, const UUID& rhs) noexcept {
+inline bool operator >= (UUID const& lhs, UUID const& rhs) noexcept {
     return !(lhs < rhs);
 }
 

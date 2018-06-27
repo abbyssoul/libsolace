@@ -47,8 +47,8 @@ public:
     ByteBuffer() noexcept = default;
 
 
-    ByteBuffer(const ByteBuffer& other) = delete;
-    ByteBuffer& operator= (const ByteBuffer&) = delete;
+    ByteBuffer(ByteBuffer const& other) = delete;
+    ByteBuffer& operator= (ByteBuffer const&) = delete;
 
 
     /**
@@ -71,7 +71,7 @@ public:
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    ByteBuffer(const MemoryView& memView) :
+    ByteBuffer(MemoryView const& memView) :
         ReadBuffer(memView)
     {}
 
@@ -126,7 +126,7 @@ public:
      * @return Refernce to this for luency.
      * @note Exception is thrown if given data exceed buffer capacity.
      */
-    ByteBuffer& write(const ImmutableMemoryView& data) {
+    ByteBuffer& write(ImmutableMemoryView const& data) {
         return write(data.dataAddress(), data.size());
     }
 
@@ -137,15 +137,15 @@ public:
      * @return Refernce to this for luency.
      * @note Exception is thrown if bytesToWrite exceed buffer capacity.
      */
-    ByteBuffer& write(const ImmutableMemoryView& data, size_type bytesToWrite);
+    ByteBuffer& write(ImmutableMemoryView const& data, size_type bytesToWrite);
 
-    ByteBuffer& write(const void* bytes, size_type count);
-    ByteBuffer& write(const byte* bytes, size_type count) {
+    ByteBuffer& write(void const* bytes, size_type count);
+    ByteBuffer& write(byte const* bytes, size_type count) {
         return write(reinterpret_cast<const void*>(bytes), count);
     }
 
-    ByteBuffer& write(const char* bytes, size_type count) {
-        return write(reinterpret_cast<const void*>(bytes), count);
+    ByteBuffer& write(char const* bytes, size_type count) {
+        return write(reinterpret_cast<void const*>(bytes), count);
     }
 
     using ReadBuffer::viewRemaining;

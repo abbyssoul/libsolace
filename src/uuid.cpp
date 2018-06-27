@@ -165,14 +165,14 @@ String UUID::toString() const {
 byte charToBin(byte c);
 
 
-UUID UUID::parse(const String& str) {
+UUID UUID::parse(StringView const& str) {
     if (str.size() != StringSize) {
         raise<IllegalArgumentException>("string size");
     }
 
     byte data[StaticSize];
     byte* dest = data;
-    const char* src = str.c_str();
+    const char* src = str.data();
     for (size_type i = 0; i < StringSize; ++i) {
         if (src[i] != '-') {
             const byte high = charToBin(src[i]);

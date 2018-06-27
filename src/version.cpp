@@ -24,8 +24,6 @@
 
 #include "solace/libsolace_config.hpp"		// Defines compile time version
 
-
-#include <fmt/format.h>
 #include <regex>
 
 
@@ -33,8 +31,9 @@
 #define SOLACE_VERSION_MINOR 0
 #define SOLACE_VERSION_BUILD 1
 
-using Solace::String;
-using Solace::Version;
+
+
+using namespace Solace;
 
 
 static const String ComponentSeparator(".");
@@ -82,20 +81,21 @@ String Version::toString() const {
 }
 
 
-Version Version::parse(const String& str) {
+Result<Version, Error>
+Version::parse(const Solace::StringView& str) {
     // FIXME(abbyssoul): Should return Error result in case of invalid string format
     const std::regex versionRegexp("(\\d+)\\.(\\d+)\\.(\\d+)(?:-([A-Za-z0-9\\-\\.]+))?(?:\\+([A-Za-z0-9\\-\\.]+))?");
 
     std::cmatch capture;
-    if (std::regex_match(str.c_str(), capture, versionRegexp)) {
+    if (std::regex_match(str.begin(), str.end(), capture, versionRegexp)) {
         const value_type majorVersion = std::stoul(capture[1].str());
         const value_type minorVersion = std::stoul(capture[2].str());
         const value_type patchVersion = std::stoul(capture[3].str());
         const String preRelease = (capture[4].length() > 0) ? capture[4].str() : String::Empty;
         const String build = (capture[5].length() > 0) ? capture[5].str() : String::Empty;
 
-        return Version(majorVersion, minorVersion, patchVersion, preRelease, build);
+        return Ok<Version>({majorVersion, minorVersion, patchVersion, preRelease, build});
     }
 
-    return Version();
+    return Err(Error("Invalid format"));
 }

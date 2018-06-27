@@ -1,3 +1,5 @@
+#include <utility>
+
 /*
 *  Copyright 2016 Ivan Ryabov
 *
@@ -29,6 +31,8 @@
 #include "solace/traits/iformattable.hpp"
 #include "solace/traits/icomparable.hpp"
 #include "solace/string.hpp"
+#include "solace/result.hpp"
+#include "solace/error.hpp"
 
 
 namespace Solace {
@@ -69,7 +73,7 @@ public:
     /**
      * Construct the version object from a string representation
      */
-    static Version parse(const String& value);
+    static Result<Version, Error> parse(StringView const& value);
 
 
 public:
@@ -87,33 +91,33 @@ public:
 	{}
 
     /** Construct the version object by specifying all components */
-    Version(value_type aMajor, value_type aMinor, value_type aPath, const String& aPre):
+    Version(value_type aMajor, value_type aMinor, value_type aPath, String aPre):
             majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPath),
-			preRelease(aPre), build()
+            preRelease(std::move(aPre)), build()
     {}
 
 	/** Construct the version object by specifying all components */
-	Version(value_type aMajor, value_type aMinor, value_type aPath, const String& aPre, const String& aBuild) :
+    Version(value_type aMajor, value_type aMinor, value_type aPath, String aPre, String aBuild) :
 				majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPath),
-				preRelease(aPre), build(aBuild)
+                preRelease(std::move(aPre)), build(std::move(aBuild))
 	{}
 
 	/** Copy-constructor */
-    Version(const Version& v) = default;
+    Version(Version const& v) = default;
 
 	/** Move-constructor */
     Version(Version&& v) = default;
 
 public:
 
-	bool operator> (const Version& rhv) const;
+    bool operator> (Version const& rhv) const;
 
-	bool operator< (const Version& rhv) const {
+    bool operator< (Version const& rhv) const {
 		return !(operator >(rhv));
 	}
 
 	//!< from IComparable
-	bool equals(const Version& rhv) const noexcept override {
+    bool equals(Version const& rhv) const noexcept override {
         return ((majorNumber == rhv.majorNumber)
 				&& (minorNumber == rhv.minorNumber)
 				&& (patchNumber == rhv.patchNumber)
@@ -135,7 +139,7 @@ public:
         return (*this);
     }
 
-    Version& operator= (const Version& rhs) noexcept {
+    Version& operator= (Version const& rhs) noexcept {
         Version(rhs).swap(*this);
 
         return *this;

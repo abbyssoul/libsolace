@@ -60,8 +60,8 @@ public:
         ImmutableMemoryView(data, size)
     {}
 
-    MemoryView(const MemoryView&) noexcept = default;
-    MemoryView& operator= (const MemoryView&) noexcept = default;
+    MemoryView(MemoryView const&) noexcept = default;
+    MemoryView& operator= (MemoryView const&) noexcept = default;
 
     MemoryView(MemoryView&& rhs) noexcept:
         ImmutableMemoryView(std::move(rhs))
@@ -80,7 +80,7 @@ public:
 
     using ImmutableMemoryView::equals;
 
-    bool equals(const MemoryView& other) const noexcept {
+    bool equals(MemoryView const& other) const noexcept {
         return ImmutableMemoryView::equals(other);
     }
 
@@ -127,7 +127,7 @@ public:
      * @param source Source of data to be written into this location.
      * @param offset Offset location into this buffer to copy data to.
      */
-    void write(const ImmutableMemoryView& source, size_type offset = 0);
+    void write(ImmutableMemoryView const& source, size_type offset = 0);
 
     /**
      * Copy data from this buffer into the given one.

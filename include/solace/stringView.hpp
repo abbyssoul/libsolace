@@ -43,7 +43,7 @@ public:
 
     using value_type = char;
 
-    using const_iterator = const value_type *;
+    using const_iterator = value_type const*;
 
 public:
 
@@ -53,7 +53,7 @@ public:
     constexpr StringView() noexcept = default;
 
     //!< Copy-construct a string.
-    constexpr StringView(const StringView& other) noexcept = default;
+    constexpr StringView(StringView const& other) noexcept = default;
 
     /**
      *  Constructs a view of the first count characters of the character array starting with the element pointed by s.
@@ -63,7 +63,7 @@ public:
      * @param s A pointer to a character array or a C string to initialize the view with.
      * @param count Number of characters to include in the view.
      */
-    constexpr StringView(const char* s, size_type count) noexcept :
+    constexpr StringView(char const* s, size_type count) noexcept :
            _size(count),
            _data(s)
     {}
@@ -75,7 +75,7 @@ public:
      * After construction, data() is equal to s, and size() is equal to Traits::length(s).
      * @param s A pointer to a character array or a C string to initialize the view with.
      */
-    StringView(const char* s);
+    StringView(char const* s);
 
 
     StringView& swap(StringView& rhs) noexcept {
@@ -91,7 +91,7 @@ public:
         return swap(rhs);
     }
 
-    StringView& operator= (const StringView& rhs) noexcept {
+    StringView& operator= (StringView const& rhs) noexcept {
         StringView(rhs).swap(*this);
 
         return *this;
@@ -168,7 +168,7 @@ public:
      *
      * @return Optional index of the first occurrence of the given substring.
      */
-    Optional<size_type> indexOf(const StringView& str, size_type fromIndex = 0) const;
+    Optional<size_type> indexOf(StringView const& str, size_type fromIndex = 0) const;
 
     /** Index of the first occurrence of the given character.
      *
@@ -180,7 +180,7 @@ public:
      *
      * @return Optional index of the first occurrence of the given character.
      */
-    Optional<size_type> indexOf(const value_type& ch, size_type fromIndex = 0) const;
+    Optional<size_type> indexOf(value_type const& ch, size_type fromIndex = 0) const;
 
     /** Index of the last occurrence of the given sub sequance.
      *
@@ -188,7 +188,7 @@ public:
      *
      * @return Optional index of the last occurrence of the given substring.
      */
-    Optional<size_type> lastIndexOf(const StringView& str, size_type fromIndex = 0) const;
+    Optional<size_type> lastIndexOf(StringView const& str, size_type fromIndex = 0) const;
 
     /** Index of the last occurrence of the given character.
      *
@@ -196,7 +196,7 @@ public:
      *
      * @return Optional index of the last occurrence of the given character.
      */
-    Optional<size_type> lastIndexOf(const value_type& ch, size_type fromIndex = 0) const;
+    Optional<size_type> lastIndexOf(value_type const& ch, size_type fromIndex = 0) const;
 
     /** Determine if the string contains a given substring.
      *
@@ -204,7 +204,7 @@ public:
      * @return <b>true</b> if the string contains at least one occurrence of
      * the substring, <b>false</b> otherwise.
      */
-    bool contains(const StringView& str) const
+    bool contains(StringView const& str) const
     {	return indexOf(str).isSome(); }
 
     /** Determine if the string contains a given character.
@@ -213,7 +213,7 @@ public:
      * @return <b>true</b> if the string contains at least one occurrence of
      * the character, <b>false</b> otherwise.
      */
-    bool contains(const value_type& c) const
+    bool contains(value_type const& c) const
     {	return indexOf(c).isSome(); }
 
     /**
@@ -268,7 +268,7 @@ public:
      * @param delim A delimeter to split the string by.
      * @return A list of substrings.
      */
-    Array<StringView> split(const StringView& delim) const;
+    Array<StringView> split(StringView const& delim) const;
 
     /** Splits the string around matches of expr
      * @param delim A delimeter to split the string by.
@@ -310,7 +310,7 @@ struct StringLiteral: public StringView {
     using StringView::value_type;
 
     template<size_t N>
-    constexpr StringLiteral(const char (&str)[N]) :
+    constexpr StringLiteral(char const (&str)[N]) :
             StringView(&str[0], N -1)
     {
     }
@@ -328,27 +328,27 @@ swap(StringLiteral& lhs, StringLiteral& rhs) noexcept {
 }
 
 inline
-bool operator== (const char* rhv, const StringView& str) noexcept {
+bool operator== (char const* rhv, StringView const& str) noexcept {
     return str.equals(rhv);
 }
 
 inline
-bool operator== (const StringView& str, const char* rhv) noexcept {
+bool operator== (StringView const& str, char const* rhv) noexcept {
     return str.equals(rhv);
 }
 
 inline
-bool operator!= (const char* rhv, const StringView& str) noexcept {
+bool operator!= (char const* rhv, StringView const& str) noexcept {
     return !str.equals(rhv);
 }
 
 inline
-bool operator!= (const StringView& str, const char* rhv) noexcept {
+bool operator!= (StringView const& str, char const* rhv) noexcept {
     return !str.equals(rhv);
 }
 
 
-inline std::ostream& operator<< (std::ostream& ostr, const StringView& str) {
+inline std::ostream& operator<< (std::ostream& ostr, StringView const& str) {
     return ostr.write(str.data(), str.size());
 }
 

@@ -62,7 +62,7 @@ public:
         return Optional<T>();
     }
 
-    static Optional<T> of(const T& t) noexcept(std::is_nothrow_copy_constructible<T>::value) {
+    static Optional<T> of(T const& t) noexcept(std::is_nothrow_copy_constructible<T>::value) {
         return Optional<T>(t);
     }
 
@@ -174,7 +174,7 @@ public:
         return std::move(_payload);
     }
 
-    const T& orElse(const T& t) const noexcept {
+    const T& orElse(T const& t) const noexcept {
         if (isNone()) {
             return t;
         }
@@ -200,7 +200,7 @@ public:
 
 
     template <typename U>
-    Optional<U> flatMap(const std::function<Optional<U> (const T&)>& f) const {
+    Optional<U> flatMap(std::function<Optional<U> (T const&)> const& f) const {
         return (isSome())
                 ? f(_payload)
                 : Optional<U>::none();
@@ -218,7 +218,7 @@ protected:
     /**
      * Construct an non-empty optional value by copying-value.
      */
-    Optional(const T& t) noexcept(std::is_nothrow_copy_constructible<T>::value) :
+    Optional(T const& t) noexcept(std::is_nothrow_copy_constructible<T>::value) :
         _payload(t),
         _engaged(true)
     {}
@@ -233,7 +233,7 @@ protected:
     {}
 
 
-    void construct(const T& t) {
+    void construct(T const& t) {
         if (_engaged)
             raiseInvalidStateError("logic error");
 
@@ -298,7 +298,7 @@ public:
 
 
 template<typename T>
-bool operator== (const Optional<T>& a, const Optional<T>& b) {
+bool operator== (Optional<T> const& a, Optional<T> const& b) {
     if (&a == &b) {
         return true;
     }

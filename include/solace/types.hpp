@@ -28,30 +28,30 @@
 #include "solace/libsolace_config.hpp"
 
 #include <cstddef>
-#include <stdint.h>
+#include <cstdint>
 
 namespace Solace {
 
-typedef int8_t      int8;
-typedef int16_t		int16;
-typedef int32_t		int32;
-typedef int64_t		int64;
-typedef uint8_t     uint8;
-typedef uint16_t    uint16;
-typedef uint32_t    uint32;
-typedef uint64_t 	uint64;
+using int8 = int8_t;
+using int16 = int16_t;
+using int32 = int32_t;
+using int64 = int64_t;
+using uint8 = uint8_t;
+using uint16 = uint16_t;
+using uint32 = uint32_t;
+using uint64 = uint64_t;
 
 
 //! 32 bit floating point variable.
 /** This is a typedef for float, it ensures portability of the engine. */
-typedef float				float32;
+using float32 = float;
 
 //! 64 bit floating point variable.
 /** This is a typedef for double, it ensures portability of the engine. */
-typedef double				float64;
+using float64 = double;
 
 //! 8 bit unsigned variable - byte.
-typedef uint8				byte;
+using byte = uint8;
 
 
 // Static check of Integral types
@@ -61,18 +61,18 @@ static_assert(1 == sizeof(byte), 	"size of byte is not 1 byte!");
 static_assert(1 == sizeof(uint8), 	"size of uint8 is not 1 byte!");
 static_assert(1 == sizeof(int8), 	"size of int8 is not 1 byte!");
 static_assert(2 == sizeof(int16), 	"size of int16 is not 2 bytes!");
-static_assert(2 == sizeof(uint16), "size of uint16 is not 2 bytes!");
+static_assert(2 == sizeof(uint16),  "size of uint16 is not 2 bytes!");
 static_assert(4 == sizeof(int32), 	"size of int32 is not 4 bytes!");
-static_assert(4 == sizeof(uint32), "size of uint32 is not 4 bytes!");
+static_assert(4 == sizeof(uint32),  "size of uint32 is not 4 bytes!");
 static_assert(8 == sizeof(int64), 	"size of uint64 is not 8 bytes!");
-static_assert(8 == sizeof(uint64), "size of uint64 is not 8 bytes!");
+static_assert(8 == sizeof(uint64),  "size of uint64 is not 8 bytes!");
 
 static_assert(4 == sizeof(float32), "size of float32 is not 4 bytes!");
 static_assert(8 == sizeof(float64), "size of float64 is not 8 bytes!");
 
 
 template <typename T, size_t N>
-size_t arrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
+size_t arrayLength(T const (& SOLACE_UNUSED(t))[N]) { return N; }
 
 }  // End of namespace Solace
 #endif  // SOLACE_TYPES_HPP

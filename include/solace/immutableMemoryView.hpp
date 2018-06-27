@@ -52,11 +52,11 @@ public:
 
     using MemoryAddress = void *;
 
-    using size_type = uint64;
+    using size_type  = uint64;
     using value_type = byte;
 
-    using const_reference = const value_type &;
-    using const_iterator = const value_type *;
+    using const_reference = value_type const&;
+    using const_iterator  = value_type const*;
 
 public:
 
@@ -72,10 +72,10 @@ public:
      * @param size The size of the memory block.
      * @note: it is illigal to pass null data with a non 0 size.
     */
-    ImmutableMemoryView(const void* data, size_type size);
+    ImmutableMemoryView(void const* data, size_type size);
 
-    ImmutableMemoryView(const ImmutableMemoryView& rhs) noexcept = default;
-    ImmutableMemoryView& operator= (const ImmutableMemoryView&) noexcept = default;
+    ImmutableMemoryView(ImmutableMemoryView const&) noexcept = default;
+    ImmutableMemoryView& operator= (ImmutableMemoryView const&) noexcept = default;
 
     /** Move construct an instance of the memory view **/
     ImmutableMemoryView(ImmutableMemoryView&& rhs) noexcept;
@@ -94,7 +94,7 @@ public:
     }
 
 
-    bool equals(const ImmutableMemoryView& other) const noexcept {
+    bool equals(ImmutableMemoryView const& other) const noexcept {
         if ((&other == this) ||
             ((_size == other._size) && (_dataAddress == other._dataAddress))) {
             return true;
@@ -110,14 +110,6 @@ public:
         }
 
         return true;
-    }
-
-    bool operator== (const ImmutableMemoryView& rhv) const noexcept {
-        return equals(rhv);
-    }
-
-    bool operator!= (const ImmutableMemoryView& rhv) const noexcept {
-        return !equals(rhv);
     }
 
     bool empty() const noexcept {
@@ -192,7 +184,7 @@ public:
 private:
 
     size_type                   _size{};
-    const byte*                 _dataAddress{nullptr};
+    byte const*                 _dataAddress{nullptr};
 };
 
 
@@ -206,20 +198,31 @@ private:
  *
  * @return MemoryView object wrapping the memory address given
  */
-inline ImmutableMemoryView wrapMemory(const void* data, ImmutableMemoryView::size_type size) { return {data, size}; }
+inline ImmutableMemoryView wrapMemory(void const* data, ImmutableMemoryView::size_type size) { return {data, size}; }
 
-inline ImmutableMemoryView wrapMemory(const byte* data, ImmutableMemoryView::size_type size) { return {data, size}; }
+inline ImmutableMemoryView wrapMemory(byte const* data, ImmutableMemoryView::size_type size) { return {data, size}; }
 
-inline ImmutableMemoryView wrapMemory(const char* data, ImmutableMemoryView::size_type size) { return {data, size}; }
+inline ImmutableMemoryView wrapMemory(char const* data, ImmutableMemoryView::size_type size) { return {data, size}; }
 
 template<typename PodType, size_t N>
-inline ImmutableMemoryView wrapMemory(const PodType (&data)[N]) {
-    return wrapMemory(static_cast<const void*>(data), N * sizeof(PodType));
+inline ImmutableMemoryView wrapMemory(PodType const (&data)[N]) {
+    return wrapMemory(static_cast<void const*>(data), N * sizeof(PodType));
 }
 
 
 inline void swap(ImmutableMemoryView& a, ImmutableMemoryView& b) {
     a.swap(b);
+}
+
+
+inline
+bool operator== (ImmutableMemoryView const& lhs, ImmutableMemoryView const& rhs) noexcept {
+    return lhs.equals(rhs);
+}
+
+inline
+bool operator!= (ImmutableMemoryView const& lhs, ImmutableMemoryView const& rhs) noexcept {
+    return !lhs.equals(rhs);
 }
 
 

@@ -32,8 +32,6 @@
 
 #include "mockTypes.hpp"
 
-#include <fmt/format.h>
-
 using namespace Solace;
 
 
@@ -142,7 +140,7 @@ public:
 
     void testFailure() {
         {
-            Result<void, Error> r = fail(fmt::format("Bad errors '{}' about to happen", 3221));
+            Result<void, Error> r = fail(std::string("Bad errors 432 about to happen"));
 
             CPPUNIT_ASSERT(!r.isOk());
             CPPUNIT_ASSERT(r.isError());
@@ -150,7 +148,7 @@ public:
 
         bool value = false;
         {
-            Result<void, Error> other = fail(fmt::format("Maybe no errors '{}' here", 9922));
+            Result<void, Error> other = fail(std::string("Maybe no errors 9922 here"));
             other.orElse([&value](Error&&){
                 value = true;
             });

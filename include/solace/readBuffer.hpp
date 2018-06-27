@@ -49,8 +49,8 @@ public:
     ReadBuffer() noexcept = default;
 
 
-    ReadBuffer(const ReadBuffer& other) = delete;
-    ReadBuffer& operator= (const ReadBuffer&) = delete;
+    ReadBuffer(ReadBuffer const& other) = delete;
+    ReadBuffer& operator= (ReadBuffer const&) = delete;
 
 
     /**
@@ -229,13 +229,6 @@ public:
     Result<void, Error>
     read(MemoryView& dest, size_type bytesToRead);
 
-//    ReadBuffer& read(byte* dest, size_type count) {
-//        return read(reinterpret_cast<void*>(dest), count);
-//    }
-//    ReadBuffer& read(char* dest, size_type count) {
-//        return read(reinterpret_cast<void*>(dest), count);
-//    }
-//    const ReadBuffer& read(size_type offset, byte* dest, size_type bytesToRead) const;
     Result<void, Error>
     read(size_type offset, MemoryView& dest, size_type bytesToRead) const;
 
@@ -295,30 +288,6 @@ protected:
 
 };
 
-/*
-inline
-ReadBuffer& operator>> (ReadBuffer& src, char& c)     { return src.read(&c);   }
-inline
-ReadBuffer& operator>> (ReadBuffer& src, int8& c)     { return src.read(&c);   }
-inline
-ReadBuffer& operator>> (ReadBuffer& src, uint8& c)    { return src.read(&c);  }
-inline
-ReadBuffer& operator>> (ReadBuffer& src, int16& c)    { return src.read(&c);  }
-inline
-ReadBuffer& operator>> (ReadBuffer& src, uint16& c)   { return src.read(&c); }
-inline
-ReadBuffer& operator>> (ReadBuffer& src, int32& c)    { return src.read(&c);  }
-inline
-ReadBuffer& operator>> (ReadBuffer& src, uint32& c)   { return src.read(&c); }
-inline
-ReadBuffer& operator>> (ReadBuffer& src, int64& c)    { return src.read(&c);  }
-inline
-ReadBuffer& operator>> (ReadBuffer& src, uint64& c)   { return src.read(&c); }
-inline
-ReadBuffer& operator>> (ReadBuffer& src, float32& c)  { return src.read(&c); }
-inline
-ReadBuffer& operator>> (ReadBuffer& src, float64& c)  { return src.read(&c); }
-*/
 
 inline
 void swap(ReadBuffer& lhs, ReadBuffer& rhs) noexcept {
