@@ -224,36 +224,50 @@ public:
 	 */
 	void testParsing() {
 		{
-			const Version v = Version::parse("3.231.1");
-            CPPUNIT_ASSERT_EQUAL(Version(3, 231, 1), v);
+            auto parseResult = Version::parse("3.231.1");
+            CPPUNIT_ASSERT(parseResult.isOk());
+            CPPUNIT_ASSERT_EQUAL(Version(3, 231, 1), parseResult.unwrap());
 		}
 
 		{
-			const Version v = Version::parse("2.0.5-alpha1");
-            CPPUNIT_ASSERT_EQUAL(Version(2, 0, 5, "alpha1"), v);
+            auto parseResult = Version::parse("2.0.5-alpha1");
+            CPPUNIT_ASSERT(parseResult.isOk());
+            CPPUNIT_ASSERT_EQUAL(Version(2, 0, 5, "alpha1"), parseResult.unwrap());
 		}
 
 		{
-			const Version v = Version::parse("233.1076.532-alpha1.something-awesome");
-            CPPUNIT_ASSERT_EQUAL(Version(233, 1076, 532, "alpha1.something-awesome"), v);
+            auto parseResult = Version::parse("233.1076.532-alpha1.something-awesome");
+            CPPUNIT_ASSERT(parseResult.isOk());
+            CPPUNIT_ASSERT_EQUAL(Version(233, 1076, 532, "alpha1.something-awesome"), parseResult.unwrap());
 		}
 
 		{
-			const Version v = Version::parse("33.1.8+20130313144700");
-			CPPUNIT_ASSERT_EQUAL(Version(33, 1, 8, String::Empty, "20130313144700"), v);
+            auto parseResult = Version::parse("33.1.8+20130313144700");
+            CPPUNIT_ASSERT(parseResult.isOk());
+            CPPUNIT_ASSERT_EQUAL(Version(33, 1, 8, String::Empty, "20130313144700"), parseResult.unwrap());
 		}
 		{
-			const Version v = Version::parse("6.12.77+the.best.version-rc1");
-			CPPUNIT_ASSERT_EQUAL(Version(6, 12, 77, String::Empty, "the.best.version-rc1"), v);
+            auto parseResult = Version::parse("6.12.77+the.best.version-rc1");
+            CPPUNIT_ASSERT(parseResult.isOk());
+            CPPUNIT_ASSERT_EQUAL(Version(6, 12, 77, String::Empty, "the.best.version-rc1"), parseResult.unwrap());
 		}
 		{
-			const Version v = Version::parse("1.4.99-beta+exp.sha-5114f85");
-			CPPUNIT_ASSERT_EQUAL(Version(1, 4, 99, "beta", "exp.sha-5114f85"), v);
+            auto parseResult = Version::parse("1.4.99-beta+exp.sha-5114f85");
+            CPPUNIT_ASSERT(parseResult.isOk());
+            CPPUNIT_ASSERT_EQUAL(Version(1, 4, 99, "beta", "exp.sha-5114f85"), parseResult.unwrap());
 		}
 		{
-			const Version v = Version::parse("1.13.7-alpha1.betta+the-best.version");
-			CPPUNIT_ASSERT_EQUAL(Version(1, 13, 7, "alpha1.betta", "the-best.version"), v);
+            auto parseResult = Version::parse("1.13.7-alpha1.betta+the-best.version");
+            CPPUNIT_ASSERT(parseResult.isOk());
+            CPPUNIT_ASSERT_EQUAL(Version(1, 13, 7, "alpha1.betta", "the-best.version"), parseResult.unwrap());
 		}
+
+        {
+            CPPUNIT_ASSERT(Version::parse("x3+Bingo").isError());
+            CPPUNIT_ASSERT(Version::parse("3.+Bingo").isError());
+            CPPUNIT_ASSERT(Version::parse("3.1-+Bingo").isError());
+        }
+
 	}
 
 	/**
@@ -262,20 +276,24 @@ public:
 	void testParsing_and_ToString_are_consistent() {
 		{
 			const String src("0.4.9");
-			const Version v = Version::parse(src);
-			CPPUNIT_ASSERT_EQUAL(src, v.toString());
+            auto parseResult = Version::parse(src.view());
+            CPPUNIT_ASSERT(parseResult.isOk());
+            CPPUNIT_ASSERT_EQUAL(src, parseResult.unwrap().toString());
 		}
 
 		{
 			const String src("1.4.99-beta+exp.sha.5114f85");
-			const Version v = Version::parse(src);
-			CPPUNIT_ASSERT_EQUAL(src, v.toString());
+            auto parseResult = Version::parse(src.view());
+            CPPUNIT_ASSERT(parseResult.isOk());
+            CPPUNIT_ASSERT_EQUAL(src, parseResult.unwrap().toString());
 		}
 
 		{
             const Version v(37, 4, 9, "something.pre.els", "2475-betta.soon");
 			const String src = v.toString();
-			CPPUNIT_ASSERT_EQUAL(v, Version::parse(src));
+            auto parseResult = Version::parse(src.view());
+            CPPUNIT_ASSERT(parseResult.isOk());
+            CPPUNIT_ASSERT_EQUAL(v, parseResult.unwrap());
 		}
 	}
 
@@ -286,14 +304,13 @@ public:
         std::vector<Version> versions;
 
         for (uint i = 0; i < 32; ++i) {
-            versions.push_back({i, i % 3, 2*i + 1});
+            versions.emplace_back(i, i % 3, 2*i + 1);
         }
 
         for (uint i = 0; i < 32; ++i) {
             CPPUNIT_ASSERT_EQUAL(Version(i, i % 3, 2*i + 1), versions[i]);
         }
 
-//        versions.clear();
         for (uint i = 0; i < 32; ++i) {
             versions[i] = Version(2*i + 1, i, i % 3, String::Empty, "Some-tags");
         }

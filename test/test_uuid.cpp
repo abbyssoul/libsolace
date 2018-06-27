@@ -157,7 +157,7 @@ public:
 
         CPPUNIT_ASSERT_EQUAL(UUID({0x12, 0x3e, 0x45, 0x67, 0xe8, 0x9b, 0x12, 0xd3,
                                    0xa4, 0x56, 0x42, 0x66, 0x55, 0x44, 0x0, 0x0}),
-                             UUID::parse(String("123e4567-e89b-12d3-a456-426655440000")));
+                             UUID::parse("123e4567-e89b-12d3-a456-426655440000"));
 
         CPPUNIT_ASSERT_THROW(UUID::parse("SOMEHTING"), IllegalArgumentException);
         CPPUNIT_ASSERT_THROW(UUID::parse("1203045e-X054-Y000-3e3d-000000000000"), IllegalArgumentException);
@@ -166,15 +166,15 @@ public:
     void testParsing_and_ToString_are_consistent() {
         {
             UUID r0 = UUID::random();
-            CPPUNIT_ASSERT_EQUAL(r0, UUID::parse(r0.toString()));
+            CPPUNIT_ASSERT_EQUAL(r0, UUID::parse(r0.toString().view()));
         }
         {
             UUID r0 = UUID::random();
-            CPPUNIT_ASSERT_EQUAL(r0, UUID::parse(r0.toString()));
+            CPPUNIT_ASSERT_EQUAL(r0, UUID::parse(r0.toString().view()));
         }
         {
             UUID r0 = UUID::random();
-            CPPUNIT_ASSERT_EQUAL(r0, UUID::parse(r0.toString()));
+            CPPUNIT_ASSERT_EQUAL(r0, UUID::parse(r0.toString().view()));
         }
         }
 
