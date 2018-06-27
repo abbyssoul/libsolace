@@ -184,8 +184,8 @@ template <typename V, typename E>
 // TODO(c++17): [[nodiscard]]
 class Result {
 public:
-    typedef V value_type;
-    typedef E error_type;
+    using value_type = V;
+    using error_type = E;
 
     static_assert(!std::is_same<E, void>::value,
             "Error type must be non-void");
@@ -525,8 +525,8 @@ template <typename E>
 // TODO(c++17): [[nodiscard]]
 class Result<void, E> {
 public:
-    typedef void value_type;
-    typedef E error_type;
+    using value_type = void;
+    using error_type = E;
 
     static_assert(!std::is_same<E, void>::value,
             "Error type must be non-void");

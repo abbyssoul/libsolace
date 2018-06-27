@@ -39,7 +39,7 @@ endif
 
 
 # First tagret that starts not with '.'' - is a default target to run
-.PHONY: codecheck verify ANALYZE_MAKE
+.PHONY: codecheck verify ANALYZE_MAKE test
 
 all: lib
 
@@ -77,7 +77,11 @@ build_coverage: $(BUILD_DIR)/build_coverage
 $(TEST_TAGRET): ${GENERATED_MAKE}
 	$(MAKE) -C ${BUILD_DIR} $(TESTNAME)
 
-test: $(LIB_TAGRET) $(TEST_TAGRET)
+
+tests: $(LIB_TAGRET) $(TEST_TAGRET)
+
+
+test: $(tests)
 	cd ${BUILD_DIR} && ./${TEST_DIR}/$(TESTNAME)
 
 #-------------------------------------------------------------------------------

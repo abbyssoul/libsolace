@@ -19,7 +19,6 @@
  *	@brief		Implementation of ReadBuffer
  ******************************************************************************/
 #include "solace/readBuffer.hpp"
-#include "solace/exception.hpp"
 
 
 #include <cstring>  // memcpy
@@ -28,214 +27,206 @@
 using namespace Solace;
 
 
-ReadBuffer&
+Result<void, Error>
 ReadBuffer::limit(size_type newLimit) {
     if (capacity() < newLimit) {
-        raise<IllegalArgumentException>("newLimit");
+        return Err<Error>(String("OverflowError: limit(): new limit is greater then capacity."));
     }
 
     _limit = newLimit;
 
-    return *this;
+    return Ok();
 }
 
 
-ReadBuffer&
+Result<void, Error>
 ReadBuffer::position(size_type newPosition) {
     if (limit() < newPosition) {
-        raise<IllegalArgumentException>("newPosition");
+        return Err<Error>(String("OverflowError: position(): value pass the buffer end."));
     }
 
     _position = newPosition;
 
-    return *this;
+    return Ok();
 }
 
 
-ReadBuffer&
+Result<void, Error>
 ReadBuffer::advance(size_type increment) {
     if (remaining() < increment) {
-        raise<IllegalArgumentException>("positionIncrement");
+        return Err<Error>(String("OverflowError: advance(): move pass the buffer end."));
     }
 
     _position += increment;
 
-    return *this;
+    return Ok();
 }
 
 
-byte
+Result<byte, Error>
 ReadBuffer::get() {
     if (remaining() < 1) {
-        raise<OverflowException>(_position + 1, _position, _limit);
+        return Err<Error>(String("OverflowError: get(): no data remained in the buffer"));
     }
 
-    return _storage.view()[_position++];
+    return Ok(_storage.view()[_position++]);
 }
 
-byte
+Result<byte, Error>
 ReadBuffer::get(size_type pos) const {
     if (limit() <= pos) {
-        raise<IllegalArgumentException>("pos");
+        return Err<Error>(String("OverflowError: get(pos): offset outside of the buffer"));
     }
 
-    return _storage.view()[pos];
+    return Ok(_storage.view()[pos]);
 }
 
 
-ReadBuffer&
+Result<void, Error>
 ReadBuffer::read(MemoryView& dest, size_type bytesToRead) {
     if (dest.size() < bytesToRead) {
-        raise<IllegalArgumentException>("bytesToRead");
+        return Err<Error>(String("OverflowError: read(dest, size): destination buffer is too small"));
     }
 
     return read(dest.dataAddress(), bytesToRead);
 }
 
 
-ReadBuffer&
-ReadBuffer::read(void* dest, size_type count) {
-    if (remaining() < count) {
-        raise<OverflowException>("Reading 'count' bytes will overflow",
-                                 _position + count,
-                                 _position,
-                                 _limit);
+Result<void, Error>
+ReadBuffer::read(void* dest, size_type bytesToRead) {
+    if (remaining() < bytesToRead) {
+        return Err<Error>(String("UnderflowError: read(dest, size): not enough data in the buffer"));
     }
 
     const void* srcAddr = _storage.view().dataAddress(_position);
-    memmove(dest, srcAddr, count);
-    _position += count;
+    memmove(dest, srcAddr, bytesToRead);
+    _position += bytesToRead;
 
-    return (*this);
+    return Ok();
 }
 
 
-const ReadBuffer&
-ReadBuffer::read(size_type offset, byte* dest, size_type bytesToRead) const {
-    if (_limit < (offset + bytesToRead)) {
-        raise<OverflowException>(offset + bytesToRead, 0, _limit);
+Result<void, Error>
+ReadBuffer::read(size_type offset, MemoryView& dest, size_type bytesToRead) const {
+    if (dest.size() < bytesToRead) {
+        return Err<Error>(String("OverflowError: read(dest, size): destination buffer is too small"));
+    }
+
+    if (limit() < (offset + bytesToRead)) {
+        return Err<Error>(String("Overflow Error: byte to read"));
     }
 
     const void* srcAddr = _storage.view().dataAddress(offset);
-    memmove(dest, srcAddr, bytesToRead);
+    memmove(dest.dataAddress(), srcAddr, bytesToRead);
 
-    return (*this);
+    return Ok();
 }
 
 
-const ReadBuffer&
-ReadBuffer::read(size_type offset, MemoryView& dest, size_type bytesToRead) const {
-    if (dest.size() < bytesToRead) {
-        raise<IllegalArgumentException>("bytesToRead");
-    }
-
-    return read(offset, dest.dataAddress(), bytesToRead);
-}
-
-
-ReadBuffer& ReadBuffer::readLE(uint16& value) {
+Result<void, Error>
+ReadBuffer::readLE(uint16& value) {
     constexpr auto valueSize = sizeof(value);
-    read(&value, valueSize);
-
-    if (isBigendian()) {
-        auto result = value;
-        const byte* v = reinterpret_cast<byte*>(&result);
-        byte* const p = reinterpret_cast<byte*>(&value);
-        p[0] = v[valueSize - 1];
-        p[1] = v[valueSize - 2];
-    }
-
-    return (*this);
+    return read(&value, valueSize)
+            .then([&]() {
+                if (isBigendian()) {
+                    auto result = value;
+                    byte const* v = reinterpret_cast<byte*>(&result);
+                    byte* const p = reinterpret_cast<byte*>(&value);
+                    p[0] = v[valueSize - 1];
+                    p[1] = v[valueSize - 2];
+                }
+            });
 }
 
-ReadBuffer& ReadBuffer::readLE(uint32& value) {
+Result<void, Error>
+ReadBuffer::readLE(uint32& value) {
     constexpr auto valueSize = sizeof(value);
-    read(&value, valueSize);
-
-    if (isBigendian()) {
-        auto result = value;
-        const byte* v = reinterpret_cast<byte*>(&result);
-        byte* const p = reinterpret_cast<byte*>(&value);
-        p[0] = v[valueSize - 1];
-        p[1] = v[valueSize - 2];
-        p[2] = v[valueSize - 3];
-        p[3] = v[valueSize - 4];
-    }
-
-    return (*this);
-}
-
-ReadBuffer& ReadBuffer::readLE(uint64& value) {
-    constexpr auto valueSize = sizeof(value);
-    read(&value, valueSize);
-
-    if (isBigendian()) {
-        auto result = value;
-        const byte* v = reinterpret_cast<byte*>(&result);
-        byte* const p = reinterpret_cast<byte*>(&value);
-        p[0] = v[valueSize - 1];
-        p[1] = v[valueSize - 2];
-        p[2] = v[valueSize - 3];
-        p[3] = v[valueSize - 4];
-        p[4] = v[valueSize - 5];
-        p[5] = v[valueSize - 6];
-        p[6] = v[valueSize - 7];
-        p[7] = v[valueSize - 8];
-    }
-
-    return (*this);
+    return read(&value, valueSize)
+            .then([&]() {
+                if (isBigendian()) {
+                    auto result = value;
+                    const byte* v = reinterpret_cast<byte*>(&result);
+                    byte* const p = reinterpret_cast<byte*>(&value);
+                    p[0] = v[valueSize - 1];
+                    p[1] = v[valueSize - 2];
+                    p[2] = v[valueSize - 3];
+                    p[3] = v[valueSize - 4];
+                }
+            });
 }
 
 
-ReadBuffer& ReadBuffer::readBE(uint16& value) {
+Result<void, Error>
+ReadBuffer::readLE(uint64& value) {
     constexpr auto valueSize = sizeof(value);
-    read(&value, valueSize);
-
-    if (!isBigendian()) {
-        auto result = value;
-        const byte* v = reinterpret_cast<byte*>(&result);
-        byte* const p = reinterpret_cast<byte*>(&value);
-        p[0] = v[valueSize - 1];
-        p[1] = v[valueSize - 2];
-    }
-
-    return (*this);
+    return read(&value, valueSize)
+            .then([&]() {
+                if (isBigendian()) {
+                    auto result = value;
+                    const byte* v = reinterpret_cast<byte*>(&result);
+                    byte* const p = reinterpret_cast<byte*>(&value);
+                    p[0] = v[valueSize - 1];
+                    p[1] = v[valueSize - 2];
+                    p[2] = v[valueSize - 3];
+                    p[3] = v[valueSize - 4];
+                    p[4] = v[valueSize - 5];
+                    p[5] = v[valueSize - 6];
+                    p[6] = v[valueSize - 7];
+                    p[7] = v[valueSize - 8];
+                }
+            });
 }
 
-ReadBuffer& ReadBuffer::readBE(uint32& value) {
+
+Result<void, Error>
+ReadBuffer::readBE(uint16& value) {
     constexpr auto valueSize = sizeof(value);
-    read(&value, valueSize);
-
-    if (!isBigendian()) {
-        auto result = value;
-        const byte* v = reinterpret_cast<byte*>(&result);
-        byte* const p = reinterpret_cast<byte*>(&value);
-        p[0] = v[valueSize - 1];
-        p[1] = v[valueSize - 2];
-        p[2] = v[valueSize - 3];
-        p[3] = v[valueSize - 4];
-    }
-
-    return (*this);
+    return read(&value, valueSize)
+            .then([&]() {
+                if (!isBigendian()) {
+                    auto result = value;
+                    const byte* v = reinterpret_cast<byte*>(&result);
+                    byte* const p = reinterpret_cast<byte*>(&value);
+                    p[0] = v[valueSize - 1];
+                    p[1] = v[valueSize - 2];
+                }
+            });
 }
 
-ReadBuffer& ReadBuffer::readBE(uint64& value) {
+Result<void, Error>
+ReadBuffer::readBE(uint32& value) {
     constexpr auto valueSize = sizeof(value);
-    read(&value, valueSize);
+    return read(&value, valueSize)
+            .then([&]() {
+                if (!isBigendian()) {
+                    auto result = value;
+                    const byte* v = reinterpret_cast<byte*>(&result);
+                    byte* const p = reinterpret_cast<byte*>(&value);
+                    p[0] = v[valueSize - 1];
+                    p[1] = v[valueSize - 2];
+                    p[2] = v[valueSize - 3];
+                    p[3] = v[valueSize - 4];
+                }
+    });
+}
 
-    if (!isBigendian()) {
-        auto result = value;
-        const byte* v = reinterpret_cast<byte*>(&result);
-        byte* const p = reinterpret_cast<byte*>(&value);
-        p[0] = v[valueSize - 1];
-        p[1] = v[valueSize - 2];
-        p[2] = v[valueSize - 3];
-        p[3] = v[valueSize - 4];
-        p[4] = v[valueSize - 5];
-        p[5] = v[valueSize - 6];
-        p[6] = v[valueSize - 7];
-        p[7] = v[valueSize - 8];
-    }
-
-    return (*this);
+Result<void, Error>
+ReadBuffer::readBE(uint64& value) {
+    constexpr auto valueSize = sizeof(value);
+    return read(&value, valueSize)
+            .then([&]() {
+                if (!isBigendian()) {
+                    auto result = value;
+                    const byte* v = reinterpret_cast<byte*>(&result);
+                    byte* const p = reinterpret_cast<byte*>(&value);
+                    p[0] = v[valueSize - 1];
+                    p[1] = v[valueSize - 2];
+                    p[2] = v[valueSize - 3];
+                    p[3] = v[valueSize - 4];
+                    p[4] = v[valueSize - 5];
+                    p[5] = v[valueSize - 6];
+                    p[6] = v[valueSize - 7];
+                    p[7] = v[valueSize - 8];
+                }
+    });
 }

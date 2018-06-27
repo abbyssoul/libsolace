@@ -69,7 +69,7 @@ int main(int argc, const char **argv) {
             .parse(argc, argv);
 
     if (!parseResult) {
-        std::cerr << parseResult.getError() << std::endl;
+        std::cerr << parseResult.getError().toString() << std::endl;
 
         return EXIT_FAILURE;
     }
@@ -101,7 +101,7 @@ int main(int argc, const char **argv) {
 
                         readBuffer.rewind();
                     } else {
-                        std::cout << "Serial port signaled as ready but no bytes read: " << bytesRead.getError() << ". Aborting." << std::endl;
+                        std::cout << "Serial port signaled as ready but no bytes read: " << bytesRead.getError().toString() << ". Aborting." << std::endl;
                         keepOnRunning = false;
                     }
                 } else {

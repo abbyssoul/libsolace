@@ -105,6 +105,7 @@ public:
                 sb << getpid();
                 sb.write("child", 5);
 
+                // Child will quit after that and this will signal the parent to read data from the shared memory.
             } break;
 
             default: {  /* Parent: wait for child to terminate */
@@ -116,14 +117,15 @@ public:
 
                 int viewedPid;
                 char message[10];
+                auto messageDest = wrapMemory(message);
 
-                ByteBuffer sb(view);
-                sb >> viewedPid;
+                ReadBuffer sb(view);
+                CPPUNIT_ASSERT(sb.read(&viewedPid).isOk());
                 CPPUNIT_ASSERT_EQUAL(childPid, viewedPid);
 
-                sb.read(message, 5);
+                CPPUNIT_ASSERT(sb.read(messageDest, 5).isOk());
                 message[5] = 0;
-                CPPUNIT_ASSERT_EQUAL(String("child"), String(message));
+                CPPUNIT_ASSERT_EQUAL(StringView("child"), StringView(message));
             } break;
 
             }

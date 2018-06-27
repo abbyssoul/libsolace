@@ -26,8 +26,8 @@
 #define SOLACE_ERROR_HPP_
 
 #include "solace/types.hpp"
-#include "solace/traits/iformattable.hpp"
 #include "solace/string.hpp"
+
 
 /* TODO(abbyssoul): Add interop SUPPORT for std::error
 #include <system_error>
@@ -35,12 +35,10 @@
 
 namespace Solace {
 
-
-class Error :
-        public IFormattable {
+class Error {
 public:
 
-    ~Error() override = default;
+    ~Error() = default;
 
     //! Construct error with a message
     Error(const String& message, int code = -1) noexcept :
@@ -94,7 +92,7 @@ public:
 
 
     //! Get message description of the exception.
-    String toString() const override;
+    String toString() const;
 
 private:
 

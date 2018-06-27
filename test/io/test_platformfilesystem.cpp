@@ -114,9 +114,7 @@ public:
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
             readBuffer.flip();
 
-            for (ByteBuffer::size_type i = 0; i < readBuffer.limit(); ++i) {
-                CPPUNIT_ASSERT_EQUAL(fileUIDBytes[i], readBuffer.get());
-            }
+            CPPUNIT_ASSERT(fileUIDBytes == readBuffer.viewRemaining());
         }
 
         CPPUNIT_ASSERT(fs.unlink(filename));
@@ -163,9 +161,7 @@ public:
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
             readBuffer.flip();
 
-            for (ByteBuffer::size_type i = 0; i < readBuffer.limit(); ++i) {
-                CPPUNIT_ASSERT_EQUAL(fileUIDBytes[i], readBuffer.get());
-            }
+            CPPUNIT_ASSERT(fileUIDBytes == readBuffer.viewRemaining());
         }
 
 
@@ -233,9 +229,7 @@ public:
             CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
             readBuffer.flip();
 
-            for (ByteBuffer::size_type i = 0; i < readBuffer.limit(); ++i) {
-                CPPUNIT_ASSERT_EQUAL(fileUIDBytes[i], readBuffer.get());
-            }
+            CPPUNIT_ASSERT(fileUIDBytes == readBuffer.viewRemaining());
         }
     }
 };

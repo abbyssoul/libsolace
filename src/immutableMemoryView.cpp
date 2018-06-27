@@ -73,7 +73,7 @@ ImmutableMemoryView::operator[] (size_type index) const {
 
 const ImmutableMemoryView::value_type*
 ImmutableMemoryView::dataAddress(size_type offset) const {
-    if ((offset != 0) && (offset >= size())) {
+    if ((offset != 0) && (offset > size())) {
         raise<IndexOutOfRangeException>("offset", offset, 0, size());
     }
 

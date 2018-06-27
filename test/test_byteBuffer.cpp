@@ -24,6 +24,7 @@
 #include <solace/memoryManager.hpp>
 
 #include <solace/exception.hpp>
+
 #include <cppunit/extensions/HelperMacros.h>
 
 
@@ -37,8 +38,6 @@ class TestByteBuffer: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testConstruction);
         CPPUNIT_TEST(testPositioning);
         CPPUNIT_TEST(testWrite);
-        CPPUNIT_TEST(testRead);
-        CPPUNIT_TEST(testGetByte);
 
         CPPUNIT_TEST(endianConsisten);
         CPPUNIT_TEST(readBigEndian);
@@ -60,17 +59,18 @@ public:
 	}
 
     void testPositioning() {
-        constexpr ByteBuffer::size_type testSize = 12;
-        ByteBuffer buffer(_memoryManager.create(testSize));
+        byte mem[12];
+        constexpr ByteBuffer::size_type testSize = sizeof(mem);
+        ByteBuffer buffer(wrapMemory(mem));
 
         CPPUNIT_ASSERT_EQUAL(testSize, buffer.capacity());
         CPPUNIT_ASSERT_EQUAL(testSize, buffer.limit());
         CPPUNIT_ASSERT_EQUAL(static_cast<ByteBuffer::size_type>(0), buffer.position());
 
-        CPPUNIT_ASSERT_NO_THROW(buffer.position(buffer.position() + 12));
-        CPPUNIT_ASSERT_NO_THROW(buffer.position(0));
-        CPPUNIT_ASSERT_NO_THROW(buffer.advance(12));
-        CPPUNIT_ASSERT_NO_THROW(buffer.position(0));
+        CPPUNIT_ASSERT(buffer.position(buffer.position() + 12).isOk());
+        CPPUNIT_ASSERT(buffer.position(0).isOk());
+        CPPUNIT_ASSERT(buffer.advance(12).isOk());
+        CPPUNIT_ASSERT(buffer.position(0).isOk());
 
         for (ByteBuffer::size_type i = 0; i < testSize; ++i) {
             buffer << 'a';
@@ -78,29 +78,28 @@ public:
 
         CPPUNIT_ASSERT_EQUAL(buffer.limit(), buffer.position());
 
-        CPPUNIT_ASSERT_THROW(buffer.position(buffer.limit() + 1), IllegalArgumentException);
+        CPPUNIT_ASSERT(buffer.position(buffer.limit() + 1).isError());
 
-        CPPUNIT_ASSERT_NO_THROW(buffer.position(buffer.limit()));
-        CPPUNIT_ASSERT_THROW(buffer.advance(1), IllegalArgumentException);
+        CPPUNIT_ASSERT(buffer.position(buffer.limit()).isOk());
+        CPPUNIT_ASSERT(buffer.advance(1).isError());
     }
 
     void testWrite() {
-        constexpr ByteBuffer::size_type testSize = 7;
-        ByteBuffer buffer(_memoryManager.create(testSize));
+        byte destMem[7];
 
         {  // Happy path
             byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
 
+            ByteBuffer buffer(wrapMemory(destMem));
             CPPUNIT_ASSERT_NO_THROW(buffer.write(bytes, sizeof(bytes)));
             CPPUNIT_ASSERT_EQUAL(buffer.limit(), buffer.position());
-
-            buffer.rewind();
         }
 
         {  // Error cases
-            byte tracLoadOfData[] = {'a', 'b', 'c', 0, 'd', 'e', 'f', 'g'};
-            auto viewBytes = wrapMemory(tracLoadOfData);
+            byte truckLoadOfData[] = {'a', 'b', 'c', 0, 'd', 'e', 'f', 'g'};
+            auto viewBytes = wrapMemory(truckLoadOfData);
 
+            ByteBuffer buffer(wrapMemory(destMem));
             // Attempt to write more bytes then fit into the dest buffer
             CPPUNIT_ASSERT_THROW(buffer.write(viewBytes), OverflowException);
 
@@ -108,48 +107,6 @@ public:
             CPPUNIT_ASSERT_THROW(buffer.write(viewBytes, 128), OverflowException);
         }
     }
-
-
-    void testGetByte() {
-        byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
-
-        constexpr ByteBuffer::size_type testSize = sizeof(bytes);
-        ByteBuffer buffer(_memoryManager.create(testSize));
-
-        CPPUNIT_ASSERT_NO_THROW(buffer.write(bytes, sizeof(bytes)));
-
-        CPPUNIT_ASSERT_THROW(buffer.get(), OverflowException);
-        CPPUNIT_ASSERT_THROW(buffer.get(testSize), IllegalArgumentException);
-
-        for (ByteBuffer::size_type i = 0; i < testSize; ++i) {
-            CPPUNIT_ASSERT_EQUAL(bytes[i], buffer.get(i));
-        }
-
-        buffer.flip();
-        for (ByteBuffer::size_type i = 0; i < testSize; ++i) {
-            CPPUNIT_ASSERT_EQUAL(bytes[i], buffer.get());
-        }
-        CPPUNIT_ASSERT_THROW(buffer.get(), OverflowException);
-    }
-
-
-    void testRead() {
-        byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
-        byte readBytes[3];
-
-        constexpr ByteBuffer::size_type testSize = sizeof(bytes);
-        ByteBuffer buffer(_memoryManager.create(testSize));
-
-        CPPUNIT_ASSERT_NO_THROW(buffer.write(bytes, sizeof(bytes)));
-
-        CPPUNIT_ASSERT_THROW(buffer.read(readBytes, sizeof(readBytes)), OverflowException);
-        CPPUNIT_ASSERT_NO_THROW(buffer.read(3, readBytes, sizeof(readBytes)));
-
-        for (ByteBuffer::size_type i = 0; i < sizeof(readBytes); ++i) {
-            CPPUNIT_ASSERT_EQUAL(bytes[i + 3], readBytes[i]);
-        }
-    }
-
 
     void readBigEndian() {
         byte bytes[] = {0x84, 0x2d, 0xa3, 0x80,
@@ -160,27 +117,26 @@ public:
         uint32 expected32(0x842da380);
         uint64 expected64(0x842da380e3426dff);
 
-        ByteBuffer buffer(wrapMemory(bytes));
         {
             uint8 result;
-            buffer.readBE(result).rewind();
+            CPPUNIT_ASSERT(ByteBuffer(wrapMemory(bytes)).readBE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected8, result);
         }
         {
             uint16 result;
-            buffer.readBE(result).rewind();
+            CPPUNIT_ASSERT(ByteBuffer(wrapMemory(bytes)).readBE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected16, result);
         }
 
         {
             uint32 result;
-            buffer.readBE(result).rewind();
+            CPPUNIT_ASSERT(ByteBuffer(wrapMemory(bytes)).readBE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected32, result);
         }
 
         {
             uint64 result;
-            buffer.readBE(result).rewind();
+            CPPUNIT_ASSERT(ByteBuffer(wrapMemory(bytes)).readBE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected64, result);
         }
     }
@@ -195,27 +151,26 @@ public:
         uint32 expected32(1025);
         uint64 expected64(0xff6d42e300000401);
 
-        ByteBuffer buffer(wrapMemory(bytes));
         {
             uint8 result;
-            buffer.readLE(result).rewind();
+            CPPUNIT_ASSERT(ByteBuffer(wrapMemory(bytes)).readLE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected8, result);
         }
         {
             uint16 result;
-            buffer.readLE(result).rewind();
+            CPPUNIT_ASSERT(ByteBuffer(wrapMemory(bytes)).readLE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected16, result);
         }
 
         {
             uint32 result;
-            buffer.readLE(result).rewind();
+            CPPUNIT_ASSERT(ByteBuffer(wrapMemory(bytes)).readLE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected32, result);
         }
 
         {
             uint64 result;
-            buffer.readLE(result).rewind();
+            CPPUNIT_ASSERT(ByteBuffer(wrapMemory(bytes)).readLE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected64, result);
         }
     }
@@ -293,23 +248,22 @@ public:
 
     void endianConsisten() {
         byte bytes[8];
-        ByteBuffer buffer(wrapMemory(bytes));
 
         {
             const uint16 value(0x842d);
-            buffer.writeLE(value).rewind();
+            ByteBuffer(wrapMemory(bytes)).writeLE(value);
 
             uint16 res;
-            buffer.readLE(res).rewind();
+            CPPUNIT_ASSERT(ByteBuffer(wrapMemory(bytes)).readLE(res).isOk());
             CPPUNIT_ASSERT_EQUAL(value, res);
         }
 
         {
             const uint16 value(0x842d);
-            buffer.writeBE(value).rewind();
+            ByteBuffer(wrapMemory(bytes)).writeBE(value);
 
             uint16 res;
-            buffer.readBE(res).rewind();
+            CPPUNIT_ASSERT(ByteBuffer(wrapMemory(bytes)).readBE(res).isOk());
             CPPUNIT_ASSERT_EQUAL(value, res);
         }
 

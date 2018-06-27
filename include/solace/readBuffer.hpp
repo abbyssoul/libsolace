@@ -26,6 +26,9 @@
 #include "solace/memoryView.hpp"
 #include "solace/memoryBuffer.hpp"
 
+#include "solace/result.hpp"
+#include "solace/error.hpp"
+
 
 namespace Solace {
 
@@ -90,7 +93,6 @@ public:
     ReadBuffer(ImmutableMemoryView&& view) :
         _limit(view.size()),
         _storage(wrapMemory(const_cast<ImmutableMemoryView::value_type*>(view.dataAddress()), view.size()), nullptr)
-//        _storage(std::move(view))
     {
     }
 
@@ -98,7 +100,7 @@ public:
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    ReadBuffer(const ImmutableMemoryView& view) :
+    ReadBuffer(ImmutableMemoryView const& view) :
         _limit(view.size()),
         _storage(wrapMemory(const_cast<ImmutableMemoryView::value_type*>(view.dataAddress()), view.size()), nullptr)
     {
@@ -123,6 +125,8 @@ public:
 
     /**
      * Leave the limit unchanged and sets the position to zero.
+     * It alwats works.
+     * @return A reference to this for fluency.
      */
     ReadBuffer& rewind() noexcept {
         _position = 0;
@@ -134,7 +138,7 @@ public:
     /** Returns this buffer's capacity.
      * A buffer's capacity is the number of elements it contains.
      * The capacity of a buffer is never negative and never changes.
-     * @return Fixed number of bytes this buffer was created to store.
+     * @return Capacity of the buffer in bytes.
      */
     size_type capacity() const noexcept { return _storage.size(); }
 
@@ -153,13 +157,26 @@ public:
      *
      * @throws IllegalArgumentException if attempt is made to set limit to more then this buffer capacity.
      */
-    ReadBuffer& limit(size_type newLimit);
+    Result<void, Error> limit(size_type newLimit);
+
+    /**
+     * Get remaining number of bytes in the buffer (Up to the limit)
+     * @return Remaining number of bytes in the buffer.
+     */
+    size_type remaining() const noexcept { return limit() - position(); }
+
+    /**
+     * Check if there are bytes left in the buffer (Up to the limit)
+     * @return True if there are still some data before the limit is reached.
+     */
+    bool hasRemaining() const noexcept { return remaining() > 0; }
 
     /**
      * Set position back to the previously saved mark
      * @return Reference to this buffer.
      */
-    ReadBuffer& reset(size_type savedMark) {
+    Result<void, Error>
+    reset(size_type savedMark) {
         return position(savedMark);
     }
 
@@ -176,7 +193,7 @@ public:
      * @return Reference to this buffer for fluent interface.
      * @note It is illigal to set position beyond the limit(), and exception will be raised in that case.
      */
-    ReadBuffer& position(size_type newPosition);
+    Result<void, Error> position(size_type newPosition);
 
     /**
      * Increment current position by the given amount.
@@ -184,54 +201,46 @@ public:
      * @return Reference to this buffer for fluent interface.
      * @note It is illigal to advance position beyond the limit(), and exception will be raised in that case.
      */
-    ReadBuffer& advance(size_type increment);
-
-    /**
-     * Get remaining number of bytes in the buffer (Up to the limit)
-     * @return Remaining number of bytes in the buffer.
-     */
-    size_type remaining() const noexcept { return limit() - position(); }
-
-    /**
-     * Check if there are bytes left in the buffer (Up to the limit)
-     * @return True if there are still some data before the limit is reached.
-     */
-    bool hasRemaining() const noexcept { return remaining() > 0; }
+    Result<void, Error> advance(size_type increment);
 
     /**
      * Read a single byte from the buffer
      * @return One byte read from the buffer
      */
-    byte get();
+    Result<byte, Error> get();
 
     /**
      * Get a single byte from the buffer in the given position
      * @return One byte read from the buffer
      * @note This operation does not advance current position
      */
-    byte get(size_type position) const;
+    Result<byte, Error> get(size_type position) const;
 
     /**
      * Read data form this buffer and store it into a given destantion.
      * @param dest Buffer to store read data into.
-     * @return Reference to this for fluency.
+     * @return Nothing if successfull or an error.
      */
-    ReadBuffer& read(MemoryView& dest) {
+    Result<void, Error>
+    read(MemoryView& dest) {
         return read(dest, dest.size());
     }
 
-    ReadBuffer& read(MemoryView& dest, size_type bytesToRead);
+    Result<void, Error>
+    read(MemoryView& dest, size_type bytesToRead);
 
-    ReadBuffer& read(void* dest, size_type count);
-    ReadBuffer& read(byte* dest, size_type count) {
-        return read(reinterpret_cast<void*>(dest), count);
-    }
-    ReadBuffer& read(char* dest, size_type count) {
-        return read(reinterpret_cast<void*>(dest), count);
-    }
-    const ReadBuffer& read(size_type offset, byte* dest, size_type bytesToRead) const;
-    const ReadBuffer& read(size_type offset, MemoryView& dest, size_type bytesToRead) const;
-    const ReadBuffer& read(size_type offset, MemoryView& dest) const  {
+//    ReadBuffer& read(byte* dest, size_type count) {
+//        return read(reinterpret_cast<void*>(dest), count);
+//    }
+//    ReadBuffer& read(char* dest, size_type count) {
+//        return read(reinterpret_cast<void*>(dest), count);
+//    }
+//    const ReadBuffer& read(size_type offset, byte* dest, size_type bytesToRead) const;
+    Result<void, Error>
+    read(size_type offset, MemoryView& dest, size_type bytesToRead) const;
+
+    Result<void, Error>
+    read(size_type offset, MemoryView& dest) const  {
         return read(offset, dest, dest.size());
     }
 
@@ -243,24 +252,39 @@ public:
         return _storage.view().slice(0, position());
     }
 
-    // Endianess aware read/write
-    ReadBuffer& readLE(int8& value)  { return read(&value, sizeof(int8)); }
-    ReadBuffer& readLE(uint8& value) { return read(&value, sizeof(uint8)); }
-    ReadBuffer& readLE(int16& value) { return readLE(reinterpret_cast<uint16&>(value)); }
-    ReadBuffer& readLE(uint16& value);
-    ReadBuffer& readLE(int32& value) { return readLE(reinterpret_cast<uint32&>(value)); }
-    ReadBuffer& readLE(uint32& value);
-    ReadBuffer& readLE(int64& value) { return readLE(reinterpret_cast<uint64&>(value)); }
-    ReadBuffer& readLE(uint64& value);
+    Result<void, Error>  read(char*      dest) { return read(dest, sizeof(char));    }
+    Result<void, Error>  read(int8*      dest) { return read(dest, sizeof(int8));    }
+    Result<void, Error>  read(uint8*     dest) { return read(dest, sizeof(uint8));   }
+    Result<void, Error>  read(int16*     dest) { return read(dest, sizeof(int16));   }
+    Result<void, Error>  read(uint16*    dest) { return read(dest, sizeof(uint16));  }
+    Result<void, Error>  read(int32*     dest) { return read(dest, sizeof(int32));   }
+    Result<void, Error>  read(uint32*    dest) { return read(dest, sizeof(uint32));  }
+    Result<void, Error>  read(int64*     dest) { return read(dest, sizeof(int64));   }
+    Result<void, Error>  read(uint64*    dest) { return read(dest, sizeof(uint64));  }
+    Result<void, Error>  read(float32*   dest) { return read(dest, sizeof(float32)); }
+    Result<void, Error>  read(float64*   dest) { return read(dest, sizeof(float64)); }
 
-    ReadBuffer& readBE(int8& value)  { return read(&value, sizeof(int8)); }
-    ReadBuffer& readBE(uint8& value) { return read(&value, sizeof(uint8)); }
-    ReadBuffer& readBE(int16& value) { return readBE(reinterpret_cast<uint16&>(value)); }
-    ReadBuffer& readBE(uint16& value);
-    ReadBuffer& readBE(int32& value) { return readBE(reinterpret_cast<uint32&>(value)); }
-    ReadBuffer& readBE(uint32& value);
-    ReadBuffer& readBE(int64& value) { return readBE(reinterpret_cast<uint64&>(value)); }
-    ReadBuffer& readBE(uint64& value);
+    // Endianess aware read/write
+    Result<void, Error>  readLE(int8& value)  { return read(&value, sizeof(int8)); }
+    Result<void, Error>  readLE(uint8& value) { return read(&value, sizeof(uint8)); }
+    Result<void, Error>  readLE(int16& value) { return readLE(reinterpret_cast<uint16&>(value)); }
+    Result<void, Error>  readLE(uint16& value);
+    Result<void, Error>  readLE(int32& value) { return readLE(reinterpret_cast<uint32&>(value)); }
+    Result<void, Error>  readLE(uint32& value);
+    Result<void, Error>  readLE(int64& value) { return readLE(reinterpret_cast<uint64&>(value)); }
+    Result<void, Error>  readLE(uint64& value);
+
+    Result<void, Error>  readBE(int8& value)  { return read(&value, sizeof(int8)); }
+    Result<void, Error>  readBE(uint8& value) { return read(&value, sizeof(uint8)); }
+    Result<void, Error>  readBE(int16& value) { return readBE(reinterpret_cast<uint16&>(value)); }
+    Result<void, Error>  readBE(uint16& value);
+    Result<void, Error>  readBE(int32& value) { return readBE(reinterpret_cast<uint32&>(value)); }
+    Result<void, Error>  readBE(uint32& value);
+    Result<void, Error>  readBE(int64& value) { return readBE(reinterpret_cast<uint64&>(value)); }
+    Result<void, Error>  readBE(uint64& value);
+
+protected:
+    Result<void, Error>  read(void* dest, size_type count);
 
 protected:
 
@@ -271,29 +295,30 @@ protected:
 
 };
 
-
+/*
 inline
-ReadBuffer& operator>> (ReadBuffer& src, char& c)     { return src.read(&c, sizeof(char));   }
+ReadBuffer& operator>> (ReadBuffer& src, char& c)     { return src.read(&c);   }
 inline
-ReadBuffer& operator>> (ReadBuffer& src, int8& c)     { return src.read(&c, sizeof(int8));   }
+ReadBuffer& operator>> (ReadBuffer& src, int8& c)     { return src.read(&c);   }
 inline
-ReadBuffer& operator>> (ReadBuffer& src, uint8& c)    { return src.read(&c, sizeof(uint8));  }
+ReadBuffer& operator>> (ReadBuffer& src, uint8& c)    { return src.read(&c);  }
 inline
-ReadBuffer& operator>> (ReadBuffer& src, int16& c)    { return src.read(&c, sizeof(int16));  }
+ReadBuffer& operator>> (ReadBuffer& src, int16& c)    { return src.read(&c);  }
 inline
-ReadBuffer& operator>> (ReadBuffer& src, uint16& c)   { return src.read(&c, sizeof(uint16)); }
+ReadBuffer& operator>> (ReadBuffer& src, uint16& c)   { return src.read(&c); }
 inline
-ReadBuffer& operator>> (ReadBuffer& src, int32& c)    { return src.read(&c, sizeof(int32));  }
+ReadBuffer& operator>> (ReadBuffer& src, int32& c)    { return src.read(&c);  }
 inline
-ReadBuffer& operator>> (ReadBuffer& src, uint32& c)   { return src.read(&c, sizeof(uint32)); }
+ReadBuffer& operator>> (ReadBuffer& src, uint32& c)   { return src.read(&c); }
 inline
-ReadBuffer& operator>> (ReadBuffer& src, int64& c)    { return src.read(&c, sizeof(int64));  }
+ReadBuffer& operator>> (ReadBuffer& src, int64& c)    { return src.read(&c);  }
 inline
-ReadBuffer& operator>> (ReadBuffer& src, uint64& c)   { return src.read(&c, sizeof(uint64)); }
+ReadBuffer& operator>> (ReadBuffer& src, uint64& c)   { return src.read(&c); }
 inline
-ReadBuffer& operator>> (ReadBuffer& src, float32& c)  { return src.read(&c, sizeof(float32)); }
+ReadBuffer& operator>> (ReadBuffer& src, float32& c)  { return src.read(&c); }
 inline
-ReadBuffer& operator>> (ReadBuffer& src, float64& c)  { return src.read(&c, sizeof(float64)); }
+ReadBuffer& operator>> (ReadBuffer& src, float64& c)  { return src.read(&c); }
+*/
 
 inline
 void swap(ReadBuffer& lhs, ReadBuffer& rhs) noexcept {

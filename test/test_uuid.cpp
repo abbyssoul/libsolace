@@ -22,7 +22,6 @@
 *******************************************************************************/
 #include <solace/uuid.hpp>			// Class being tested
 #include <solace/array.hpp>
-#include <solace/memoryManager.hpp>
 #include <solace/exception.hpp>
 
 
@@ -53,18 +52,11 @@ class TestUUID : public CppUnit::TestFixture  {
 protected:
     static constexpr size_t RandomSampleSize = 100;
 
-    MemoryManager _memoryManager;
-
     UUID moveMe(const MemoryView& b) {
         return b;
     }
 
 public:
-
-    TestUUID(): _memoryManager(4096)
-    {
-    }
-
 
     void testStaticConstraints() {
         CPPUNIT_ASSERT_EQUAL(static_cast<UUID::size_type>(16), UUID::StaticSize);
@@ -72,11 +64,10 @@ public:
     }
 
     void testRandom() {
-
         UUID ids[RandomSampleSize];
 
-        for (uint i = 0; i < RandomSampleSize; ++i) {
-            ids[i] = UUID::random();
+        for (auto& id : ids) {
+            id = UUID::random();
         }
 
         for (uint i = 0; i < RandomSampleSize; ++i) {
@@ -123,22 +114,6 @@ public:
         }
 
         CPPUNIT_ASSERT_THROW(auto x = UUID(wrapMemory(bytes, 7)), IllegalArgumentException);
-
-
-        auto byteBuffer = ByteBuffer(_memoryManager.create(16));
-        byteBuffer.write(bytes, sizeof(bytes));
-
-        CPPUNIT_ASSERT_EQUAL(static_cast<ByteBuffer::size_type>(0), byteBuffer.remaining());
-        CPPUNIT_ASSERT_THROW(auto x = UUID(byteBuffer), IllegalArgumentException);
-
-        byteBuffer.flip();
-        UUID uid6(byteBuffer);
-        for (UUID::size_type i = 0; i < sizeof(bytes); ++i) {
-            CPPUNIT_ASSERT_EQUAL(bytes[i], uid6[i]);
-        }
-
-        auto wb = ByteBuffer(_memoryManager.create(6));
-        CPPUNIT_ASSERT_THROW(auto x = UUID(wb), IllegalArgumentException);
     }
 
     void testComparable() {

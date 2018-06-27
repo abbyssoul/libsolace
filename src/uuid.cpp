@@ -49,37 +49,27 @@ UUID::UUID() noexcept {
 
 
 UUID::UUID(UUID&& rhs) noexcept {
-    memcpy(_bytes, rhs._bytes, size());
+    memcpy(_bytes, rhs._bytes, StaticSize);
 }
 
 
-UUID::UUID(const UUID& rhs) noexcept {
-    memcpy(_bytes, rhs._bytes, size());
+UUID::UUID(UUID const& rhs) noexcept {
+    memcpy(_bytes, rhs._bytes, StaticSize);
 }
 
 
-UUID::UUID(const MemoryView& s) {
-    if (s.size() < size()) {
+UUID::UUID(ImmutableMemoryView view) {
+    if (view.size() < size()) {
         raise<IllegalArgumentException>("bytes");
     }
 
-    for (size_type i = 0; i < size(); ++i) {
-        _bytes[i] = s[i];
-    }
-}
-
-UUID::UUID(ByteBuffer& s) {
-    if (s.remaining() < size()) {
-        raise<IllegalArgumentException>("bytes");
-    }
-
-    for (auto& b : _bytes) {
-        b = s.get();
+    for (size_type i = 0; i < StaticSize; ++i) {
+        _bytes[i] = view[i];
     }
 }
 
 
-UUID::UUID(const std::initializer_list<byte>& bytes) {
+UUID::UUID(std::initializer_list<byte> bytes) {
     if (bytes.size() < size()) {
         raise<IllegalArgumentException>("bytes");
     }
@@ -197,13 +187,16 @@ UUID UUID::parse(const String& str) {
 }
 
 
-
-ReadBuffer& Solace::operator >> (ReadBuffer& buffer, UUID& id) {
+/*
+ReadBuffer&
+Solace::operator >> (ReadBuffer& buffer, UUID& id) {
     auto view = id.view();
     return buffer.read(view);
 }
 
 
-ByteBuffer& Solace::operator << (ByteBuffer& buffer, const UUID& id) {
+ByteBuffer&
+Solace::operator << (ByteBuffer& buffer, const UUID& id) {
     return buffer.write(id.view());
 }
+*/

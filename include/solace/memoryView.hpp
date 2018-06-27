@@ -78,17 +78,12 @@ public:
         return swap(rhs);
     }
 
+    using ImmutableMemoryView::equals;
+
     bool equals(const MemoryView& other) const noexcept {
         return ImmutableMemoryView::equals(other);
     }
 
-    bool operator== (const MemoryView& rhv) const noexcept {
-        return equals(rhv);
-    }
-
-    bool operator!= (const MemoryView& rhv) const noexcept {
-        return !equals(rhv);
-    }
 
     /**
      * Return iterator to beginning of the collection
@@ -220,8 +215,30 @@ inline MemoryView wrapMemory(PodType (&data)[N]) {
 }
 
 
-inline void swap(MemoryView& a, MemoryView& b) {
+inline void
+swap(MemoryView& a, MemoryView& b) {
     a.swap(b);
+}
+
+
+inline
+bool operator== (MemoryView const& rhs, MemoryView const& lhs) noexcept {
+    return rhs.equals(lhs);
+}
+
+inline
+bool operator!= (MemoryView const& rhs, MemoryView const& lhs) noexcept {
+    return !rhs.equals(lhs);
+}
+
+inline
+bool operator== (MemoryView const& rhs, ImmutableMemoryView const& lhs) noexcept {
+    return rhs.equals(lhs);
+}
+
+inline
+bool operator!= (MemoryView const& rhs, ImmutableMemoryView const& lhs) noexcept {
+    return !rhs.equals(lhs);
 }
 
 

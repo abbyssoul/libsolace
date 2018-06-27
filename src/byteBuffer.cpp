@@ -35,14 +35,16 @@ using namespace Solace;
 MemoryView ByteBuffer::viewRemaining() {
     auto destAddr = _storage.view().dataAddress(position());
 
-    return wrapMemory(const_cast<byte*>(destAddr), remaining());
+    return wrapMemory(destAddr, remaining());
 //    return _storage.slice(position(), limit());
 }
 
 
 MemoryView ByteBuffer::viewWritten() {
     auto destAddr = _storage.view().dataAddress();
-    return wrapMemory(const_cast<ImmutableMemoryView::value_type*>(destAddr), position());
+
+    return wrapMemory(destAddr, position());
+//    return wrapMemory(const_cast<ImmutableMemoryView::value_type*>(destAddr), position());
 //    return _storage.slice(0, position());
 }
 

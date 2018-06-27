@@ -28,8 +28,8 @@
 #include "solace/traits/iformattable.hpp"
 #include "solace/traits/icomparable.hpp"
 
+#include "solace/immutableMemoryView.hpp"
 #include "solace/string.hpp"
-#include "solace/byteBuffer.hpp"
 
 
 namespace Solace {
@@ -42,14 +42,14 @@ class UUID :
         public IComparable<UUID>,
         public IFormattable {
 public:
-    typedef uint32 size_type;
-    typedef byte value_type;
+    using size_type = uint32;
+    using value_type = byte;
 
-    typedef value_type&         reference;
-    typedef const value_type&   const_reference;
+    using reference = value_type &;
+    using const_reference = const value_type &;
 
-    typedef value_type*         iterator;
-    typedef const value_type*   const_iterator;
+    using iterator = value_type *;
+    using const_iterator = const value_type *;
 
 public:
 
@@ -85,25 +85,19 @@ public:
     UUID(UUID&& rhs) noexcept;
 
     /** Copy Construct the UUID */
-    UUID(const UUID& rhs) noexcept;
+    UUID(UUID const& rhs) noexcept;
 
     /**
      * Try to construct the UUID from individual bytes
      * @note This can throw if number of byte given is less then expected
      */
-    UUID(const std::initializer_list<byte>& bytes);
+    UUID(std::initializer_list<byte> bytes);
 
     /** Create the UUID from a byte buffer
      * Try to construct the UUID from individual bytes
      * @note This can throw if number of byte given is less then expected
      */
-    UUID(const MemoryView& s);
-
-    /** Create the UUID from a byte buffer
-     * Try to construct the UUID from individual bytes
-     * @note This can throw if number of byte given is less then expected
-     */
-    UUID(ByteBuffer& s);
+    UUID(ImmutableMemoryView s);
 
 public:
 
@@ -208,12 +202,6 @@ inline bool operator >= (const UUID& lhs, const UUID& rhs) noexcept {
 inline void swap(UUID& lhs, UUID& rhs) noexcept {
     lhs.swap(rhs);
 }
-
-
-ReadBuffer& operator >> (ReadBuffer& buffer, UUID& id);
-
-ByteBuffer& operator << (ByteBuffer& buffer, const UUID& id);
-
 
 }  // namespace Solace
 #endif  // SOLACE_UUID_HPP

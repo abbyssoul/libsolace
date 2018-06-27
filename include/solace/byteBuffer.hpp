@@ -35,7 +35,8 @@ namespace Solace {
  * One can read and write into the byte buffer and this operations will advane current position.
  * FIXME: Implementation must be based on ReadBuffer
  */
-class ByteBuffer: public ReadBuffer {
+class ByteBuffer :
+        public ReadBuffer {
 public:
 
     using ReadBuffer::size_type;

@@ -19,9 +19,7 @@
  * @author: soultaker
  ********************************************************************************/
 #include <solace/readBuffer.hpp>  // Class being tested
-#include <solace/memoryManager.hpp>
 
-#include <solace/exception.hpp>
 #include <cppunit/extensions/HelperMacros.h>
 
 
@@ -48,16 +46,10 @@ class TestReadBuffer: public CppUnit::TestFixture  {
     CPPUNIT_TEST_SUITE_END();
 
 protected:
-    typedef ReadBuffer::size_type size_type;
+    using size_type = ReadBuffer::size_type;
     static const size_type ZERO;
 
-    MemoryManager _memoryManager;
-
 public:
-
-    TestReadBuffer(): _memoryManager(4096)
-    {
-    }
 
     void defaultConstructedBufferIsEmpty() {
         ReadBuffer buffer;
@@ -97,40 +89,44 @@ public:
         ReadBuffer buffer(wrapMemory(bytes));
 
         // We can re-position safely
-        CPPUNIT_ASSERT_NO_THROW(buffer.position(4));
+        CPPUNIT_ASSERT(buffer.position(4).isOk());
         CPPUNIT_ASSERT_EQUAL(size_type(4), buffer.position());
-        CPPUNIT_ASSERT_NO_THROW(buffer.position(0));
+        CPPUNIT_ASSERT(buffer.position(0).isOk());
         CPPUNIT_ASSERT_EQUAL(ZERO, buffer.position());
         // Can't go beyond the limit
-        CPPUNIT_ASSERT_THROW(buffer.position(buffer.limit() + 3), IllegalArgumentException);
+        CPPUNIT_ASSERT(buffer.position(buffer.limit() + 3).isError());
 
         CPPUNIT_ASSERT_EQUAL(ZERO, buffer.position());
-        CPPUNIT_ASSERT_NO_THROW(buffer.advance(5));
+        CPPUNIT_ASSERT(buffer.advance(5).isOk());
         CPPUNIT_ASSERT_EQUAL(size_type(5), buffer.position());
 
-        // It's ok to got to the edge.
+        // It's ok to got to the end of the world... err the end of the buffer.
         CPPUNIT_ASSERT_NO_THROW(buffer.position(buffer.limit()));
         // ..but not beyond
-        CPPUNIT_ASSERT_THROW(buffer.advance(1), IllegalArgumentException);
+        CPPUNIT_ASSERT(buffer.advance(1).isError());
     }
 
     void testGetByte() {
         const byte srcBytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
-        constexpr size_type testSize = sizeof(srcBytes);
-
         ReadBuffer buffer(wrapMemory(srcBytes));
 
-        for (size_type i = 0; i < testSize; ++i) {
-            CPPUNIT_ASSERT_EQUAL(srcBytes[i], buffer.get(i));
+        size_type i = 0;
+        for (auto b : srcBytes) {
+            const auto value = buffer.get(i++);
+            CPPUNIT_ASSERT(value.isOk());
+            CPPUNIT_ASSERT_EQUAL(b, value.unwrap());
         }
 
-        for (size_type i = 0; i < testSize; ++i) {
-            CPPUNIT_ASSERT_EQUAL(srcBytes[i], buffer.get());
+        for (auto b : srcBytes) {
+            const auto value = buffer.get();
+            CPPUNIT_ASSERT(value.isOk());
+            CPPUNIT_ASSERT_EQUAL(b, value.unwrap());
         }
 
-        CPPUNIT_ASSERT_EQUAL(testSize, buffer.position());
-        CPPUNIT_ASSERT_THROW(buffer.get(), OverflowException);
+        CPPUNIT_ASSERT_EQUAL(buffer.limit(), buffer.position());
+        CPPUNIT_ASSERT(buffer.get().isError());
     }
+
 
     void testByteRead() {
         const byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
@@ -140,7 +136,7 @@ public:
         ReadBuffer buffer(wrapMemory(bytes));
 
         for (size_type i = 0; i < kTestSize; ++i) {
-            buffer >> readBytes[i];
+            buffer.read(&(readBytes[i]));
         }
 
         // Check that we read all
@@ -152,36 +148,39 @@ public:
     }
 
     void testReadIntoByteBuffer() {
-        const byte srcBytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
+        byte const srcBytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
         constexpr size_type testSize = sizeof(srcBytes);
 
-        byte readBuffer[128];
+        byte destBuffer[128];
         constexpr size_type readBufferChunk = 3;
 
         ReadBuffer buffer(wrapMemory(srcBytes));
+        MemoryView destView = wrapMemory(destBuffer);
 
-        CPPUNIT_ASSERT_NO_THROW(buffer.read(readBuffer, readBufferChunk));
+        CPPUNIT_ASSERT(buffer.read(destView, readBufferChunk).isOk());
         for (size_type i = 0; i < readBufferChunk; ++i) {
-            CPPUNIT_ASSERT_EQUAL(srcBytes[i], readBuffer[i]);
+            CPPUNIT_ASSERT_EQUAL(srcBytes[i], destBuffer[i]);
         }
 
         // Make sure read updated the position
         CPPUNIT_ASSERT_EQUAL(readBufferChunk, buffer.position());
 
         // Attempting to read more data then there is the buffer
-        CPPUNIT_ASSERT_THROW(buffer.read(readBuffer, testSize), OverflowException);
+        CPPUNIT_ASSERT(buffer.read(destView, testSize).isError());
     }
 
     void testReadFromOffset() {
-        const byte srcBytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
+        byte const srcBytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
         constexpr size_type testSize = sizeof(srcBytes);
 
         byte readBuffer[128];
         constexpr size_type readBufferChunk = 3;
 
         ReadBuffer buffer(wrapMemory(srcBytes));
+        MemoryView destView = wrapMemory(readBuffer);
+
         // Read data from an offset
-        CPPUNIT_ASSERT_NO_THROW(buffer.read(4, readBuffer, readBufferChunk));
+        CPPUNIT_ASSERT(buffer.read(4, destView, readBufferChunk).isOk());
         for (size_type i = 0; i < readBufferChunk; ++i) {
             CPPUNIT_ASSERT_EQUAL(srcBytes[4 + i], readBuffer[i]);
         }
@@ -190,78 +189,76 @@ public:
         CPPUNIT_ASSERT_EQUAL(ZERO, buffer.position());
 
         // We can't read more data than there is in the buffer
-        CPPUNIT_ASSERT_THROW(buffer.read(testSize - 3, readBuffer, 12), OverflowException);
+        CPPUNIT_ASSERT(buffer.read(testSize - 3, destView, 12).isError());
 
-        // We can't read from the offset beyond the buffer
-        CPPUNIT_ASSERT_THROW(buffer.read(testSize + 3, readBuffer, 2), OverflowException);
+        // We can't read from the offset beyond the buffer size either
+        CPPUNIT_ASSERT(buffer.read(testSize + 3, destView, 2).isError());
     }
 
 
     void readBigEndian() {
-        byte bytes[] = {0x84, 0x2d, 0xa3, 0x80,
-                        0xe3, 0x42, 0x6d, 0xff};
+        byte const bytes[] =   {0x84, 0x2d, 0xa3, 0x80,
+                                0xe3, 0x42, 0x6d, 0xff};
 
-        uint8 expected8(0x84);
-        uint16 expected16(0x842d);
-        uint32 expected32(0x842da380);
-        uint64 expected64(0x842da380e3426dff);
+        uint8 const expected8(0x84);
+        uint16 const expected16(0x842d);
+        uint32 const expected32(0x842da380);
+        uint64 const expected64(0x842da380e3426dff);
 
-        ReadBuffer buffer(wrapMemory(bytes));
         {
             uint8 result;
-            buffer.readBE(result).rewind();
+            CPPUNIT_ASSERT(ReadBuffer(wrapMemory(bytes)).readBE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected8, result);
         }
         {
             uint16 result;
-            buffer.readBE(result).rewind();
+            CPPUNIT_ASSERT(ReadBuffer(wrapMemory(bytes)).readBE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected16, result);
         }
 
         {
             uint32 result;
-            buffer.readBE(result).rewind();
+            CPPUNIT_ASSERT(ReadBuffer(wrapMemory(bytes)).readBE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected32, result);
         }
 
         {
             uint64 result;
-            buffer.readBE(result).rewind();
+            CPPUNIT_ASSERT(ReadBuffer(wrapMemory(bytes)).readBE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected64, result);
         }
     }
 
 
     void readLittleEndian() {
-        byte bytes[] = {0x01, 0x04, 0x00, 0x00,
-                        0xe3, 0x42, 0x6d, 0xff};
+        byte const bytes[] =   {0x01, 0x04, 0x00, 0x00,
+                                0xe3, 0x42, 0x6d, 0xff};
 
-        uint8 expected8(0x01);
-        uint16 expected16(1025);
-        uint32 expected32(1025);
-        uint64 expected64(0xff6d42e300000401);
+        uint8 const expected8(0x01);
+        uint16 const expected16(1025);
+        uint32 const expected32(1025);
+        uint64 const expected64(0xff6d42e300000401);
 
-        ReadBuffer buffer(wrapMemory(bytes));
         {
             uint8 result;
-            buffer.readLE(result).rewind();
+            CPPUNIT_ASSERT(ReadBuffer(wrapMemory(bytes)).readLE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected8, result);
         }
         {
             uint16 result;
-            buffer.readLE(result).rewind();
+            CPPUNIT_ASSERT(ReadBuffer(wrapMemory(bytes)).readLE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected16, result);
         }
 
         {
             uint32 result;
-            buffer.readLE(result).rewind();
+            CPPUNIT_ASSERT(ReadBuffer(wrapMemory(bytes)).readLE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected32, result);
         }
 
         {
             uint64 result;
-            buffer.readLE(result).rewind();
+            CPPUNIT_ASSERT(ReadBuffer(wrapMemory(bytes)).readLE(result).isOk());
             CPPUNIT_ASSERT_EQUAL(expected64, result);
         }
     }

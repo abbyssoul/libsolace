@@ -225,7 +225,7 @@ public:
 
         auto&& buffer = wrapMemory(src);
         CPPUNIT_ASSERT_THROW(buffer[1042], IndexOutOfRangeException);
-        CPPUNIT_ASSERT_THROW(buffer.dataAddress(15), IndexOutOfRangeException);
+        CPPUNIT_ASSERT_THROW(buffer.dataAddress(16), IndexOutOfRangeException);
     }
 
 

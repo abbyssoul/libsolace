@@ -112,14 +112,15 @@ public:
 
                 int viewedPid;
                 char message[10];
+                auto messageDest = wrapMemory(message);
 
-                ByteBuffer sb(memBuffer);
-                sb >> viewedPid;
+                ReadBuffer sb(memBuffer);
+                CPPUNIT_ASSERT(sb.read(&viewedPid).isOk());
                 CPPUNIT_ASSERT_EQUAL(childPid, viewedPid);
 
-                sb.read(message, 5);
+                CPPUNIT_ASSERT(sb.read(messageDest, 5).isOk());
                 message[5] = 0;
-                CPPUNIT_ASSERT_EQUAL(String("child"), String(message));
+                CPPUNIT_ASSERT_EQUAL(StringView("child"), StringView(message));
             }
 
             }

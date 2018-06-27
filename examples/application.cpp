@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
             .then([&app]() { return app.run(); })
             .orElse([](Solace::Error&& error) {
                 if (error) {
-                    std::cerr << "Error: " << error << std::endl;
+                    std::cerr << "Error: " << error.toString() << std::endl;
                 }
 
                 return Ok(EXIT_FAILURE);
