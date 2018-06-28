@@ -22,14 +22,11 @@
 
 using namespace Solace;
 
-Encoder::~Encoder()
-{
-}
+Encoder::~Encoder() = default;
 
 
-void
-Encoder::encode(ReadBuffer& src) {
+Result<void, Error> Encoder::encode(ReadBuffer& src) {
     const auto remaining = src.remaining();
-    encode(src.viewRemaining());
-    src.advance(remaining);
+    return encode(src.viewRemaining())
+            .then([&src, remaining]() { return src.advance(remaining); });
 }

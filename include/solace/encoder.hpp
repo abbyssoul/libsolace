@@ -58,19 +58,21 @@ public:
      * @param data Source data to transform.
      * @return Size in bytes of storage necessery for transformed data.
      */
-    virtual size_type encodedSize(const ImmutableMemoryView& data) const = 0;
+    virtual size_type encodedSize(ImmutableMemoryView const& data) const = 0;
 
     /**
      * Transform given data and write transformed output into the dest buffer.
      * @param src Read buffer to read data from.
      */
-    void encode(ReadBuffer& src);
+    Result<void, Error>
+    encode(ReadBuffer& src);
 
     /**
      * Transform given data and write transformed output into the dest buffer.
      * @param src Memory view to read data from.
      */
-    virtual void encode(const ImmutableMemoryView& src) = 0;
+    virtual Result<void, Error>
+    encode(ImmutableMemoryView const& src) = 0;
 
 private:
 

@@ -29,11 +29,12 @@
 using namespace Solace;
 
 
-static const byte kBase64Alphabet[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-static const byte kBase64UrlAlphabet[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+static constexpr byte kBase64Alphabet[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static constexpr byte kBase64UrlAlphabet[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 
-void base64encode(ByteBuffer& dest, const ImmutableMemoryView& src, const byte* alphabet) {
+Result<void, Error>
+base64encode(ByteBuffer& dest, ImmutableMemoryView const& src, const byte* alphabet) {
     ImmutableMemoryView::size_type i = 0;
 
     for (; i + 2 < src.size(); i += 3) {
@@ -56,6 +57,8 @@ void base64encode(ByteBuffer& dest, const ImmutableMemoryView& src, const byte* 
 
         dest << '=';
     }
+
+    return Ok();
 }
 
 
@@ -106,10 +109,11 @@ static const byte prUrl2six[256] = {
 
 
 
-void base64decode(ByteBuffer& dest, const ImmutableMemoryView& src, const byte* decodingTable) {
-    const byte* bufin = src.dataAddress();
+Result<void, Error>
+base64decode(ByteBuffer& dest, ImmutableMemoryView const& src, byte const* decodingTable) {
+    byte const* bufin = src.dataAddress();
     if (!bufin || src.size() == 0) {
-        return;
+        return Err(Error("Base64Decoding error: No data"));
     }
 
     while (decodingTable[*(bufin++)] <= 63)
@@ -137,6 +141,8 @@ void base64decode(ByteBuffer& dest, const ImmutableMemoryView& src, const byte* 
     if (nprbytes > 3) {
         dest << static_cast<byte>(decodingTable[bufin[2]] << 6 | decodingTable[bufin[3]]);
     }
+
+    return Ok();
 }
 
 
@@ -147,7 +153,7 @@ Base64Encoder::encodedSize(size_type len) {
 
 
 Base64Decoder::size_type
-Base64Decoder::decodedSize(const ImmutableMemoryView& data) {
+Base64Decoder::decodedSize(ImmutableMemoryView const& data) {
     if (data.empty())
         return 0;
 
@@ -167,23 +173,27 @@ Base64Decoder::decodedSize(const ImmutableMemoryView& data) {
 
 
 Base64Decoder::size_type
-Base64Decoder::encodedSize(const ImmutableMemoryView& data) const {
+Base64Decoder::encodedSize(ImmutableMemoryView const& data) const {
     return decodedSize(data);
 }
 
 
-void Base64Encoder::encode(const ImmutableMemoryView& src) {
-   base64encode(*getDestBuffer(), src, kBase64Alphabet);
+Result<void, Error>
+Base64Encoder::encode(ImmutableMemoryView const& src) {
+   return base64encode(*getDestBuffer(), src, kBase64Alphabet);
 }
 
-void Base64Decoder::encode(const ImmutableMemoryView& src) {
-    base64decode(*getDestBuffer(), src, pr2six);
+Result<void, Error>
+Base64UrlEncoder::encode(ImmutableMemoryView const& src) {
+    return base64encode(*getDestBuffer(), src, kBase64UrlAlphabet);
 }
 
-void Base64UrlEncoder::encode(const ImmutableMemoryView& src) {
-    base64encode(*getDestBuffer(), src, kBase64UrlAlphabet);
+Result<void, Error>
+Base64Decoder::encode(ImmutableMemoryView const& src) {
+    return base64decode(*getDestBuffer(), src, pr2six);
 }
 
-void Base64UrlDecoder::encode(const ImmutableMemoryView& src) {
-    base64decode(*getDestBuffer(), src, prUrl2six);
+Result<void, Error>
+Base64UrlDecoder::encode(ImmutableMemoryView const& src) {
+    return base64decode(*getDestBuffer(), src, prUrl2six);
 }

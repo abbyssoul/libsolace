@@ -48,7 +48,8 @@ public:
 
     using Encoder::encode;
 
-    void encode(const ImmutableMemoryView& src) override;
+    Result<void, Error>
+    encode(const ImmutableMemoryView& src) override;
 };
 
 
@@ -71,7 +72,8 @@ public:
 
     using Encoder::encode;
 
-    void encode(const ImmutableMemoryView& src) override;
+    Result<void, Error>
+    encode(const ImmutableMemoryView& src) override;
 
 };
 
@@ -92,7 +94,8 @@ public:
 
     using Base64Encoder::encode;
 
-    void encode(const ImmutableMemoryView& src) override;
+    Result<void, Error>
+    encode(const ImmutableMemoryView& src) override;
 };
 
 
@@ -114,7 +117,8 @@ public:
 
     using Base64Decoder::encode;
 
-    void encode(const ImmutableMemoryView& src) override;
+    Result<void, Error>
+    encode(const ImmutableMemoryView& src) override;
 };
 
 }  // End of namespace Solace

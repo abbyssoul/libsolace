@@ -26,6 +26,7 @@
 using namespace Solace;
 
 // Not used
+/*
 static const char kBase16Alphabet_u[256][3] = {
     "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "0A", "0B", "0C", "0D", "0E", "0F",
     "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "1A", "1B", "1C", "1D", "1E", "1F",
@@ -44,6 +45,7 @@ static const char kBase16Alphabet_u[256][3] = {
     "E0", "E1", "E2", "E3", "E4", "E5", "E6", "E7", "E8", "E9", "EA", "EB", "EC", "ED", "EE", "EF",
     "F0", "F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "FA", "FB", "FC", "FD", "FE", "FF"
 };
+*/
 
 static const char kBase16Alphabet_l[256][3] = {
     "00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "0a", "0b", "0c", "0d", "0e", "0f",
@@ -85,47 +87,56 @@ Base16Encoder::encodedSize(size_type len) {
 
 
 Base16Encoder::size_type
-Base16Encoder::encodedSize(const ImmutableMemoryView& data) const {
+Base16Encoder::encodedSize(ImmutableMemoryView const& data) const {
     return encodedSize(data.size());
 }
 
 
-void Base16Encoder::encode(const ImmutableMemoryView& src) {
+Result<void, Error>
+Base16Encoder::encode(ImmutableMemoryView const& src) {
     auto& dest = *getDestBuffer();
 
     for (auto value : src) {
-        dest << kBase16Alphabet_l[value][0];
-        dest << kBase16Alphabet_l[value][1];
+        /*auto res = */ dest.write(kBase16Alphabet_l[value], 2);
     }
+
+    return Ok();
 }
 
 
 Base16Decoder::size_type
-Base16Decoder::encodedSize(const ImmutableMemoryView& data) const {
+Base16Decoder::encodedSize(ImmutableMemoryView const& data) const {
     return data.size() / 2;
 }
 
 
-byte charToBin(byte c) {
-    const auto value = kHexToBin[c];
+
+Result<byte, Error>
+charToBin(byte c) {
+    auto const value = kHexToBin[c];
 
     if (value < 0) {
-        raise<IllegalArgumentException>("Failed to decode base16 string: value is not in base16 alphabet");
+        return Err(Error("Failed to decode base16 string: value is not in base16 alphabet"));
     }
 
-    return static_cast<byte>(value);
+    return Ok(static_cast<byte>(value));
 }
 
 
-void
-Base16Decoder::encode(const ImmutableMemoryView& src) {
+Result<void, Error>
+Base16Decoder::encode(ImmutableMemoryView const& src) {
     auto& dest = *getDestBuffer();
 
     for (size_type i = 0; i < src.size(); i += 2) {
-        const byte high = charToBin(src[i]);
-        const byte low =  charToBin(src[i + 1]);
+        auto high = charToBin(src[i]);
+        auto low =  charToBin(src[i + 1]);
 
-        const byte value = static_cast<byte>(high << 4) + static_cast<byte>(low);
+        if (!high)
+            return Err(high.moveError());
+        if (!low)
+            return Err(low.moveError());
+
+        const byte value = static_cast<byte>(high.unwrap() << 4) + static_cast<byte>(low.unwrap());
         dest << value;
     }
 }

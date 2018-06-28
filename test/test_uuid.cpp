@@ -133,7 +133,7 @@ public:
 
 		for (auto v : uuid) {
             CPPUNIT_ASSERT_EQUAL(startValue, v);
-            startValue--;
+            --startValue;
         }
         CPPUNIT_ASSERT_EQUAL(static_cast<byte>(-1), startValue);
 
@@ -153,30 +153,26 @@ public:
     }
 
     void testParsable() {
-        CPPUNIT_ASSERT(UUID::parse("00000000-0000-0000-0000-000000000000").isNull());
+        auto nullParseResult = UUID::parse("00000000-0000-0000-0000-000000000000");
+        CPPUNIT_ASSERT(nullParseResult.isOk());
+        CPPUNIT_ASSERT(nullParseResult.unwrap().isNull());
 
         CPPUNIT_ASSERT_EQUAL(UUID({0x12, 0x3e, 0x45, 0x67, 0xe8, 0x9b, 0x12, 0xd3,
                                    0xa4, 0x56, 0x42, 0x66, 0x55, 0x44, 0x0, 0x0}),
-                             UUID::parse("123e4567-e89b-12d3-a456-426655440000"));
+                             UUID::parse("123e4567-e89b-12d3-a456-426655440000").unwrap());
 
-        CPPUNIT_ASSERT_THROW(UUID::parse("SOMEHTING"), IllegalArgumentException);
-        CPPUNIT_ASSERT_THROW(UUID::parse("1203045e-X054-Y000-3e3d-000000000000"), IllegalArgumentException);
+        CPPUNIT_ASSERT(UUID::parse("SOMEHTING").isError());
+        CPPUNIT_ASSERT(UUID::parse("1203045e-X054-Y000-3e3d-000000000000").isError());
     }
 
     void testParsing_and_ToString_are_consistent() {
-        {
+        for (uint i = 0; i < RandomSampleSize; ++i) {
             UUID r0 = UUID::random();
-            CPPUNIT_ASSERT_EQUAL(r0, UUID::parse(r0.toString().view()));
+            auto parseResult = UUID::parse(r0.toString().view());
+            CPPUNIT_ASSERT(parseResult.isOk());
+            CPPUNIT_ASSERT_EQUAL(r0, parseResult.unwrap());
         }
-        {
-            UUID r0 = UUID::random();
-            CPPUNIT_ASSERT_EQUAL(r0, UUID::parse(r0.toString().view()));
-        }
-        {
-            UUID r0 = UUID::random();
-            CPPUNIT_ASSERT_EQUAL(r0, UUID::parse(r0.toString().view()));
-        }
-        }
+    }
 
     void testContainerReq() {
         {

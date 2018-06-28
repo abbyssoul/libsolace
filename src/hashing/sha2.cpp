@@ -90,7 +90,7 @@ void sha256_process(Sha256::State& ctx, const byte data[64] ) {
     uint32 A[8];
     uint32 i;
 
-    for (i = 0; i < 8; i++)
+    for (i = 0; i < 8; ++i)
         A[i] = ctx.state[i];
 
 #if defined(SOLACE_SHA256_SMALLER)
@@ -107,7 +107,7 @@ void sha256_process(Sha256::State& ctx, const byte data[64] ) {
         A[3] = A[2]; A[2] = A[1]; A[1] = A[0]; A[0] = temp1;
     }
 #else /* SOLACE_SHA256_SMALLER */
-    for (i = 0; i < 16; i++) {
+    for (i = 0; i < 16; ++i) {
         getUint32_BE(W[i], data, 4 * i);
     }
 
@@ -134,7 +134,7 @@ void sha256_process(Sha256::State& ctx, const byte data[64] ) {
     }
 #endif /* SOLACE_SHA256_SMALLER */
 
-    for (i = 0; i < 8; i++) {
+    for (i = 0; i < 8; ++i) {
         ctx.state[i] += A[i];
     }
 }

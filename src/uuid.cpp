@@ -101,7 +101,7 @@ bool UUID::isNull() const noexcept {
     return (summ == 0);
 }
 
-bool UUID::equals(const UUID& rhs) const noexcept {
+bool UUID::equals(UUID const& rhs) const noexcept {
     return memcmp(_bytes, rhs._bytes, size()) == 0;
 }
 
@@ -123,7 +123,7 @@ UUID::value_type UUID::operator[] (size_type index) const {
 }
 
 
-bool Solace::operator < (const UUID& lhs, const UUID& rhs) noexcept {
+bool Solace::operator < (UUID const& lhs, UUID const& rhs) noexcept {
     return memcmp(lhs._bytes, rhs._bytes, lhs.size()) < 0;
 }
 
@@ -162,12 +162,14 @@ String UUID::toString() const {
 
 
 // Here we are stealing a function from base16.cpp
-byte charToBin(byte c);
+Result<byte, Error>
+charToBin(byte c);
 
 
-UUID UUID::parse(StringView const& str) {
+Result<UUID, Error>
+UUID::parse(StringView const& str) {
     if (str.size() != StringSize) {
-        raise<IllegalArgumentException>("string size");
+        return Err(Error("Not enough data"));
     }
 
     byte data[StaticSize];
@@ -175,28 +177,18 @@ UUID UUID::parse(StringView const& str) {
     const char* src = str.data();
     for (size_type i = 0; i < StringSize; ++i) {
         if (src[i] != '-') {
-            const byte high = charToBin(src[i]);
-            const byte low =  charToBin(src[i + 1]);
+            auto high = charToBin(src[i]);
+            auto low =  charToBin(src[i + 1]);
 
-            *(dest++) = static_cast<byte>(high << 4) + static_cast<byte>(low);
+            if (!high)
+                return Err(Error(high.moveError()));
+            if (!low)
+                return Err(Error(low.moveError()));
+
+            *(dest++) = static_cast<byte>(high.unwrap() << 4) + static_cast<byte>(low.unwrap());
             i += 1;
         }
     }
 
-    return UUID(wrapMemory(data));
+    return Ok(UUID(wrapMemory(data)));
 }
-
-
-/*
-ReadBuffer&
-Solace::operator >> (ReadBuffer& buffer, UUID& id) {
-    auto view = id.view();
-    return buffer.read(view);
-}
-
-
-ByteBuffer&
-Solace::operator << (ByteBuffer& buffer, const UUID& id) {
-    return buffer.write(id.view());
-}
-*/

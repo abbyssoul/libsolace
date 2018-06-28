@@ -30,6 +30,8 @@
 
 #include "solace/immutableMemoryView.hpp"
 #include "solace/string.hpp"
+#include "solace/result.hpp"
+#include "solace/error.hpp"
 
 
 namespace Solace {
@@ -70,11 +72,9 @@ public:
      * Parse a UUID object from a string.
      *
      * @param str A string representation of the UUID to parse
-     * @return Parsed UUID object
-     *
-     * TODO: Parse family of functions should return Result<UUID, ParseError>
+     * @return Parsed UUID object or an error.
      */
-    static UUID parse(StringView const& str);
+    static Result<UUID, Error> parse(StringView const& str);
 
 public:
 
@@ -147,10 +147,12 @@ public:
     }
 
     const_iterator end() const noexcept {
+        // cppcheck-suppress pointerOutOfBounds
         return _bytes + size();
     }
 
     iterator end() noexcept {
+        // cppcheck-suppress pointerOutOfBounds
         return _bytes + size();
     }
 

@@ -71,9 +71,11 @@ public:
 public:
 
     /**
-     * Construct the version object from a string representation
+     * Construct the version object from a string representation.
+     * @return Parsed object or an error.
      */
-    static Result<Version, Error> parse(StringView const& value);
+    static Result<Version, Error>
+    parse(StringView const& value);
 
 
 public:
@@ -91,12 +93,14 @@ public:
 	{}
 
     /** Construct the version object by specifying all components */
+    // cppcheck-suppress passedByValue
     Version(value_type aMajor, value_type aMinor, value_type aPath, String aPre):
             majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPath),
             preRelease(std::move(aPre)), build()
     {}
 
 	/** Construct the version object by specifying all components */
+    // cppcheck-suppress passedByValue
     Version(value_type aMajor, value_type aMinor, value_type aPath, String aPre, String aBuild) :
 				majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPath),
                 preRelease(std::move(aPre)), build(std::move(aBuild))
