@@ -91,7 +91,7 @@ public:
             byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
 
             ByteBuffer buffer(wrapMemory(destMem));
-            CPPUNIT_ASSERT_NO_THROW(buffer.write(bytes, sizeof(bytes)));
+            CPPUNIT_ASSERT_NO_THROW(buffer.write(wrapMemory(bytes)));
             CPPUNIT_ASSERT_EQUAL(buffer.limit(), buffer.position());
         }
 

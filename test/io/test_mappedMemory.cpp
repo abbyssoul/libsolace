@@ -99,7 +99,7 @@ public:
                 isChild = true;
                 ByteBuffer sb(memBuffer);
                 sb << getpid();
-                sb.write("child", 5);
+                sb.write(StringView("child").view());
 
             } break;
 

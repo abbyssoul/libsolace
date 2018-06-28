@@ -85,12 +85,10 @@ public:
 
 	StringBuilder& append(char c);
     StringBuilder& append(const Char& c);
-    StringBuilder& append(const char* c);
     StringBuilder& append(const StringView& str);
     StringBuilder& append(const String& str);
     StringBuilder& append(const IFormattable& f);
 
-    StringBuilder& appendFormat(const char* fmt) {	return append(fmt); }
     StringBuilder& appendFormat(const StringView& fmt) { return append(fmt); }
 
 //        template<typename T>

@@ -103,7 +103,7 @@ public:
                 isChild = true;
                 ByteBuffer sb(view);
                 sb << getpid();
-                sb.write("child", 5);
+                sb.write(StringView("child").view());
 
                 // Child will quit after that and this will signal the parent to read data from the shared memory.
             } break;

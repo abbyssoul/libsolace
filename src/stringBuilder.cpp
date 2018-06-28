@@ -31,12 +31,12 @@ using namespace Solace;
 
 StringBuilder::StringBuilder(MemoryView&& buffer, const StringView& str):
     StringBuilder(std::move(buffer)) {
-    _buffer.write(str.data(), str.length());
+    _buffer.write(str.view());
 }
 
 StringBuilder::StringBuilder(MemoryBuffer&& buffer, const StringView& str):
     StringBuilder(std::move(buffer)) {
-    _buffer.write(str.data(), str.length());
+    _buffer.write(str.view());
 }
 
 StringBuilder& StringBuilder::append(char c) {
@@ -46,13 +46,11 @@ StringBuilder& StringBuilder::append(char c) {
 }
 
 StringBuilder& StringBuilder::append(const Char& c) {
-	_buffer.write(c.c_str(), c.getBytesCount());
-
-    return *this;
+    return append(StringView(c.c_str(), c.getBytesCount()));
 }
 
-StringBuilder& StringBuilder::append(const char* cstr) {
-	_buffer.write(cstr, std::char_traits<char>::length(cstr));
+StringBuilder& StringBuilder::append(const StringView& cstr) {
+    _buffer.write(cstr.view());
 
 	return *this;
 }
@@ -62,9 +60,7 @@ StringBuilder& StringBuilder::append(const IFormattable& f) {
 }
 
 StringBuilder& StringBuilder::append(const String& str) {
-	_buffer.write(str.c_str(), str.length());
-
-    return *this;
+    return append(str.view());
 }
 
 StringView

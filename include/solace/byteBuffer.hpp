@@ -139,14 +139,17 @@ public:
      */
     ByteBuffer& write(ImmutableMemoryView const& data, size_type bytesToWrite);
 
-    ByteBuffer& write(void const* bytes, size_type count);
-    ByteBuffer& write(byte const* bytes, size_type count) {
-        return write(reinterpret_cast<const void*>(bytes), count);
-    }
-
-    ByteBuffer& write(char const* bytes, size_type count) {
-        return write(reinterpret_cast<void const*>(bytes), count);
-    }
+    ByteBuffer& write(char value)       { return write(&value, sizeof(value)); }
+    ByteBuffer& write(int8 value)       { return write(&value, sizeof(value)); }
+    ByteBuffer& write(uint8 value)      { return write(&value, sizeof(value)); }
+    ByteBuffer& write(int16 value)      { return write(&value, sizeof(value)); }
+    ByteBuffer& write(uint16 value)     { return write(&value, sizeof(value)); }
+    ByteBuffer& write(int32 value)      { return write(&value, sizeof(value)); }
+    ByteBuffer& write(uint32 value)     { return write(&value, sizeof(value)); }
+    ByteBuffer& write(int64 value)      { return write(&value, sizeof(value)); }
+    ByteBuffer& write(uint64 value)     { return write(&value, sizeof(value)); }
+    ByteBuffer& write(float32 value)    { return write(&value, sizeof(value)); }
+    ByteBuffer& write(float64 value)    { return write(&value, sizeof(value)); }
 
     using ReadBuffer::viewRemaining;
     using ReadBuffer::viewWritten;
@@ -174,32 +177,37 @@ public:
     ByteBuffer& writeBE(uint32 value);
     ByteBuffer& writeBE(int64 value) { return writeBE(static_cast<uint64>(value)); }
     ByteBuffer& writeBE(uint64 value);
+
+protected:
+
+    ByteBuffer& write(void const* bytes, size_type count);
+
 };
 
 
 
 inline
-ByteBuffer& operator<< (ByteBuffer& dest, char c)     { return dest.write(&c, sizeof(char));   }
+ByteBuffer& operator<< (ByteBuffer& dest, char c)     { return dest.write(c); }
 inline
-ByteBuffer& operator<< (ByteBuffer& dest, int8 c)     { return dest.write(&c, sizeof(int8));   }
+ByteBuffer& operator<< (ByteBuffer& dest, int8 c)     { return dest.write(c); }
 inline
-ByteBuffer& operator<< (ByteBuffer& dest, uint8 c)    { return dest.write(&c, sizeof(uint8));  }
+ByteBuffer& operator<< (ByteBuffer& dest, uint8 c)    { return dest.write(c); }
 inline
-ByteBuffer& operator<< (ByteBuffer& dest, int16 c)    { return dest.write(&c, sizeof(int16));  }
+ByteBuffer& operator<< (ByteBuffer& dest, int16 c)    { return dest.write(c); }
 inline
-ByteBuffer& operator<< (ByteBuffer& dest, uint16 c)   { return dest.write(&c, sizeof(uint16)); }
+ByteBuffer& operator<< (ByteBuffer& dest, uint16 c)   { return dest.write(c); }
 inline
-ByteBuffer& operator<< (ByteBuffer& dest, int32 c)    { return dest.write(&c, sizeof(int32));  }
+ByteBuffer& operator<< (ByteBuffer& dest, int32 c)    { return dest.write(c); }
 inline
-ByteBuffer& operator<< (ByteBuffer& dest, uint32 c)   { return dest.write(&c, sizeof(uint32)); }
+ByteBuffer& operator<< (ByteBuffer& dest, uint32 c)   { return dest.write(c); }
 inline
-ByteBuffer& operator<< (ByteBuffer& dest, int64 c)    { return dest.write(&c, sizeof(int64));  }
+ByteBuffer& operator<< (ByteBuffer& dest, int64 c)    { return dest.write(c); }
 inline
-ByteBuffer& operator<< (ByteBuffer& dest, uint64 c)   { return dest.write(&c, sizeof(uint64)); }
+ByteBuffer& operator<< (ByteBuffer& dest, uint64 c)   { return dest.write(c); }
 inline
-ByteBuffer& operator<< (ByteBuffer& dest, float32 c)  { return dest.write(&c, sizeof(float32));}
+ByteBuffer& operator<< (ByteBuffer& dest, float32 c)  { return dest.write(c); }
 inline
-ByteBuffer& operator<< (ByteBuffer& dest, float64 c)  { return dest.write(&c, sizeof(float64));}
+ByteBuffer& operator<< (ByteBuffer& dest, float64 c)  { return dest.write(c); }
 
 
 inline void swap(ByteBuffer& lhs, ByteBuffer& rhs) noexcept {

@@ -63,7 +63,7 @@ ByteBuffer& ByteBuffer::write(const void* data, size_type count) {
     }
 
     if (remaining() < count) {
-         raise<OverflowException>(position() + count, position(), remaining());
+         raise<OverflowException>(position() + count, position(), limit());
     }
 
     const auto pos = position();
