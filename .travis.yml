@@ -31,7 +31,7 @@ addons:
  coverity_scan:
   project:
       name: "abbyssoul/libsolace"
-      description: "Foundation of High Reliability/High Availability Applications"
+      description: "Foundation of High Reliability/High Performance Applications"
   notification_email: abbyssoul@gmail.com
   build_command: make
   branch_pattern: coverity_scan
@@ -52,14 +52,11 @@ install:
 
 script:
   - ./configure --enable-sanitizer
-  - make clean
-  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make codecheck; fi
-  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make -j2 test; fi
-  - make clean
-  - ./configure --disable-sanitizer --enable-debug
-  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make verify ; fi
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make clean codecheck; fi
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make -j2 clean test; fi
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./configure --disable-sanitizer --enable-debug && make clean verify ; fi
 
 after_success:
-  - make clean && make coverage_report
+  - make clean coverage_report
   - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
   - coveralls-lcov --repo-token ${COVERALLS_TOKEN} coverage.info  # uploads to coveralls

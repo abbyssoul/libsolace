@@ -58,6 +58,18 @@ if $sanitizer; then
     echo 'sanitize = address,undefined,leak' >> Makefile
 fi
 
+if [[ -v CXX ]] || [[ -v CC ]] ; then
+    echo "Using custom copiler: CXX=$CXX CC=$CC"
+    printf "\n#Compiler config\n" >> Makefile
+
+    if [[ -v CXX ]] ; then
+        echo "CXX ?= ${CXX}" >> Makefile
+    fi
+
+    if [[ -v CC ]]; then
+        echo "CC ?= ${CC}" >> Makefile
+    fi
+fi
 
 echo '' >> Makefile
 cat Makefile.in >> Makefile

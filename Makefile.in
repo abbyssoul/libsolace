@@ -1,4 +1,4 @@
-
+# Project name
 PROJECT = solace
 
 # Project directory layout
@@ -81,8 +81,8 @@ $(TEST_TAGRET): ${GENERATED_MAKE}
 tests: $(LIB_TAGRET) $(TEST_TAGRET)
 
 
-test: $(tests)
-	cd ${BUILD_DIR} && ./${TEST_DIR}/$(TESTNAME)
+test: tests
+	 ./$(TEST_TAGRET)
 
 #-------------------------------------------------------------------------------
 # Build docxygen documentation
