@@ -142,3 +142,8 @@ Base16Decoder::encode(ImmutableMemoryView const& src) {
 
     return Ok();
 }
+
+StringView
+Base16Encoded_Iterator::operator*() const {
+    return StringView{kBase16Alphabet_l[*_i], 2};
+}

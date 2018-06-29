@@ -50,6 +50,41 @@ public:
     encode(const ImmutableMemoryView& src) override;
 };
 
+class Base16Encoded_Iterator {
+public:
+    Base16Encoded_Iterator(ImmutableMemoryView::const_iterator i) :
+        _i(i)
+    {}
+
+    Base16Encoded_Iterator& operator++ () {
+        ++_i;
+
+        return *this;
+    }
+
+    StringView operator* () const;
+
+    bool operator!= (Base16Encoded_Iterator const& other) const {
+        return (_i != other._i);
+    }
+
+    bool operator== (Base16Encoded_Iterator const & other) const {
+        return (_i == other._i);
+    }
+
+protected:
+    ImmutableMemoryView::const_iterator _i;
+};
+
+inline
+Base16Encoded_Iterator base16Encode_begin(ImmutableMemoryView src) {
+    return {src.begin()};
+}
+
+inline
+Base16Encoded_Iterator base16Encode_end(ImmutableMemoryView src) {
+    return {src.end()};
+}
 
 /**
  * RFC-4648 compatible Base16 decoder.
