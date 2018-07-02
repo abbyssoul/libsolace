@@ -36,13 +36,13 @@ using namespace Solace;
 using namespace Solace::cli;
 
 
-
-void formatOption(std::ostream& output, char prefixChar, const Parser::Option& option) {
+namespace {
+void formatOption(std::ostream& output, char prefixChar, Parser::Option const& option) {
     std::stringstream s;
     s << "  ";
 
     bool chained = false;
-    for (const auto& optName : option.names()) {
+    for (auto const& optName : option.names()) {
         if (chained) {
             s << ", ";
         }
@@ -60,16 +60,17 @@ void formatOption(std::ostream& output, char prefixChar, const Parser::Option& o
 }
 
 
-void formatCommand(std::ostream& output, const String& name, const Parser::Command& cmd) {
+void formatCommand(std::ostream& output, StringView name, Parser::Command const& cmd) {
     output << "  " << std::left << std::setw(14)
             << name << cmd.description() << std::endl;
 }
 
+}
 
 void
 HelpFormatter::operator() (std::ostream& output,
-                           const StringView& name,
-                           const Parser::Command& cmd
+                           StringView name,
+                           Parser::Command const& cmd
                            ) {
     output << "Usage: " << name;  // Path::parse(c.argv[0]).getBasename();
 
@@ -78,7 +79,7 @@ HelpFormatter::operator() (std::ostream& output,
     }
 
     if (!cmd.arguments().empty()) {
-        for (const auto& arg : cmd.arguments()) {
+        for (auto const& arg : cmd.arguments()) {
             output << " [" << arg.name() <<"]";
         }
     }
@@ -94,7 +95,7 @@ HelpFormatter::operator() (std::ostream& output,
     if (!cmd.options().empty()) {
         output << "Options:" << std::endl;
 
-        for (const auto& opt : cmd.options()) {
+        for (auto const& opt : cmd.options()) {
             formatOption(output, _optionsPrefix, opt);
         }
     }
@@ -102,7 +103,7 @@ HelpFormatter::operator() (std::ostream& output,
     if (!cmd.commands().empty()) {
         output << "Commands:" << std::endl;
 
-        for (const auto& subcmd : cmd.commands()) {
+        for (auto const& subcmd : cmd.commands()) {
             formatCommand(output, subcmd.first, subcmd.second);
         }
     }

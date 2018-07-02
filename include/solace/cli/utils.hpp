@@ -86,9 +86,7 @@ public:
         _optionsPrefix(optionsPrefix)
     {}
 
-    void operator() (std::ostream& output,
-                     const StringView& name,
-                     const Parser::Command& command);
+    void operator() (std::ostream& output, StringView name, Parser::Command const& command);
 
 private:
 
