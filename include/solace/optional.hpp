@@ -81,35 +81,53 @@ public:
      * Construct an new empty optional value.
      */
     Optional() :
-        _empty()
+        _empty{}
     {}
 
 
     Optional(Optional<T>&& other) noexcept(std::is_nothrow_move_constructible<T>::value) :
-        _empty()
+        _engaged(other.isSome()
+                 ? construct(std::move(other._payload))
+                 : false)
     {
-        if (other.isSome()) {
-            construct(std::move(other._payload));
-        }
+    }
+
+    Optional(Optional<T> const& other) noexcept(std::is_nothrow_copy_constructible<T>::value) :
+        _engaged(other.isSome()
+                 ? construct(other._payload)
+                 : false)
+    {
     }
 
     template<typename D>
     Optional(Optional<D>&& other) noexcept(std::is_nothrow_move_constructible<T>::value) :
-        _empty()
+        _engaged(other.isSome()
+                 ? construct(std::move(other._payload))
+                 : false)
     {
-        if (other.isSome()) {
-            construct(std::move(other._payload));
-        }
     }
+
+
+    /**
+     * Construct an non-empty optional value by copying-value.
+     */
+    Optional(T const& t) noexcept(std::is_nothrow_copy_constructible<T>::value) :
+        _payload{t},
+        _engaged{true}
+    {}
+
+
+    /**
+     * Construct an non-empty optional value moving value.
+     */
+    Optional(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value) :
+        _payload{std::move(t)},
+        _engaged{true}
+    {}
 
 
     Optional<T>& swap(Optional<T>& rhs) noexcept {
         using std::swap;
-
-        // TODO(abbyssoul): can we refactor this ugliness?
-        if (isNone() && rhs.isNone()) {
-            return *this;
-        }
 
         if (isSome()) {  // This has something inside:
             if (rhs.isNone()) {
@@ -120,8 +138,7 @@ public:
             }
         } else {  // We got nothing:
             if (rhs.isNone()) {
-                // Logic error!
-                raiseInvalidStateError("logic error");
+                return *this;
             } else {
                 construct(std::move(rhs._payload));
                 rhs.destroy();
@@ -215,40 +232,21 @@ public:
 
 protected:
 
-    /**
-     * Construct an non-empty optional value by copying-value.
-     */
-    Optional(T const& t) noexcept(std::is_nothrow_copy_constructible<T>::value) :
-        _payload(t),
-        _engaged(true)
-    {}
 
-
-    /**
-     * Construct an non-empty optional value moving value.
-     */
-    Optional(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value) :
-        _payload(std::move(t)),
-        _engaged(true)
-    {}
-
-
-    void construct(T const& t) {
-        if (_engaged)
-            raiseInvalidStateError("logic error");
-
+    bool construct(T const& t) {
         ::new (reinterpret_cast<void *>(std::addressof(_payload))) Stored_type(t);
 
         _engaged = true;
+
+        return _engaged;
     }
 
-    void construct(T&& t) {
-        if (_engaged)
-            raiseInvalidStateError("logic error");
-
+    bool construct(T&& t) {
         ::new (reinterpret_cast<void *>(std::addressof(_payload))) Stored_type(std::move(t));
 
         _engaged = true;
+
+        return _engaged;
     }
 
     void destroy() {
@@ -275,7 +273,7 @@ private:
         Stored_type _payload;
     };
 
-    bool _engaged = false;
+    bool _engaged {false};
 };
 
 

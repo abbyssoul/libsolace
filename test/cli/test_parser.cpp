@@ -80,6 +80,8 @@ class TestCommandlineParser: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testCustomHandlerLong);
         CPPUNIT_TEST(testCustomNoValue);
         CPPUNIT_TEST(testCustomNoValueExpected);
+        CPPUNIT_TEST(testCustomNoValueExpectedButGiven);
+
         CPPUNIT_TEST(testInlineValues);
         CPPUNIT_TEST(testInlineValuesTypeMismatch);
         CPPUNIT_TEST(testRepeatingOptions_Int);
@@ -92,6 +94,13 @@ class TestCommandlineParser: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testMandatoryArgumentOnly);
         CPPUNIT_TEST(testMandatoryArgumentNotEnough);
         CPPUNIT_TEST(testMandatoryArgumentTooMany);
+
+        CPPUNIT_TEST(testTrailingArguments);
+        CPPUNIT_TEST(testTrailingArgumentsWithRegular);
+        CPPUNIT_TEST(testTrailingNoArguments);
+        CPPUNIT_TEST(testTrailingNoArgumentsLeft);
+        CPPUNIT_TEST(testTrailingArgumentsWithOptions);
+
 
         CPPUNIT_TEST(testCommandGivenButNotExpected);
         CPPUNIT_TEST(testMandatoryCommandNotGiven);
@@ -562,6 +571,39 @@ public:
         CPPUNIT_ASSERT_EQUAL(756, xValue);
     }
 
+
+    void testCustomNoValueExpectedButGiven() {
+        bool parsedSuccessully = false;
+        bool customCalled = false;
+        int xValue = 0;
+        bool zVal;
+        StringView argStr;
+
+        const char* argv[] = {"prog", "--xxx", "756", "--zve", "Val", nullptr};
+        Parser("Something awesome", {
+                              {{"x", "xxx"}, "Something", &xValue},
+                              {{"z", "zve"}, "Custom arg", Parser::OptionArgument::NotRequired,
+                               [&customCalled, &zVal](const Optional<StringView>& val, const Parser::Context&) {
+                                   customCalled = true;
+                                   zVal = val.isSome();
+
+                                   return None();
+                               } }
+                          })
+                .arguments({{"arg", "arg sink", &argStr}})
+                .parse(countArgc(argv), argv)
+                .then([&parsedSuccessully](Parser::ParseResult&&) { parsedSuccessully = true; })
+                .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
+
+
+        CPPUNIT_ASSERT(parsedSuccessully);
+        CPPUNIT_ASSERT(customCalled);
+        CPPUNIT_ASSERT_EQUAL(756, xValue);
+        CPPUNIT_ASSERT_EQUAL(false, zVal);
+        CPPUNIT_ASSERT_EQUAL(StringView("Val"), argStr);
+    }
+
+
     void testInlineValues() {
         bool parsedSuccessully = false;
 
@@ -812,6 +854,124 @@ public:
         CPPUNIT_ASSERT(result.isError());
     }
 
+    void testTrailingArgumentsWithRegular() {
+        int nbTimesInvoked = 0;
+        StringView mandatoryArgStr;
+        StringView lastTrailingArg;
+
+        const char* argv[] = {"prog", "some", "756", "other", nullptr};
+        const auto result = Parser("Something awesome")
+                .arguments({
+                   {"manarg1", "Mandatory argument", &mandatoryArgStr},
+                   {"*", "Input",
+                    [&nbTimesInvoked, &lastTrailingArg](StringView v, const Parser::Context&) -> Optional<Error>
+                    {
+                        nbTimesInvoked += 1;
+                        lastTrailingArg = v;
+
+                        return None();
+                    }}
+                })
+                .parse(countArgc(argv), argv);
+
+        CPPUNIT_ASSERT(result.isOk());
+        CPPUNIT_ASSERT_EQUAL(StringView("some"), mandatoryArgStr);
+        CPPUNIT_ASSERT_EQUAL(2, nbTimesInvoked);
+        CPPUNIT_ASSERT_EQUAL(StringView("other"), lastTrailingArg);
+    }
+
+    void testTrailingArguments() {
+        int nbTimesInvoked = 0;
+
+        const char* argv[] = {"prog", "some", "756", "other", nullptr};
+        const auto result = Parser("Something awesome")
+                .arguments({
+                   {"*", "Input", [&nbTimesInvoked](StringView, const Parser::Context&) -> Optional<Error>
+                    {
+                        nbTimesInvoked += 1;
+                        return None();
+                    }}
+                })
+                .parse(countArgc(argv), argv);
+
+        CPPUNIT_ASSERT(result.isOk());
+        CPPUNIT_ASSERT_EQUAL(3, nbTimesInvoked);
+    }
+
+
+    void testTrailingNoArguments() {
+        int nbTimesInvoked = 0;
+
+        const char* argv[] = {"prog", nullptr};
+        const auto result = Parser("Something awesome")
+                .arguments({
+                   {"*", "Input", [&nbTimesInvoked](StringView, const Parser::Context&) -> Optional<Error>
+                    {
+                        nbTimesInvoked += 1;
+                        return None();
+                    }}
+                })
+                .parse(countArgc(argv), argv);
+
+        CPPUNIT_ASSERT(result.isOk());
+        CPPUNIT_ASSERT_EQUAL(0, nbTimesInvoked);
+    }
+
+
+    void testTrailingNoArgumentsLeft() {
+        int nbTimesInvoked = 0;
+
+        StringView mandatoryArgStr1;
+        StringView mandatoryArgStr2;
+
+        const char* argv[] = {"prog", "man1", "man2", nullptr};
+        const auto result = Parser("Something awesome")
+                .arguments({
+                               {"manarg1", "Mandatory argument", &mandatoryArgStr1},
+                               {"manarg2", "Mandatory argument", &mandatoryArgStr2},
+                   {"*", "Input", [&nbTimesInvoked](StringView, const Parser::Context&) -> Optional<Error>
+                    {
+                        nbTimesInvoked += 1;
+                        return None();
+                    }}
+                })
+                .parse(countArgc(argv), argv);
+
+        CPPUNIT_ASSERT(result.isOk());
+        CPPUNIT_ASSERT_EQUAL(StringView("man1"), mandatoryArgStr1);
+        CPPUNIT_ASSERT_EQUAL(StringView("man2"), mandatoryArgStr2);
+        CPPUNIT_ASSERT_EQUAL(0, nbTimesInvoked);
+
+    }
+
+
+    void testTrailingArgumentsWithOptions() {
+        int nbTimesInvoked = 0;
+        int optValue = 0;
+        StringView lastTrailingArg;
+
+        const char* argv[] = {"prog", "--opt", "756", "maybe_not", nullptr};
+        const auto result = Parser("Something awesome")
+                .options({
+                             {{"opt"}, "Option", &optValue}
+                })
+                .arguments({
+                   {"*", "Input",
+                    [&nbTimesInvoked, &lastTrailingArg](StringView v, const Parser::Context&) -> Optional<Error>
+                    {
+                        nbTimesInvoked += 1;
+                        lastTrailingArg = v;
+
+                        return None();
+                    }}
+                })
+                .parse(countArgc(argv), argv);
+
+        CPPUNIT_ASSERT(result.isOk());
+        CPPUNIT_ASSERT_EQUAL(756, optValue);
+        CPPUNIT_ASSERT_EQUAL(1, nbTimesInvoked);
+        CPPUNIT_ASSERT_EQUAL(StringView("maybe_not"), lastTrailingArg);
+    }
 
     void testCommandGivenButNotExpected() {
         bool commandExecuted = false;

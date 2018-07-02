@@ -37,10 +37,10 @@ namespace Solace {
  * @see Result<Unit, Error> that otherwise are impossible
  */
 struct Unit {
-    bool operator== (Unit const& /*rhs*/) const noexcept { return true; }
-    bool operator!= (Unit const& /*rhs*/) const noexcept { return false; }
 };
 
+inline bool operator== (Unit const& /*rhs*/, Unit const& /*lhs*/) noexcept { return true; }
+inline bool operator!= (Unit const& /*rhs*/, Unit const& /*lhs*/) noexcept { return false; }
 
 constexpr Unit unit {};
 

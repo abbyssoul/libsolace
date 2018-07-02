@@ -100,11 +100,11 @@ public:
         const StringView name;
 
         /// Reference to the instance of the parser that invokes the callback.
-        const Parser& parser;
+        Parser const& parser;
 
-        Context(uint inArgc, const char *inArgv[], uint inOffset,
+        Context(uint inArgc, char const* inArgv[], uint inOffset,
                 StringView inName,
-                const Parser& self) :
+                Parser const& self) :
             argc(inArgc),
             argv(inArgv),
             offset(inOffset),
@@ -158,7 +158,7 @@ public:
 
         Option(Option&& rhs) noexcept = default;
 
-        Option& operator= (const Option& rhs) noexcept {
+        Option& operator= (Option const& rhs) noexcept {
             Option(rhs).swap(*this);
 
             return *this;
@@ -180,7 +180,7 @@ public:
 
         bool isMatch(StringView argName) const noexcept;
 
-        Optional<Error> match(const Optional<StringView>& value, const Context& c) const;
+        Optional<Error> match(Optional<StringView> const& value, Context const& c) const;
 
         const Array<StringLiteral>& names() const noexcept      { return _names; }
         const StringLiteral& description() const noexcept       { return _description; }
@@ -198,7 +198,7 @@ public:
         OptionArgument                      _expectsArgument;
 
         //!< A callback to be called when this option is encountered in the input cmd line.
-        std::function<Optional<Error> (const Optional<StringView>&, const Context&)>    _callback;
+        std::function<Optional<Error> (Optional<StringView> const&, Context const&)>    _callback;
     };
 
 
@@ -229,11 +229,11 @@ public:
             _callback(std::forward<F>(callback))
         {}
 
-        Argument(const Argument& rhs) = default;
+        Argument(Argument const& rhs) = default;
 
         Argument(Argument&& rhs) noexcept = default;
 
-        Argument& operator= (const Argument& rhs) noexcept {
+        Argument& operator= (Argument const& rhs) noexcept {
             Argument(rhs).swap(*this);
 
             return *this;
@@ -251,16 +251,18 @@ public:
             return (*this);
         }
 
-        StringLiteral name() const noexcept {
+        StringView name() const noexcept {
             return _name;
         }
 
-        Optional<Error> match(const StringView& value, const Context& c) const;
+        bool isTrailing() const noexcept;
+
+        Optional<Error> match(StringView const& value, Context const& c) const;
 
     private:
         StringLiteral                               _name;
         StringLiteral                               _description;
-        std::function<Optional<Error> (const StringView&, const Context&)>    _callback;
+        std::function<Optional<Error> (StringView, Context const&)>    _callback;
     };
 
 
@@ -275,7 +277,7 @@ public:
 
         ~Command() = default;
 
-        Command(const Command& rhs) = default;
+        Command(Command const& rhs) = default;
 
         Command(Command&& rhs) = default;
 
@@ -289,7 +291,7 @@ public:
         template<typename F>
         Command(StringView description,
                 F&& f,
-                const std::initializer_list<Option>& options) :
+                std::initializer_list<Option> options) :
             _description(std::move(description)),
             _callback(std::forward<F>(f)),
             _options(options),
@@ -299,7 +301,7 @@ public:
 
         template<typename F>
         Command(StringView description,
-                const std::initializer_list<Argument>& arguments,
+                std::initializer_list<Argument> arguments,
                 F&& f) :
             _description(std::move(description)),
             _callback(std::forward<F>(f)),
@@ -310,9 +312,9 @@ public:
 
         template<typename F>
         Command(StringView description,
-                const std::initializer_list<Argument>& arguments,
+                std::initializer_list<Argument> arguments,
                 F&& f,
-                const std::initializer_list<Option>& options) :
+                std::initializer_list<Option> options) :
             _description(std::move(description)),
             _callback(std::forward<F>(f)),
             _options(options),
@@ -320,15 +322,8 @@ public:
             _arguments(arguments)
         {}
 
-        Command& operator= (const Command& rhs) noexcept {
-            Command(rhs).swap(*this);
-
-            return *this;
-        }
-
-        Command& operator= (Command&& rhs) noexcept {
-            return swap(rhs);
-        }
+        Command& operator= (Command const& rhs) = default;
+        Command& operator= (Command&& rhs) noexcept = default;
 
         Command& swap(Command& rhs) noexcept {
             std::swap(_description, rhs._description);
@@ -340,7 +335,7 @@ public:
             return (*this);
         }
 
-        const StringView& description() const noexcept           { return _description; }
+        StringView description() const noexcept           { return _description; }
         Command& description(StringView description) noexcept {
             _description = description;
             return *this;
@@ -403,7 +398,7 @@ public:
     ~Parser() = default;
 
     /// Default copy-constructor
-    Parser(const Parser& rhs) = default;
+    Parser(Parser const& rhs) = default;
 
     /// Default move-constructor
     Parser(Parser&& rhs) noexcept = default;
@@ -420,10 +415,9 @@ public:
      * @param appDescription Hyman readable application description to be used by 'help'-type commands.
      * @param options Initializer-list of command line options. @see CommandlineParser::options() for more info.
      */
-    Parser(StringView appDescription,
-                      const std::initializer_list<Option>& options);
+    Parser(StringView appDescription, std::initializer_list<Option> options);
 
-    Parser& operator= (const Parser& rhs) noexcept {
+    Parser& operator= (Parser const& rhs) noexcept {
         Parser(rhs).swap(*this);
 
         return *this;
@@ -460,7 +454,7 @@ public:
      * @param appVersion Application version to be printed.
      * @return A parser option that when given by a user will result in a printing of the version info.
      */
-    static Option printVersion(const StringView& appName, const Version& appVersion);
+    static Option printVersion(StringView appName, const Version& appVersion);
 
 
     /**
@@ -523,7 +517,7 @@ public:
      * Get human readable description of the application, dispayed by help and version commands.
      * @return Human readable application description string.
      */
-    const StringView& description() const noexcept { return _defaultAction.description(); }
+    StringView description() const noexcept { return _defaultAction.description(); }
 
     /**
      * Set human-readable application description, to be dispayed by 'help' and 'version' commands.
@@ -580,17 +574,13 @@ private:
 
 
 
-inline void swap(Parser::Option& lhs, Parser::Option& rhs) noexcept {
-    lhs.swap(rhs);
-}
+inline void swap(Parser::Option& lhs, Parser::Option& rhs) noexcept { lhs.swap(rhs); }
 
-inline void swap(Parser::Command& lhs, Parser::Command& rhs) noexcept {
-    lhs.swap(rhs);
-}
+inline void swap(Parser::Argument& lhs, Parser::Argument& rhs) noexcept { lhs.swap(rhs); }
 
-inline void swap(Parser& lhs, Parser& rhs) noexcept {
-    lhs.swap(rhs);
-}
+inline void swap(Parser::Command& lhs, Parser::Command& rhs) noexcept { lhs.swap(rhs); }
+
+inline void swap(Parser& lhs, Parser& rhs) noexcept { lhs.swap(rhs); }
 
 }  // End of namespace cli
 }  // End of namespace Solace

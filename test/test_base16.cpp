@@ -113,6 +113,19 @@ public:
                              dest.viewWritten().viewImmutableShallow());
     }
 
+    void testBasicEncodingIterator() {
+        auto encodedText = "546869732069732074657374206D6573736167652077652077616E7420746F20656E636F6465";
+        auto message = wrapMemory("This is test message we want to encode", 38);
+
+        int j = 0;
+        for (auto i = base16Encode_begin(message),
+             end = base16Encode_end(message); i != end; ++i) {
+
+            CPPUNIT_ASSERT_EQUAL(StringView(encodedText + j, 2), *i);
+            j += 2;
+        }
+    }
+
     void testBasicDecoding() {
         byte buffer[80];
         ByteBuffer dest(wrapMemory(buffer));
