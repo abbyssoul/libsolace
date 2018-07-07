@@ -42,12 +42,12 @@ public:
         Encoder(dest)
     {}
 
-    size_type encodedSize(const ImmutableMemoryView& data) const override;
+    size_type encodedSize(ImmutableMemoryView const& data) const override;
 
     using Encoder::encode;
 
     Result<void, Error>
-    encode(const ImmutableMemoryView& src) override;
+    encode(ImmutableMemoryView const& src) override;
 };
 
 class Base16Encoded_Iterator {
@@ -86,6 +86,7 @@ Base16Encoded_Iterator base16Encode_end(ImmutableMemoryView src) {
     return {src.end()};
 }
 
+
 /**
  * RFC-4648 compatible Base16 decoder.
  */
@@ -108,6 +109,47 @@ public:
     Result<void, Error>
     encode(const ImmutableMemoryView& src) override;
 };
+
+
+
+class Base16Decoded_Iterator {
+public:
+    using value_type = byte;
+
+public:
+
+    Base16Decoded_Iterator(ImmutableMemoryView::const_iterator i,
+                           ImmutableMemoryView::const_iterator end);
+
+    Base16Decoded_Iterator& operator++ ();
+
+    byte operator* () const {
+        return _decodedValue;
+    }
+
+    bool operator!= (Base16Decoded_Iterator const& other) const {
+        return (_i != other._i);
+    }
+
+    bool operator== (Base16Decoded_Iterator const & other) const {
+        return (_i == other._i);
+    }
+
+protected:
+    ImmutableMemoryView::const_iterator _i;
+    ImmutableMemoryView::const_iterator _end;
+    value_type _decodedValue;
+};
+
+inline
+Base16Decoded_Iterator base16Decode_begin(ImmutableMemoryView src) {
+    return {src.begin(), src.end()};
+}
+
+inline
+Base16Decoded_Iterator base16Decode_end(ImmutableMemoryView src) {
+    return {src.end(), src.end()};
+}
 
 }  // End of namespace Solace
 #endif  // SOLACE_BASE16_HPP

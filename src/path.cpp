@@ -322,12 +322,6 @@ const String& Path::last() const {
             : _components.last();
 }
 
-const Path& Path::forEach(const std::function<void(const String&)> &f) const {
-    _components.forEach(f);
-
-    return *this;
-}
-
 
 String
 Path::toString(const StringView& delim) const {

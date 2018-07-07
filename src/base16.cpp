@@ -79,9 +79,22 @@ static const signed char kHexToBin[128] = {
 };
 
 
+
+Result<byte, Error>
+charToBin(byte c) {
+    auto const value = kHexToBin[c];
+
+    if (value < 0) {
+        return Err(Error("Failed to decode base16 string: value is not in base16 alphabet"));
+    }
+
+    return Ok(static_cast<byte>(value));
+}
+
+
 Base16Encoder::size_type
 Base16Encoder::encodedSize(size_type len) {
-    // FIXME(abyssoul): Who cares about size_type overflow?!
+    // FIXME(abyssoul): Does anybody care about size_type overflow?!
     return 2 * len;
 }
 
@@ -105,26 +118,24 @@ Base16Encoder::encode(ImmutableMemoryView const& src) {
 
 
 Base16Decoder::size_type
+Base16Decoder::encodedSize(size_type len) {
+    return len / 2;
+}
+
+
+Base16Decoder::size_type
 Base16Decoder::encodedSize(ImmutableMemoryView const& data) const {
-    return data.size() / 2;
+    return encodedSize(data.size());
 }
 
 
-
-Result<byte, Error>
-charToBin(byte c) {
-    auto const value = kHexToBin[c];
-
-    if (value < 0) {
-        return Err(Error("Failed to decode base16 string: value is not in base16 alphabet"));
-    }
-
-    return Ok(static_cast<byte>(value));
-}
 
 
 Result<void, Error>
 Base16Decoder::encode(ImmutableMemoryView const& src) {
+    if (src.size() % 2 != 0)
+        return Err(Error("Input data size must be even"));
+
     auto& dest = *getDestBuffer();
 
     for (size_type i = 0; i < src.size(); i += 2) {
@@ -143,7 +154,69 @@ Base16Decoder::encode(ImmutableMemoryView const& src) {
     return Ok();
 }
 
+
 StringView
-Base16Encoded_Iterator::operator*() const {
+Base16Encoded_Iterator::operator* () const {
     return StringView{kBase16Alphabet_l[*_i], 2};
+}
+
+
+Result<byte, Error>
+decode16(ImmutableMemoryView::const_iterator i, ImmutableMemoryView::const_iterator j) {
+    auto high = charToBin(*i);
+    auto low =  charToBin(*j);
+
+    if (!high)
+        return Err(high.moveError());
+    if (!low)
+        return Err(low.moveError());
+
+    return Ok(static_cast<byte>(high.unwrap() << 4) + static_cast<byte>(low.unwrap()));
+}
+
+
+Base16Decoded_Iterator::Base16Decoded_Iterator(ImmutableMemoryView::const_iterator i,
+                                               ImmutableMemoryView::const_iterator end) :
+    _i(std::move(i)),
+    _end(std::move(end))
+{
+
+    ImmutableMemoryView::const_iterator next = i;
+    if (i != end)
+        ++next;
+
+    if (next != end) {
+        auto r = decode16(i, next);
+        if (r) {
+            _decodedValue = r.unwrap();
+        } else {    // FIXME: Maybe we should throw here.
+            _i = end;
+        }
+    } else {
+        _i = _end;
+    }
+}
+
+
+Base16Decoded_Iterator&
+Base16Decoded_Iterator::operator++ () {
+    ++_i;
+    ++_i;
+
+    ImmutableMemoryView::const_iterator next = _i;
+    if (_i != _end)
+        ++next;
+
+    if (next != _end) {
+        auto r = decode16(_i, next);
+        if (r) {
+            _decodedValue = r.unwrap();
+        } else {    // FIXME: Maybe we should throw here.
+            _i = _end;
+        }
+    } else {
+        _i = _end;
+    }
+
+    return *this;
 }

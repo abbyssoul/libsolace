@@ -370,14 +370,13 @@ String::join(const StringView& by, const Array<String>& list) {
 }
 
 
-const String& String::forEach(const std::function<void(const value_type&)>& f) const {
+//const String& String::forEach(const std::function<void(const value_type&)>& f) const {
+//    for (auto c : _str) {
+//        f(c);
+//    }
 
-    for (auto c : _str) {
-        f(c);
-    }
-
-    return (*this);
-}
+//    return (*this);
+//}
 
 
 /** Return String representation of boolen value **/

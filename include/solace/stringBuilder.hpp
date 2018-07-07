@@ -29,6 +29,8 @@
 #include "solace/byteBuffer.hpp"
 #include "solace/string.hpp"
 
+#include "solace/traits/iformattable.hpp"
+
 
 namespace Solace {
 

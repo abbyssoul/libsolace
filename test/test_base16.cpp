@@ -39,6 +39,12 @@ class TestBase16: public CppUnit::TestFixture  {
         CPPUNIT_TEST(decodingInvalidInputThrows);
         CPPUNIT_TEST(decodingInputOfUnEvenSizeThrows);
         CPPUNIT_TEST(decodingIntoSmallerBufferThrowsOverflow);
+
+        CPPUNIT_TEST(testBasicEncodingIterator);
+        CPPUNIT_TEST(testDecodingIterator);
+        CPPUNIT_TEST(testDecodingIterator_InvalidInputLenght);
+        CPPUNIT_TEST(testDecodingIterator_InvalidData);
+
     CPPUNIT_TEST_SUITE_END();
 
 public:
@@ -57,9 +63,9 @@ public:
         CPPUNIT_ASSERT_EQUAL(static_cast<Base16Decoder::size_type>(0), Base16Decoder::encodedSize(0));
         CPPUNIT_ASSERT_EQUAL(static_cast<Base16Decoder::size_type>(0), Base16Decoder::encodedSize(1));
         CPPUNIT_ASSERT_EQUAL(static_cast<Base16Decoder::size_type>(1), Base16Decoder::encodedSize(2));
-        CPPUNIT_ASSERT_EQUAL(static_cast<Base16Decoder::size_type>(0), Base16Decoder::encodedSize(3));
+        CPPUNIT_ASSERT_EQUAL(static_cast<Base16Decoder::size_type>(1), Base16Decoder::encodedSize(3));
         CPPUNIT_ASSERT_EQUAL(static_cast<Base16Decoder::size_type>(2), Base16Decoder::encodedSize(4));
-        CPPUNIT_ASSERT_EQUAL(static_cast<Base16Decoder::size_type>(0), Base16Decoder::encodedSize(5));
+        CPPUNIT_ASSERT_EQUAL(static_cast<Base16Decoder::size_type>(2), Base16Decoder::encodedSize(5));
         CPPUNIT_ASSERT_EQUAL(static_cast<Base16Decoder::size_type>(3), Base16Decoder::encodedSize(6));
     }
 
@@ -83,38 +89,38 @@ public:
         // BASE16("fo") = "666F"
         dest.rewind();
         encoder.encode(wrapMemory(srcMem, 2));
-        CPPUNIT_ASSERT_EQUAL(wrapMemory("666F", 4), dest.viewWritten().viewImmutableShallow());
+        CPPUNIT_ASSERT_EQUAL(wrapMemory("666f", 4), dest.viewWritten().viewImmutableShallow());
 
         // BASE16("foo") = "666F6F"
         dest.rewind();
         encoder.encode(wrapMemory(srcMem, 3));
-        CPPUNIT_ASSERT_EQUAL(wrapMemory("666F6F", 6), dest.viewWritten().viewImmutableShallow());
+        CPPUNIT_ASSERT_EQUAL(wrapMemory("666f6f", 6), dest.viewWritten().viewImmutableShallow());
 
         // BASE16("foob") = "666F6F62"
         dest.rewind();
         encoder.encode(wrapMemory(srcMem, 4));
-        CPPUNIT_ASSERT_EQUAL(wrapMemory("666F6F62", 8), dest.viewWritten().viewImmutableShallow());
+        CPPUNIT_ASSERT_EQUAL(wrapMemory("666f6f62", 8), dest.viewWritten().viewImmutableShallow());
 
         // BASE16("fooba") = "666F6F6261"
         dest.rewind();
         encoder.encode(wrapMemory(srcMem, 5));
-        CPPUNIT_ASSERT_EQUAL(wrapMemory("666F6F6261", 10), dest.viewWritten().viewImmutableShallow());
+        CPPUNIT_ASSERT_EQUAL(wrapMemory("666f6f6261", 10), dest.viewWritten().viewImmutableShallow());
 
         // BASE16("foobar") = "666F6F626172"
         dest.rewind();
         encoder.encode(wrapMemory(srcMem, 6));
-        CPPUNIT_ASSERT_EQUAL(wrapMemory("666F6F626172", 12), dest.viewWritten().viewImmutableShallow());
+        CPPUNIT_ASSERT_EQUAL(wrapMemory("666f6f626172", 12), dest.viewWritten().viewImmutableShallow());
 
 
         dest.rewind();
         encoder.encode(wrapMemory("This is test message we want to encode", 38));
-        CPPUNIT_ASSERT_EQUAL(wrapMemory("546869732069732074657374206D6573736167652077652077616E7420746F20656E636F6465",
+        CPPUNIT_ASSERT_EQUAL(wrapMemory("546869732069732074657374206d6573736167652077652077616e7420746f20656e636f6465",
                                         76),
                              dest.viewWritten().viewImmutableShallow());
     }
 
     void testBasicEncodingIterator() {
-        auto encodedText = "546869732069732074657374206D6573736167652077652077616E7420746F20656E636F6465";
+        auto encodedText = "546869732069732074657374206d6573736167652077652077616e7420746f20656e636f6465";
         auto message = wrapMemory("This is test message we want to encode", 38);
 
         int j = 0;
@@ -171,6 +177,49 @@ public:
         CPPUNIT_ASSERT_EQUAL(wrapMemory("This is test message we want to encode", 38),
                              dest.viewWritten().viewImmutableShallow());
 
+    }
+
+    void testDecodingIterator() {
+
+        auto encodedText = wrapMemory("546869732069732074657374206d6573736167652077652077616e7420746f20656e636f6465");
+        auto message = wrapMemory("This is test message we want to encode", 38);
+
+        uint j = 0;
+        for (auto i = base16Decode_begin(encodedText),
+             end = base16Decode_end(encodedText); i != end; ++i, ++j) {
+
+            CPPUNIT_ASSERT_EQUAL(message[j], *i);
+        }
+    }
+
+    void testDecodingIterator_InvalidInputLenght() {
+        {
+            auto const encodedText1 = wrapMemory("F");
+            CPPUNIT_ASSERT(base16Decode_end(encodedText1) == base16Decode_begin(encodedText1));
+        }
+
+        {
+            auto const encodedText2 = wrapMemory("F65");
+            auto i = base16Decode_begin(encodedText2);
+            CPPUNIT_ASSERT(i != base16Decode_end(encodedText2));
+            CPPUNIT_ASSERT(246 == *i);
+            CPPUNIT_ASSERT(base16Decode_end(encodedText2) == ++i);
+        }
+    }
+
+    void testDecodingIterator_InvalidData() {
+        {
+            auto const encodedText = wrapMemory("pX");
+            CPPUNIT_ASSERT(base16Decode_end(encodedText) == base16Decode_begin(encodedText));
+        }
+
+        {
+            auto const encodedText = wrapMemory("F6k");
+            auto i = base16Decode_begin(encodedText);
+            CPPUNIT_ASSERT(i != base16Decode_end(encodedText));
+            CPPUNIT_ASSERT(246 == *i);
+            CPPUNIT_ASSERT(base16Decode_end(encodedText) == ++i);
+        }
     }
 
 

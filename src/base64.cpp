@@ -34,7 +34,7 @@ static constexpr byte kBase64UrlAlphabet[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef
 
 
 Result<void, Error>
-base64encode(ByteBuffer& dest, ImmutableMemoryView const& src, const byte* alphabet) {
+base64encode(ByteBuffer& dest, ImmutableMemoryView const& src, byte const alphabet[65]) {
     ImmutableMemoryView::size_type i = 0;
 
     for (; i + 2 < src.size(); i += 3) {

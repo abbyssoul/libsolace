@@ -36,7 +36,7 @@ namespace hashing {
  * Message digests are secure one-way hash functions that take arbitrary-sized data and output a fixed-length value.
  * Some implementation of MessagDigest are MD5 hash and SHA-2.
  */
-class MessageDigest : public IFormattable {
+class MessageDigest {
 public:
 
     using value_type = byte;
@@ -48,8 +48,6 @@ public:
     using const_pointer = Storage::const_pointer;
 
 public:
-
-    ~MessageDigest() override = default;
 
     MessageDigest(const MessageDigest& rhs) = default;
 
@@ -133,12 +131,11 @@ public:
         return _storage.data();
     }
 
-    // TODO(abbyssoul): should be ImmutableMemoryView
-//    MemoryView view() const noexcept {
-//        return wrapMemory(_storage.data(), _storage.size()); // _storage.view().viewShallow();
-//    }
+    ImmutableMemoryView view() const noexcept {
+        return _storage.view();
+    }
 
-    String toString() const override;
+    String toString() const;
 
     friend bool operator== (const MessageDigest& lhs, const MessageDigest& rhs);
 
@@ -158,6 +155,13 @@ inline
 bool operator== (const MessageDigest& lhs, const MessageDigest& rhs) {
     return (lhs._storage == rhs._storage);
 }
+
+
+// FIXME: std dependence, used for Unit Testing only
+inline std::ostream& operator<< (std::ostream& ostr, MessageDigest const& v) {
+    return ostr << v.toString();
+}
+
 
 }  // End of namespace hashing
 }  // End of namespace Solace

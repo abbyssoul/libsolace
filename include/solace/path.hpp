@@ -56,10 +56,10 @@ namespace Solace {
  * This also implies that functions line noramalize don't do file system travesal,
  * but operate on path string components only.
  */
-class Path :
+class Path /*:
         public IComparable<Path>,
         public Iterable<Path, String>,
-        public IFormattable {
+        public IFormattable */ {
 public:
 
     using size_type = Array<String>::size_type;
@@ -109,7 +109,7 @@ public:  // Static methods
 
 public:  // Object construction
 
-    ~Path() noexcept override = default;
+    ~Path() noexcept /*override*/ = default;
 
 	/** Construct an empty path */
     Path() noexcept(std::is_nothrow_default_constructible<Array<String>>::value) : _components() {
@@ -117,9 +117,7 @@ public:  // Object construction
     }
 
     /** Construct path to be a copy of the given one */
-    Path(const Path& p): _components(p._components) {
-        // No-op
-    }
+    Path(const Path& p) = default;
 
     /** Construct an object by moving content from a given */
     Path(Path&& p) noexcept: _components(std::move(p._components)) {
@@ -148,10 +146,6 @@ public:  // Object construction
      * @note The string is is parsed into component, please use Path::parse
      */
     Path(const String& str): _components({str}) {
-        // No-op
-    }
-
-	Path(const IFormattable& src): Path(src.toString()) {
         // No-op
     }
 
@@ -234,7 +228,7 @@ public:  // Operation
 	 * @return a value less than 0 if this string is lexicographically less than the string argument;
 	 * @return and a value greater than 0 if this string is lexicographically greater than the string argument.
 	 */
-    virtual int compareTo(const Path& other) const;
+    int compareTo(const Path& other) const;
 
     /** Tests if this path starts with the given path.
      * @param other
@@ -357,16 +351,20 @@ public:  // Operation
      * @param rhv A path to compare this one to.
      * @return True if this path is equal to the give
      */
-    bool equals(const Path& rhv) const noexcept override;
+    bool equals(const Path& rhv) const noexcept;
 
     /** @see Iterable::forEach */
-    const Path& forEach(const std::function<void(const String&)> &f) const override;
+    template<typename F>
+    const Path& forEach(F&& f) const {
+        _components.forEach(f);
+        return *this;
+    }
 
     /** Get string representation of the path object using give delimiter */
     String toString(const StringView& delim) const;
 
     /** @see IFormattable::toString() */
-    String toString() const override {
+    String toString() const {
         return toString(Delimiter);
     }
 
@@ -385,9 +383,24 @@ inline Path operator / (const Path& lhs, const String& rhs) {
     return Path::join(lhs, rhs);
 }
 
+inline
+bool operator!= (Path const& lhs, Path const& rhv) noexcept {
+    return !lhs.equals(rhv);
+}
+
+inline
+bool operator== (Path const& lhs, Path const& rhv) noexcept {
+    return lhs.equals(rhv);
+}
+
 
 inline void swap(Path& lhs, Path& rhs) noexcept {
     lhs.swap(rhs);
+}
+
+// FIXME: std dependence, used for Unit Testing only
+inline std::ostream& operator<< (std::ostream& ostr, Path const& v) {
+    return ostr << v.toString();
 }
 
 }  // namespace Solace

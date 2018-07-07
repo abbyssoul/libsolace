@@ -26,8 +26,8 @@
 #define SOLACE_STRING_HPP
 
 
-#include "solace/traits/iformattable.hpp"
-#include "solace/traits/iterable.hpp"
+//#include "solace/traits/iformattable.hpp"
+//#include "solace/traits/iterable.hpp"
 #include "solace/stringView.hpp"
 #include "solace/array.hpp"
 
@@ -38,13 +38,14 @@
 
 namespace Solace {
 
-/** Immutable Unicode String
+/** Immutable String object
  * Solace::String is a proper immutable unicode string that brings the comfort yet
  * it can be easily converted to and from std::string and/or C-strings
  */
-class String:   public IFormattable,
+class String /*:   public IFormattable,
                 public IComparable<String>,
                 public Iterable<String, Char>
+                        */
 {
 public:
 
@@ -55,7 +56,7 @@ public:
 
 public:
 
-    ~String() override = default;
+    ~String() = default;
 
     //!< Default constructor constructs an empty string.
     String() = default;
@@ -117,10 +118,15 @@ public:  // Basic collection operations:
 	size_type size() const noexcept;
 
     //!< True if values are equal
-    bool equals(const String& v) const noexcept override;
+    bool equals(const String& v) const noexcept;
 
-    using IComparable::operator!=;
-    using IComparable::operator==;
+    bool operator!= (const String& rhv) const noexcept {
+        return !equals(rhv);
+    }
+
+    bool operator== (const String& rhv) const noexcept {
+        return equals(rhv);
+    }
 
     //!< True if values are equal
     bool equals(const char* v) const;
@@ -309,7 +315,7 @@ public:  // Basic collection operations:
 	/**
 	 * Identity operation
 	 */
-	String toString() const override { return *this; }
+    String toString() const { return *this; }
 
     /** Array index operator. Obtain a copy of the character at the given
 	 * offset in the string.
@@ -339,11 +345,11 @@ public:  // Basic collection operations:
      * Get raw bytes of the string.
      * @return Immutable Memory View into the string data.
      */
-    const StringView view() const noexcept {
+    StringView view() const noexcept {
         return {c_str(), size()};
     }
 
-	const char* c_str() const;
+    char const* c_str() const;
 
     // FIXME: Must be conditional to std support mode only
     std::string to_str() const {
@@ -463,7 +469,7 @@ public:
 */
 
     /** @see Iterable::forEach */
-    const String& forEach(const std::function<void(const value_type&)> &f) const override;
+//    const String& forEach(const std::function<void(const value_type&)> &f) const override;
 
 private:
 
@@ -487,9 +493,9 @@ inline std::ostream& operator<< (std::ostream& ostr, const String& str) {
     return ostr << str.c_str();
 }
 
-inline std::ostream& operator<< (std::ostream& ostr, const IFormattable& form) {
-    return ostr << form.toString();
-}
+//inline std::ostream& operator<< (std::ostream& ostr, const IFormattable& form) {
+//    return ostr << form.toString();
+//}
 
 }  // namespace Solace
 #endif  // SOLACE_STRING_HPP

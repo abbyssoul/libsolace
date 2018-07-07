@@ -27,9 +27,6 @@
 #ifndef SOLACE_VERSION_HPP
 #define SOLACE_VERSION_HPP
 
-
-#include "solace/traits/iformattable.hpp"
-#include "solace/traits/icomparable.hpp"
 #include "solace/string.hpp"
 #include "solace/result.hpp"
 #include "solace/error.hpp"
@@ -51,9 +48,7 @@ namespace Solace {
  *
  * Please @see http://semver.org/ for more details
  */
-class Version :	public IComparable<Version>,
-                public IFormattable
-{
+class Version {
 public:
     using value_type = uint64;
 
@@ -79,8 +74,6 @@ public:
 
 
 public:
-
-    ~Version() noexcept override = default;
 
 	/** Empty version constructor */
     Version() :	majorNumber(0), minorNumber(0),	patchNumber(0), preRelease(), build()
@@ -120,16 +113,12 @@ public:
 		return !(operator >(rhv));
 	}
 
-	//!< from IComparable
-    bool equals(Version const& rhv) const noexcept override {
+    bool equals(Version const& rhv) const noexcept {
         return ((majorNumber == rhv.majorNumber)
 				&& (minorNumber == rhv.minorNumber)
 				&& (patchNumber == rhv.patchNumber)
 				&& (preRelease.equals(rhv.preRelease)));
 	}
-
-    using IComparable::operator!=;
-    using IComparable::operator==;
 
 	Version& swap(Version& rhs) noexcept {
         using std::swap;
@@ -154,7 +143,7 @@ public:
     }
 
     //!< @see IFormattable
-	String toString() const override;
+    String toString() const;
 };
 
 
@@ -168,6 +157,23 @@ Version getBuildVersion();
 inline void swap(Version& lhs, Version& rhs) noexcept {
     lhs.swap(rhs);
 }
+
+inline
+bool operator!= (Version const& lhs, Version const& rhv) noexcept {
+    return !lhs.equals(rhv);
+}
+
+inline
+bool operator== (Version const& lhs, Version const& rhv) noexcept {
+    return lhs.equals(rhv);
+}
+
+
+// FIXME: std dependence, used for Unit Testing only
+inline std::ostream& operator<< (std::ostream& ostr, Version const& v) {
+    return ostr << v.toString();
+}
+
 
 }  // namespace Solace
 #endif  // SOLACE_VERSION_HPP
