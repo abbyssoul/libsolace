@@ -9,11 +9,13 @@ set(SOURCE_FILES
         memoryView.cpp
         memoryBuffer.cpp
         memoryManager.cpp
+        byteBuffer.cpp
+        readBuffer.cpp
+        writeBuffer.cpp
+
         base16.cpp
 #        base32.cpp
         base64.cpp
-        byteBuffer.cpp
-        readBuffer.cpp
         parseUtils.cpp
         uuid.cpp
         string.cpp

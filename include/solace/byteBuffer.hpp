@@ -123,7 +123,7 @@ public:
     /**
      * Write given raw bytes into this buffer.
      * @param data Raw bytes data to write.
-     * @return Refernce to this for luency.
+     * @return Refernce to this for fluency.
      * @note Exception is thrown if given data exceed buffer capacity.
      */
     ByteBuffer& write(ImmutableMemoryView const& data) {
@@ -134,7 +134,7 @@ public:
      * Write given raw bytes into this buffer.
      * @param data Raw bytes data to write.
      * @param bytesToWrite Number of bytes to write from data into this buffer.
-     * @return Refernce to this for luency.
+     * @return Refernce to this for fluency.
      * @note Exception is thrown if bytesToWrite exceed buffer capacity.
      */
     ByteBuffer& write(ImmutableMemoryView const& data, size_type bytesToWrite);

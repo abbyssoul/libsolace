@@ -16,14 +16,17 @@ set(TEST_SOURCE_FILES
         mockTypes.cpp
         ci/teamcity_messages.cpp
         ci/teamcity_cppunit.cpp
+
         test_array.cpp
         test_arrayView.cpp
         test_memoryView.cpp
         test_memoryManager.cpp
+        test_memoryBuffer.cpp
         test_base16.cpp
         test_base64.cpp
         test_byteBuffer.cpp
         test_readBuffer.cpp
+        test_writeBuffer.cpp
         test_optional.cpp
         test_result.cpp
         test_future.cpp
@@ -34,6 +37,7 @@ set(TEST_SOURCE_FILES
         test_stringView.cpp
         test_path.cpp
         test_version.cpp
+
         io/test_signalDispatcher.cpp
         io/test_selector_epoll.cpp
         io/test_selector_poll.cpp

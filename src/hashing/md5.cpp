@@ -36,7 +36,7 @@ static const byte md5_padding[64] = {
 };
 
 
-__attribute__((no_sanitize("unsigned-integer-overflow")))
+SOLACE_NO_SANITIZE("unsigned-integer-overflow")
 void md5_process(MD5::State& ctx, const byte data[64]) {
     uint32_t X[16], A, B, C, D;
 

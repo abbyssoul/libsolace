@@ -35,7 +35,7 @@ static const byte sha1_padding[64] = {
 };
 
 
-__attribute__((no_sanitize("unsigned-integer-overflow")))
+SOLACE_NO_SANITIZE("unsigned-integer-overflow")
 void sha1_process(Sha1::State& ctx, const byte data[64]) {
     uint32_t temp, W[16], A, B, C, D, E;
 

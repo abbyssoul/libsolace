@@ -102,4 +102,29 @@
 #define GLIBCXX_FORCE_NEW
 #endif  // SOLACE_DEBUG_MEMORY
 
+
+
+#if __clang__
+
+#define SOLACE_DEPRECATED(reason) \
+    __attribute__((deprecated(reason)))
+#define SOLACE_UNAVAILABLE(reason) \
+    __attribute__((unavailable(reason)))
+#define SOLACE_NO_SANITIZE(feature) \
+    __attribute__((no_sanitize(feature)))
+
+#elif __GNUC__
+
+#define SOLACE_DEPRECATED(reason) \
+    __attribute__((deprecated))
+#define SOLACE_UNAVAILABLE(reason)
+#define SOLACE_NO_SANITIZE(feature)
+#else
+#define SOLACE_DEPRECATED(reason)
+// TODO(msvc): MSVC prefers a prefix __declspec(deprecated).
+#define SOLACE_UNAVAILABLE(reason)
+#define SOLACE_NO_SANITIZE(feature)
+#endif
+
+
 #endif  // SOLACE_COMPILER_CONFIG_HPP

@@ -64,7 +64,7 @@ public:
     ~ImmutableMemoryView() = default;
 
     /** Construct an empty memory view */
-    ImmutableMemoryView() noexcept = default;
+    constexpr ImmutableMemoryView() noexcept = default;
 
     /**
      * Construct an memory view from a data ptr and a size
@@ -78,12 +78,17 @@ public:
     ImmutableMemoryView& operator= (ImmutableMemoryView const&) noexcept = default;
 
     /** Move construct an instance of the memory view **/
-    ImmutableMemoryView(ImmutableMemoryView&& rhs) noexcept;
+    ImmutableMemoryView(ImmutableMemoryView&& rhs) noexcept :
+        _size(std::exchange(rhs._size, 0)),
+        _dataAddress(std::exchange(rhs._dataAddress, nullptr))
+    {
+    }
 
     /** Move assignment **/
     ImmutableMemoryView& operator= (ImmutableMemoryView&& rhs) noexcept {
         return swap(rhs);
     }
+
     ImmutableMemoryView& swap(ImmutableMemoryView& rhs) noexcept {
         using std::swap;
 

@@ -63,9 +63,7 @@ public:
     MemoryView(MemoryView const&) noexcept = default;
     MemoryView& operator= (MemoryView const&) noexcept = default;
 
-    MemoryView(MemoryView&& rhs) noexcept:
-        ImmutableMemoryView(std::move(rhs))
-    { }
+    MemoryView(MemoryView&& rhs) noexcept = default;
 
     MemoryView& swap(MemoryView& rhs) noexcept {
         ImmutableMemoryView::swap(rhs);

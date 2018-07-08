@@ -16,7 +16,7 @@
 /*******************************************************************************
  * libSolace: Read Buffer
  *	@file		solace/readBuffer.hpp
- *	@brief		Read only byte buffer
+ *	@brief		Read-only byte buffer
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_READBUFFER_HPP
@@ -90,17 +90,7 @@ public:
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    ReadBuffer(ImmutableMemoryView&& view) :
-        _limit(view.size()),
-        _storage(wrapMemory(const_cast<ImmutableMemoryView::value_type*>(view.dataAddress()), view.size()), nullptr)
-    {
-    }
-
-    /**
-     * Construct the byte buffer from the memory view object
-     * @param other Other buffer to copy data from
-     */
-    ReadBuffer(ImmutableMemoryView const& view) :
+    ReadBuffer(ImmutableMemoryView view) :
         _limit(view.size()),
         _storage(wrapMemory(const_cast<ImmutableMemoryView::value_type*>(view.dataAddress()), view.size()), nullptr)
     {

@@ -121,43 +121,6 @@ public:
     encode(ImmutableMemoryView const& src) override;
 };
 
-class Base64Encoded_Iterator {
-public:
-    Base64Encoded_Iterator(ImmutableMemoryView::const_iterator i) :
-        _i(i)
-    {}
-
-    Base64Encoded_Iterator& operator++ () {
-        ++_i;
-
-        return *this;
-    }
-
-    StringView operator* () const;
-
-    bool operator!= (Base64Encoded_Iterator const& other) const {
-        return (_i != other._i);
-    }
-
-    bool operator== (Base64Encoded_Iterator const & other) const {
-        return (_i == other._i);
-    }
-
-protected:
-    ImmutableMemoryView::const_iterator _i;
-    char _encodedData[5];
-};
-
-inline
-Base64Encoded_Iterator base64Encode_begin(ImmutableMemoryView src) {
-    return {src.begin()};
-}
-
-inline
-Base64Encoded_Iterator base64Encode_end(ImmutableMemoryView src) {
-    return {src.end()};
-}
-
 
 }  // End of namespace Solace
 #endif  // SOLACE_BASE64_HPP

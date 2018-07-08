@@ -84,7 +84,7 @@ static const uint32 K[64] = {
 }
 
 
-__attribute__((no_sanitize("unsigned-integer-overflow")))
+SOLACE_NO_SANITIZE("unsigned-integer-overflow")
 void sha256_process(Sha256::State& ctx, const byte data[64] ) {
     uint32 temp1, temp2, W[64];
     uint32 A[8];

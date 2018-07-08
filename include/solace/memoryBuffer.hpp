@@ -54,35 +54,33 @@ public:
     /** Construct an empty memory buffer */
     MemoryBuffer() noexcept = default;
 
-    MemoryBuffer(MemoryBuffer&& rhs) :
+    MemoryBuffer(MemoryView view, MemoryViewDisposer* disposer = nullptr) noexcept :
+        _data(std::move(view)),
+        _disposer(disposer)
+    {}
+
+    MemoryBuffer(MemoryBuffer&& rhs)  :
         _data(std::move(rhs._data)),
         _disposer(std::exchange(rhs._disposer, nullptr))
     {
     }
 
-    MemoryBuffer(const MemoryView& view, MemoryViewDisposer* disposer = nullptr) :
-        _data(view),
-        _disposer(disposer)
-    {}
-
-    MemoryBuffer(MemoryView&& view, MemoryViewDisposer* disposer = nullptr) :
-        _data(std::move(view)),
-        _disposer(disposer)
-    {}
-
-
     MemoryBuffer& operator= (MemoryBuffer&& rhs) {
+        return swap(rhs);
+    }
+
+    MemoryBuffer(MemoryBuffer const& rhs) = delete;
+    MemoryBuffer& operator= (MemoryBuffer const& rhs) = delete;
+
+    MemoryBuffer& swap(MemoryBuffer& rhs) noexcept {
         _data.swap(rhs._data);
-        _disposer = std::exchange(rhs._disposer, nullptr);
+        std::swap(_disposer, rhs._disposer);
 
         return *this;
     }
 
-    MemoryBuffer& operator= (const MemoryBuffer& rhs) = default;
-
-
-    MemoryView& view() { return _data; }
-    const MemoryView& view() const { return _data; }
+    MemoryView&         view() noexcept         { return _data; }
+    MemoryView const&   view() const noexcept   { return _data; }
 
     bool empty() const noexcept {
         return _data.empty();
@@ -95,11 +93,12 @@ public:
     /**
      * @return The size of this finite collection
      */
-    MemoryView::size_type size() const noexcept { return _data.size(); }
+    size_type size() const noexcept { return _data.size(); }
 
 private:
+
     MemoryView                  _data;
-    const MemoryViewDisposer*   _disposer {nullptr};
+    MemoryViewDisposer const*   _disposer {nullptr};
 };
 
 }  // End of namespace Solace

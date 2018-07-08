@@ -68,7 +68,7 @@ FORCE_INLINE uint64 getblock64(const uint64* p, int i) {
 //-----------------------------------------------------------------------------
 // Finalization mix - force all bits of a hash block to avalanche
 
-__attribute__((no_sanitize("unsigned-integer-overflow")))
+SOLACE_NO_SANITIZE("unsigned-integer-overflow")
 FORCE_INLINE uint32 fmix32(uint32 h) {
     h ^= h >> 16;
     h *= 0x85ebca6b;
@@ -80,7 +80,7 @@ FORCE_INLINE uint32 fmix32(uint32 h) {
 }
 
 //----------
-__attribute__((no_sanitize("unsigned-integer-overflow")))
+SOLACE_NO_SANITIZE("unsigned-integer-overflow")
 FORCE_INLINE uint64 fmix64(uint64 k) {
     k ^= k >> 33;
     k *= BIG_CONSTANT(0xff51afd7ed558ccd);
@@ -92,7 +92,7 @@ FORCE_INLINE uint64 fmix64(uint64 k) {
 }
 
 //-----------------------------------------------------------------------------
-__attribute__((no_sanitize("unsigned-integer-overflow")))
+SOLACE_NO_SANITIZE("unsigned-integer-overflow")
 uint32 murmurhash3_x86_32(const byte* data, const Murmur3_128::size_type len, uint32 seed) {
     const int nblocks = static_cast<int>(len / 4);
     uint32 h1 = seed;
@@ -138,7 +138,7 @@ uint32 murmurhash3_x86_32(const byte* data, const Murmur3_128::size_type len, ui
 
 
 //-----------------------------------------------------------------------------
-__attribute__((no_sanitize("unsigned-integer-overflow")))
+SOLACE_NO_SANITIZE("unsigned-integer-overflow")
 void MurmurHash3_x86_128(const byte* data, const Murmur3_128::size_type len, uint32 seed, void* out) {
     const int blockSize = 16;
     const int nblocks = static_cast<int>(len / blockSize);
@@ -239,7 +239,7 @@ void MurmurHash3_x86_128(const byte* data, const Murmur3_128::size_type len, uin
 }
 
 //-----------------------------------------------------------------------------
-__attribute__((no_sanitize("unsigned-integer-overflow")))
+SOLACE_NO_SANITIZE("unsigned-integer-overflow")
 void MurmurHash3_x64_128(const byte* data, const Murmur3_128::size_type len, uint32 seed, uint64 out[2]) {
     const int blockSize = 16;
     const int nblocks = static_cast<int>(len / blockSize);

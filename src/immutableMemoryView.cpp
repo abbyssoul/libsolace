@@ -41,16 +41,6 @@ bool Solace::isBigendian() noexcept {
 }
 
 
-ImmutableMemoryView::ImmutableMemoryView(ImmutableMemoryView&& rhs) noexcept :
-    _size(rhs._size),
-    _dataAddress(rhs._dataAddress)
-{
-    // Stuff rhs up so it won't destruct anything
-    rhs._size = 0;
-    rhs._dataAddress = nullptr;
-}
-
-
 ImmutableMemoryView::ImmutableMemoryView(const void* data, size_type newSize) :
     _size(newSize),
     _dataAddress(reinterpret_cast<const value_type*>(data))

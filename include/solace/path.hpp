@@ -56,10 +56,7 @@ namespace Solace {
  * This also implies that functions line noramalize don't do file system travesal,
  * but operate on path string components only.
  */
-class Path /*:
-        public IComparable<Path>,
-        public Iterable<Path, String>,
-        public IFormattable */ {
+class Path {
 public:
 
     using size_type = Array<String>::size_type;
