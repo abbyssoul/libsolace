@@ -26,8 +26,6 @@
 #define SOLACE_STRING_HPP
 
 
-//#include "solace/traits/iformattable.hpp"
-//#include "solace/traits/iterable.hpp"
 #include "solace/stringView.hpp"
 #include "solace/array.hpp"
 
@@ -42,11 +40,7 @@ namespace Solace {
  * Solace::String is a proper immutable unicode string that brings the comfort yet
  * it can be easily converted to and from std::string and/or C-strings
  */
-class String /*:   public IFormattable,
-                public IComparable<String>,
-                public Iterable<String, Char>
-                        */
-{
+class String {
 public:
 
     /// String size_type is intentionally small to disallow long strings.
@@ -65,7 +59,7 @@ public:
     String(String&& s) noexcept = default;
 
     //!< Copy string content from another string.
-    String(const String& s) = default;
+    String(String const& s) = default;
 
     //!< Construct a string from a raw null-terminated (C-style) string.
 	String(const char* data);
@@ -90,7 +84,7 @@ public:  // Additional to base object operations
 		return swap(rhs);
 	}
 
-    String& operator= (const String& rhs) noexcept {
+    String& operator= (String const& rhs) noexcept {
         String(rhs).swap(*this);
 
         return *this;
@@ -118,13 +112,13 @@ public:  // Basic collection operations:
 	size_type size() const noexcept;
 
     //!< True if values are equal
-    bool equals(const String& v) const noexcept;
+    bool equals(String const& v) const noexcept;
 
-    bool operator!= (const String& rhv) const noexcept {
+    bool operator!= (String const& rhv) const noexcept {
         return !equals(rhv);
     }
 
-    bool operator== (const String& rhv) const noexcept {
+    bool operator== (String const& rhv) const noexcept {
         return equals(rhv);
     }
 
@@ -149,7 +143,7 @@ public:  // Basic collection operations:
 	 * @return a value less than 0 if this string is lexicographically less than the string argument;
 	 * @return and a value greater than 0 if this string is lexicographically greater than the string argument.
 	 */
-	int compareTo(const String& other) const;
+    int compareTo(String const& other) const;
 
 	int compareTo(const char* other) const;
 
@@ -169,7 +163,7 @@ public:  // Basic collection operations:
 	 * @return <b>true</b> if the string contains at least one occurrence of
 	 * the substring, <b>false</b> otherwise.
 	 */
-	bool contains(const String& str) const
+    bool contains(String const& str) const
     {	return indexOf(str).isSome(); }
 
 	bool contains(const value_type& str) const
@@ -188,13 +182,13 @@ public:  // Basic collection operations:
 	 *
      * @return Optional index of the first occurrence of the given character.
 	 */
-    Optional<size_type> indexOf(const String& str, size_type fromIndex = 0) const;
+    Optional<size_type> indexOf(String const& str, size_type fromIndex = 0) const;
 
     Optional<size_type> indexOf(const value_type& ch, size_type fromIndex = 0) const;
 
     Optional<size_type> indexOf(const char* str, size_type fromIndex = 0) const;
 
-    Optional<size_type> lastIndexOf(const String& str, size_type fromIndex = 0) const;
+    Optional<size_type> lastIndexOf(String const& str, size_type fromIndex = 0) const;
 
     Optional<size_type> lastIndexOf(const value_type& ch, size_type fromIndex = 0) const;
 
@@ -205,7 +199,7 @@ public:  // Basic collection operations:
      * @param str A string to append to this string.
      * @return A string that is a result of concatenation of this and a given string.
 	 */
-	String concat(const String& str) const;
+    String concat(String const& str) const;
 
     /**
      * Concatenates the specified c-style zero terminated string to the end of this string.
@@ -227,12 +221,12 @@ public:  // Basic collection operations:
 	 * Returns a new string with all occurrences of substring
 	 * replaced with given one.
 	 */
-	String replace(const String& what, const String& by) const;
+    String replace(String const& what, String const& by) const;
 
 	/** Splits this string around matches of expr
 	 *
 	 */
-	Array<String> split(const String& expr) const;
+    Array<String> split(String const& expr) const;
 
 	/**
 	 * Returns a new string that is a substring of this string
@@ -278,7 +272,7 @@ public:  // Basic collection operations:
      * @param prefix The prefix to check.
      * @return True if this string indeed starts with the given prefix, false otherwise.
 	 */
-	bool startsWith(const String& prefix) const;
+    bool startsWith(String const& prefix) const;
 
 	/**
 	 * Tests if this string starts with the specified prefix.
@@ -292,7 +286,7 @@ public:  // Basic collection operations:
      * @param suffix The suffix to check.
      * @return True if this string indeed ends with the given suffix, false otherwise.
      */
-	bool endsWith(const String& suffix) const;
+    bool endsWith(String const& suffix) const;
 
 	/**
 	 * Tests if this string ends with the specified suffix.
@@ -359,7 +353,7 @@ public:  // Basic collection operations:
 public:
 
 	/** The <b>empty</b> string. */
-	static const String Empty;
+    static String const  Empty;
 
 	/**
 	 * Return jointed string from this given initializer_list
@@ -368,7 +362,7 @@ public:
      *
      * @return The resulting string
      */
-	static String join(const String& by, std::initializer_list<String> list);
+    static String join(String const& by, std::initializer_list<String> list);
 
     /**
      * Return jointed string from this given initializer_list
@@ -377,7 +371,7 @@ public:
      *
      * @return The resulting string
      */
-    static String join(const StringView& by, const Array<String>& list);
+    static String join(StringView by, const Array<String>& list);
 
     /**
      * Return String representation of value.
@@ -393,7 +387,7 @@ public:
      *
      * @return The string representation of the given value
      **/
-    static String valueOf(String val);
+    static String valueOf(StringView val);
 
     /**
      * Return String representation of value.
@@ -450,7 +444,7 @@ public:
     Iterator findFirst(const value_type& ch) const {
         return findFirst(ch, begin());
     }
-    Iterator findFirst(const String& ch) const {
+    Iterator findFirst(String const& ch) const {
         return findFirst(ch, begin());
     }
 
@@ -459,17 +453,17 @@ public:
     Iterator findLast(const value_type& ch, Iterator from) const;
     Iterator findLastNot(const value_type& ch, Iterator from) const;
 
-    Iterator findFirst(const String& ch, Iterator from) const;
-    Iterator findFirstNot(const String& ch, Iterator from) const;
-    Iterator findLast(const String& ch, Iterator from) const;
-    Iterator findLastNot(const String& ch, Iterator from) const;
+    Iterator findFirst(String const& ch, Iterator from) const;
+    Iterator findFirstNot(String const& ch, Iterator from) const;
+    Iterator findLast(String const& ch, Iterator from) const;
+    Iterator findLastNot(String const& ch, Iterator from) const;
 
     String substring(Iterator from) const;
     String substring(Iterator from, Iterator to) const;
 */
 
     /** @see Iterable::forEach */
-//    const String& forEach(const std::function<void(const value_type&)> &f) const override;
+//    String const& forEach(const std::function<void(const value_type&)> &f) const override;
 
 private:
 
@@ -478,7 +472,7 @@ private:
 };
 
 
-inline bool operator< (const String& lhs, const String& rhs) {
+inline bool operator< (String const& lhs, String const& rhs) {
 	return lhs.compareTo(rhs) < 0;
 }
 
@@ -489,13 +483,10 @@ inline void swap(String& lhs, String& rhs) noexcept {
 
 
 // FIXME: std dependence, used for Unit Testing only
-inline std::ostream& operator<< (std::ostream& ostr, const String& str) {
+inline std::ostream& operator<< (std::ostream& ostr, String const& str) {
     return ostr << str.c_str();
 }
 
-//inline std::ostream& operator<< (std::ostream& ostr, const IFormattable& form) {
-//    return ostr << form.toString();
-//}
 
 }  // namespace Solace
 #endif  // SOLACE_STRING_HPP

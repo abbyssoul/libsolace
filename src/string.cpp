@@ -346,7 +346,7 @@ String String::join(const String& by, std::initializer_list<String> list) {
 
 /** Return jointed string from the given collection */
 String
-String::join(const StringView& by, const Array<String>& list) {
+String::join(StringView by, const Array<String>& list) {
     std::string buffer;
     size_type total_size = 0;
     for (auto& s : list) {
@@ -369,16 +369,6 @@ String::join(const StringView& by, const Array<String>& list) {
     return String(buffer);
 }
 
-
-//const String& String::forEach(const std::function<void(const value_type&)>& f) const {
-//    for (auto c : _str) {
-//        f(c);
-//    }
-
-//    return (*this);
-//}
-
-
 /** Return String representation of boolen value **/
 String String::valueOf(bool value) {
     return (value)
@@ -387,7 +377,7 @@ String String::valueOf(bool value) {
 }
 
 
-String String::valueOf(String value) {
+String String::valueOf(StringView value) {
     return value;
 }
 
