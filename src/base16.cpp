@@ -175,22 +175,22 @@ decode16(ImmutableMemoryView::const_iterator i, ImmutableMemoryView::const_itera
 }
 
 
-Base16Decoded_Iterator::Base16Decoded_Iterator(ImmutableMemoryView::const_iterator i,
-                                               ImmutableMemoryView::const_iterator end) :
-    _i(std::move(i)),
-    _end(std::move(end))
+Base16Decoded_Iterator::Base16Decoded_Iterator(ImmutableMemoryView::const_iterator rangeBegin,
+                                               ImmutableMemoryView::const_iterator rangeEnd) :
+    _i(std::move(rangeBegin)),
+    _end(std::move(rangeEnd))
 {
 
-    ImmutableMemoryView::const_iterator next = i;
-    if (i != end)
+    ImmutableMemoryView::const_iterator next = _i;
+    if (_i != _end)
         ++next;
 
-    if (next != end) {
-        auto r = decode16(i, next);
+    if (next != _end) {
+        auto r = decode16(_i, next);
         if (r) {
             _decodedValue = r.unwrap();
         } else {    // FIXME: Maybe we should throw here.
-            _i = end;
+            _i = _end;
         }
     } else {
         _i = _end;
