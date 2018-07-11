@@ -58,15 +58,15 @@ if $sanitizer; then
     echo 'sanitize = address,undefined,leak' >> Makefile
 fi
 
-if [[ -v CXX ]] || [[ -v CC ]] ; then
+if [ ! -z "${CXX}" ] || [ ! -z "${CC}" ] ; then
     echo "Using custom copiler: CXX=$CXX CC=$CC"
-    printf "\n#Compiler config\n" >> Makefile
+    printf "\n# Compiler config\n" >> Makefile
 
-    if [[ -v CXX ]] ; then
+    if [ ! -z "${CXX}" ] ; then
         echo "CXX ?= ${CXX}" >> Makefile
     fi
 
-    if [[ -v CC ]]; then
+    if [ ! -z "${CC}" ]; then
         echo "CC ?= ${CC}" >> Makefile
     fi
 fi
