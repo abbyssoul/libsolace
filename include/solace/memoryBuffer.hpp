@@ -54,8 +54,13 @@ public:
     /** Construct an empty memory buffer */
     MemoryBuffer() noexcept = default;
 
-    MemoryBuffer(MemoryView view, MemoryViewDisposer* disposer = nullptr) noexcept :
-        _data(std::move(view)),
+    /**
+     * Construct a memory buffer from a memory view with a given disposer.
+     * @param data A memory view this buffer owns.
+     * @param disposer A disposer to dispose of the memory when this memory buffer is destroyed.
+     */
+    MemoryBuffer(MemoryView data, MemoryViewDisposer* disposer = nullptr) noexcept :
+        _data(std::move(data)),
         _disposer(disposer)
     {}
 

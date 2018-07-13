@@ -61,12 +61,12 @@ public:
     /**
      * Construct a memory view from a row pointer and the size
      * @param data A pointer to the contigues memory region.
-     * @param size The size of the contigues memory region.
+     * @param dataSize The size of the contigues memory region.
      *
      * @throws IllegalArgumentException if the `data` is nullptr while size is non-zero.
      */
-    MemoryView(void* data, size_type size) :
-        ImmutableMemoryView(data, size)
+    MemoryView(void* data, size_type dataSize) :
+        ImmutableMemoryView(data, dataSize)
     {}
 
     MemoryView(MemoryView const&) noexcept = default;
