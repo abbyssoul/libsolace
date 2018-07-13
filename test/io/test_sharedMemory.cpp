@@ -101,8 +101,8 @@ public:
                 CPPUNIT_ASSERT_EQUAL(memSize, view.size());
 
                 isChild = true;
-                ByteBuffer sb(view);
-                sb << getpid();
+                WriteBuffer sb(view);
+                sb.write(getpid());
                 sb.write(StringView("child").view());
 
                 // Child will quit after that and this will signal the parent to read data from the shared memory.

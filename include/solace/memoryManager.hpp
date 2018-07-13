@@ -27,6 +27,7 @@
 
 #include "solace/memoryBuffer.hpp"
 
+
 namespace Solace {
 
 /**

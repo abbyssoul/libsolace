@@ -141,20 +141,20 @@ MemoryView UUID::view() noexcept {
 String UUID::toString() const {
     char buffer[StringSize];
 
-    ByteBuffer dest(wrapMemory(buffer));
+    WriteBuffer dest(wrapMemory(buffer));
     Base16Encoder encoder(dest);
 
     auto dataView = view();
     // 123e4567-e89b-12d3-a456-426655440000
     // 8-4-4-4-12
     encoder.encode(dataView.slice(0,   4));
-    dest << '-';
+    dest.write('-');
     encoder.encode(dataView.slice(4,   6));
-    dest << '-';
+    dest.write('-');
     encoder.encode(dataView.slice(6,   8));
-    dest << '-';
+    dest.write('-');
     encoder.encode(dataView.slice(8,  10));
-    dest << '-';
+    dest.write('-');
     encoder.encode(dataView.slice(10, 16));
 
     return String(buffer, StringSize);

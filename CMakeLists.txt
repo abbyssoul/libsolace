@@ -14,7 +14,6 @@ option(SANITIZE "Enable 'sanitize' compiler flag" OFF)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
-#check_cxx_compiler_flag(-std=c++14 HAVE_STD_CPP14_FLAG)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors") #  -fno-rtti
 
 # Enable stack-protector if compiler supports it (it should)

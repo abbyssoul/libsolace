@@ -30,7 +30,8 @@
 #include "solace/result.hpp"
 #include "solace/error.hpp"
 
-#include "solace/byteBuffer.hpp"
+#include "solace/readBuffer.hpp"
+#include "solace/writeBuffer.hpp"
 
 
 namespace Solace {
@@ -38,16 +39,16 @@ namespace Solace {
 
 class ImmutableMemoryView;
 class MemoryView;
-class ByteBuffer;
 
 
 /**
  * Basic interface for classes doing I/O
- * All IO objects implementing this interface will be able to accept MemoryView and ByteBuffer as data sources / dest.
+ * IO object implementing this interface will be able to accept MemoryView and
+ * ReadBuffer/WriteBuffer as data sources / data sink.
  */
 class IOObject {
 public:
-    typedef size_t size_type;
+    using size_type = size_t;
     using IOResult = Result<size_type, Error>;
 
 public:
@@ -96,7 +97,7 @@ public:
      * @param buffer Byte buffer to read data into.
      * @return Number of bytes actually read.
      */
-    IOResult read(ByteBuffer& destBuffer) {
+    IOResult read(WriteBuffer& destBuffer) {
         return read(destBuffer, destBuffer.remaining());
     }
 
@@ -110,7 +111,7 @@ public:
      *
      * @return Number of bytes actually read.
      */
-    IOResult read(ByteBuffer& destBuffer, size_type bytesToRead);
+    IOResult read(WriteBuffer& destBuffer, size_type bytesToRead);
 
 
     /** Read data from the io object into the given memory location/buffer.
@@ -134,7 +135,7 @@ public:
 
      * @return Number of bytes actually writen
      */
-    IOResult write(ByteBuffer& srcBuffer) {
+    IOResult write(ReadBuffer& srcBuffer) {
         return write(srcBuffer, srcBuffer.remaining());
     }
 
@@ -150,7 +151,7 @@ public:
      *
      * @return Number of bytes actually writen
      */
-    IOResult write(ByteBuffer& srcBuffer, size_type bytesToWrite);
+    IOResult write(ReadBuffer& srcBuffer, size_type bytesToWrite);
 
 
     /** Write data from the given byte buffer into this io object.

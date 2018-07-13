@@ -22,7 +22,9 @@
 #ifndef SOLACE_ENCODER_HPP
 #define SOLACE_ENCODER_HPP
 
-#include "solace/byteBuffer.hpp"
+#include "solace/readBuffer.hpp"
+#include "solace/writeBuffer.hpp"
+
 
 namespace Solace {
 
@@ -31,7 +33,7 @@ namespace Solace {
  */
 class Encoder {
 public:
-    using size_type = ByteBuffer::size_type;
+    using size_type = ReadBuffer::size_type;
 
 public:
 
@@ -41,7 +43,7 @@ public:
      * Construct a new instance of encoder that will output transformed output into dect buffer.
      * @param dest Destination buffer to write transformed data to.
      */
-    Encoder(ByteBuffer& dest) :
+    Encoder(WriteBuffer& dest) :
         _dest(&dest)
     {}
 
@@ -49,7 +51,7 @@ public:
      * Get a pointer to the destanation buffer.
      * @return A pointer to the destantion buffer.
      */
-    ByteBuffer* getDestBuffer() const noexcept {
+    WriteBuffer* getDestBuffer() const noexcept {
         return _dest;
     }
 
@@ -76,7 +78,7 @@ public:
 
 private:
 
-    ByteBuffer* _dest;
+    WriteBuffer* _dest;
 };
 
 

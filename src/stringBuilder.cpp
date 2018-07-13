@@ -24,43 +24,38 @@
 #include "solace/stringBuilder.hpp"
 #include "solace/exception.hpp"
 
+#include "solace/readBuffer.hpp"
 
 using namespace Solace;
 
 
 
-StringBuilder::StringBuilder(MemoryView&& buffer, const StringView& str):
-    StringBuilder(std::move(buffer)) {
+StringBuilder::StringBuilder(MemoryView&& buffer, StringView str)
+    : StringBuilder(std::move(buffer))
+{
     _buffer.write(str.view());
 }
 
-StringBuilder::StringBuilder(MemoryBuffer&& buffer, const StringView& str):
-    StringBuilder(std::move(buffer)) {
+StringBuilder::StringBuilder(MemoryBuffer&& buffer, StringView str)
+    : StringBuilder(std::move(buffer))
+{
     _buffer.write(str.view());
 }
 
 StringBuilder& StringBuilder::append(char c) {
-	_buffer << c;
+    _buffer.write(c);
 
 	return *this;
 }
 
-StringBuilder& StringBuilder::append(const Char& c) {
+StringBuilder& StringBuilder::append(Char c) {
     return append(StringView(c.c_str(), c.getBytesCount()));
 }
 
-StringBuilder& StringBuilder::append(const StringView& cstr) {
+StringBuilder& StringBuilder::append(StringView cstr) {
     _buffer.write(cstr.view());
 
 	return *this;
-}
-
-StringBuilder& StringBuilder::append(const IFormattable& f) {
-	return append(f.toString());
-}
-
-StringBuilder& StringBuilder::append(const String& str) {
-    return append(str.view());
 }
 
 StringView
@@ -86,7 +81,8 @@ StringBuilder::length() const noexcept {
 }
 
 
-String StringBuilder::substring(size_type from, size_type to) const {
+String
+StringBuilder::substring(size_type from, size_type to) const {
     // TODO(abbyssoul): Check for index out of range
 
     auto data = _buffer.viewWritten();
@@ -95,15 +91,18 @@ String StringBuilder::substring(size_type from, size_type to) const {
             to - from));
 }
 
-Optional<StringBuilder::size_type> StringBuilder::indexOf(const Char& ch, size_type fromIndex) const {
+
+Optional<StringBuilder::size_type>
+StringBuilder::indexOf(const Char& ch, size_type fromIndex) const {
     // TODO(abbyssoul): Check for index out of range
 
     MemoryView::value_type buffer[Char::max_bytes];
-    auto b = wrapMemory(buffer, sizeof(buffer));
+    auto b = wrapMemory(buffer);
 
 
-    for (size_type i = fromIndex; i + ch.getBytesCount() < _buffer.position(); ++i) {
-        _buffer.read(i, b, ch.getBytesCount());
+    ReadBuffer reader(_buffer.viewWritten());
+    for (size_type i = fromIndex; i + ch.getBytesCount() < reader.limit(); ++i) {
+        reader.read(i, b, ch.getBytesCount());
 
         if (ch.equals(b)) {
             return Optional<size_type>::of(i);

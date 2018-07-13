@@ -98,8 +98,7 @@ public:
 
     void testBasicEncoding() {
         byte buffer[64];
-        ByteBuffer dest(wrapMemory(buffer));
-
+        WriteBuffer dest(wrapMemory(buffer));
         Base64Encoder encoder(dest);
 
         const char* srcMem = "foobar";
@@ -147,7 +146,7 @@ public:
 
     void testBasicDecoding() {
         byte buffer[64];
-        ByteBuffer dest(wrapMemory(buffer));
+        WriteBuffer dest(wrapMemory(buffer));
 
         Base64Decoder decoder(dest);
 
@@ -194,7 +193,7 @@ public:
 
     void testBasicUrlEncoding() {
         byte buffer[70];
-        ByteBuffer dest(wrapMemory(buffer));
+        WriteBuffer dest(wrapMemory(buffer));
 
         Base64UrlEncoder encoder(dest);
 
@@ -205,7 +204,7 @@ public:
 
     void testBasicUrlDecoding() {
         byte buffer[70];
-        ByteBuffer dest(wrapMemory(buffer));
+        WriteBuffer dest(wrapMemory(buffer));
 
         Base64UrlDecoder encoder(dest);
 
@@ -217,7 +216,7 @@ public:
 
     void testMultilineMessageEncoding() {
         byte buffer[90];
-        ByteBuffer dest(wrapMemory(buffer));
+        WriteBuffer dest(wrapMemory(buffer));
 
         const char* srcMem = "This is line one\nThis is line two\nThis is line three\nAnd so on...\n";
         const char* expectedMsg =
@@ -231,7 +230,7 @@ public:
 
     void testMultilineMessageDecoding() {
         byte buffer[90];
-        ByteBuffer dest(wrapMemory(buffer));
+        WriteBuffer dest(wrapMemory(buffer));
 
         const char* expectedMsg = "This is line one\nThis is line two\nThis is line three\nAnd so on...\n";
         const char* srcMem = "VGhpcyBpcyBsaW5lIG9uZQpUaGlzIGlzIGxpbmUgdHdvClRoaXMgaXMgbGluZSB0aHJlZQpBbmQgc28gb24uLi4K";
@@ -244,7 +243,7 @@ public:
 
     void testUnicodeCharactersEncoding() {
         byte buffer[30];
-        ByteBuffer dest(wrapMemory(buffer));
+        WriteBuffer dest(wrapMemory(buffer));
 
         const char* srcMem = "foo © bar 𝌆 baz";
         const char* expectedMsg = "Zm9vIMKpIGJhciDwnYyGIGJheg==";
@@ -257,7 +256,7 @@ public:
 
     void testUnicodeCharactersDecoding() {
         byte buffer[30];
-        ByteBuffer dest(wrapMemory(buffer));
+        WriteBuffer dest(wrapMemory(buffer));
 
         const char* srcMem = "Zm9vIMKpIGJhciDwnYyGIGJheg==";
         const char* expectedMsg = "foo © bar 𝌆 baz";

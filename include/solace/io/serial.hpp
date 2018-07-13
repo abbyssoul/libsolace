@@ -46,7 +46,7 @@ struct SerialPortInfo {
 
 
     /** Default Constructor for collection interop */
-    SerialPortInfo() {}
+    SerialPortInfo() = default;
 
     SerialPortInfo(const Path& path, const String& desc, const String& hwId) :
         file(path), description(desc), hardwareId(hwId)
@@ -55,22 +55,10 @@ struct SerialPortInfo {
     }
 
     /** Copy constructor */
-    SerialPortInfo(const SerialPortInfo& other) :
-        file(other.file),
-        description(other.description),
-        hardwareId(other.hardwareId)
-    {
-        // No-op
-    }
+    SerialPortInfo(const SerialPortInfo& other) = default;
 
     /** Move constructor */
-    SerialPortInfo(SerialPortInfo&& other) :
-        file(std::move(other.file)),
-        description(std::move(other.description)),
-        hardwareId(std::move(other.hardwareId))
-    {
-        // No-op
-    }
+    SerialPortInfo(SerialPortInfo&& other) = default;
 
     bool operator== (const SerialPortInfo& rhs) const {
         return (file == rhs.file &&
@@ -94,7 +82,7 @@ struct SerialPortInfo {
 
 /**
  * Serial port device file
- * 
+ *
  */
 class Serial :
         public File {
@@ -153,6 +141,14 @@ public:
     using File::write;
 
 public:
+
+    /*! Destructor */
+     ~Serial() override;
+
+    // Disable copy constructors
+    Serial(const Serial&) = delete;
+    Serial& operator=(const Serial&) = delete;
+
     /**
     * Open the port and create a Serial object incapsulating it.
     *
@@ -191,10 +187,6 @@ public:
      * \param other serial port to move representation from
      */
     Serial(Serial&& other);
-
-
-    /*! Destructor */
-    virtual ~Serial();
 
 
     /**
@@ -286,12 +278,6 @@ public:
     * the function exits with the port in a readable state, false otherwise
     * (due to timeout or select interruption). */
     bool waitReadable(uint32 timeout);
-
-private:
-
-    // Disable copy constructors
-    Serial(const Serial&) = delete;
-    Serial& operator=(const Serial&) = delete;
 
 };
 

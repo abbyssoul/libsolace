@@ -27,7 +27,7 @@ using namespace Solace;
 
 
 IOObject::IOResult
-IOObject::read(ByteBuffer& destBuffer, size_type bytesToRead) {
+IOObject::read(WriteBuffer& destBuffer, size_type bytesToRead) {
     auto destSlice = destBuffer.viewRemaining().slice(0, bytesToRead);
 
     return read(destSlice)
@@ -39,7 +39,7 @@ IOObject::read(ByteBuffer& destBuffer, size_type bytesToRead) {
 }
 
 IOObject::IOResult
-IOObject::write(ByteBuffer& srcBuffer, size_type bytesToWrite) {
+IOObject::write(ReadBuffer& srcBuffer, size_type bytesToWrite) {
     return write(srcBuffer.viewRemaining().slice(0, bytesToWrite))
             .then([&srcBuffer](auto bytesRead) {
                 srcBuffer.advance(bytesRead);

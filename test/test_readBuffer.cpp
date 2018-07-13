@@ -38,7 +38,7 @@ class TestReadBuffer: public CppUnit::TestFixture  {
         CPPUNIT_TEST(testGetByte);
         CPPUNIT_TEST(testByteRead);
 
-        CPPUNIT_TEST(testReadIntoByteBuffer);
+        CPPUNIT_TEST(testReadIntoBuffer);
         CPPUNIT_TEST(testReadFromOffset);
 
         CPPUNIT_TEST(readBigEndian);
@@ -147,7 +147,7 @@ public:
         }
     }
 
-    void testReadIntoByteBuffer() {
+    void testReadIntoBuffer() {
         byte const srcBytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
         constexpr size_type testSize = sizeof(srcBytes);
 

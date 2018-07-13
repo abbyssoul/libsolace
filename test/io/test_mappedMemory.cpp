@@ -97,8 +97,8 @@ public:
 
             case 0: {                     /* Child: increment shared integer and exit */
                 isChild = true;
-                ByteBuffer sb(memBuffer);
-                sb << getpid();
+                WriteBuffer sb(memBuffer);
+                sb.write(getpid());
                 sb.write(StringView("child").view());
 
             } break;

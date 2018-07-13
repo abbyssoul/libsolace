@@ -28,7 +28,7 @@
 #include <sys/ioctl.h>
 #include <sys/select.h>
 #include <sys/time.h>
-#include <time.h>
+#include <ctime>
 
 #if defined(__linux__)
 # include <linux/serial.h>
@@ -37,7 +37,6 @@
 
 using Solace::uint32;
 using Solace::Path;
-using Solace::ByteBuffer;
 using Solace::IO::Serial;
 using Solace::IOException;
 using Solace::IllegalArgumentException;
@@ -363,9 +362,8 @@ Serial::Serial(Serial&& other) : File(std::move(other)) {
 }
 
 
-Serial::~Serial() {
-    // No-op
-}
+Serial::~Serial() = default;
+
 
 Serial& Serial::swap(Serial& rhs) noexcept {
     File::swap(rhs);

@@ -37,7 +37,7 @@ public:
 
 public:
 
-    Base64Encoder(ByteBuffer& dest) :
+    Base64Encoder(WriteBuffer& dest) :
         Encoder(dest)
     {}
 
@@ -64,7 +64,7 @@ public:
 
 public:
 
-    Base64Decoder(ByteBuffer& dest) :
+    Base64Decoder(WriteBuffer& dest) :
         Encoder(dest)
     {}
 
@@ -88,7 +88,7 @@ public:
 
 public:
 
-    Base64UrlEncoder(ByteBuffer& dest) :
+    Base64UrlEncoder(WriteBuffer& dest) :
         Base64Encoder(dest)
     {}
 
@@ -111,7 +111,7 @@ public:
 
 public:
 
-    Base64UrlDecoder(ByteBuffer& dest) :
+    Base64UrlDecoder(WriteBuffer& dest) :
         Base64Decoder(dest)
     {}
 

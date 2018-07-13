@@ -203,7 +203,7 @@ Sha256::size_type Sha256::getDigestLength() const {
 }
 
 
-HashingAlgorithm& Sha256::update(const ImmutableMemoryView& input) {
+HashingAlgorithm& Sha256::update(ImmutableMemoryView input) {
     sha256_update(_state, input.dataAddress(), input.size());
 
     return (*this);
@@ -236,5 +236,5 @@ MessageDigest Sha256::digest() {
     putUint32_BE(_state.state[6], result, 24);
     putUint32_BE(_state.state[7], result, 28);
 
-    return MessageDigest(result, sizeof(result));
+    return MessageDigest(wrapMemory(result));
 }

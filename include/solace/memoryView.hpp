@@ -30,14 +30,16 @@
 
 namespace Solace {
 
-/* Fixed-length raw data buffer/memory view.
- * This is a very thin abstruction on top of raw memory address -
- * it remembers memory block size and deallocates memory only if it ownes it.
+/* View into a fixed-length raw memory buffer which allows mutation of the undelaying data.
+ * A very thin abstruction on top of raw memory address - it remembers memory block address and size.
  *
- * Buffer has value semantic and gives users random access to the undelying memory.
- * For the stream semantic please @see ByteBuffer
+ * View has a value semantic and gives a user random access to the undelying memory.
+ *
+ * For a mutable access please use @see MemoryView
+ * For the a convenient adapter for stream semantic please @see WriteBuffer
  */
-class MemoryView : public ImmutableMemoryView {
+class MemoryView
+        : public ImmutableMemoryView {
 public:
     using ImmutableMemoryView::size_type;
     using ImmutableMemoryView::value_type;
@@ -50,12 +52,19 @@ public:
 
 public:
 
-    /** Deallocate memory.. maybe */
+    /** Destroy the view. No memory will be actually free. */
     ~MemoryView() = default;
 
     /** Construct an empty memory view */
     MemoryView() noexcept = default;
 
+    /**
+     * Construct a memory view from a row pointer and the size
+     * @param data A pointer to the contigues memory region.
+     * @param size The size of the contigues memory region.
+     *
+     * @throws IllegalArgumentException if the `data` is nullptr while size is non-zero.
+     */
     MemoryView(void* data, size_type size) :
         ImmutableMemoryView(data, size)
     {}
@@ -179,7 +188,7 @@ public:
 
     template<typename T, typename... Args>
     T* construct(Args&&... args) {
-        assertIndexInRange(sizeof(T), 0, this->size() + 1);
+        assertIndexInRange(static_cast<size_type>(sizeof(T)), static_cast<size_type>(0), this->size() + 1);
 
         return new (dataAddress()) T(std::forward<Args>(args)...);
     }

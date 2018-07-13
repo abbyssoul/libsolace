@@ -19,7 +19,6 @@
  *  Created by soultaker on 27/04/16.
 *******************************************************************************/
 #include <solace/io/file.hpp>
-#include <solace/byteBuffer.hpp>
 #include <solace/exception.hpp>
 
 #include <memory>   // std::unique_ptr<>
@@ -35,7 +34,6 @@ using Solace::IOObject;
 using Solace::String;
 using Solace::Path;
 using Solace::MemoryView;
-using Solace::ByteBuffer;
 
 using Solace::IO::ISelectable;
 using Solace::IO::File;

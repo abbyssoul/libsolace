@@ -250,7 +250,7 @@ Sha1::size_type Sha1::getDigestLength() const {
 }
 
 
-HashingAlgorithm& Sha1::update(const ImmutableMemoryView& input) {
+HashingAlgorithm& Sha1::update(ImmutableMemoryView input) {
     sha1_update(_state, input.dataAddress(), input.size());
 
     return (*this);
@@ -281,5 +281,5 @@ MessageDigest Sha1::digest() {
     putUint32_BE(_state.state[3], result, 12);
     putUint32_BE(_state.state[4], result, 16);
 
-    return MessageDigest(result, sizeof(result));
+    return MessageDigest(wrapMemory(result));
 }

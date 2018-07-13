@@ -110,7 +110,9 @@ Base16Encoder::encode(ImmutableMemoryView const& src) {
     auto& dest = *getDestBuffer();
 
     for (auto value : src) {
-        /*auto res = */ dest.write(wrapMemory(kBase16Alphabet_l[value], 2));
+        auto res = dest.write(wrapMemory(kBase16Alphabet_l[value], 2));
+        if (!res)
+            return Err(res.moveError());
     }
 
     return Ok();
@@ -148,7 +150,9 @@ Base16Decoder::encode(ImmutableMemoryView const& src) {
             return Err(low.moveError());
 
         byte const value = static_cast<byte>(high.unwrap() << 4) + static_cast<byte>(low.unwrap());
-        dest.write(value);
+        auto res = dest.write(value);
+        if (!res)
+            return Err(res.moveError());
     }
 
     return Ok();

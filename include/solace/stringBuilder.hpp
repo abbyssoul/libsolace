@@ -26,7 +26,7 @@
 #define SOLACE_STRINGBUILDER_HPP
 
 
-#include "solace/byteBuffer.hpp"
+#include "solace/writeBuffer.hpp"
 #include "solace/string.hpp"
 
 #include "solace/traits/iformattable.hpp"
@@ -57,16 +57,16 @@ public:
     {}
 
     /** Initialize a new instance of StringBuilder with a given storage and initial string value.*/
-    StringBuilder(MemoryView&& buffer, const StringView& str);
+    StringBuilder(MemoryView&& buffer, StringView str);
 
     /** Initialize a new instance of StringBuilder with a given storage and initial string value.*/
-    StringBuilder(MemoryBuffer&& buffer, const StringView& str);
+    StringBuilder(MemoryBuffer&& buffer, StringView str);
 
     //!< Move construct string builder
     StringBuilder(const StringBuilder&) = delete;
 
     //!< Move construct string builder instance.
-    StringBuilder(StringBuilder&& s);
+    StringBuilder(StringBuilder&& s) noexcept = default;
 
     StringBuilder& operator= (StringBuilder&& rhs) noexcept {
         return swap(rhs);
@@ -86,12 +86,18 @@ public:
 public:
 
 	StringBuilder& append(char c);
-    StringBuilder& append(const Char& c);
-    StringBuilder& append(const StringView& str);
-    StringBuilder& append(const String& str);
-    StringBuilder& append(const IFormattable& f);
+    StringBuilder& append(Char c);
+    StringBuilder& append(StringView str);
 
-    StringBuilder& appendFormat(const StringView& fmt) { return append(fmt); }
+    StringBuilder& append(String const& str) {
+        return append(str.view());
+    }
+
+    StringBuilder& append(IFormattable const& str) {
+        return append(str.toString());
+    }
+
+    StringBuilder& appendFormat(StringView fmt) { return append(fmt); }
 
 //        template<typename T>
 //        StringBuilder& appendFormat(const String& fmt, T&& value) {
@@ -159,7 +165,7 @@ public:
 
 private:
 
-    ByteBuffer  _buffer;
+    WriteBuffer  _buffer;
 };
 
 

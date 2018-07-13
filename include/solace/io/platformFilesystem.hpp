@@ -42,7 +42,7 @@ class PlatformFilesystem :
 public:
 
     //! Type used to represent file sizes
-    typedef ByteBuffer::size_type size_type;
+    using size_type = ImmutableMemoryView::size_type;
 
 
     class BufferedFile :

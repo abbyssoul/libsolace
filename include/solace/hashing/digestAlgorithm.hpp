@@ -24,7 +24,7 @@
 #define SOLACE_HASHING_DIGESTALGORITHM_HPP
 
 #include "solace/hashing/messageDigest.hpp"
-
+#include "solace/readBuffer.hpp"
 
 namespace Solace {
 namespace hashing {
@@ -36,7 +36,7 @@ namespace hashing {
  */
 class HashingAlgorithm {
 public:
-    typedef ImmutableMemoryView::size_type size_type;
+    using size_type = ImmutableMemoryView::size_type;
 
 public:
 
@@ -59,15 +59,15 @@ public:
      * @param input A memory view to read data from.
      * @return A reference to self for a fluent interface.
      */
-    virtual HashingAlgorithm& update(const ImmutableMemoryView& input) = 0;
+    virtual HashingAlgorithm& update(ImmutableMemoryView input) = 0;
 
     /**
      * Update the digest with the given input.
      * @param input A byte buffer to read message from.
      * @return A reference to self for a fluent interface.
      */
-    virtual HashingAlgorithm& update(ByteBuffer& input) {
-        auto memView = input.viewRemaining();
+    virtual HashingAlgorithm& update(ReadBuffer& input) {
+        auto const memView = input.viewRemaining();
         update(memView);
         input.advance(memView.size());
 

@@ -35,7 +35,8 @@ namespace hashing {
  * Implementation of Sha-1 cryptographic hashing algorithm.
  * SHA-1 produces a 160-bit (20-bytes) hash.
  */
-class Sha1 : public HashingAlgorithm {
+class Sha1 :
+        public HashingAlgorithm {
 public:
     using HashingAlgorithm::size_type;
 
@@ -68,7 +69,7 @@ public:
      * @param input A memory view to read data from.
      * @return A reference to self for a fluent interface.
      */
-    HashingAlgorithm& update(const ImmutableMemoryView& input) override;
+    HashingAlgorithm& update(ImmutableMemoryView input) override;
 
     /*
      * Completes the hash computation by performing final operations such as padding.

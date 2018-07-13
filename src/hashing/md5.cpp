@@ -213,7 +213,7 @@ MD5::size_type MD5::getDigestLength() const {
 }
 
 
-HashingAlgorithm& MD5::update(const ImmutableMemoryView& input) {
+HashingAlgorithm& MD5::update(ImmutableMemoryView input) {
     md5_update(_state, input.dataAddress(), input.size());
 
     return (*this);
@@ -241,5 +241,5 @@ MessageDigest MD5::digest() {
     putUint32_LE(_state.state[2], result,  8);
     putUint32_LE(_state.state[3], result, 12);
 
-    return MessageDigest(result, sizeof(result));
+    return MessageDigest(wrapMemory(result));
 }

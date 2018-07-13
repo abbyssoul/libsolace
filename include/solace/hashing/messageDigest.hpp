@@ -25,7 +25,6 @@
 
 #include "solace/types.hpp"
 #include "solace/string.hpp"
-#include "solace/byteBuffer.hpp"
 
 
 namespace Solace {
@@ -49,17 +48,14 @@ public:
 
 public:
 
-    MessageDigest(const MessageDigest& rhs) = default;
+    MessageDigest(MessageDigest const& rhs) = default;
 
     MessageDigest(MessageDigest&& rhs) = default;
 
-    MessageDigest(byte* bytes, size_type digestSize) : _storage(digestSize, bytes)
+    MessageDigest(ImmutableMemoryView const& viewBytes) : _storage(viewBytes.size(), viewBytes.dataAddress())
     { }
 
-    MessageDigest(const ImmutableMemoryView& viewBytes) : _storage(viewBytes.size(), viewBytes.dataAddress())
-    { }
-
-    MessageDigest(const Storage& bytes) : _storage(bytes)
+    MessageDigest(Storage const& bytes) : _storage(bytes)
     { }
 
     MessageDigest(Storage&& bytes) : _storage(std::move(bytes))
@@ -75,7 +71,7 @@ public:
         return (*this);
     }
 
-    MessageDigest& operator= (const MessageDigest& rhs) noexcept {
+    MessageDigest& operator= (MessageDigest const& rhs) noexcept {
         MessageDigest(rhs).swap(*this);
 
         return *this;

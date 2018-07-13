@@ -34,28 +34,38 @@ static constexpr byte kBase64UrlAlphabet[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef
 
 
 Result<void, Error>
-base64encode(ByteBuffer& dest, ImmutableMemoryView const& src, byte const alphabet[65]) {
+base64encode(WriteBuffer& dest, ImmutableMemoryView const& src, byte const alphabet[65]) {
     ImmutableMemoryView::size_type i = 0;
 
     for (; i + 2 < src.size(); i += 3) {
-        dest << alphabet[ (src[i] >> 2) & 0x3F];
-        dest << alphabet[((src[i] & 0x3) << 4)     | (static_cast<int>(src[i + 1] & 0xF0) >> 4)];
-        dest << alphabet[((src[i + 1] & 0xF) << 2) | (static_cast<int>(src[i + 2] & 0xC0) >> 6)];
-        dest << alphabet[  src[i + 2] & 0x3F];
+        byte const encoded[] = {
+            alphabet[ (src[i] >> 2) & 0x3F],
+            alphabet[((src[i] & 0x3) << 4)     | (static_cast<int>(src[i + 1] & 0xF0) >> 4)],
+            alphabet[((src[i + 1] & 0xF) << 2) | (static_cast<int>(src[i + 2] & 0xC0) >> 6)],
+            alphabet[  src[i + 2] & 0x3F]
+        };
+
+        auto res = dest.write(wrapMemory(encoded));
+        if (!res)
+            return Err(res.moveError());
     }
 
 
     if (i < src.size()) {
-        dest << alphabet[(src[i] >> 2) & 0x3F];
+        byte encoded[4];
+        encoded[0] = alphabet[(src[i] >> 2) & 0x3F];
         if (i + 1 == src.size()) {
-            dest << alphabet[((src[i] & 0x3) << 4)];
-            dest << '=';
+            encoded[1] = alphabet[((src[i] & 0x3) << 4)];
+            encoded[2] = '=';
         } else {
-            dest << alphabet[((src[i] & 0x3) << 4) | (static_cast<int>(src[i + 1] & 0xF0) >> 4)];
-            dest << alphabet[((src[i + 1] & 0xF) << 2)];
+            encoded[1] = alphabet[((src[i] & 0x3) << 4) | (static_cast<int>(src[i + 1] & 0xF0) >> 4)];
+            encoded[2] = alphabet[((src[i + 1] & 0xF) << 2)];
         }
 
-        dest << '=';
+        encoded[3] = '=';
+        auto res = dest.write(wrapMemory(encoded));
+        if (!res)
+            return Err(res.moveError());
     }
 
     return Ok();
@@ -110,7 +120,7 @@ static const byte prUrl2six[256] = {
 
 
 Result<void, Error>
-base64decode(ByteBuffer& dest, ImmutableMemoryView const& src, byte const* decodingTable) {
+base64decode(WriteBuffer& dest, ImmutableMemoryView const& src, byte const* decodingTable) {
     byte const* bufin = src.dataAddress();
     if (!bufin || src.size() == 0) {
         return Err(Error("Base64Decoding error: No data"));
@@ -123,9 +133,15 @@ base64decode(ByteBuffer& dest, ImmutableMemoryView const& src, byte const* decod
     bufin = src.dataAddress();
 
     while (nprbytes > 4) {
-        dest << static_cast<byte>(decodingTable[bufin[0]] << 2 | decodingTable[bufin[1]] >> 4);
-        dest << static_cast<byte>(decodingTable[bufin[1]] << 4 | decodingTable[bufin[2]] >> 2);
-        dest << static_cast<byte>(decodingTable[bufin[2]] << 6 | decodingTable[bufin[3]]);
+        byte const encoded[] = {
+            static_cast<byte>(decodingTable[bufin[0]] << 2 | decodingTable[bufin[1]] >> 4),
+            static_cast<byte>(decodingTable[bufin[1]] << 4 | decodingTable[bufin[2]] >> 2),
+            static_cast<byte>(decodingTable[bufin[2]] << 6 | decodingTable[bufin[3]])
+        };
+
+        auto res = dest.write(wrapMemory(encoded));
+        if (!res)
+            return Err(res.moveError());
 
         bufin += 4;
         nprbytes -= 4;
@@ -133,13 +149,19 @@ base64decode(ByteBuffer& dest, ImmutableMemoryView const& src, byte const* decod
 
     /* Note: (nprbytes == 1) would be an error, so just ingore that case */
     if (nprbytes > 1) {
-        dest << static_cast<byte>(decodingTable[bufin[0]] << 2 | decodingTable[bufin[1]] >> 4);
+        auto res = dest.write(static_cast<byte>(decodingTable[bufin[0]] << 2 | decodingTable[bufin[1]] >> 4));
+        if (!res)
+            return Err(res.moveError());
     }
     if (nprbytes > 2) {
-        dest << static_cast<byte>(decodingTable[bufin[1]] << 4 | decodingTable[bufin[2]] >> 2);
+        auto res = dest.write(static_cast<byte>(decodingTable[bufin[1]] << 4 | decodingTable[bufin[2]] >> 2));
+        if (!res)
+            return Err(res.moveError());
     }
     if (nprbytes > 3) {
-        dest << static_cast<byte>(decodingTable[bufin[2]] << 6 | decodingTable[bufin[3]]);
+        auto res = dest.write(static_cast<byte>(decodingTable[bufin[2]] << 6 | decodingTable[bufin[3]]));
+        if (!res)
+            return Err(res.moveError());
     }
 
     return Ok();

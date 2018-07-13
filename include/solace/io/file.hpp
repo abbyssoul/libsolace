@@ -25,7 +25,6 @@
 #define SOLACE_IO_FILE_HPP
 
 #include "solace/ioobject.hpp"
-#include "solace/byteBuffer.hpp"
 #include "solace/path.hpp"
 
 
@@ -103,7 +102,7 @@ public:
 	};
 
 
-	typedef ssize_t size_type;
+    using size_type = ssize_t;
 	using ISelectable::poll_id;
 
 public:
@@ -141,7 +140,7 @@ public:
     /**
      * Default virtual distructor of file types.
      */
-	virtual ~File();
+     ~File() override;
 
     File& operator= (const File&) = delete;
 

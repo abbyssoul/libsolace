@@ -106,7 +106,7 @@ public:
 
             f->seek(0, File::Seek::Set);
 
-            ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
+            WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
             const auto read = f->read(readBuffer);
             CPPUNIT_ASSERT(read.isOk());
             const MemoryView::size_type bytesRead = read.unwrap();
@@ -138,7 +138,7 @@ public:
             f->write(fileUIDBytes);
             f->close();
 
-            ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
+            WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
             CPPUNIT_ASSERT_THROW(f->seek(0, File::Seek::Set), NotOpen);
             CPPUNIT_ASSERT_THROW(f->read(readBuffer), NotOpen);
         }
@@ -152,7 +152,7 @@ public:
         {
             auto f = fs.open(filename);
 
-            ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
+            WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
             const auto read = f->read(readBuffer);
             CPPUNIT_ASSERT(read.isOk());
             const MemoryView::size_type bytesRead = read.unwrap();
@@ -221,7 +221,7 @@ public:
 
             f->seek(0, File::Seek::Set);
 
-            ByteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
+            WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
             const auto read = f->read(readBuffer);
             CPPUNIT_ASSERT(read.isOk());
             const MemoryView::size_type bytesRead = read.unwrap();

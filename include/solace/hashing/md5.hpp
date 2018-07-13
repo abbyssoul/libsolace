@@ -39,7 +39,8 @@ namespace hashing {
  * Please @see Sha3 for a better option of hash function.
  *
  */
-class MD5 : public HashingAlgorithm {
+class MD5 :
+        public HashingAlgorithm {
 public:
     using HashingAlgorithm::size_type;
 
@@ -52,8 +53,6 @@ public:
 public:
 
     using HashingAlgorithm::update;
-
-    ~MD5() = default;
 
     MD5();
 
@@ -74,7 +73,7 @@ public:
      * @param input A memory view to read data from.
      * @return A reference to self for a fluent interface.
      */
-    HashingAlgorithm& update(const ImmutableMemoryView& input) override;
+    HashingAlgorithm& update(ImmutableMemoryView input) override;
 
     /*
      * Completes the hash computation by performing final operations such as padding.

@@ -38,7 +38,7 @@ class TestBase16: public CppUnit::TestFixture  {
 
         CPPUNIT_TEST(decodingInvalidInputThrows);
         CPPUNIT_TEST(decodingInputOfUnEvenSizeThrows);
-        CPPUNIT_TEST(decodingIntoSmallerBufferThrowsOverflow);
+        CPPUNIT_TEST(decodingIntoSmallerBufferErrors);
 
         CPPUNIT_TEST(testBasicEncodingIterator);
         CPPUNIT_TEST(testDecodingIterator);
@@ -71,8 +71,7 @@ public:
 
     void testBasicEncoding() {
         byte buffer[80];
-        ByteBuffer dest(wrapMemory(buffer));
-
+        WriteBuffer dest(wrapMemory(buffer));
         Base16Encoder encoder(dest);
 
         const char* srcMem = "foobar";
@@ -134,7 +133,7 @@ public:
 
     void testBasicDecoding() {
         byte buffer[80];
-        ByteBuffer dest(wrapMemory(buffer));
+        WriteBuffer dest(wrapMemory(buffer));
 
         Base16Decoder decoder(dest);
 
@@ -225,7 +224,7 @@ public:
 
     void decodingInvalidInputThrows() {
         byte buffer[30];
-        ByteBuffer dest(wrapMemory(buffer));
+        WriteBuffer dest(wrapMemory(buffer));
         Base16Decoder v(dest);
 
         CPPUNIT_ASSERT(v.encode(wrapMemory("some! Not base16 (c)", 18)).isError());
@@ -233,19 +232,19 @@ public:
 
     void decodingInputOfUnEvenSizeThrows() {
         byte buffer[30];
-        ByteBuffer dest(wrapMemory(buffer));
+        WriteBuffer dest(wrapMemory(buffer));
         Base16Decoder v(dest);
 
         CPPUNIT_ASSERT(v.encode(wrapMemory("666F6F626172", 11)).isError());
         CPPUNIT_ASSERT(v.encode(wrapMemory("666F6F626172", 9)).isError());
     }
 
-    void decodingIntoSmallerBufferThrowsOverflow() {
+    void decodingIntoSmallerBufferErrors() {
         byte buffer[3];
-        ByteBuffer dest(wrapMemory(buffer));
+        WriteBuffer dest(wrapMemory(buffer));
         Base16Decoder v(dest);
 
-        CPPUNIT_ASSERT_THROW(v.encode(wrapMemory("666F6F626172", 12)), Solace::OverflowException);
+        CPPUNIT_ASSERT(v.encode(wrapMemory("666F6F626172", 12)).isError());
     }
 };
 

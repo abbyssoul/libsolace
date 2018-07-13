@@ -62,7 +62,7 @@ public:
      * @param input A memory view to read data from.
      * @return A reference to self for a fluent interface.
      */
-    HashingAlgorithm& update(const ImmutableMemoryView& input) override;
+    HashingAlgorithm& update(ImmutableMemoryView input) override;
 
     /*
      * Completes the hash computation by performing final operations such as padding.
@@ -108,7 +108,7 @@ public:
      * @param input A memory view to read data from.
      * @return A reference to self for a fluent interface.
      */
-    HashingAlgorithm& update(const ImmutableMemoryView& input) override;
+    HashingAlgorithm& update(ImmutableMemoryView input) override;
 
     /*
      * Completes the hash computation by performing final operations such as padding.
@@ -117,8 +117,8 @@ public:
     MessageDigest digest() override;
 
 private:
-    uint32  _seed;
     uint64  _hash[2];
+    uint32  _seed;
 };
 
 

@@ -83,7 +83,7 @@ int main(int argc, const char **argv) {
         std::cout << "press ^C to quit" << std::endl;
 
         MemoryManager memManager(2048);
-        ByteBuffer readBuffer(memManager.create(bufferSize));
+        WriteBuffer readBuffer(memManager.create(bufferSize));
         auto selector = IO::Selector::createPoll(2);
         selector.add(&serial,   IO::Selector::Events::Read |
                                 IO::Selector::Events::Error);
@@ -99,7 +99,7 @@ int main(int argc, const char **argv) {
                         std::cout.write(dataView.dataAs<const char>(), dataView.size());
                         std::cout.flush();
 
-                        readBuffer.rewind();
+                        readBuffer.clear();
                     } else {
                         std::cout << "Serial port signaled as ready but no bytes read: " << bytesRead.getError().toString() << ". Aborting." << std::endl;
                         keepOnRunning = false;

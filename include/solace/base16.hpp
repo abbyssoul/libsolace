@@ -38,7 +38,7 @@ public:
 
 public:
 
-    Base16Encoder(ByteBuffer& dest) :
+    Base16Encoder(WriteBuffer& dest) :
         Encoder(dest)
     {}
 
@@ -98,7 +98,7 @@ public:
 
 public:
 
-    Base16Decoder(ByteBuffer& dest) :
+    Base16Decoder(WriteBuffer& dest) :
         Encoder(dest)
     {}
 

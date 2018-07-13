@@ -59,7 +59,7 @@ public:
         _disposer(disposer)
     {}
 
-    MemoryBuffer(MemoryBuffer&& rhs)  :
+    MemoryBuffer(MemoryBuffer&& rhs) noexcept :
         _data(std::move(rhs._data)),
         _disposer(std::exchange(rhs._disposer, nullptr))
     {

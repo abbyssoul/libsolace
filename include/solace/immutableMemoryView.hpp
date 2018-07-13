@@ -38,14 +38,15 @@ namespace Solace {
 bool isBigendian() noexcept;
 
 
-/* Fixed-length raw memory buffer/memory view.
- * This is a very thin abstruction on top of raw memory address -
- * it remembers memory block size and associated deallocator to free the memory if there is any.
+/* Read-only view into a fixed-length raw memory buffer.
+ * A very thin abstruction on top of raw memory address -
+ * it remembers memory block address and size.
  *
- * View has a value semantic and gives user random access to the undelying memory.
+ * View has a value semantic and gives a user random access to the undelying memory.
  * Howeevr ImmutableMemoryView does not allow for modification of underlaying values - it is read-only.
+ *
  * For a mutable access please use @see MemoryView
- * For the stream semantic please @see ByteBuffer
+ * For the stream semantic please @see ReadBuffer
  */
 class ImmutableMemoryView {
 public:
@@ -60,7 +61,7 @@ public:
 
 public:
 
-    /** Deallocate memory... maybe */
+    /** Destroy the view. No memory will be actually free. */
     ~ImmutableMemoryView() = default;
 
     /** Construct an empty memory view */
