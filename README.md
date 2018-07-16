@@ -153,18 +153,16 @@ Given the language of choice library is designed with the idea that exceptions c
 
 
 ## Dependencies
-The project only external dependency managed via `git submodule`:
+The project's external dependency managed via `git submodule`:
 * [fmt](https://github.com/fmtlib/fmt) - C++ Format is an open-source formatting library for C++ [More info](http://fmtlib.net/latest/index.html)
+* [GTest](https://github.com/google/googletest) - Google's C++ test framework
 
 
 ## Testing
-The library is equipped with the [cppunit](https://sourceforge.net/projects/cppunit/) test suit.
-The source code for unit test located is in:
-```
-./test
-```
+The library is equipped with the [GTest](https://github.com/google/googletest) test suit.
+The source code for unit test located in directory [test](test)
 
-Test can (and should) be run via:
+Tests can (and should) be run via:
 ```shell
 make test
 ```
@@ -197,9 +195,9 @@ make verify
 * [NSPR](https://developer.mozilla.org/en-US/docs/Mozilla/Projects/NSPR)
 * [APR](http://apr.apache.org/)
 * [SDL](http://www.libsdl.org/)
-* [Qt(Core)](http://doc.qt.nokia.com/)
 * [Marmalade](http://www.madewithmarmalade.com/marmalade)
 * [GLibMM](http://developer.gnome.org/glibmm/)
+* [Qt(Core)](http://doc.qt.nokia.com/)
 
 
 ## Licensing

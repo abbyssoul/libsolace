@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.3)
 project(solace)
 
 include(CheckCXXCompilerFlag)
@@ -52,7 +52,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wold-style-cast")
 
 
 # FIXME(abbyssoul): fmt produces too much noise with '-Wswitch-enum'
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat-security -Wmissing-format-attribute")
+# Not friendly to GTest: -Wmissing-format-attribute")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat-security")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++ ")
 
 
@@ -131,6 +133,8 @@ endif()
 # Build project dependencies (should be removed eventually)
 set(FMT_USE_CPP11 OFF CACHE BOOL "Don't add std by fmt" FORCE)
 add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
+
+add_subdirectory(external/gtest/googletest EXCLUDE_FROM_ALL)
 
 include_directories(include)
 
