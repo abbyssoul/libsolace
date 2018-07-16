@@ -75,7 +75,7 @@ public:
 
         if (_result.isSome()) {
             (*_completionHandler)(_result.move());
-            _result = None();
+            _result = none;
             _completionHandler.reset();
         }
     }

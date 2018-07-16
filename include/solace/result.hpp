@@ -556,7 +556,7 @@ public:
      * @param err Err value to copy from
      */
     Result(const types::Err<E>& err):
-        _maybeError(Optional<E>::of(err.val_))
+        _maybeError(err.val_)
     {}
 
     /**
@@ -564,7 +564,7 @@ public:
      * @param err Err value to move from
      */
     Result(types::Err<E>&& err):
-        _maybeError(Optional<E>::of(std::move(err.val_)))
+        _maybeError(std::move(err.val_))
     {}
 
     /**

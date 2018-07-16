@@ -94,31 +94,36 @@ String::value_type String::charAt(size_type index) const {
     return Char(_str[index]);
 }
 
-Optional<String::size_type> String::indexOf(const String& str, size_type fromIndex) const {
+
+Optional<String::size_type>
+String::indexOf(const String& str, size_type fromIndex) const {
     const auto index = _str.find(str._str, fromIndex);
 
     return (index != std::string::npos)
-            ? Optional<size_type>::of(index)
-            : Optional<size_type>::none();
+            ? Optional<size_type>(index)
+            : none;
 }
 
-Optional<String::size_type> String::indexOf(const value_type& ch, size_type fromIndex) const {
+Optional<String::size_type>
+String::indexOf(const value_type& ch, size_type fromIndex) const {
     const auto index = _str.find(ch.getValue(), fromIndex);
 
     return (index != std::string::npos)
-            ? Optional<size_type>::of(index)
-            : Optional<size_type>::none();
+            ? Optional<size_type>(index)
+            : none;
 }
 
-Optional<String::size_type> String::indexOf(const char* str, size_type fromIndex) const {
+Optional<String::size_type>
+String::indexOf(const char* str, size_type fromIndex) const {
     const auto index = _str.find(str, fromIndex);
 
     return (index != std::string::npos)
-            ? Optional<size_type>::of(index)
-            : Optional<size_type>::none();
+            ? Optional<size_type>(index)
+            : none;
 }
 
-Optional<String::size_type> String::lastIndexOf(const String& str, size_type fromIndex) const {
+Optional<String::size_type>
+String::lastIndexOf(const String& str, size_type fromIndex) const {
     const auto thisSize = size();
 
     std::string::size_type index = fromIndex;
@@ -131,11 +136,12 @@ Optional<String::size_type> String::lastIndexOf(const String& str, size_type fro
     }
 
     return (lastIndex != std::string::npos)
-            ? Optional<size_type>::of(lastIndex)
-            : Optional<size_type>::none();
+            ? Optional<size_type>(lastIndex)
+            : none;
 }
 
-Optional<String::size_type> String::lastIndexOf(const value_type& ch, size_type fromIndex) const {
+Optional<String::size_type>
+String::lastIndexOf(const value_type& ch, size_type fromIndex) const {
     const auto thisSize = size();
 
     const auto chSize = ch.getBytesCount();
@@ -148,11 +154,12 @@ Optional<String::size_type> String::lastIndexOf(const value_type& ch, size_type 
     }
 
     return (lastIndex != std::string::npos)
-            ? Optional<size_type>::of(lastIndex)
-            : Optional<size_type>::none();
+            ? Optional<size_type>(lastIndex)
+            : none;
 }
 
-Optional<String::size_type> String::lastIndexOf(const char* str, size_type fromIndex) const {
+Optional<String::size_type>
+String::lastIndexOf(const char* str, size_type fromIndex) const {
     const auto thisSize = size();
     const auto strLen = strlen(str);
 
@@ -165,8 +172,8 @@ Optional<String::size_type> String::lastIndexOf(const char* str, size_type fromI
     }
 
     return (lastIndex != std::string::npos)
-            ? Optional<size_type>::of(lastIndex)
-            : Optional<size_type>::none();
+            ? Optional<size_type>(lastIndex)
+            : none;
 }
 
 String String::concat(const String& str) const {

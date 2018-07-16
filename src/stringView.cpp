@@ -71,11 +71,11 @@ StringView::indexOf(const value_type& ch, size_type fromIndex) const {
 
     for (; fromIndex < size(); ++fromIndex) {
         if (_data[fromIndex] == ch) {
-            return Optional<size_type>::of(fromIndex);
+            return Optional<size_type>(fromIndex);
         }
     }
 
-    return None();
+    return none;
 }
 
 Optional<StringView::size_type>
@@ -83,17 +83,17 @@ StringView::indexOf(const StringView& str, size_type fromIndex) const {
     assertIndexInRange(fromIndex,  0,  size() + 1, "StringView::indexOf() const");
 
     if (size() < str.size()) {
-        return None();
+        return none;
     }
 
     for (; fromIndex + str.size() < size() + 1; ++fromIndex) {
         if (_data[fromIndex] == str._data[0] &&
             substring(fromIndex, str.length()) == str) {
-            return Optional<size_type>::of(fromIndex);
+            return Optional<size_type>(fromIndex);
         }
     }
 
-    return None();
+    return none;
 }
 
 
@@ -105,7 +105,7 @@ StringView::lastIndexOf(const value_type& ch, size_type fromIndex) const {
     Optional<size_type> result;
     for (; fromIndex < size(); ++fromIndex) {
         if (_data[fromIndex] == ch) {
-            result = Optional<size_type>::of(fromIndex);
+            result = Optional<size_type>(fromIndex);
         }
     }
 
@@ -117,14 +117,14 @@ StringView::lastIndexOf(const StringView& str, size_type fromIndex) const {
     assertIndexInRange(fromIndex,  0,  size() + 1, "StringView::lastIndexOf() const");
 
     if (size() < str.size()) {
-        return None();
+        return none;
     }
 
     Optional<size_type> result;
     for (; fromIndex + str.size() < size() + 1; ++fromIndex) {
         if (_data[fromIndex] == str._data[0] &&
             substring(fromIndex, str.length()) == str) {
-            result = Optional<size_type>::of(fromIndex);
+            result = Optional<size_type>(fromIndex);
         }
     }
 

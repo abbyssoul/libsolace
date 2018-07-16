@@ -48,7 +48,7 @@ const char Parser::DefaultValueSeparator = '=';
 template <typename... Args>
 Optional<Error>
 formatOptionalError(const char* fmt, Args&&... values) {
-    return Optional<Error>::of(Error{fmt::format(fmt, std::forward<Args>(values)...), 1});
+    return Optional<Error>{in_place, fmt::format(fmt, std::forward<Args>(values)...)};
 }
 
 
@@ -60,10 +60,10 @@ parseIntArgument(T* dest, StringView const& value, const Parser::Context&) {
 
     if (val) {
         *dest = static_cast<T>(val.unwrap());
-        return None();
+        return none;
     } else {
         // TODO(abbyssoul): Result::getError() must return Optional<Error>
-        return Optional<Error>::of(val.moveError());
+        return Optional<Error>(val.moveError());
     }
 }
 
@@ -75,10 +75,10 @@ parseBoolean(bool* dest, StringView value) {
 
     if (val) {
         *dest = val.unwrap();
-        return None();
+        return none;
     } else {
         // TODO(abbyssoul): Result::getError() must return Optional<Error>
-        return Optional<Error>::of(val.moveError());
+        return Optional<Error>(val.moveError());
     }
 }
 
@@ -88,7 +88,7 @@ Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral
            [dest](Optional<StringView> const& value, Context const&) -> Optional<Error> {
         *dest = value.get();
 
-        return None();
+        return none;
     })
 {
 }
@@ -174,7 +174,7 @@ Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral
 
         *dest = static_cast<float32>(val);
 
-        return None();
+        return none;
     })
 {
 }
@@ -192,7 +192,7 @@ Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral
 
         *dest = static_cast<float64>(val);
 
-        return None();
+        return none;
     })
 {
 }
@@ -206,7 +206,7 @@ Parser::Option::Option(std::initializer_list<StringLiteral> names, StringLiteral
          } else {
              *dest = true;
 
-             return None();
+             return none;
          }
     })
 {
@@ -277,7 +277,7 @@ Parser::Argument::Argument(StringLiteral name, StringLiteral description, float3
 
         return (!pEnd || pEnd == value.data())
                 ? formatOptionalError("Argument '{}' is not float32 value: '{}'", context.name, value)
-                : None();
+                : none;
     })
 {
 }
@@ -292,7 +292,7 @@ Parser::Argument::Argument(StringLiteral name, StringLiteral description, float6
 
         return (!pEnd || pEnd == value.data())
                 ? formatOptionalError("Argument '{}' is not float64 value: '{}'", context.name, value)
-                : None();
+                : none;
     })
 {
 }
@@ -305,7 +305,7 @@ Parser::Argument::Argument(StringLiteral name, StringLiteral description, bool* 
 
 
 Parser::Argument::Argument(StringLiteral name, StringLiteral description, StringView* dest) :
-    Argument(name, description, [dest](StringView value, Context const&) { *dest = value; return None(); })
+    Argument(name, description, [dest](StringView value, Context const&) { *dest = value; return none; })
 {
 }
 
@@ -379,7 +379,7 @@ parseOption(StringView arg, char prefix, char valueSeparator) {
 
     const StringView::size_type startIndex = (arg.substring(1).startsWith(prefix)) ? 2 : 1;
     if (startIndex >= arg.length()) {
-        return std::make_pair(StringView(), None());
+        return std::make_pair(StringView(), none);
     }
 
     StringView::size_type endIndex = startIndex;
@@ -390,9 +390,9 @@ parseOption(StringView arg, char prefix, char valueSeparator) {
 
     if (endIndex < arg.length())
         return std::make_pair(arg.substring(startIndex, endIndex - startIndex),
-                        Optional<StringView>::of(arg.substring(endIndex + 1)));
+                        Optional<StringView>(arg.substring(endIndex + 1)));
     else
-        return std::make_pair(arg.substring(startIndex), None());
+        return std::make_pair(arg.substring(startIndex), none);
 }
 
 
@@ -455,7 +455,7 @@ parseOptions(const Parser::Context& cntx,
                 numberMatched += 1;
 
                 auto r = option.match((option.getArgumentExpectations() == Parser::OptionArgument::NotRequired)
-                                                    ? Optional<StringView>::none()
+                                                    ? none
                                                     : argValue,
                                       optCntx);
                 if (r.isSome()) {
@@ -615,7 +615,7 @@ Parser::printVersion(StringView appName, Version const& appVersion) {
 
             printer(std::cout);
 
-            return None();
+            return none;
         }
     };
 }
@@ -642,11 +642,11 @@ Parser::Parser::printHelp() {
                             cmdIt->first,
                             cmdIt->second);
                 } else {
-                    return Optional<Error>::of(Error("Unknown command"));
+                    return Optional<Error>(Error("Unknown command"));
                 }
             }
 
-            return None();
+            return none;
         }
     };
 }

@@ -97,7 +97,7 @@ ImmutableMemoryView::viewImmutableShallow() const {
 }
 
 
-std::ostream& operator<< (std::ostream& ostr, ImmutableMemoryView const& view) {
+std::ostream& Solace::operator<<(std::ostream& ostr, ImmutableMemoryView const& view) {
     if (view.size() > 0) {
         // We use custom output printing each byte as \0 bytest and \n are not printable otherwise.
         auto i = base16Encode_begin(view);

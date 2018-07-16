@@ -233,11 +233,11 @@ public:
         auto it = begin();
         for (size_type i = 0; i < len; ++i, ++it) {
             if (value == *it) {
-                return Optional<size_type>::of(i);
+                return Optional<size_type>(i);
             }
         }
 
-        return None();
+        return none;
     }
 
     ArrayView<const T> asConst() const noexcept {

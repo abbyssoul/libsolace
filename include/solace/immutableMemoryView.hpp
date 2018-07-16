@@ -47,6 +47,11 @@ bool isBigendian() noexcept;
  *
  * For a mutable access please use @see MemoryView
  * For the stream semantic please @see ReadBuffer
+ *
+ * Class invariant:
+ *  * if (a.size() > 0) => (a.dataAddress() != nullptr)
+ *  * if (a.dataAddress() == nullptr) => (a.size() == 0)
+ *
  */
 class ImmutableMemoryView {
 public:
@@ -64,8 +69,18 @@ public:
     /** Destroy the view. No memory will be actually free. */
     ~ImmutableMemoryView() = default;
 
-    /** Construct an empty memory view */
+    /**
+     * Construct an empty memory view with:
+     *  size == 0 and dataAddress == nullptr
+     */
     constexpr ImmutableMemoryView() noexcept = default;
+
+    /**
+     * Construct an empty memory view with:
+     *  size == 0 and dataAddress == nullptr
+     */
+    constexpr ImmutableMemoryView(decltype(nullptr)) noexcept
+    {}
 
     /**
      * Construct an memory view from a data ptr and a size

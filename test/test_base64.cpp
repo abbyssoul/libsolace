@@ -23,26 +23,7 @@
 #include <solace/exception.hpp>
 #include <cppunit/extensions/HelperMacros.h>
 
-#include <string.h>
-
-
-namespace Solace {
-
-std::ostream& operator<< (std::ostream& ostr, const ImmutableMemoryView& view) {
-    if (view.size() > 0) {
-        // We use custom output printing each byte as \0 bytest and \n are not printable otherwise.
-        for (const auto& b : view) {
-            ostr << std::hex << static_cast<int>(b);
-            ostr << ", ";
-        }
-    } else {
-        ostr << "<null>";
-    }
-
-    return ostr;
-}
-
-}  // endof namespace Solace
+#include <cstring>
 
 
 using namespace Solace;

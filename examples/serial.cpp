@@ -59,10 +59,10 @@ int main(int argc, const char **argv) {
                             [&file](const StringView& value, const cli::Parser::Context&) -> Optional<Error> {
                                 auto result = Path::parse(value);
                                 if (!result) {
-                                    return Optional<Error>::of(result.moveError());
+                                    return Optional<Error>(result.moveError());
                                 } else {
                                     file = result.moveResult();
-                                    return None();
+                                    return none;
                                 }
                            }
                         }})

@@ -107,9 +107,9 @@ StringBuilder::indexOf(const Char& ch, size_type fromIndex) const {
         reader.read(i, b, ch.getBytesCount());
 
         if (ch.equals(b)) {
-            return Optional<size_type>::of(i);
+            return Optional<size_type>(i);
         }
     }
 
-    return None();
+    return none;
 }

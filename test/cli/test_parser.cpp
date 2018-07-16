@@ -473,7 +473,7 @@ public:
                            customCalled = true;
                            zValue = value.get();
 
-                           return None();
+                           return none;
                        }}
                   })
                 .parse(countArgc(argv), argv)
@@ -504,7 +504,7 @@ public:
                            customCalled = true;
                            zValue = value.get();
 
-                           return None();
+                           return none;
                        }}
                   })
                 .parse(countArgc(argv), argv)
@@ -533,7 +533,7 @@ public:
                            customCalled = true;
                            zValue = value.get();
 
-                           return None();
+                           return none;
                        }}
                   })
                 .parse(countArgc(argv), argv);
@@ -558,7 +558,7 @@ public:
                                [&customCalled](const Optional<StringView>&, const Parser::Context&) {
                                    customCalled = true;
 
-                                   return None();
+                                   return none;
                                } }
                           })
                 .parse(countArgc(argv), argv)
@@ -587,7 +587,7 @@ public:
                                    customCalled = true;
                                    zVal = val.isSome();
 
-                                   return None();
+                                   return none;
                                } }
                           })
                 .arguments({{"arg", "arg sink", &argStr}})
@@ -690,13 +690,13 @@ public:
                 .options({
                               {{"i", "intValue"}, "Value",
                                Parser::OptionArgument::Required,
-                               [&vValue](const Optional<StringView>& value, const Parser::Context&) {
+                               [&vValue](const Optional<StringView>& value, const Parser::Context&) -> Optional<Error>{
                                    auto res = tryParse<int>(value.get());
                                    if (res) {
                                         vValue += res.unwrap();
-                                        return Optional<Error>::none();
+                                        return none;
                                    } else {
-                                       return Optional<Error>::of(res.moveError());
+                                       return Optional<Error>(res.moveError());
                                    }
                                }},
                               {{"v"}, "Useless value", &unusedValue}
@@ -869,7 +869,7 @@ public:
                         nbTimesInvoked += 1;
                         lastTrailingArg = v;
 
-                        return None();
+                        return none;
                     }}
                 })
                 .parse(countArgc(argv), argv);
@@ -889,7 +889,7 @@ public:
                    {"*", "Input", [&nbTimesInvoked](StringView, const Parser::Context&) -> Optional<Error>
                     {
                         nbTimesInvoked += 1;
-                        return None();
+                        return none;
                     }}
                 })
                 .parse(countArgc(argv), argv);
@@ -908,7 +908,7 @@ public:
                    {"*", "Input", [&nbTimesInvoked](StringView, const Parser::Context&) -> Optional<Error>
                     {
                         nbTimesInvoked += 1;
-                        return None();
+                        return none;
                     }}
                 })
                 .parse(countArgc(argv), argv);
@@ -932,7 +932,7 @@ public:
                    {"*", "Input", [&nbTimesInvoked](StringView, const Parser::Context&) -> Optional<Error>
                     {
                         nbTimesInvoked += 1;
-                        return None();
+                        return none;
                     }}
                 })
                 .parse(countArgc(argv), argv);
@@ -962,7 +962,7 @@ public:
                         nbTimesInvoked += 1;
                         lastTrailingArg = v;
 
-                        return None();
+                        return none;
                     }}
                 })
                 .parse(countArgc(argv), argv);

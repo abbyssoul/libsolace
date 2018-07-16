@@ -24,9 +24,11 @@
 #include "solace/process/env.hpp"
 #include "solace/exception.hpp"
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
+
 #include <unistd.h>
+
 
 using namespace Solace;
 using namespace Solace::Process;
@@ -90,9 +92,7 @@ Env::Var Env::Iterator::operator-> () const {
 }
 
 
-Env::Env() {
-
-}
+Env::Env() = default;
 
 
 Optional<String> Env::get(const String& name) const {
@@ -104,8 +104,8 @@ Optional<String> Env::get(const String& name) const {
     #endif
 
     return (value)
-            ? Optional<String>::of(value)
-            : None();
+            ? Optional<String>(value)
+            : none;
 }
 
 

@@ -39,6 +39,28 @@
 
 namespace Solace {
 
+struct InPlace {
+    explicit InPlace() = default;
+};
+
+/*inline*/ constexpr InPlace in_place{};
+
+/**
+ * A type to represent empty option of any type.
+ */
+struct None {
+    // Used for constructing nullopt.
+    enum class _Construct { _Token };
+
+    // Must be constexpr for nullopt_t to be literal.
+    explicit constexpr None(_Construct) { }
+};
+
+
+/// Tag to disengage optional objects.
+/*inline*/ constexpr None none { None::_Construct::_Token };
+
+
 
 /** Optional monad
  * One can think of optional as a list that contains at most 1 item but can be empty as well.
@@ -58,20 +80,6 @@ public:
 
 public:
 
-    static Optional<T> none() {
-        return Optional<T>();
-    }
-
-    static Optional<T> of(T const& t) noexcept(std::is_nothrow_copy_constructible<T>::value) {
-        return Optional<T>(t);
-    }
-
-    static Optional<T> of(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value) {
-        return Optional<T>(std::move(t));
-    }
-
-public:
-
     ~Optional() {
         destroy();
     }
@@ -80,8 +88,12 @@ public:
     /**
      * Construct an new empty optional value.
      */
-    Optional() :
-        _empty{}
+    constexpr Optional()
+        : _empty{}
+    {}
+
+    constexpr Optional(None) noexcept
+        : _empty{}
     {}
 
 
@@ -111,6 +123,9 @@ public:
     /**
      * Construct an non-empty optional value by copying-value.
      */
+//    template<typename D,
+//             typename unused = std::enable_if_t<std::is_copy_assignable<T>::value, void>
+//             >
     Optional(T const& t) noexcept(std::is_nothrow_copy_constructible<T>::value) :
         _payload{t},
         _engaged{true}
@@ -123,6 +138,15 @@ public:
     Optional(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value) :
         _payload{std::move(t)},
         _engaged{true}
+    {}
+
+    /**
+     * Construct an non-empty optional in place.
+     */
+    template<typename ...ARGS>
+    explicit Optional(InPlace, ARGS&&... args) noexcept(std::is_nothrow_move_constructible<T>::value)
+        : _payload{std::forward<ARGS>(args)...}
+        , _engaged{true}
     {}
 
 
@@ -148,11 +172,19 @@ public:
         return (*this);
     }
 
-    Optional<T>& operator= (Optional<T>&& rhs) noexcept {
+
+    Optional<T>& operator= (None) noexcept {
+        destroy();
+
+        return *this;
+    }
+
+
+    Optional<T>& operator= (Optional<T>&& rhs) noexcept(std::is_nothrow_move_constructible<T>::value) {
         return swap(rhs);
     }
 
-    Optional<T>& operator= (T&& rhs) noexcept {
+    Optional<T>& operator= (T&& rhs) noexcept(std::is_nothrow_move_constructible<T>::value) {
         destroy();
         construct(std::move(rhs));
 
@@ -203,16 +235,16 @@ public:
               typename U = typename std::result_of<F(T&)>::type>
     Optional<U> map(F&& f) {
         return (isSome())
-                ? Optional<U>::of(f(_payload))
-                : Optional<U>::none();
+                ? Optional<U>(f(_payload))
+                : none;
     }
 
     template <typename F,
               typename U = typename std::result_of<F(T)>::type>
     Optional<U> map(F&& f) const {
         return (isSome())
-                ? Optional<U>::of(f(_payload))
-                : Optional<U>::none();
+                ? Optional<U>(f(_payload))
+                : none;
     }
 
 
@@ -220,7 +252,7 @@ public:
     Optional<U> flatMap(std::function<Optional<U> (T const&)> const& f) const {
         return (isSome())
                 ? f(_payload)
-                : Optional<U>::none();
+                : none;
     }
 
     template <typename F>
@@ -233,7 +265,7 @@ public:
 protected:
 
 
-    bool construct(T const& t) {
+    constexpr bool construct(T const& t) noexcept(std::is_nothrow_copy_constructible<T>::value) {
         ::new (reinterpret_cast<void *>(std::addressof(_payload))) Stored_type(t);
 
         _engaged = true;
@@ -241,7 +273,7 @@ protected:
         return _engaged;
     }
 
-    bool construct(T&& t) {
+    constexpr bool construct(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value) {
         ::new (reinterpret_cast<void *>(std::addressof(_payload))) Stored_type(std::move(t));
 
         _engaged = true;
@@ -249,12 +281,10 @@ protected:
         return _engaged;
     }
 
-    void destroy() {
+    constexpr void destroy() {
         if (_engaged) {
             _engaged = false;
             _payload.~Stored_type();
-        } else {
-            _empty.~Empty_type();
         }
     }
 
@@ -278,21 +308,18 @@ private:
 
 
 template <typename T>
-Optional<T> Optional<T>::_emptyInstance = Optional<T>::none();
+Optional<T> Optional<T>::_emptyInstance {none};
 
 
-/** "None" is a syntactic sugar for options
- * None type can be converted to any Optional<T>::none()
- */
-class None {
-public:
+template<typename T>
+bool operator== (Optional<T> const& a, None) {
+    return a.isNone();
+}
 
-    template <typename T>
-    operator Optional<T> () const {
-        return Optional<T>::none();
-    }
-
-};
+template<typename T>
+bool operator== (None, Optional<T> const& a) {
+    return a.isNone();
+}
 
 
 template<typename T>
