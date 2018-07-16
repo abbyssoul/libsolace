@@ -21,13 +21,14 @@
  *	ID:			$Id: $
  ******************************************************************************/
 #include "solace/error.hpp"
-#include "solace/string.hpp"
+//#include "solace/string.hpp"
 
 
 using namespace Solace;
 
 
 
-String Error::toString() const {
-    return _message;
+StringView Error::toString() const {
+    // FIXME(abbyssoul): This is just a shitty engineering
+    return StringView{_message.c_str(), static_cast<StringView::size_type>(_message.size())};
 }

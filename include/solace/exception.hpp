@@ -26,7 +26,7 @@
 #define SOLACE_EXCEPTION_HPP
 
 #include "solace/types.hpp"
-#include "solace/traits/iformattable.hpp"
+#include "solace/stringView.hpp"
 
 /* TODO(abbyssoul):
 #if defined(SOLACE_DEBUG)
@@ -43,8 +43,8 @@ namespace Solace {
 /** Base of exceptions hierarchy.
  *
  */
-class Exception :   public IFormattable,
-                    public std::exception {
+class Exception :
+        public std::exception {
 public:
 
     //! Construct exception w. message
@@ -54,15 +54,15 @@ public:
 
     Exception(Exception&& other) noexcept;
 
-    virtual ~Exception() noexcept = default;
+     ~Exception() noexcept override = default;
 
-    virtual String getMessage() const noexcept;
+    virtual StringView getMessage() const noexcept;
 
     //! std - compatible message:
     const char* what() const noexcept override;
 
     //! Get message description of the exception.
-    String toString() const override;
+    StringView toString() const;
 
 private:
 

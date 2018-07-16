@@ -24,6 +24,7 @@
 #include "solace/immutableMemoryView.hpp"
 #include "solace/exception.hpp"
 
+#include "solace/base16.hpp"    //  For operator<<
 
 #include <cstring>  // memcpy
 #include <utility>
@@ -93,4 +94,20 @@ ImmutableMemoryView::slice(size_type from, size_type to) const {
 ImmutableMemoryView
 ImmutableMemoryView::viewImmutableShallow() const {
     return wrapMemory(dataAddress(), size());
+}
+
+
+std::ostream& operator<< (std::ostream& ostr, ImmutableMemoryView const& view) {
+    if (view.size() > 0) {
+        // We use custom output printing each byte as \0 bytest and \n are not printable otherwise.
+        auto i = base16Encode_begin(view);
+        auto end = base16Encode_end(view);
+        for (; i != end; ++i) {
+            ostr << *i;
+        }
+    } else {
+        ostr << "<null>";
+    }
+
+    return ostr;
 }

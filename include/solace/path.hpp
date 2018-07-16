@@ -82,15 +82,17 @@ public:  // Static methods
         return lhs.join(rhs);
     }
 
-    static Path join(const Path& lhs, const StringView& rhs) {
+    static Path join(const Path& lhs, StringView rhs) {
         return lhs.join(rhs);
     }
 
-    static Path join(std::initializer_list<Path> paths);
+    static Path join(Path const& base, std::initializer_list<Path> paths);
 
-    static Path join(std::initializer_list<String> paths);
+    static Path join(Path const& base, std::initializer_list<String> paths);
 
-    static Path join(std::initializer_list<StringView> paths);
+    static Path join(Path const& base, std::initializer_list<StringView> paths);
+
+    static Path join(Path const& base, std::initializer_list<const char*> paths);
 
     /**
      * Parse a path object from a string.
@@ -102,7 +104,7 @@ public:  // Static methods
      * TODO: Parse family of functions should return Result<Path, ParseError>
      */
     static Result<Path, Error>
-    parse(const StringView& str, const StringView& delim = Delimiter);
+    parse(StringView str, StringView delim = Delimiter);
 
 public:  // Object construction
 
@@ -142,17 +144,28 @@ public:  // Object construction
      *
      * @note The string is is parsed into component, please use Path::parse
      */
-    Path(const String& str): _components({str}) {
+    explicit Path(const String& str): _components({str}) {
         // No-op
     }
 
-    Path(const std::initializer_list<Path>& components): Path(Path::join(components)) {
+    explicit Path(StringView str): _components({str}) {
         // No-op
     }
 
-    Path(const std::initializer_list<String>& components): _components(components) {
+    explicit Path(char const* str): Path(StringView{str}) {
         // No-op
     }
+
+    Path(std::initializer_list<String> components): _components(components) {
+        // No-op
+    }
+
+    Path(std::initializer_list<Path> components);
+
+
+    Path(std::initializer_list<StringView> components);
+
+    Path(std::initializer_list<const char*> components);
 
 public:  // Operation
 
@@ -237,7 +250,7 @@ public:  // Operation
      * @param str A string to test
      * @return True, if this path object starts with the given string
      */
-    bool startsWith(const String& str) const {
+    bool startsWith(StringView str) const {
         // FIXME: Wasteful allocation of string representation
         return toString().startsWith(str);
     }
@@ -252,7 +265,7 @@ public:  // Operation
      * @param other
      * @return True, if this path object ends with the given
      */
-    bool endsWith(const String& other) const {
+    bool endsWith(StringView other) const {
         // FIXME: Wasteful allocation of string representation
         return toString().endsWith(other);
     }
@@ -338,11 +351,35 @@ public:  // Operation
      */
 	Path join(const Path& rhs) const;
 
+
     /**
      * Append a component to this path
      * @return A new path with appended component
      */
-    Path join(const StringView& rhs) const;
+    Path join(String const& rhs) const {
+        return join(rhs.view());
+    }
+
+    /**
+     * Append a component to this path
+     * @return A new path with appended component
+     */
+    Path join(StringView rhs) const;
+
+    /**
+     * Append a component to this path
+     * @return A new path with appended component
+     */
+    Path join(const char* rhs) const {
+        return join(StringView{rhs});
+    }
+
+    /**
+     * Construtct a new path object with *this* as base.
+     * @return A new path with appended component.
+     */
+    Path join(std::initializer_list<StringView> rhs) const;
+
 
     /** Tests this path for equality with the given object.
      * @param rhv A path to compare this one to.
@@ -372,13 +409,24 @@ private:
 
 /** Convenience joint operator */
 inline Path operator / (const Path& lhs, const Path& rhs) {
-    return Path::join(lhs, rhs);
+    return lhs.join(rhs);
 }
 
 /** Convenience joint operator */
 inline Path operator / (const Path& lhs, const String& rhs) {
-    return Path::join(lhs, rhs);
+    return lhs.join(rhs.view());
 }
+
+/** Convenience joint operator */
+inline Path operator / (const Path& lhs, StringView rhs) {
+    return lhs.join(rhs);
+}
+
+/** Convenience joint operator */
+inline Path operator / (const Path& lhs, const char* rhs) {
+    return lhs.join(StringView{rhs});
+}
+
 
 inline
 bool operator!= (Path const& lhs, Path const& rhv) noexcept {

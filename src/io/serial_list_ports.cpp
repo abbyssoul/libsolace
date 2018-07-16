@@ -22,6 +22,7 @@
 #include <solace/io/platformFilesystem.hpp>
 #include <solace/exception.hpp>
 
+
 #include <tuple>
 #include <vector>
 #include <string>
@@ -30,13 +31,10 @@
 #include <memory>
 
 
-using Solace::String;
-using Solace::Path;
-using Solace::IO::PlatformFilesystem;
+using namespace Solace;
 
 
-const Path SYS_TTY_PATH = Path({"", "sys", "class", "tty"});
-const String HW_ID_NA = "n/a";
+const StringLiteral HW_ID_NA = "n/a";
 
 
 
@@ -49,7 +47,7 @@ String readLine(const Path& file) {
         getline(ifs, line);
     }
 
-    return line;
+    return String{ std::move(line) };
 }
 
 
@@ -70,7 +68,7 @@ String usb_sysfs_hw_string(const Path& sysfs_path) {
     const auto pid = readLine(sysfs_path.join("idProduct"));
     const auto serial_number = readLine(sysfs_path.join("serial"));
 
-    return String("USB VID:PID=")
+    return String{"USB VID:PID="}
             .concat(String::join(":", {vid, pid}))
             .concat(serial_number.empty()
                     ? serial_number
@@ -78,7 +76,11 @@ String usb_sysfs_hw_string(const Path& sysfs_path) {
 }
 
 
-std::tuple<String, String> get_sysfs_info(const PlatformFilesystem& fs, const Path& devicePath) {
+std::tuple<String, String> get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
+    static const Path SYS_TTY_PATH = Path::Root.join({StringView{"sys"},
+                                                      StringView{"class"},
+                                                      StringView{"tty"}});
+
     String friendly_name;
     String hardware_id;
 

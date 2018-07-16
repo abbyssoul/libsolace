@@ -25,31 +25,23 @@
 
 #include <fmt/format.h>
 
+using namespace Solace;
 
 
-using Solace::Exception;
-using Solace::String;
-using Solace::IllegalArgumentException;
-using Solace::IndexOutOfRangeException;
-using Solace::OverflowException;
-using Solace::NoSuchElementException;
-using Solace::InvalidMarkException;
-using Solace::IOException;
-using Solace::NotOpen;
-
-
-static const char* IOExceptionType = "IOException";
+static constexpr StringLiteral IOExceptionType{"IOException"};
 
 
 
 std::string formatErrono(int errorCode) {
-    const auto s = String::join(":", {IOExceptionType, String::valueOf(errorCode), strerror(errorCode)});
+    auto const errorDescription = StringView{strerror(errorCode)};
+    const auto s = String::join(":", {IOExceptionType, String::valueOf(errorCode), errorDescription});
 
     return s.to_str();
 }
 
 std::string formatErrono(int errorCode, const std::string& msg) {
-    const auto s = String::join(":", {IOExceptionType, String::valueOf(errorCode), msg, strerror(errorCode)});
+    auto const errorDescription = StringView{strerror(errorCode)};
+    const auto s = String::join(":", {IOExceptionType, String::valueOf(errorCode), String{msg}, errorDescription});
 
     return s.to_str();
 }
@@ -76,8 +68,8 @@ Exception::Exception(Exception&& other) noexcept :
 }
 
 
-String Exception::getMessage() const noexcept {
-    return _message;
+StringView Exception::getMessage() const noexcept {
+    return StringView{_message.c_str(), static_cast<StringView::size_type>(_message.size())};
 }
 
 
@@ -85,8 +77,8 @@ const char* Exception::what() const noexcept {
     return _message.c_str();
 }
 
-String Exception::toString() const {
-    return _message;
+StringView Exception::toString() const {
+    return StringView{_message.c_str(), static_cast<StringView::size_type>(_message.size())};
 }
 
 
@@ -181,26 +173,29 @@ InvalidMarkException::InvalidMarkException() noexcept:
 }
 
 
-IOException::IOException(const std::string& msg) noexcept: Exception(msg), _errorCode(-1) {
-}
-
-
-IOException::IOException(int errorCode) noexcept:
-    Exception(formatErrono(errorCode)),
-    _errorCode(errorCode)
+IOException::IOException(const std::string& msg) noexcept
+    : Exception(msg)
+    , _errorCode(-1)
 {
 }
 
 
-IOException::IOException(int errorCode, const std::string& msg) noexcept:
-    Exception(formatErrono(errorCode, msg)),
-    _errorCode(errorCode)
+IOException::IOException(int errorCode) noexcept
+    : Exception(formatErrono(errorCode))
+    , _errorCode(errorCode)
 {
 }
 
 
-NotOpen::NotOpen() noexcept:
-    IOException("File descriptor not opened")
+IOException::IOException(int errorCode, const std::string& msg) noexcept
+    : Exception(formatErrono(errorCode, msg))
+    , _errorCode(errorCode)
+{
+}
+
+
+NotOpen::NotOpen() noexcept
+    : IOException("File descriptor not opened")
 {
     // No-op
 }

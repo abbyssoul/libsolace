@@ -55,19 +55,15 @@ operator<< (std::ostream& ostr, MessageDigest const& a) {
 
 String
 MessageDigest::toString() const {
+    std::vector<char> stringRepr;
+    stringRepr.reserve(Base16Encoder::encodedSize(size()));
+    WriteBuffer dest(wrapMemory(stringRepr.data(), stringRepr.size()));
 
-    std::stringstream ss;
-
-    char buffer[3];
-    WriteBuffer dest(wrapMemory(buffer));
-    Base16Encoder encoder(dest);
-
-    for (MessageDigest::size_type len = size(), i = 0; i < len; ++i) {
-        encoder.encode(wrapMemory(&_storage[i], 1));
-        dest.rewind();
-
-        ss.write(buffer, 2);
+    for (auto i = base16Encode_begin(_storage.view()),
+         end = base16Encode_end(_storage.view());
+         i != end; ++i) {
+        dest.write((*i).view());
     }
 
-    return ss.str();
+    return String{stringRepr.data(), static_cast<String::size_type>(stringRepr.size())};
 }

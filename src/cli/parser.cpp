@@ -48,7 +48,7 @@ const char Parser::DefaultValueSeparator = '=';
 template <typename... Args>
 Optional<Error>
 formatOptionalError(const char* fmt, Args&&... values) {
-    return Optional<Error>::of(String(fmt::format(fmt, std::forward<Args>(values)...)));
+    return Optional<Error>::of(Error{fmt::format(fmt, std::forward<Args>(values)...), 1});
 }
 
 
@@ -364,13 +364,13 @@ Parser::Argument::match(StringView const& value, Context const& cntx) const {
 template<typename... Args>
 Result<std::function<Result<void, Error> ()>, Error>
 fail(const char* msg, Args&&...args) {
-    return Err(Error((fmt::format(msg, std::forward<Args>(args)...))));
+    return Err(Error{fmt::format(msg, std::forward<Args>(args)...), 1});
 }
 
 template<typename... Args>
 Result<uint, Error>
 failUint(const char* msg, Args&&... args) {
-    return Err(Error(fmt::format(msg, std::forward<Args>(args)...)));
+    return Err(Error{fmt::format(msg, std::forward<Args>(args)...), 1});
 }
 
 

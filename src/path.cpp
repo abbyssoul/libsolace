@@ -31,7 +31,50 @@ const StringView SelfRef(".");
 const StringView ParentRef("..");
 
 
-const Path Path::Root("");
+const Path Path::Root(StringView{""});
+
+
+
+
+template<typename T>
+void joinComponents(std::vector<String>& base, std::initializer_list<T> paths) {
+    for (auto& component : paths) {
+        base.emplace_back(std::move(component));
+    }
+}
+
+
+template<typename T>
+std::vector<String> joinComponents(std::initializer_list<T> paths) {
+    std::vector<String> components;
+    components.reserve(paths.size());
+
+    joinComponents(components, paths);
+
+    return components;
+}
+
+
+template<>
+std::vector<String> joinComponents(std::initializer_list<Path> paths) {
+    size_t numberOfComponents = 0;
+    // Count number of components
+    for (const auto& p : paths) {
+        numberOfComponents += p.getComponentsCount();
+    }
+
+    std::vector<String> components;
+    components.reserve(numberOfComponents);
+
+    for (auto& path : paths) {
+        for (auto& component : path) {
+            components.emplace_back(std::move(component));
+        }
+    }
+
+    return components;
+}
+
 
 
 
@@ -44,20 +87,21 @@ bool Path::isRelative() const noexcept {
 }
 
 
-Path Path::join(std::initializer_list<Path> paths) {
-    size_type numberOfComponents = 0;
+Path
+Path::join(Path const& base, std::initializer_list<Path> paths) {
+    size_type numberOfComponents = base.getComponentsCount();
     // Count number of components
     for (const auto& p : paths) {
         numberOfComponents += p.getComponentsCount();
     }
 
-    // Now we can preallocate storage for components
-    Array<String> components(numberOfComponents);
+    // Now we can pr-eallocate storage for components
+    std::vector<String> components;
+    components.reserve(numberOfComponents);
 
-    size_type i = 0;
-    for (const auto& path : paths) {
-        for (const auto& component : path) {
-            components[i++] = component;
+    for (auto& path : paths) {
+        for (auto& component : path) {
+            components.emplace_back(std::move(component));
         }
     }
 
@@ -65,15 +109,54 @@ Path Path::join(std::initializer_list<Path> paths) {
 }
 
 
-Path Path::join(std::initializer_list<String> paths) {
-    Array<String> components(paths);
+Path
+Path::join(Path const& base, std::initializer_list<String> paths) {
+    std::vector<String> components;
+    components.reserve(base.getComponentsCount() + paths.size());
+
+    for (auto& component : base) {
+        components.push_back(component);
+    }
+
+    joinComponents(components, paths);
+
+    return Path(std::move(components));
+}
+
+
+Path
+Path::join(Path const& base, std::initializer_list<StringView> paths) {
+    std::vector<String> components;
+    components.reserve(base.getComponentsCount() + paths.size());
+
+    for (auto& component : base) {
+        components.push_back(component);
+    }
+
+    joinComponents(components, paths);
+
+
+    return Path(std::move(components));
+}
+
+
+Path
+Path::join(Path const& base, std::initializer_list<const char*> paths) {
+    std::vector<String> components;
+    components.reserve(base.getComponentsCount() + paths.size());
+
+    for (auto& component : base) {
+        components.push_back(component);
+    }
+
+    joinComponents(components, paths);
 
     return Path(std::move(components));
 }
 
 
 Result<Path, Error>
-Path::parse(const StringView& str, const StringView& delim) {
+Path::parse(StringView str, StringView delim) {
     auto components = str.split(delim);
     const auto nbOfComponents = components.size();
 
@@ -90,6 +173,19 @@ Path::parse(const StringView& str, const StringView& delim) {
     return nonEmptyComponents.empty()
             ? Ok(Root)
             : Ok(Path(std::move(nonEmptyComponents)));
+}
+
+
+Path::Path(std::initializer_list<Path> paths) : _components(joinComponents(paths)) {
+}
+
+
+Path::Path(std::initializer_list<StringView> paths) : _components(joinComponents(paths)) {
+    // No-op
+}
+
+Path::Path(std::initializer_list<const char*> paths) : _components(joinComponents(paths)) {
+    // No-op
 }
 
 
@@ -288,10 +384,20 @@ Path Path::subpath(size_type beginIndex, size_type endIndex) const {
 }
 
 Path Path::join(const Path& rhs) const {
-    return Path::join({*this, rhs});
+    std::vector<String> components;
+    components.reserve(getComponentsCount() + rhs.getComponentsCount());
+
+    for (const auto& c : _components) {
+        components.emplace_back(c);
+    }
+    for (const auto& c : rhs._components) {
+        components.emplace_back(c);
+    }
+
+    return Path{std::move(components)};
 }
 
-Path Path::join(const StringView& rhs) const {
+Path Path::join(StringView rhs) const {
     std::vector<String> components;
     components.reserve(getComponentsCount() + 1);
 
@@ -300,8 +406,13 @@ Path Path::join(const StringView& rhs) const {
     }
     components.emplace_back(rhs);
 
-    return Path(std::move(components));
+    return Path{std::move(components)};
 }
+
+Path Path::join(std::initializer_list<StringView> rhs) const {
+    return Path::join(*this, rhs);
+}
+
 
 
 bool Path::equals(const Path& rhv) const noexcept {

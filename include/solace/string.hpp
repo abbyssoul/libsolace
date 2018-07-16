@@ -62,19 +62,17 @@ public:
     String(String const& s) = default;
 
     //!< Construct a string from a raw null-terminated (C-style) string.
-	String(const char* data);
+    String(const char* data);
 
     //!< Construct a string from a raw byte buffer of a given size
     String(const char* data, size_type length);
-
-    //!< Construct a string from a nicely managed buffer
-    String(const ImmutableMemoryView& buffer);
 
     //!< Construct a string from a StringView
     String(StringView view);
 
     //!< Construct the string from std::string - STD compatibility method
-	String(const std::string& buffer) : _str(buffer) {}
+    explicit String(std::string const& buffer) : _str(buffer) {}
+    explicit String(std::string&& buffer) : _str(std::move(buffer)) {}
 
 public:  // Additional to base object operations
 
@@ -86,6 +84,12 @@ public:  // Additional to base object operations
 
     String& operator= (String const& rhs) noexcept {
         String(rhs).swap(*this);
+
+        return *this;
+    }
+
+    String& operator= (std::string rhs) noexcept {
+        _str.swap(rhs);
 
         return *this;
     }
@@ -114,24 +118,11 @@ public:  // Basic collection operations:
     //!< True if values are equal
     bool equals(String const& v) const noexcept;
 
-    bool operator!= (String const& rhv) const noexcept {
-        return !equals(rhv);
-    }
-
-    bool operator== (String const& rhv) const noexcept {
-        return equals(rhv);
-    }
-
     //!< True if values are equal
     bool equals(const char* v) const;
 
-    bool operator== (const char* rhv) const {
-        return equals(rhv);
-    }
-
-    bool operator!= (const char* rhv) const {
-        return !equals(rhv);
-    }
+    //!< True if values are equal
+    bool equals(StringView v) const;
 
     /** Compares two strings lexicographically.
 	 * The comparison is based on the Unicode value
@@ -362,7 +353,7 @@ public:
      *
      * @return The resulting string
      */
-    static String join(String const& by, std::initializer_list<String> list);
+    static String join(StringView by, std::initializer_list<String> list);
 
     /**
      * Return jointed string from this given initializer_list
@@ -472,9 +463,63 @@ private:
 };
 
 
-inline bool operator< (String const& lhs, String const& rhs) {
+inline
+bool operator< (String const& lhs, String const& rhs) {
 	return lhs.compareTo(rhs) < 0;
 }
+
+
+inline
+bool operator== (String const& lhv, String const& rhv) {
+    return lhv.equals(rhv);
+}
+
+inline
+bool operator== (String const& lhv, StringView rhv) {
+    return lhv.equals(rhv);
+}
+
+inline
+bool operator== (StringView lhv, String const& rhv) {
+    return rhv.equals(lhv);
+}
+
+inline
+bool operator== (String const& lhv, const char* rhv) {
+    return lhv.equals(rhv);
+}
+
+inline
+bool operator== (const char* lhv, String const& rhv) {
+    return rhv.equals(lhv);
+}
+
+
+inline
+bool operator!= (String const& lhv, String const& rhv) {
+    return !lhv.equals(rhv);
+}
+
+inline
+bool operator!= (String const& lhv, StringView rhv) {
+    return !lhv.equals(rhv);
+}
+
+inline
+bool operator!= (StringView lhv, String const& rhv) {
+    return !rhv.equals(lhv);
+}
+
+inline
+bool operator!= (String const& lhv, const char* rhv) {
+    return !lhv.equals(rhv);
+}
+
+inline
+bool operator!= (const char* lhv, String const& rhv) {
+    return !rhv.equals(lhv);
+}
+
 
 
 inline void swap(String& lhs, String& rhs) noexcept {

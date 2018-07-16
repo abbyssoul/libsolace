@@ -38,7 +38,8 @@ auto conversionError(const char* fmt, StringView value) {
     ss << fmt;
     ss.write(value.data(), value.size());
 
-    return Err<Error>(String(ss.str()));
+    auto res = ss.str();
+    return Err<Error>(StringView(res.c_str(), res.size()));
 }
 
 

@@ -117,25 +117,21 @@ public:
 	 * Test construction calls
 	 */
 	void testConstruction() {
-		const String empty;
-		const String cstr(someConstString);
+        CPPUNIT_ASSERT(String{}.equals(String::Empty));
+        CPPUNIT_ASSERT(String{}.empty());
 
         const char* source = "some cstr source";
         const String cstrFromTo(source + 5, 4);
         CPPUNIT_ASSERT(cstrFromTo.equals("cstr"));
 
-        CPPUNIT_ASSERT(String(wrapMemory(const_cast<char*>(source), 4)).equals("some"));
-        CPPUNIT_ASSERT(String(wrapMemory(const_cast<char*>(source) + 10, 6)).equals("source"));
 
-
-		const String strCopy(cstr);
+        const String cstr(someConstString);
+        CPPUNIT_ASSERT(cstr.equals(someConstString));
 
 		const String moved = moveMe();
 
-        CPPUNIT_ASSERT(empty.equals(String::Empty));
-        CPPUNIT_ASSERT(cstr.equals(someConstString));
 
-        // FIXME(abbyssoul): Should be using buffer
+        const String strCopy(cstr);
         CPPUNIT_ASSERT(strCopy.equals(cstr));
 	}
 

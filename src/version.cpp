@@ -36,9 +36,9 @@
 using namespace Solace;
 
 
-static const String ComponentSeparator(".");
-static const String PreSeparator("-");
-static const String BuildSeparator("+");
+static const StringLiteral ComponentSeparator{"."};
+static const String PreSeparator(StringLiteral{"-"});
+static const String BuildSeparator(StringLiteral{"+"});
 
 
 Version Solace::getBuildVersion() {
@@ -77,7 +77,7 @@ String Version::toString() const {
         ? String::Empty
         : BuildSeparator.concat(build);
 
-    return String::join(String::Empty, {s1, s2, s3});
+    return String::join("", {s1, s2, s3});
 }
 
 
@@ -91,8 +91,12 @@ Version::parse(const Solace::StringView& str) {
         const value_type majorVersion = std::stoul(capture[1].str());
         const value_type minorVersion = std::stoul(capture[2].str());
         const value_type patchVersion = std::stoul(capture[3].str());
-        const String preRelease = (capture[4].length() > 0) ? capture[4].str() : String::Empty;
-        const String build = (capture[5].length() > 0) ? capture[5].str() : String::Empty;
+        const String preRelease = (capture[4].length() > 0)
+                ? String{capture[4].str()}
+                : String::Empty;
+        const String build = (capture[5].length() > 0)
+                ? String{ capture[5].str() }
+                : String::Empty;
 
         return Ok<Version>({majorVersion, minorVersion, patchVersion, preRelease, build});
     }

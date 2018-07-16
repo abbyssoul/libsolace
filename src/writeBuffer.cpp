@@ -42,7 +42,7 @@ WriteBuffer::limit(size_type newLimit) {
 Result<void, Error>
 WriteBuffer::position(size_type newPosition) {
     if (limit() < newPosition) {
-        return Err<Error>(String("OverflowError: position(): value pass the buffer end."));
+        return Err(Error("OverflowError: position(): value pass the buffer end."));
     }
 
     _position = newPosition;
@@ -54,7 +54,7 @@ WriteBuffer::position(size_type newPosition) {
 Result<void, Error>
 WriteBuffer::advance(size_type increment) {
     if (remaining() < increment) {
-        return Err<Error>(String("OverflowError: advance(): move pass the buffer end."));
+        return Err(Error("OverflowError: advance(): move pass the buffer end."));
     }
 
     _position += increment;

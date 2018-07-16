@@ -66,9 +66,11 @@ StringBuilder::view() const noexcept {
 
 String
 StringBuilder::toString() const {
-    return (_buffer.position() == 0)
-            ? String::Empty
-            : String(_buffer.viewWritten());
+    if (_buffer.position() == 0)
+        return String::Empty;
+
+    const auto written = _buffer.viewWritten();
+    return StringView{written.dataAs<char>(), static_cast<size_type>(written.size())};
 }
 
 bool StringBuilder::empty() const {

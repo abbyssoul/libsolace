@@ -354,7 +354,7 @@ public:
         CPPUNIT_ASSERT_EQUAL(Path({"etc", "some", "long", "path"}),
                              Path({"etc", "some", "long", "path"}));
         CPPUNIT_ASSERT_EQUAL(Path({"etc", "some", "long", "path"}),
-                             Path::join({Path({"etc", "some"}), Path("long"), Path("path")}));
+                             Path({"etc", "some"}) / Path("long") / Path("path"));
     }
 
     void testIterable() {

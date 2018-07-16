@@ -18,7 +18,7 @@ libSolace
 [license-link]: https://opensource.org/licenses/Apache-2.0
 
 libSolace is a toolkit for building mission critical application.
-Idea of this library is partually inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).
+Idea of this library is partially inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).
 That is the library aims to provide building blocks for fast and reliable applications using modern C++ dialect (At least C++14).
 Note: the implementation attempts to respect P10 rules only to extent practical. It is an ongoing effort.
 In this context simple means that it provides minimal necessary set of tools to solve a problem.
@@ -31,7 +31,7 @@ Please see  [`CONTRIBUTING.md`](CONTRIBUTING.md) for details on how to contribut
 this project.
 
 Please note that in order to maintain code quality a set of static code analysis tools is used as part of the build process.
-Thus all contributions must be verifyed by this tools before PR can be accepted.
+Thus all contributions must be verified by this tools before PR can be accepted.
 
 
 ## Building
@@ -146,10 +146,10 @@ Design of the library is inspired by various functional language elements that c
 
 
 ### Exceptions policy
-Given the language choice library is designed with the idea tha exceptions can be thrown and functions that don't throw are annotated accordingly. The design is the resutl of a few ideas:
- - Regular functions that return values but which invocations can result in an error (due to invalid internal state or invalid agruments) - this functions should signal that fact by returning Result<Value, Error> (the idea borrowed from Rust language)
+Given the language of choice library is designed with the idea that exceptions can be thrown and functions that don't throw are annotated accordingly. The design is the result of a few ideas:
+ - Regular functions that return values but which invocations can result in an error (due to invalid internal state or invalid arguments) - this functions should signal that fact by returning Result<Value, Error> (the idea borrowed from Rust language)
  - Object constructors can't return value thus they are allowed to throw.
- - All API clients that whant to use 'safe' interface should use object factories that return Result<> with possible error but don't throw.
+ - All API clients that want to use 'safe' interface should use object factories that return Result<> with possible error but don't throw.
 
 
 ## Dependencies
@@ -158,7 +158,7 @@ The project only external dependency managed via `git submodule`:
 
 
 ## Testing
-The library is equiped with the [cppunit](https://sourceforge.net/projects/cppunit/) test suit.
+The library is equipped with the [cppunit](https://sourceforge.net/projects/cppunit/) test suit.
 The source code for unit test located is in:
 ```
 ./test

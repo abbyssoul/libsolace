@@ -30,7 +30,7 @@ using namespace Solace;
 Result<void, Error>
 ReadBuffer::limit(size_type newLimit) {
     if (capacity() < newLimit) {
-        return Err<Error>(String("OverflowError: limit(): new limit is greater then capacity."));
+        return Err<Error>(StringView("OverflowError: limit(): new limit is greater then capacity."));
     }
 
     _limit = newLimit;
@@ -42,7 +42,7 @@ ReadBuffer::limit(size_type newLimit) {
 Result<void, Error>
 ReadBuffer::position(size_type newPosition) {
     if (limit() < newPosition) {
-        return Err<Error>(String("OverflowError: position(): value pass the buffer end."));
+        return Err<Error>(StringView("OverflowError: position(): value pass the buffer end."));
     }
 
     _position = newPosition;
@@ -54,7 +54,7 @@ ReadBuffer::position(size_type newPosition) {
 Result<void, Error>
 ReadBuffer::advance(size_type increment) {
     if (remaining() < increment) {
-        return Err<Error>(String("OverflowError: advance(): move pass the buffer end."));
+        return Err<Error>(StringView("OverflowError: advance(): move pass the buffer end."));
     }
 
     _position += increment;
@@ -66,7 +66,7 @@ ReadBuffer::advance(size_type increment) {
 Result<byte, Error>
 ReadBuffer::get() {
     if (remaining() < 1) {
-        return Err<Error>(String("OverflowError: get(): no data remained in the buffer"));
+        return Err<Error>(StringView("OverflowError: get(): no data remained in the buffer"));
     }
 
     return Ok(_storage.view()[_position++]);
@@ -75,7 +75,7 @@ ReadBuffer::get() {
 Result<byte, Error>
 ReadBuffer::get(size_type pos) const {
     if (limit() <= pos) {
-        return Err<Error>(String("OverflowError: get(pos): offset outside of the buffer"));
+        return Err<Error>(StringView("OverflowError: get(pos): offset outside of the buffer"));
     }
 
     return Ok(_storage.view()[pos]);
@@ -85,7 +85,7 @@ ReadBuffer::get(size_type pos) const {
 Result<void, Error>
 ReadBuffer::read(MemoryView& dest, size_type bytesToRead) {
     if (dest.size() < bytesToRead) {
-        return Err<Error>(String("OverflowError: read(dest, size): destination buffer is too small"));
+        return Err<Error>(StringView("OverflowError: read(dest, size): destination buffer is too small"));
     }
 
     return read(dest.dataAddress(), bytesToRead);
@@ -95,7 +95,7 @@ ReadBuffer::read(MemoryView& dest, size_type bytesToRead) {
 Result<void, Error>
 ReadBuffer::read(void* dest, size_type bytesToRead) {
     if (remaining() < bytesToRead) {
-        return Err<Error>(String("UnderflowError: read(dest, size): not enough data in the buffer"));
+        return Err<Error>(StringView("UnderflowError: read(dest, size): not enough data in the buffer"));
     }
 
     const void* srcAddr = _storage.view().dataAddress(_position);
@@ -109,11 +109,11 @@ ReadBuffer::read(void* dest, size_type bytesToRead) {
 Result<void, Error>
 ReadBuffer::read(size_type offset, MemoryView& dest, size_type bytesToRead) const {
     if (dest.size() < bytesToRead) {
-        return Err<Error>(String("OverflowError: read(dest, size): destination buffer is too small"));
+        return Err<Error>(StringView("OverflowError: read(dest, size): destination buffer is too small"));
     }
 
     if (limit() < (offset + bytesToRead)) {
-        return Err<Error>(String("Overflow Error: byte to read"));
+        return Err<Error>(StringView("Overflow Error: byte to read"));
     }
 
     const void* srcAddr = _storage.view().dataAddress(offset);

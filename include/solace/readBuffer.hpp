@@ -115,7 +115,6 @@ public:
 
     /**
      * Leave the limit unchanged and sets the position to zero.
-     * It alwats works.
      * @return A reference to this for fluency.
      */
     ReadBuffer& rewind() noexcept {

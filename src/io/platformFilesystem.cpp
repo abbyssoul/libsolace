@@ -276,7 +276,7 @@ PlatformFilesystem::glob(std::initializer_list<const char*> patterns) const {
 
     pathsFound.reserve(globResults.gl_pathc);
     for (size_t i = 0; i < globResults.gl_pathc; ++i) {
-        pathsFound.push_back(Path::parse(globResults.gl_pathv[i]).unwrap());
+        pathsFound.emplace_back(Path::parse(globResults.gl_pathv[i]).unwrap());
     }
 
     globfree(&globResults);

@@ -68,6 +68,13 @@ public:
            _data(s)
     {}
 
+    // NOTE: This blows if a StringView is constructed over a fixed size c-array buffer
+//    template<size_t N>
+//    constexpr StringView(char const (&str)[N]) :
+//            StringView(&str[0], N - 1)
+//    {
+//    }
+
     /**
      * Constructs a view of the null-terminated string pointed to by s, not including the terminating null character.
      * The length of the view is determined as if by strlen(s).
@@ -115,14 +122,6 @@ public:
 
     //!< True if values are equal
     bool equals(StringView x) const noexcept;
-
-    bool operator== (StringView rhv) const noexcept {
-        return equals(rhv);
-    }
-
-    bool operator!= (StringView rhv) const noexcept {
-        return !equals(rhv);
-    }
 
     /**
      * Tests if the string starts with the specified prefix.
@@ -295,8 +294,8 @@ public:
     }
 
 private:
-    size_type _size = 0;
-    const char* _data = nullptr;
+    size_type   _size = 0;
+    char const* _data = nullptr;
 };
 
 
@@ -327,8 +326,19 @@ swap(StringLiteral& lhs, StringLiteral& rhs) noexcept {
     lhs.swap(rhs);
 }
 
+
 inline
-bool operator== (char const* rhv, StringView const& str) noexcept {
+bool operator== (StringView lhv, StringView rhv) noexcept {
+    return lhv.equals(rhv);
+}
+
+inline
+bool operator!= (StringView lhv, StringView rhv) noexcept {
+    return !lhv.equals(rhv);
+}
+
+inline
+bool operator== (char const* rhv, StringView str) noexcept {
     return str.equals(rhv);
 }
 

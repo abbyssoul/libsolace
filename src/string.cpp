@@ -31,20 +31,16 @@ using namespace Solace;
 
 
 const String String::Empty(std::string(""));
-const String TRUE_STRING("true");
-const String FALSE_STRING("false");
+const String TRUE_STRING(std::string("true"));
+const String FALSE_STRING(std::string("false"));
 
 
 String::String(const char* data) :
     _str(assertNotNull(data)) {
 }
 
+
 String::String(const char* data, size_type dataLength): _str(data, dataLength) {
-}
-
-String::String(const ImmutableMemoryView& buffer):
-    _str(reinterpret_cast<const char*>(buffer.dataAddress()), buffer.size()) {
-
 }
 
 String::String(StringView view) :
@@ -78,6 +74,12 @@ bool String::equals(const String& v) const noexcept {
 bool String::equals(const char* v) const {
     return _str.compare(v) == 0;
 }
+
+
+bool String::equals(StringView v) const {
+    return _str.compare(0, _str.length(), v.data(), v.size()) == 0;
+}
+
 
 int String::compareTo(const String& other) const {
     return _str.compare(other._str);
@@ -187,7 +189,7 @@ String String::replace(const value_type& what, const value_type& with) const {
         pos += withSize;
     }
 
-    return subject;
+    return String{ std::move(subject) };
 }
 
 String String::replace(const String& what, const String& by) const {
@@ -199,7 +201,7 @@ String String::replace(const String& what, const String& by) const {
         pos += by._str.length();
     }
 
-    return { subject };
+    return String{ std::move(subject) };
 }
 
 Array<String> String::split(const String& expr) const {
@@ -263,7 +265,7 @@ String String::toLowerCase() const {
         res.push_back(lower.c_str()[0]);  // FIXME(abbyssoul): Non-UTF8 compatible code
     }
 
-    return res;
+    return String{ std::move(res) };
 }
 
 String String::toUpperCase() const {
@@ -275,8 +277,9 @@ String String::toUpperCase() const {
         res.push_back(lower.c_str()[0]);  // FIXME(abbyssoul): Non-UTF8 compatible code
     }
 
-    return res;
+    return String{ std::move(res) };
 }
+
 
 bool String::startsWith(const String& prefix) const {
     if (empty())
@@ -322,7 +325,7 @@ const char* String::c_str() const {
     return _str.c_str();
 }
 
-String String::join(const String& by, std::initializer_list<String> list) {
+String String::join(StringView by, std::initializer_list<String> list) {
     std::string buffer;
     size_type total_size = 0;
     for (auto& s : list) {
@@ -330,7 +333,7 @@ String String::join(const String& by, std::initializer_list<String> list) {
     }
 
     if (list.size() > 1) {
-        total_size += (list.size() - 1)*by.size();
+        total_size += (list.size() - 1) * by.size();
     }
     buffer.reserve(total_size);
 
@@ -338,7 +341,7 @@ String String::join(const String& by, std::initializer_list<String> list) {
     for (auto& s : list) {
         buffer.append(s._str);
         if (++i < list.size())
-            buffer.append(by._str);
+            buffer.append(by.data(), by.size());
     }
 
     return String(buffer);
@@ -382,25 +385,25 @@ String String::valueOf(StringView value) {
 }
 
 String String::valueOf(int32 val) {
-    return std::to_string(val);
+    return String{ std::to_string(val) };
 }
 
 String String::valueOf(int64 val) {
-    return std::to_string(val);
+    return String{ std::to_string(val) };
 }
 
 String String::valueOf(uint32 val) {
-    return std::to_string(val);
+    return String{ std::to_string(val) };
 }
 
 String String::valueOf(uint64 val) {
-    return std::to_string(val);
+    return String{ std::to_string(val) };
 }
 
 String String::valueOf(float32 val) {
-    return std::to_string(val);
+    return String{ std::to_string(val) };
 }
 
 String String::valueOf(float64 val) {
-    return std::to_string(val);
+    return String{ std::to_string(val) };
 }

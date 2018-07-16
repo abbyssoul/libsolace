@@ -135,7 +135,7 @@ public:
 
     Result<void, Error>
     fail(std::string&& message) {
-        return Err(Error(std::move(message)));
+        return Err(Error{std::move(message), 1});
     }
 
     void testFailure() {

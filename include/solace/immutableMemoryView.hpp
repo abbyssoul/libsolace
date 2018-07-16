@@ -232,5 +232,9 @@ bool operator!= (ImmutableMemoryView const& lhs, ImmutableMemoryView const& rhs)
 }
 
 
+
+std::ostream& operator<< (std::ostream& ostr, ImmutableMemoryView const& str);
+
+
 }  // End of namespace Solace
 #endif  // SOLACE_IMMUTABLEMEMORYVIEW_HPP

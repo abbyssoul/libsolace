@@ -301,7 +301,7 @@ public:
                 .orElse([&parsedSuccessully](Error&& e) {
                         parsedSuccessully = false;
 
-                        CPPUNIT_FAIL(e.toString().c_str());
+                        CPPUNIT_FAIL(e.toString().data());
                     });
 
         CPPUNIT_ASSERT(parsedSuccessully);
@@ -622,7 +622,7 @@ public:
                 .orElse([&parsedSuccessully](Error&& e) {
                         parsedSuccessully = false;
 
-                        CPPUNIT_FAIL(e.toString().c_str());
+                        CPPUNIT_FAIL(e.toString().data());
                     });
 
         CPPUNIT_ASSERT(parsedSuccessully);
@@ -667,7 +667,7 @@ public:
                 .orElse([&parsedSuccessully](Error&& e) {
                         parsedSuccessully = false;
 
-                        CPPUNIT_FAIL(e.toString().c_str());
+                        CPPUNIT_FAIL(e.toString().data());
                     });
 
         CPPUNIT_ASSERT(parsedSuccessully);
@@ -706,7 +706,7 @@ public:
                 .orElse([&parsedSuccessully](Error&& e) {
                         parsedSuccessully = false;
 
-                        CPPUNIT_FAIL(e.toString().c_str());
+                        CPPUNIT_FAIL(e.toString().data());
                     });
 
         CPPUNIT_ASSERT(parsedSuccessully);
@@ -1024,7 +1024,7 @@ public:
                 .parse(countArgc(argv), argv);
 
         if (!result) {
-            CPPUNIT_FAIL(result.getError().toString().c_str());
+            CPPUNIT_FAIL(result.getError().toString().data());
         } else {
             CPPUNIT_ASSERT(result.unwrap()().isOk());
         }
@@ -1122,7 +1122,7 @@ public:
                 .parse(countArgc(argv), argv);
 
         if (!parseResult) {
-            CPPUNIT_FAIL(parseResult.getError().toString().c_str());
+            CPPUNIT_FAIL(parseResult.getError().toString().data());
         } else {
             CPPUNIT_ASSERT(parseResult.unwrap()().isOk());
         }
@@ -1178,7 +1178,7 @@ public:
                 .parse(countArgc(argv), argv);
 
         if (!result) {
-            CPPUNIT_FAIL(result.getError().toString().c_str());
+            CPPUNIT_FAIL(result.getError().toString().data());
         } else {
             CPPUNIT_ASSERT(result.unwrap()().isOk());
         }
@@ -1211,7 +1211,7 @@ public:
                 .parse(countArgc(argv), argv);
 
         if (!result) {
-            CPPUNIT_FAIL(result.getError().toString().c_str());
+            CPPUNIT_FAIL(result.getError().toString().data());
         } else {
             CPPUNIT_ASSERT(result.unwrap()().isError());
         }
@@ -1282,7 +1282,7 @@ public:
                 .parse(countArgc(argv), argv);
 
         if (!result) {
-            CPPUNIT_FAIL(result.getError().toString().c_str());
+            CPPUNIT_FAIL(result.getError().toString().data());
         } else {
             CPPUNIT_ASSERT(result.unwrap()().isOk());
         }

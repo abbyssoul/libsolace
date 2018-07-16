@@ -26,7 +26,7 @@
 #define SOLACE_ERROR_HPP_
 
 #include "solace/types.hpp"
-#include "solace/string.hpp"
+#include "solace/stringView.hpp"
 
 
 /* TODO(abbyssoul): Add interop SUPPORT for std::error
@@ -40,20 +40,22 @@ public:
 
     ~Error() = default;
 
-    //! Construct error with a message
-    Error(const String& message, int code = -1) noexcept :
+    Error(const char* message, int code = -1) noexcept :
         _code(code),
-        _message(message.to_str())
+        _message(message)
     {}
 
     //! Construct error with a message
-    Error(String&& message, int code = -1) noexcept :
+    Error(StringView message, int code = -1) noexcept :
         _code(code),
-        _message(message.to_str())
+        _message(message.data(), message.size())
     {}
 
     //! Construct error with a message
-//    Error(const std::string& message, int code = -1) noexcept;
+    explicit Error(std::string&& message, int code = -1) noexcept
+        : _code(code)
+        , _message(std::move(message))
+    {}
 
     Error(const Error& other) = default;
 
@@ -92,7 +94,7 @@ public:
 
 
     //! Get message description of the exception.
-    String toString() const;
+    StringView toString() const;
 
 private:
 
