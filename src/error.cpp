@@ -21,11 +21,9 @@
  *	ID:			$Id: $
  ******************************************************************************/
 #include "solace/error.hpp"
-//#include "solace/string.hpp"
 
 
 using namespace Solace;
-
 
 
 StringView Error::toString() const {

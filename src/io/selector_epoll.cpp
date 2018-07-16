@@ -47,11 +47,18 @@ bool operator== (const epoll_event& a, const epoll_event& b) {
     return ((a.events == b.events) && (a.data == b.data));
 }
 
-
+namespace /*anonymous*/ {
 
 class EPollSelectorImpl :
         public Solace::IO::Selector::IPollerImpl {
 public:
+
+    ~EPollSelectorImpl() override {
+        close(_epfd);  // TODO(abbyssoul): Maybe check return value?
+    }
+
+    EPollSelectorImpl(EPollSelectorImpl const&) = delete;
+    EPollSelectorImpl& operator= (EPollSelectorImpl const&) = delete;
 
     // FIXME: evlist will actually leak if we throw here...
     explicit EPollSelectorImpl(uint maxReportedEvents): _evlist(maxReportedEvents) {
@@ -62,10 +69,6 @@ public:
         }
 
         _selectables.reserve(maxReportedEvents);
-    }
-
-    ~EPollSelectorImpl() {
-        close(_epfd);  // TODO(abbyssoul): Maybe check return value?
     }
 
     void add(ISelectable* selectable, int events) override {
@@ -174,20 +177,16 @@ public:
 
 
 private:
-    EPollSelectorImpl(const EPollSelectorImpl&) = delete;
-    EPollSelectorImpl& operator= (const EPollSelectorImpl&) = delete;
-
     std::vector<Selector::Event>    _selectables;
     Solace::Array<epoll_event>      _evlist;
     int                             _epfd;
 };
 
+}  // namespace
 
 
 Selector Selector::createEPoll(uint eventSize) {
-    auto pimpl = std::make_shared<EPollSelectorImpl>(eventSize);
-
-    return Selector(std::move(pimpl));
+    return Selector(std::make_unique<EPollSelectorImpl>(eventSize));
 }
 
 #endif  // SOLACE_PLATFORM_LINUX

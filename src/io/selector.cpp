@@ -59,13 +59,12 @@ Selector::Event Selector::Iterator::operator-> () const {
 }
 
 
-Selector::Selector(const std::shared_ptr<IPollerImpl>& impl): _pimpl(impl) {
+Selector::~Selector() = default;
+
+Selector::Selector(Selector&& rhs) noexcept = default;
+
+Selector::Selector(std::unique_ptr<IPollerImpl>&& impl): _pimpl(std::move(impl)) {
 }
-
-
-Selector::Selector(std::shared_ptr<IPollerImpl>&& impl): _pimpl(std::move(impl)) {
-}
-
 
 void Selector::add(ISelectable* selectable, int events) {
     _pimpl->add(selectable, events);
@@ -93,5 +92,5 @@ void Selector::remove(ISelectable::poll_id fd) {
 Selector::Iterator Selector::poll(int msec) {
     auto r = _pimpl->poll(msec);
 
-    return Selector::Iterator(_pimpl, std::get<0>(r), std::get<1>(r));
+    return Selector::Iterator(_pimpl.get(), std::get<0>(r), std::get<1>(r));
 }

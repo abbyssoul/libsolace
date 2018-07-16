@@ -27,7 +27,7 @@
 #include "solace/types.hpp"
 #include "solace/io/selectable.hpp"
 
-#include <memory>       // std::shared_ptr<>
+#include <memory>       // std::unique_ptr<>
 
 
 namespace Solace { namespace IO {
@@ -38,7 +38,7 @@ namespace Solace { namespace IO {
 class Selector {
 public:
     class IPollerImpl;
-    typedef uint32 size_type;
+    using size_type = uint32;
 
 
     /**
@@ -71,7 +71,7 @@ public:
     };
 
     /**
-     * Event descriptor
+     * Event descriptor.
      */
     struct Event {
         //!< Native fd that event occured on.
@@ -91,7 +91,7 @@ public:
 
     class Iterator {
     public:
-        Iterator(const std::shared_ptr<IPollerImpl>& p, size_type index, size_type nbReady):
+        Iterator(IPollerImpl* p, size_type index, size_type nbReady):
             _index(index),
             _size(nbReady),
             _pimpl(p)
@@ -125,12 +125,12 @@ public:
         bool operator!= (const Iterator& other) const {
             return ((_index != other._index) ||
                     (_size != other._size) ||
-                    (_pimpl.get() != other._pimpl.get()));
+                    (_pimpl != other._pimpl));
         }
 
         bool operator== (const Iterator& other) const {
             return ((_index == other._index) &&
-                    (_pimpl.get() == other._pimpl.get()));
+                    (_pimpl == other._pimpl));
         }
 
         const Iterator& operator++ ();
@@ -154,19 +154,17 @@ public:
         size_type _index;
         size_type _size;
 
-        std::shared_ptr<IPollerImpl> _pimpl;
+        IPollerImpl* _pimpl;    // NOTE: Using raw pointers for speed
     };
 
 
 public:
 
-    virtual ~Selector() = default;
+    ~Selector();
 
-    Selector(const Selector& rhs) = delete;
+    Selector(Selector const& ) = delete;
 
-    Selector(Selector&& rhs) :
-        _pimpl(std::move(rhs._pimpl))
-    {}
+    Selector(Selector&& rhs) noexcept;
 
     Selector& swap(Selector& rhs) noexcept {
         using std::swap;
@@ -215,12 +213,11 @@ public:
 
 protected:
 
-    Selector(const std::shared_ptr<IPollerImpl>& impl);
-    Selector(std::shared_ptr<IPollerImpl>&& impl);
+    Selector(std::unique_ptr<IPollerImpl>&& impl);
 
 private:
 
-    std::shared_ptr<IPollerImpl> _pimpl;
+    std::unique_ptr<IPollerImpl> _pimpl;
 
 };
 

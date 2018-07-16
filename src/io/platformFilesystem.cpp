@@ -116,7 +116,7 @@ PlatformFilesystem::BufferedFile::size_type PlatformFilesystem::BufferedFile::te
 
 
 
-std::shared_ptr<File> PlatformFilesystem::create(const Path& path) {
+std::unique_ptr<File> PlatformFilesystem::create(const Path& path) {
     const auto& pathString = path.toString();
     auto fp = fopen(pathString.c_str(), "w+x");
 
@@ -124,11 +124,11 @@ std::shared_ptr<File> PlatformFilesystem::create(const Path& path) {
         raise<IOException>(errno);
     }
 
-    return std::make_shared<PlatformFilesystem::BufferedFile>(fp);
+    return std::make_unique<PlatformFilesystem::BufferedFile>(fp);
 }
 
 
-std::shared_ptr<File> PlatformFilesystem::open(const Path& path) {
+std::unique_ptr<File> PlatformFilesystem::open(const Path& path) {
     const auto& pathString = path.toString();
     auto fp = fopen(pathString.c_str(), "r+");
 
@@ -136,7 +136,7 @@ std::shared_ptr<File> PlatformFilesystem::open(const Path& path) {
         raise<IOException>(errno);
     }
 
-    return std::make_shared<PlatformFilesystem::BufferedFile>(fp);
+    return std::make_unique<PlatformFilesystem::BufferedFile>(fp);
 }
 
 
@@ -218,14 +218,14 @@ Path PlatformFilesystem::realPath(const Path& path) const {
 }
 
 
-std::shared_ptr<PlatformFilesystem::BufferedFile> PlatformFilesystem::createTemp() {
+std::unique_ptr<PlatformFilesystem::BufferedFile> PlatformFilesystem::createTemp() {
     auto fp = tmpfile();
 
     if (!fp) {
         raise<IOException>(errno);
     }
 
-    return std::make_shared<PlatformFilesystem::BufferedFile>(fp);
+    return std::make_unique<PlatformFilesystem::BufferedFile>(fp);
 }
 
 

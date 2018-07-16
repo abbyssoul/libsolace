@@ -72,7 +72,7 @@ public:
 
     //!< Construct the string from std::string - STD compatibility method
     explicit String(std::string const& buffer) : _str(buffer) {}
-    explicit String(std::string&& buffer) : _str(std::move(buffer)) {}
+    String(std::string&& buffer) : _str(std::move(buffer)) {}
 
 public:  // Additional to base object operations
 

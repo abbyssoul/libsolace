@@ -125,6 +125,11 @@ public:
 public:
 
     /**
+     * Default virtual distructor of file types.
+     */
+     ~File() override;
+
+    /**
      * Create a file handle object.
      */
     File();
@@ -136,11 +141,6 @@ public:
      * @param other A file object to move from
      */
     File(File&& other);
-
-    /**
-     * Default virtual distructor of file types.
-     */
-     ~File() override;
 
     File& operator= (const File&) = delete;
 

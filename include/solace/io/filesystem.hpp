@@ -27,7 +27,7 @@
 #include "solace/path.hpp"
 #include "solace/io/file.hpp"
 
-#include <memory>  // std::shared_ptr<>
+#include <memory>  // std::unique_ptr<>
 
 namespace Solace { namespace IO {
 
@@ -53,7 +53,7 @@ public:
      * @param path a path to the file to be created
      * @return A newly created file
      */
-    virtual std::shared_ptr<File> create(const Path& path) = 0;
+    virtual std::unique_ptr<File> create(Path const& path) = 0;
 
     /**
      * Open already existing file.
@@ -61,7 +61,7 @@ public:
      * @param path A path to the file to be opened
      * @return Opened file
      */
-    virtual std::shared_ptr<File> open(const Path& path) = 0;
+    virtual std::unique_ptr<File> open(Path const& path) = 0;
 
     /**
      * Unlink file by path.
@@ -70,7 +70,7 @@ public:
      * @param path A path to the file to be removed
      * @return True if file was removed
      */
-    virtual bool unlink(const Path& path) = 0;
+    virtual bool unlink(Path const& path) = 0;
 
     /**
      * Check if a file identified by the path actually exists.
@@ -78,7 +78,7 @@ public:
      * @param path A path to the file to be checked
      * @return True if file exists
      */
-    virtual bool exists(const Path& path) const = 0;
+    virtual bool exists(Path const& path) const = 0;
 
 };
 

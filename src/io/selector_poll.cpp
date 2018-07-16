@@ -30,26 +30,27 @@
 #include <poll.h>   // poll()
 #include <fcntl.h>
 #include <unistd.h>  // close()
-#include <errno.h>
+#include <cerrno>
 
 
 using namespace Solace;
 using namespace Solace::IO;
 
 
-
+namespace /*anonymous*/ {
 
 class PollSelectorImpl :
         public Solace::IO::Selector::IPollerImpl {
 public:
 
+    ~PollSelectorImpl() override = default;
+    PollSelectorImpl(PollSelectorImpl const&) = delete;
+    PollSelectorImpl& operator= (PollSelectorImpl const&) = delete;
+
     // FIXME: evlist will actually leak if we throw here...
     explicit PollSelectorImpl(uint32 maxPollables) {
         _selectables.reserve(maxPollables);
         _pollfds.reserve(maxPollables);
-    }
-
-    ~PollSelectorImpl() {
     }
 
     void add(ISelectable* selectable, int events) override {
@@ -169,17 +170,15 @@ protected:
     }
 
 private:
-    PollSelectorImpl(const PollSelectorImpl&) = delete;
-    PollSelectorImpl& operator= (const PollSelectorImpl&) = delete;
 
     // This two are tightly coupled
     std::vector<Selector::Event>    _selectables;
     std::vector<pollfd>             _pollfds;
 };
 
+}  // namespace
+
 
 Selector Selector::createPoll(uint32 eventSize) {
-    auto pimpl = std::make_shared<PollSelectorImpl>(eventSize);
-
-    return Selector(std::move(pimpl));
+    return Selector(std::make_unique<PollSelectorImpl>(eventSize));
 }

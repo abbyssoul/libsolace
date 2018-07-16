@@ -61,8 +61,9 @@ public:
         size_type tell();
 
     public:
+        ~BufferedFile() override;
+
         BufferedFile(FILE* fp);
-        ~BufferedFile();
 
         BufferedFile(const BufferedFile&) = delete;
 
@@ -103,7 +104,7 @@ public:
      *
      * TODO(abbyssoul): should return Result<>
      */
-    std::shared_ptr<File> create(const Path& path) override;
+    std::unique_ptr<File> create(Path const& path) override;
 
     /**
      * Open already existing file
@@ -112,7 +113,7 @@ public:
      *
      * TODO(abbyssoul): should return Result<>
      */
-    std::shared_ptr<File> open(const Path& path) override;
+    std::unique_ptr<File> open(Path const& path) override;
 
     /**
      * Remove file by path
@@ -121,7 +122,7 @@ public:
      *
      * TODO(abbyssoul): should return Result<>
      */
-    bool unlink(const Path& path) override;
+    bool unlink(Path const& path) override;
 
     /**
      * Check if a file identified by the path actually exists
@@ -129,7 +130,7 @@ public:
      * @return True if file exists
      *
      */
-    bool exists(const Path& path) const override;
+    bool exists(Path const& path) const override;
 
 public:
 
@@ -139,14 +140,14 @@ public:
      * @param path A path to check
      * @return True if the path points to a regular file
      */
-    bool isFile(const Path& path) const;
+    bool isFile(Path const& path) const;
 
     /**
      * Check if the path points to a directory
      * @param path A path to check
      * @return True if the path points to a directory
      */
-    bool isDirectory(const Path& path) const;
+    bool isDirectory(Path const& path) const;
 
     /**
      * Get timestamp of the file pointed by the path
@@ -154,14 +155,14 @@ public:
      * @param path A path to the file to get timestamp of
      * @return Timestamp of the file
      */
-    time_t getTimestamp(const Path& path) const;
+    time_t getTimestamp(Path const& path) const;
 
     /**
      * Get the size of the file pointed to by the path
      * @param path A path to the file to get the size of
      * @return Size of the file
      */
-    size_type getFileSize(const Path& path) const;
+    size_type getFileSize(Path const& path) const;
 
     /**
      * Expand all symbolic links and resolves references to /./, /../ and extra '/' characters in the path
@@ -170,7 +171,7 @@ public:
      * @param path A path to be resolved
      * @return A canonicalized absolute pathname pointed to by the path object passed in.
      */
-    Path realPath(const Path& path) const;
+    Path realPath(Path const& path) const;
 
     /** Create a temporary file
      * Creates a temporary binary file for update mode.
@@ -178,7 +179,7 @@ public:
      *
      * @return An opened temporary file
      */
-    std::shared_ptr<BufferedFile> createTemp();
+    std::unique_ptr<BufferedFile> createTemp();
 
     /** Find pathnames matching a pattern
      *
@@ -209,7 +210,7 @@ public:
     /**
      * Set current working directory of the calling procces.
      */
-    void setWorkingDirectory(const Path& value);
+    void setWorkingDirectory(Path const& value);
 
 };
 
