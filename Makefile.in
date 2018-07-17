@@ -107,16 +107,9 @@ tools/cppcheck:
 	# Getting latest cppcheck
 	git clone --depth 1 https://github.com/danmar/cppcheck.git tools/cppcheck
 
-tools/FlintPlusPlus:
-	git clone --depth 1 https://github.com/L2Program/FlintPlusPlus.git tools/FlintPlusPlus
-
 tools/cppcheck/cppcheck: tools/cppcheck
 	git -C tools/cppcheck pull
 	$(MAKE) -j2 -C tools/cppcheck cppcheck
-
-tools/FlintPlusPlus/flint/flint++: tools/FlintPlusPlus
-	git -C tools/FlintPlusPlus pull
-	$(MAKE) -j2 -C tools/FlintPlusPlus/flint
 
 
 cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
@@ -130,9 +123,6 @@ cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) tools/cppcheck/cppcheck
 	-I include -i test/ci ${SRC_DIR} ${TEST_DIR} examples
 
 
-flint: $(MODULE_HEADERS) $(MODULE_SRC) tools/FlintPlusPlus/flint/flint++
-	tools/FlintPlusPlus/flint/flint++ -v -r ${SRC_DIR} ${TEST_DIR} examples/
-
 scan-build: ANALYZE_MAKE
 	cd $(ANALYZE_DIR) && scan-build $(MAKE)
 
@@ -142,7 +132,7 @@ tidy:
 
 
 
-codecheck: cpplint flint cppcheck #scan-build
+codecheck: cpplint cppcheck #scan-build
 
 
 
@@ -219,4 +209,3 @@ debian-clean:
 clean:
 	$(RM) -rf $(DOC_TARGET_HTML) $(BUILD_DIR) $(COVERAGE_REPORT)
 	$(RM) tools/cppcheck/cppcheck
-	$(RM) tools/FlintPlusPlus/flint/flint++
