@@ -363,4 +363,16 @@ inline std::ostream& operator<< (std::ostream& ostr, StringView const& str) {
 }
 
 }  // namespace Solace
+
+namespace std {
+/*
+    template <>
+    struct hash<Solace::StringView> {
+        size_t operator() (Solace::StringView const& k) const noexcept {
+            return std::_Hash_impl::hash(k.data(), k.length());
+        }
+    };
+*/
+}
+
 #endif  // SOLACE_STRINGLITERAL_HPP

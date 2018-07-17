@@ -67,8 +67,8 @@ public:
     void operator() (std::ostream& dest);
 
 private:
-    const StringView              _canonicalAppName;
-    const Version                 _version;
+    StringView const    _canonicalAppName;
+    Version const       _version;
 };
 
 

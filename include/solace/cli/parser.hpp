@@ -34,7 +34,9 @@
 // TODO(abbyssoul): consider moving away from std::function #include "solace/delegate.hpp"
 #include "solace/utils.hpp"
 
-#include <map>  // TODO(abbyssoul): Replace with fix-memory map
+// Note unordered map has issues with class not being fully defined.
+#include <map>   // TODO(abbyssoul): Replace with fix-memory map
+
 
 namespace Solace { namespace cli {
 
@@ -266,14 +268,15 @@ public:
     };
 
 
-    class Command;
-    using CommandDict = std::map<StringView, Command>;
+//    class Command;
 
     /**
      * Command for CLI
      */
     class Command {
     public:
+
+        using CommandDict = std::map<StringView, Command>;
 
         ~Command() = default;
 
@@ -348,7 +351,8 @@ public:
         }
 
         const CommandDict&  commands() const noexcept  { return _commands; }
-        Command& commands(std::initializer_list<CommandDict::value_type> commands) {
+//        Command& commands(std::initializer_list<CommandDict::value_type> commands) {
+        Command& commands(std::initializer_list<std::pair<const StringView, Command>> commands) {
             _commands = commands;
             return *this;
         }
@@ -463,7 +467,7 @@ public:
      * @param appVersion Application version to be printed.
      * @return A parser command that when given by a user will result in a printing of the version info.
      */
-    static CommandDict::value_type printVersionCmd(StringView appName, const Version& appVersion);
+    static Command::CommandDict::value_type printVersionCmd(StringView appName, const Version& appVersion);
 
 
     /**
@@ -477,7 +481,7 @@ public:
      * Add a command to print help summary.
      * @return A parser command that when given by a user will result in a printing of help summary.
      */
-    static CommandDict::value_type printHelpCmd();
+    static Command::CommandDict::value_type printHelpCmd();
 
 
     /**
@@ -537,8 +541,8 @@ public:
         return *this;
     }
 
-    const CommandDict& commands() const noexcept        { return _defaultAction.commands(); }
-    Parser& commands(std::initializer_list<CommandDict::value_type> commands) {
+    const Command::CommandDict& commands() const noexcept        { return _defaultAction.commands(); }
+    Parser& commands(std::initializer_list<Command::CommandDict::value_type> commands) {
         _defaultAction.commands(commands);
 
         return *this;

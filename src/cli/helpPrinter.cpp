@@ -67,6 +67,7 @@ void formatCommand(std::ostream& output, StringView name, Parser::Command const&
 
 }  // namespace
 
+
 void
 HelpFormatter::operator() (std::ostream& output,
                            StringView name,

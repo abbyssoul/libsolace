@@ -651,7 +651,7 @@ Parser::Parser::printHelp() {
     };
 }
 
-Parser::CommandDict::value_type
+Parser::Command::CommandDict::value_type
 Parser::printVersionCmd(StringView appName, const Version& appVersion) {
     return {"version", {
             "Print version",
@@ -665,7 +665,8 @@ Parser::printVersionCmd(StringView appName, const Version& appVersion) {
         }};
 }
 
-Parser::CommandDict::value_type
+
+Parser::Command::CommandDict::value_type
 Parser::printHelpCmd() {
     return {"help", {
             "Print help",
