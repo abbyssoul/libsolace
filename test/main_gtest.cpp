@@ -18,13 +18,13 @@
  * @file: GTest entry point
  *******************************************************************************/
 #include <gtest/gtest.h>
-
 #include "ci/teamcity_gtest.h"
 
-
 int main(int argc, char **argv) {
+
     testing::InitGoogleTest(&argc, argv);
 
+    // to do: Figure out what to do with this.
     if (jetbrains::teamcity::underTeamcity()) {
         auto& listeners = testing::UnitTest::GetInstance()->listeners();
 
