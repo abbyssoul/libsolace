@@ -1,3 +1,25 @@
+/*
+*  Copyright 2016 Ivan Ryabov
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*/
+/*******************************************************************************
+ * libSolace Unit Test Suit
+ * @file: test/cli/test_parser.cpp
+ * @author: soultaker
+ *
+ * Created on: 20/06/2016
+*******************************************************************************/
 #include <solace/cli/parser.hpp>  // Class being tested
 
 #include <gtest/gtest.h>
@@ -9,7 +31,7 @@ using namespace Solace::cli;
 
 class TestCommandlineParser: public ::testing::Test {
 
-public: 
+public:
 
     template<typename T>
     void testIntParsing(const char* strArg, T expectedValue, bool expectedToPass = true) {
@@ -510,7 +532,7 @@ TEST_F(TestCommandlineParser, testInlineValues) {
     EXPECT_TRUE(parsedSuccessully);
     EXPECT_EQ(true, xValue);
     EXPECT_EQ(321, vValue);
-    EXPECT_TRUE(sValue == "blah!");
+    EXPECT_EQ(sValue, "blah!");
 }
 
 TEST_F(TestCommandlineParser, testInlineValuesTypeMismatch) {

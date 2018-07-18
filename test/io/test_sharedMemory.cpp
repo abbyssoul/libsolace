@@ -1,3 +1,25 @@
+/*
+*  Copyright 2016 Ivan Ryabov
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*/
+/*******************************************************************************
+ * libSolace Unit Test Suit
+ * @file: test/io/test_sharedMemory.cpp
+ * @author: soultaker
+ *
+ * Created on: 03/07/2016
+*******************************************************************************/
 #include <solace/io/sharedMemory.hpp>  // Class being tested
 
 #include <solace/uuid.hpp>
@@ -52,7 +74,7 @@ TEST_F(TestSharedMemory, testOpen_Exclusive) {
     EXPECT_THROW(auto mem = SharedMemory::open(name), IOException);
 }
 
-//to do : RETEST
+// to do : RETEST
 // TEST_F(TestSharedMemory, testCreateAndMap) {
 //     const SharedMemory::size_type memSize = 24;
 //     bool isChild = false;

@@ -1,3 +1,25 @@
+/*
+*  Copyright 2016 Ivan Ryabov
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*/
+/*******************************************************************************
+ * libSolace Unit Test Suit
+ * @file: test/process/test_env.cpp
+ * @author: soultaker
+ *
+ * Created on: 20/06/2016
+*******************************************************************************/
 #include <solace/process/env.hpp>  // Class being tested
 
 #include <solace/exception.hpp>
@@ -30,7 +52,7 @@ TEST_F(TestProcessEnv, testComplex) {
 
     EXPECT_NO_THROW(env.set(name, uid1.toString()));
     EXPECT_EQ(false, env.empty());
-    EXPECT_TRUE(env.size() > 1);
+    EXPECT_GT(env.size(), 1);
     EXPECT_EQ(uid1.toString(), env[name]);
 
     EXPECT_NO_THROW(env.set(name, uid2.toString()));

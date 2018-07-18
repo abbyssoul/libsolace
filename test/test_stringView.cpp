@@ -1,4 +1,25 @@
-#include <solace/stringView.hpp>  // Class being tested
+/*
+*  Copyright 2016 Ivan Ryabov
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*/
+/*******************************************************************************
+ * libSolace Unit Test Suit
+ *	@file		test/test_stringView.cpp
+ *	@author		abbyssoul
+ *
+ ******************************************************************************/
+ #include <solace/stringView.hpp>  // Class being tested
 #include <solace/exception.hpp>
 
 #include <gtest/gtest.h>
@@ -94,9 +115,9 @@ TEST_F(TestStringView, testEquality) {
     EXPECT_TRUE(value1.equals(value3));
     EXPECT_TRUE(value3.equals(value1));
 
-    EXPECT_TRUE(value1 == "hello");
-    EXPECT_TRUE(!(value1 == "hello here"));
-    EXPECT_TRUE(value1 != "hi hello");
+    EXPECT_EQ(value1, "hello");
+    EXPECT_NE(value1, "hello here");
+    EXPECT_NE(value1, "hi hello");
 
     EXPECT_TRUE(value1 == value1);
     EXPECT_TRUE(!(value1 == value2));
@@ -270,7 +291,7 @@ TEST_F(TestStringView, testContains) {
     * @see StringView::hashCode
     */
 TEST_F(TestStringView, testHashCode) {
-    EXPECT_TRUE(StringView("Hello otu there").hashCode() != 0);
+    EXPECT_NE(StringView("Hello otu there").hashCode(), 0);
 
     EXPECT_TRUE(StringView("Hello otu there").hashCode() !=
                     StringView("Hello out there").hashCode());

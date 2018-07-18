@@ -1,3 +1,25 @@
+/*
+*  Copyright 2016 Ivan Ryabov
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*/
+/*******************************************************************************
+ * libSolace Unit Test Suit
+ * @file: test/test_path.cpp
+ * @author: soultaker
+ *
+ * Created on: 21 Jan 2016
+*******************************************************************************/
 #include <solace/path.hpp>			// Class being tested
 #include <solace/exception.hpp>     // Checked expcetions
 
@@ -86,19 +108,19 @@ TEST_F(TestPath, testComparable) {
     EXPECT_EQ(false, p_different.equals(p2));
 
     // Verify compareTo
-    EXPECT_TRUE(Path("aa").compareTo(Path("ab")) < 0);
-    EXPECT_TRUE(Path({"a", "a"}).compareTo({"a", "b"}) < 0);
-    EXPECT_TRUE(Path({"a", "a"}).compareTo({"a", "c"}) < 0);
-    EXPECT_TRUE(Path({"a", "b", "c"}).compareTo({"a", "b", "c", "d"}) < 0);
-    EXPECT_TRUE(Path({"a", "b", "c"}).compareTo({"a", "b", "c", "d", "e"}) < 0);
-    EXPECT_TRUE(Path({"a", "a", "c"}).compareTo({"a", "c", "c", "d", "e"}) < 0);
+    EXPECT_LT(Path("aa").compareTo(Path("ab")), 0);
+    EXPECT_LT(Path({"a", "a"}).compareTo({"a", "b"}), 0);
+    EXPECT_LT(Path({"a", "a"}).compareTo({"a", "c"}), 0);
+    EXPECT_LT(Path({"a", "b", "c"}).compareTo({"a", "b", "c", "d"}), 0);
+    EXPECT_LT(Path({"a", "b", "c"}).compareTo({"a", "b", "c", "d", "e"}), 0);
+    EXPECT_LT(Path({"a", "a", "c"}).compareTo({"a", "c", "c", "d", "e"}), 0);
 
-    EXPECT_TRUE(Path("ab").compareTo(Path("aa")) > 0);
-    EXPECT_TRUE(Path({"a", "b"}).compareTo({"a", "a"}) > 0);
-    EXPECT_TRUE(Path({"a", "c"}).compareTo({"a", "a"}) > 0);
-    EXPECT_TRUE(Path({"a", "b", "c", "d"}).compareTo({"a", "b", "c"}) > 0);
-    EXPECT_TRUE(Path({"a", "b", "c", "d", "e"}).compareTo({"a", "b", "c"}) > 0);
-    EXPECT_TRUE(Path({"a", "c", "c", "d", "e"}).compareTo({"a", "a", "c"}) > 0);
+    EXPECT_GT(Path("ab").compareTo(Path("aa")), 0);
+    EXPECT_GT(Path({"a", "b"}).compareTo({"a", "a"}), 0);
+    EXPECT_GT(Path({"a", "c"}).compareTo({"a", "a"}), 0);
+    EXPECT_GT(Path({"a", "b", "c", "d"}).compareTo({"a", "b", "c"}), 0);
+    EXPECT_GT(Path({"a", "b", "c", "d", "e"}).compareTo({"a", "b", "c"}), 0);
+    EXPECT_GT(Path({"a", "c", "c", "d", "e"}).compareTo({"a", "a", "c"}), 0);
 }
 
 TEST_F(TestPath, testStartsWith) {

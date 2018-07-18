@@ -1,3 +1,23 @@
+/*
+*  Copyright 2016 Ivan Ryabov
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*/
+/*******************************************************************************
+ * libSolace Unit Test Suit
+ *	@file test/test_array.cpp
+ *	@brief		Test suit for Solace::Array
+ ******************************************************************************/
 #include <solace/array.hpp>    // Class being tested.
 #include <solace/string.hpp>   // Non POD subject.
 
@@ -146,7 +166,7 @@ TEST_F(TestArray, testEmpty) {
         }
 }
 
-TEST_F (TestArray, testCopy) {
+TEST_F(TestArray, testCopy) {
     {
         Array<int> a1(0);
         Array<int> a2(20);
@@ -167,7 +187,7 @@ TEST_F (TestArray, testCopy) {
     }
 }
 
-TEST_F (TestArray, testBasics) {
+TEST_F(TestArray, testBasics) {
     Array<uint> array(TEST_SIZE_0);
 
     EXPECT_TRUE(!array.empty());
@@ -192,7 +212,7 @@ TEST_F (TestArray, testBasics) {
     // TODO(abbyssoul): Test access pass end!!
 }
 
-TEST_F (TestArray, testString) {
+TEST_F(TestArray, testString) {
     Array<String> array(TEST_SIZE_0);
 
     EXPECT_TRUE(!array.empty());
@@ -216,7 +236,7 @@ TEST_F (TestArray, testString) {
     }
 }
 
-TEST_F (TestArray, testNonPods) {
+TEST_F(TestArray, testNonPods) {
     EXPECT_EQ(0, NonPodStruct::TotalCount);
     {
         Array<NonPodStruct> array(TEST_SIZE_1);
@@ -248,7 +268,7 @@ TEST_F (TestArray, testNonPods) {
     EXPECT_EQ(0, NonPodStruct::TotalCount);
 }
 
-TEST_F (TestArray, testInitializerList) {
+TEST_F(TestArray, testInitializerList) {
     {
         const int native_array[] = {0, 1, 2, 3};
         const Array<int> array = {0, 1, 2, 3};
@@ -302,7 +322,7 @@ TEST_F (TestArray, testInitializerList) {
 
 }
 
-TEST_F (TestArray, testFromNativeConvertion) {
+TEST_F(TestArray, testFromNativeConvertion) {
 
     {
         const int native_array[] = {0, 1, 2, 3};
@@ -349,8 +369,9 @@ Array<T> moveArray(std::initializer_list<T> list) {
     return {list};
 }
 
-TEST_F (TestArray, testMoveAssignment) {
-    {// Test on integral types
+TEST_F(TestArray, testMoveAssignment) {
+    {
+        // Test on integral types
         Array<int> array(0);
 
         EXPECT_TRUE(array.empty());
@@ -406,7 +427,7 @@ TEST_F (TestArray, testMoveAssignment) {
     }
 }
 
-TEST_F (TestArray, testEquals) {
+TEST_F(TestArray, testEquals) {
     {
         const Array<int> array = {1, 2, 3};
 
@@ -546,15 +567,15 @@ TEST_F (TestArray, testEquals) {
     }
 }
 
-TEST_F (TestArray, testIndexOf) {
+TEST_F(TestArray, testIndexOf) {
     // TODO(abbyssoul): Implementation
 }
 
-TEST_F (TestArray, testContains) {
+TEST_F(TestArray, testContains) {
     // TODO(abbyssoul): Implementation
 }
 
-TEST_F (TestArray, testExtend) {
+TEST_F(TestArray, testExtend) {
     // TODO(abbyssoul): Implementation
 }
 
@@ -567,5 +588,3 @@ const int 		TestArray::NonPodStruct::IVALUE_DEFAULT = -123;
 const String 	TestArray::NonPodStruct::STR_DEFAULT = "test_value";
 
 int TestArray::NonPodStruct::TotalCount = 0;
-
-//end
