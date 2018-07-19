@@ -20,18 +20,11 @@
 *******************************************************************************/
 #include <solace/memoryBuffer.hpp>  // Class being tested
 
-#include <cppunit/extensions/HelperMacros.h>
-
+#include <gtest/gtest.h>
 
 using namespace Solace;
 
-
-class TestMemoryBuffer :
-        public CppUnit::TestFixture  {
-
-    CPPUNIT_TEST_SUITE(TestMemoryBuffer);
-        CPPUNIT_TEST(moveAssignment);
-    CPPUNIT_TEST_SUITE_END();
+class TestMemoryBuffer : public ::testing::Test  {
 
 protected:
 
@@ -54,23 +47,26 @@ protected:
 
 public:
 
-    void moveAssignment() {
-        byte fakes[32];
+    void setUp() {
+	}
 
-        auto disposer = MockDisposer(1);
-        auto buff = MemoryBuffer(wrapMemory(fakes), &disposer);
-        CPPUNIT_ASSERT_EQUAL(1u, disposer.count());
-
-        {
-            MemoryBuffer otherBuff = std::move(buff);
-            CPPUNIT_ASSERT_EQUAL(1u, disposer.count());
-        }
-
-
-        CPPUNIT_ASSERT_EQUAL(0u, disposer.count());
-        CPPUNIT_ASSERT(buff.empty());
-    }
-
+    void tearDown() {
+	}
 };
 
-CPPUNIT_TEST_SUITE_REGISTRATION(TestMemoryBuffer);
+TEST_F(TestMemoryBuffer, moveAssignment) {
+    byte fakes[32];
+
+    auto disposer = MockDisposer(1);
+    auto buff = MemoryBuffer(wrapMemory(fakes), &disposer);
+    EXPECT_EQ(1u, disposer.count());
+
+    {
+        MemoryBuffer otherBuff = std::move(buff);
+        EXPECT_EQ(1u, disposer.count());
+    }
+
+
+    EXPECT_EQ(0u, disposer.count());
+    EXPECT_TRUE(buff.empty());
+}

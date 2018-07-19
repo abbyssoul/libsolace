@@ -26,32 +26,20 @@
 #include <solace/exception.hpp>
 #include <solace/uuid.hpp>
 
-#include <cppunit/extensions/HelperMacros.h>
+#include <gtest/gtest.h>
 
 #include <unistd.h>
 #include <signal.h>
 #include <sys/time.h>
 #include <memory.h>
 
-
 using namespace Solace;
 using namespace Solace::IO;
 
+class TestPlatformFs : public ::testing::Test {
 
-class TestPlatformFs : public CppUnit::TestFixture  {
-
-    CPPUNIT_TEST_SUITE(TestPlatformFs);
-        CPPUNIT_TEST(testCreation);
-        CPPUNIT_TEST(testCreationAndRemoval);
-        CPPUNIT_TEST(testGetExecPath);
-        CPPUNIT_TEST(testThereIsADirectory);
-        CPPUNIT_TEST(testWorkingDirectory);
-        CPPUNIT_TEST(testTemp);
-    CPPUNIT_TEST_SUITE_END();
-
-protected:
+public:
     MemoryManager _memoryManager;
-
 
     class DirectoryGuard {
     public:
@@ -82,156 +70,159 @@ public:
     {
     }
 
-    void testCreation() {
-        const auto fileUID = UUID::random();
-        const auto filename = Path::parse(String::join("-", {"test", fileUID.toString()}).view()).unwrap();
-        const auto& fileUIDBytes = fileUID.view();
+    void setUp() {
+	}
 
-
-        auto fs = PlatformFilesystem();
-        if (fs.exists(filename)) {
-            fs.unlink(filename);
-        }
-
-        CPPUNIT_ASSERT(!fs.exists(filename));
-        {
-            auto f = fs.create(filename);
-            CPPUNIT_ASSERT(fs.exists(filename));
-
-            const auto written = f->write(fileUIDBytes);
-            CPPUNIT_ASSERT(written.isOk());
-
-            const MemoryView::size_type bytesWriten = written.unwrap();
-            CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesWriten);
-
-            f->seek(0, File::Seek::Set);
-
-            WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
-            const auto read = f->read(readBuffer);
-            CPPUNIT_ASSERT(read.isOk());
-            const MemoryView::size_type bytesRead = read.unwrap();
-            CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
-            CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
-            readBuffer.flip();
-
-            CPPUNIT_ASSERT(fileUIDBytes == readBuffer.viewRemaining());
-        }
-
-        CPPUNIT_ASSERT(fs.unlink(filename));
-        CPPUNIT_ASSERT(!fs.exists(filename));
-    }
-
-    void testCreationAndRemoval() {
-        const auto fileUID = UUID::random();
-        const auto filename = Path::parse(String::join("-", {"test", fileUID.toString()}).view()).unwrap();
-        const auto& fileUIDBytes = fileUID.view();
-
-        auto fs = PlatformFilesystem();
-        if (fs.exists(filename)) {
-            fs.unlink(filename);
-        }
-        CPPUNIT_ASSERT(!fs.exists(filename));
-
-        {
-            auto f = fs.create(filename);
-            CPPUNIT_ASSERT(fs.exists(filename));
-            f->write(fileUIDBytes);
-            f->close();
-
-            WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
-            CPPUNIT_ASSERT_THROW(f->seek(0, File::Seek::Set), NotOpen);
-            CPPUNIT_ASSERT_THROW(f->read(readBuffer), NotOpen);
-        }
-
-        // Attempt to 'create' already existing file
-        CPPUNIT_ASSERT_THROW(auto f = fs.create(filename), IOException);
-        CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), fs.getFileSize(filename));
-        CPPUNIT_ASSERT(fs.isFile(filename));
-        CPPUNIT_ASSERT(!fs.isDirectory(filename));
-
-        {
-            auto f = fs.open(filename);
-
-            WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
-            const auto read = f->read(readBuffer);
-            CPPUNIT_ASSERT(read.isOk());
-            const MemoryView::size_type bytesRead = read.unwrap();
-
-            CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
-            CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
-            readBuffer.flip();
-
-            CPPUNIT_ASSERT(fileUIDBytes == readBuffer.viewRemaining());
-        }
-
-
-        timeval timeOfDay;
-        gettimeofday(&timeOfDay, nullptr);
-        auto t = fs.getTimestamp(filename);
-        CPPUNIT_ASSERT(timeOfDay.tv_sec - t < 2);
-
-        CPPUNIT_ASSERT(fs.unlink(filename));
-        CPPUNIT_ASSERT(!fs.exists(filename));
-    }
-
-    void testGetExecPath() {
-        auto fs = PlatformFilesystem();
-
-        auto pathToThisTest = fs.getExecPath();
-        CPPUNIT_ASSERT_EQUAL(String("test_solace"), pathToThisTest.last());
-    }
-
-    void testThereIsADirectory() {
-        auto fs = PlatformFilesystem();
-
-        auto pathToThisTest = fs.getExecPath();
-        auto realPathToThisTest = fs.realPath(pathToThisTest);
-
-        CPPUNIT_ASSERT(fs.isFile(realPathToThisTest));
-        CPPUNIT_ASSERT(fs.isDirectory(realPathToThisTest.getParent()));
-    }
-
-    void testWorkingDirectory() {
-        auto fs = PlatformFilesystem();
-
-        auto cwd = fs.getWorkingDirectory();
-        CPPUNIT_ASSERT(fs.isDirectory(cwd));
-        CPPUNIT_ASSERT(!fs.isFile(cwd));
-
-        DirectoryGuard guardCwd;
-
-        // Commented out at it changes run-time environment.
-        fs.setWorkingDirectory(cwd.getParent());
-        CPPUNIT_ASSERT_EQUAL(cwd.getParent(), fs.getWorkingDirectory());
-    }
-
-    void testTemp() {
-        const auto fileUID = UUID::random();
-        const auto& fileUIDBytes = fileUID.view();
-
-        auto fs = PlatformFilesystem();
-        {
-            auto f = fs.createTemp();
-
-            const auto written = f->write(fileUIDBytes);
-            CPPUNIT_ASSERT(written.isOk());
-            const MemoryView::size_type bytesWriten = written.unwrap();
-            CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesWriten);
-            CPPUNIT_ASSERT_EQUAL(bytesWriten, static_cast<decltype(bytesWriten)>(f->tell()));
-
-            f->seek(0, File::Seek::Set);
-
-            WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
-            const auto read = f->read(readBuffer);
-            CPPUNIT_ASSERT(read.isOk());
-            const MemoryView::size_type bytesRead = read.unwrap();
-            CPPUNIT_ASSERT_EQUAL(fileUIDBytes.size(), bytesRead);
-            CPPUNIT_ASSERT_EQUAL(false, readBuffer.hasRemaining());
-            readBuffer.flip();
-
-            CPPUNIT_ASSERT(fileUIDBytes == readBuffer.viewRemaining());
-        }
-    }
+    void tearDown() {
+	}
 };
 
-CPPUNIT_TEST_SUITE_REGISTRATION(TestPlatformFs);
+TEST_F(TestPlatformFs, testCreation) {
+    const auto fileUID = UUID::random();
+    const auto filename = Path::parse(String::join("-", {"test", fileUID.toString()}).view()).unwrap();
+    const auto& fileUIDBytes = fileUID.view();
+
+    auto fs = PlatformFilesystem();
+    if (fs.exists(filename)) {
+        fs.unlink(filename);
+    }
+
+    EXPECT_TRUE(!fs.exists(filename));
+    {
+        auto f = fs.create(filename);
+        EXPECT_TRUE(fs.exists(filename));
+
+        const auto written = f->write(fileUIDBytes);
+        EXPECT_TRUE(written.isOk());
+
+        const MemoryView::size_type bytesWriten = written.unwrap();
+        EXPECT_EQ(fileUIDBytes.size(), bytesWriten);
+
+        f->seek(0, File::Seek::Set);
+
+        WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
+        const auto read = f->read(readBuffer);
+        EXPECT_TRUE(read.isOk());
+        const MemoryView::size_type bytesRead = read.unwrap();
+        EXPECT_EQ(fileUIDBytes.size(), bytesRead);
+        EXPECT_EQ(false, readBuffer.hasRemaining());
+        readBuffer.flip();
+
+        EXPECT_TRUE(fileUIDBytes == readBuffer.viewRemaining());
+    }
+
+    EXPECT_TRUE(fs.unlink(filename));
+    EXPECT_TRUE(!fs.exists(filename));
+}
+
+TEST_F(TestPlatformFs, testCreationAndRemoval) {
+    const auto fileUID = UUID::random();
+    const auto filename = Path::parse(String::join("-", {"test", fileUID.toString()}).view()).unwrap();
+    const auto& fileUIDBytes = fileUID.view();
+
+    auto fs = PlatformFilesystem();
+    if (fs.exists(filename)) {
+        fs.unlink(filename);
+    }
+
+    EXPECT_TRUE(!fs.exists(filename));
+
+    {
+        auto f = fs.create(filename);
+        EXPECT_TRUE(fs.exists(filename));
+        f->write(fileUIDBytes);
+        f->close();
+
+        WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
+        EXPECT_THROW(f->seek(0, File::Seek::Set), NotOpen);
+        EXPECT_THROW(f->read(readBuffer), NotOpen);
+    }
+
+    // Attempt to 'create' already existing file
+    EXPECT_THROW(auto f = fs.create(filename), IOException);
+    EXPECT_EQ(fileUIDBytes.size(), fs.getFileSize(filename));
+    EXPECT_TRUE(fs.isFile(filename));
+    EXPECT_TRUE(!fs.isDirectory(filename));
+
+    {
+        auto f = fs.open(filename);
+
+        WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
+        const auto read = f->read(readBuffer);
+        EXPECT_TRUE(read.isOk());
+        const MemoryView::size_type bytesRead = read.unwrap();
+
+        EXPECT_EQ(fileUIDBytes.size(), bytesRead);
+        EXPECT_EQ(false, readBuffer.hasRemaining());
+        readBuffer.flip();
+
+        EXPECT_TRUE(fileUIDBytes == readBuffer.viewRemaining());
+    }
+
+    timeval timeOfDay;
+    gettimeofday(&timeOfDay, nullptr);
+    auto t = fs.getTimestamp(filename);
+    EXPECT_LT(timeOfDay.tv_sec - t, 2);
+
+    EXPECT_TRUE(fs.unlink(filename));
+    EXPECT_TRUE(!fs.exists(filename));
+}
+
+TEST_F(TestPlatformFs, testGetExecPath) {
+    auto fs = PlatformFilesystem();
+
+    auto pathToThisTest = fs.getExecPath();
+    EXPECT_EQ(String("test_solace"), pathToThisTest.last());
+}
+
+TEST_F(TestPlatformFs, testThereIsADirectory) {
+    auto fs = PlatformFilesystem();
+
+    auto pathToThisTest = fs.getExecPath();
+    auto realPathToThisTest = fs.realPath(pathToThisTest);
+
+    EXPECT_TRUE(fs.isFile(realPathToThisTest));
+    EXPECT_TRUE(fs.isDirectory(realPathToThisTest.getParent()));
+}
+
+TEST_F(TestPlatformFs, testWorkingDirectory) {
+    auto fs = PlatformFilesystem();
+
+    auto cwd = fs.getWorkingDirectory();
+    EXPECT_TRUE(fs.isDirectory(cwd));
+    EXPECT_TRUE(!fs.isFile(cwd));
+
+    DirectoryGuard guardCwd;
+
+    // Commented out at it changes run-time environment.
+    fs.setWorkingDirectory(cwd.getParent());
+    EXPECT_EQ(cwd.getParent(), fs.getWorkingDirectory());
+}
+
+TEST_F(TestPlatformFs, testTemp) {
+    const auto fileUID = UUID::random();
+    const auto& fileUIDBytes = fileUID.view();
+
+    auto fs = PlatformFilesystem();
+    {
+        auto f = fs.createTemp();
+
+        const auto written = f->write(fileUIDBytes);
+        EXPECT_TRUE(written.isOk());
+        const MemoryView::size_type bytesWriten = written.unwrap();
+        EXPECT_EQ(fileUIDBytes.size(), bytesWriten);
+        EXPECT_EQ(bytesWriten, static_cast<decltype(bytesWriten)>(f->tell()));
+
+        f->seek(0, File::Seek::Set);
+
+        WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
+        const auto read = f->read(readBuffer);
+        EXPECT_TRUE(read.isOk());
+        const MemoryView::size_type bytesRead = read.unwrap();
+        EXPECT_EQ(fileUIDBytes.size(), bytesRead);
+        EXPECT_EQ(false, readBuffer.hasRemaining());
+        readBuffer.flip();
+
+        EXPECT_TRUE(fileUIDBytes == readBuffer.viewRemaining());
+    }
+}

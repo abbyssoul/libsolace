@@ -23,7 +23,7 @@
 #include <solace/io/pipe.hpp>  // Class being tested
 
 #include <solace/exception.hpp>
-#include <cppunit/extensions/HelperMacros.h>
+#include <gtest/gtest.h>
 
 #include <cstring>
 #include <unistd.h>
@@ -34,47 +34,44 @@
 
 #include "../interruptexception.hpp"
 
-
 using namespace Solace;
 using namespace Solace::IO;
 
-
-class TestBlockingPipe: public CppUnit::TestFixture  {
-
-    CPPUNIT_TEST_SUITE(TestBlockingPipe);
-        CPPUNIT_TEST(testWrite);
-        CPPUNIT_TEST(testWriteRead);
-    CPPUNIT_TEST_SUITE_END();
+class TestBlockingPipe: public ::testing::Test {
 
 public:
 
-    void testWrite() {
+    void setUp() {
+	}
 
-        byte message[] = "Hello there";
-        Pipe pipe;
-
-        auto msgBuffer = wrapMemory(message);
-
-        const auto written = pipe.write(msgBuffer);
-        CPPUNIT_ASSERT(written.isOk());
-        CPPUNIT_ASSERT_EQUAL(msgBuffer.size(), static_cast<MemoryView::size_type>(written.unwrap()));
-    }
-
-    void testWriteRead() {
-        byte message[] = "Hello there";
-        Pipe pipe;
-
-        auto msgBuffer = wrapMemory(message);
-        const auto written = pipe.write(msgBuffer);
-        CPPUNIT_ASSERT(written.isOk());
-        CPPUNIT_ASSERT_EQUAL(msgBuffer.size(), static_cast<MemoryView::size_type>(written.unwrap()));
-
-        byte rcv[48];
-        auto rcvBuffer = wrapMemory(rcv);
-        const auto read = pipe.read(rcvBuffer);
-        CPPUNIT_ASSERT(read.isOk());
-        CPPUNIT_ASSERT_EQUAL(msgBuffer.size(), static_cast<MemoryView::size_type>(read.unwrap()));
-    }
+    void tearDown() {
+	}
 };
 
-CPPUNIT_TEST_SUITE_REGISTRATION(TestBlockingPipe);
+TEST_F(TestBlockingPipe, testWrite) {
+
+    byte message[] = "Hello there";
+    Pipe pipe;
+
+    auto msgBuffer = wrapMemory(message);
+
+    const auto written = pipe.write(msgBuffer);
+    EXPECT_TRUE(written.isOk());
+    EXPECT_EQ(msgBuffer.size(), static_cast<MemoryView::size_type>(written.unwrap()));
+}
+
+TEST_F(TestBlockingPipe, testWriteRead) {
+    byte message[] = "Hello there";
+    Pipe pipe;
+
+    auto msgBuffer = wrapMemory(message);
+    const auto written = pipe.write(msgBuffer);
+    EXPECT_TRUE(written.isOk());
+    EXPECT_EQ(msgBuffer.size(), static_cast<MemoryView::size_type>(written.unwrap()));
+
+    byte rcv[48];
+    auto rcvBuffer = wrapMemory(rcv);
+    const auto read = pipe.read(rcvBuffer);
+    EXPECT_TRUE(read.isOk());
+    EXPECT_EQ(msgBuffer.size(), static_cast<MemoryView::size_type>(read.unwrap()));
+}
