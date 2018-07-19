@@ -95,7 +95,7 @@ TEST_F(TestAnonSharedMemory, testShareAndMap) {
     EXPECT_TRUE(memBuffer);
     EXPECT_EQ(memSize, memBuffer.size());
 
-    EXPECT_EXIT(writeTextAndExit(memSize, memBuffer), ::testing::ExitedWithCode(0), "");
+    EXPECT_EXIT(writeTextAndExit(memSize, memBuffer), ::testing::ExitedWithCode(0), ".*");
 
     uint64 viewedPid;
     char message[10];

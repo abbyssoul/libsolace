@@ -94,7 +94,7 @@ TEST_F(TestSharedMemory, testCreateAndMap) {
     EXPECT_EQ(memSize, mem.size());
     EXPECT_EQ(memSize, view.size());
 
-    EXPECT_EXIT(writeMessageAndExit(memSize, view), ::testing::ExitedWithCode(0), "");
+    EXPECT_EXIT(writeMessageAndExit(memSize, view), ::testing::ExitedWithCode(0), ".*");
 
     uint64 viewedMemsize;
     char message[10];
