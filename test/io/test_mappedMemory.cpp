@@ -78,16 +78,6 @@ TEST_F(TestAnonSharedMemory, testFill) {
     }
 }
 
-void writeTextAndExit(uint64 memSize, MemoryBuffer& memBuffer) {
-    EXPECT_EQ(memSize, memBuffer.size());
-
-    WriteBuffer wb(memBuffer);
-    wb.write(memSize);
-    wb.write(StringView("child").view());
-
-    exit(0);
-}
-
 TEST_F(TestAnonSharedMemory, testShareAndMap) {
     const SharedMemory::size_type memSize = 24;
     auto memBuffer = SharedMemory::createAnon(memSize, SharedMemory::Access::Shared);
@@ -95,7 +85,18 @@ TEST_F(TestAnonSharedMemory, testShareAndMap) {
     EXPECT_TRUE(memBuffer);
     EXPECT_EQ(memSize, memBuffer.size());
 
-    EXPECT_EXIT(writeTextAndExit(memSize, memBuffer), ::testing::ExitedWithCode(0), ".*");
+    auto lambdaFunction = [&] (uint64 memorySize, MemoryBuffer& memoryBuffer) {
+
+        EXPECT_EQ(memorySize, memoryBuffer.size());
+
+        WriteBuffer wb(memoryBuffer);
+        wb.write(memorySize);
+        wb.write(StringView("child").view());
+
+        exit(0);
+    };
+
+    EXPECT_EXIT(lambdaFunction(memSize, memBuffer), ::testing::ExitedWithCode(0), ".*");
 
     uint64 viewedPid;
     char message[10];
