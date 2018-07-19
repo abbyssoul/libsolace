@@ -22,17 +22,16 @@
  ******************************************************************************/
 #include "solace/string.hpp"
 
-#include <cstring>  // va_list
-#include <regex>
+#include <cstring>
 
 
 using namespace Solace;
 
 
 
-const String String::Empty(std::string(""));
-const String TRUE_STRING(std::string("true"));
-const String FALSE_STRING(std::string("false"));
+const String String::Empty{};
+const String TRUE_STRING("true");
+const String FALSE_STRING("false");
 
 
 String::String(const char* data) :
@@ -90,8 +89,7 @@ int String::compareTo(const char* other) const {
 }
 
 String::value_type String::charAt(size_type index) const {
-    // FIXME: Properly handle UTF-8 String
-    return Char(_str[index]);
+    return _str.at(index);
 }
 
 
@@ -212,24 +210,14 @@ String String::replace(const String& what, const String& by) const {
 }
 
 Array<String> String::split(const String& expr) const {
-    std::regex splitBy(expr._str);
-
-    std::smatch m;
-    std::string s = _str;
-
-    std::vector<String> splits;
-    while (std::regex_search(s, m, splitBy)) {
-        splits.emplace_back(m.prefix());
-        s = m.suffix().str();
+    std::vector<String> result;
+    auto const splits = view().split(expr.view());
+    result.reserve(splits.size());
+    for (auto& s : splits) {
+        result.emplace_back(s);
     }
 
-    if (m.ready()) {
-        splits.emplace_back(s);
-    }
-
-    return splits.empty()
-            ? Array<String>({*this})
-            : Array<String>(splits);
+    return {result};
 }
 
 

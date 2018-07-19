@@ -368,6 +368,13 @@ public:
             CPPUNIT_ASSERT_EQUAL(StringView("boo"), result[0]);
         }
 
+        {   // Normal split with empty token in beggining
+            auto result = StringView(":boo").split(':');
+
+            CPPUNIT_ASSERT_EQUAL(static_cast<array_size_t>(2), result.size());
+            CPPUNIT_ASSERT_EQUAL(StringView(),      result[0]);
+            CPPUNIT_ASSERT_EQUAL(StringView("boo"), result[1]);
+        }
     }
 
     void testSplitByStringToken() {

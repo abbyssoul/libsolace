@@ -24,7 +24,6 @@
 
 #include "solace/libsolace_config.hpp"		// Defines compile time version
 
-#include <regex>
 
 
 #define SOLACE_VERSION_MAJOR 0
@@ -82,8 +81,59 @@ String Version::toString() const {
 
 
 Result<Version, Error>
-Version::parse(const Solace::StringView& str) {
-    // FIXME(abbyssoul): Should return Error result in case of invalid string format
+Version::parse(StringView str) {
+    value_type majorVersion;
+    value_type minorVersion;
+    value_type patchVersion;
+
+    StringView afterPatch;
+    uint splitIndex = 0;
+    str.split('.', [&](StringView split) {
+        if (splitIndex == 0) {
+            majorVersion = std::strtoul(split.data(), nullptr, 10);
+            ++splitIndex;
+        } else if (splitIndex == 1) {
+            minorVersion = std::strtoul(split.data(), nullptr, 10);
+            ++splitIndex;
+        } else if (splitIndex == 2) {
+            char* patchEnd;
+            patchVersion = std::strtoul(split.data(), &patchEnd, 10);
+
+            if (patchEnd != str.end())
+                afterPatch = StringView(patchEnd, str.end());
+
+            ++splitIndex;
+        }
+    });
+
+    if (splitIndex < 3) {
+        return Err(Error("Invalid format"));
+    }
+
+
+    String preRelease;
+    String build;
+
+    if (!afterPatch.empty()) {
+        splitIndex = 0;
+        afterPatch.split('+', [&](StringView split) {
+            if (splitIndex == 0)
+                preRelease = split.trim('-');
+            else if (splitIndex == 1)
+                build = split;
+
+            ++splitIndex;
+        });
+
+        if (splitIndex > 2) {
+            return Err(Error("Invalid format"));
+        }
+    }
+
+    return Ok<Version>({majorVersion, minorVersion, patchVersion,
+                        std::move(preRelease), std::move(build)});
+
+    /*
     const std::regex versionRegexp("(\\d+)\\.(\\d+)\\.(\\d+)(?:-([A-Za-z0-9\\-\\.]+))?(?:\\+([A-Za-z0-9\\-\\.]+))?");
 
     std::cmatch capture;
@@ -99,7 +149,7 @@ Version::parse(const Solace::StringView& str) {
                 : String::Empty;
 
         return Ok<Version>({majorVersion, minorVersion, patchVersion, preRelease, build});
-    }
+    }*/
 
     return Err(Error("Invalid format"));
 }

@@ -38,7 +38,7 @@ namespace Solace {
 class StringView {
 public:
 
-    /// String size_type is intentionally small to disallow long strings.
+    /// String size_type is intentionally small to discourage long strings.
     using size_type = uint16;
 
     using value_type = char;
@@ -65,6 +65,11 @@ public:
      */
     constexpr StringView(char const* s, size_type count) noexcept :
            _size(count),
+           _data(s)
+    {}
+
+    constexpr StringView(char const* s, char const* e) noexcept :
+           _size(e - s),
            _data(s)
     {}
 
@@ -239,6 +244,11 @@ public:
      */
     StringView trim() const;
 
+    /**
+     * Returns a sub-string with leading and trailing occurance of the given character skipped.
+     */
+    StringView trim(value_type delim) const;
+
     /** Array index operator. Obtain a copy of the character at the given
 	 * offset in the string.
 	 *
@@ -267,13 +277,38 @@ public:
      * @param delim A delimeter to split the string by.
      * @return A list of substrings.
      */
-    Array<StringView> split(StringView const& delim) const;
+    Array<StringView> split(StringView delim) const;
 
     /** Splits the string around matches of expr
      * @param delim A delimeter to split the string by.
      * @return A list of substrings.
      */
     Array<StringView> split(value_type delim) const;
+
+    /** Splits the string around matches of expr
+     * @param delim A delimeter to split the string by.
+     * @return A list of substrings.
+     */
+    template<typename Callable>
+    void split(value_type delim, Callable&& f) const {
+        size_type delimCount = 0;
+        for (const auto c : *this) {  // Count_if
+            if (c == delim) {
+                ++delimCount;
+            }
+        }
+
+        size_type to = 0, from = 0;
+        for (; to < size(); ++to) {
+            if (_data[to] == delim) {
+                f(substring(from, to - from));
+                from = to + 1;
+            }
+        }
+
+        f(substring(from, size() - from));
+    }
+
 
     /** Returns a hash code for this string.
      *
@@ -362,17 +397,18 @@ inline std::ostream& operator<< (std::ostream& ostr, StringView const& str) {
     return ostr.write(str.data(), str.size());
 }
 
+
 }  // namespace Solace
 
 namespace std {
-/*
-    template <>
-    struct hash<Solace::StringView> {
-        size_t operator() (Solace::StringView const& k) const noexcept {
-            return std::_Hash_impl::hash(k.data(), k.length());
-        }
-    };
-*/
-}
+
+template <>
+struct hash<Solace::StringView> {
+    size_t operator() (Solace::StringView const& k) const noexcept {
+        return k.hashCode();
+    }
+};
+
+}  // namespace std
 
 #endif  // SOLACE_STRINGLITERAL_HPP

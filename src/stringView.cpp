@@ -170,6 +170,22 @@ StringView::trim() const {
     return substring(fromIndex, toIndex - fromIndex);
 }
 
+StringView
+StringView::trim(value_type delim) const {
+    size_type fromIndex = 0;
+
+    while (fromIndex < length() && _data[fromIndex] == delim) {
+        ++fromIndex;
+    }
+
+    size_type toIndex = length();
+    while (fromIndex + 1 < toIndex && _data[toIndex - 1] == delim) {
+        --toIndex;
+    }
+
+    return substring(fromIndex, toIndex - fromIndex);
+}
+
 
 uint64
 StringView::hashCode() const noexcept {
@@ -210,7 +226,7 @@ StringView::split(value_type delim) const {
 }
 
 Array<StringView>
-StringView::split(const StringView& delim) const {
+StringView::split(StringView delim) const {
 
     const auto delimLength = delim.length();
     size_type delimCount = 0;

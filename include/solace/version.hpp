@@ -70,7 +70,7 @@ public:
      * @return Parsed object or an error.
      */
     static Result<Version, Error>
-    parse(StringView const& value);
+    parse(StringView value);
 
 
 public:
