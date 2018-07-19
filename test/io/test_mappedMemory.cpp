@@ -78,50 +78,33 @@ TEST_F(TestAnonSharedMemory, testFill) {
     }
 }
 
-// to do : RETEST
-// TEST_F(TestAnonSharedMemory, testShareAndMap) {
-//     const SharedMemory::size_type memSize = 24;
-//     bool isChild = false;
-//     {
-//         auto memBuffer = SharedMemory::createAnon(memSize, SharedMemory::Access::Shared);
-//         EXPECT_EQ(memSize, memBuffer.size());
+void writeTextAndExit(uint64 memSize, MemoryBuffer& memBuffer) {
+    EXPECT_EQ(memSize, memBuffer.size());
 
-//         const auto childPid = fork();
-//         switch (childPid) {           /* Parent and child share mapping */
-//         case -1:
-//             FAIL() << ("fork");
-//             return;
+    WriteBuffer wb(memBuffer);
+    wb.write(memSize);
+    wb.write(StringView("child").view());
 
-//         case 0: {                     /* Child: increment shared integer and exit */
-//             isChild = true;
-//             WriteBuffer sb(memBuffer);
-//             sb.write(getpid());
-//             sb.write(StringView("child").view());
+    exit(0);
+}
 
-//         } break;
+TEST_F(TestAnonSharedMemory, testShareAndMap) {
+    const SharedMemory::size_type memSize = 24;
+    auto memBuffer = SharedMemory::createAnon(memSize, SharedMemory::Access::Shared);
 
-//         default: {  /* Parent: wait for child to terminate */
-//             if (waitpid(childPid, nullptr, 0) == -1) {
-//                 const auto msg = String::join(": ", {"waitpid", strerror(errno)});
-//                 FAIL() << (msg.c_str());
-//             }
+    EXPECT_TRUE(memBuffer);
+    EXPECT_EQ(memSize, memBuffer.size());
 
-//             int viewedPid;
-//             char message[10];
-//             auto messageDest = wrapMemory(message);
+    EXPECT_EXIT(writeTextAndExit(memSize, memBuffer), ::testing::ExitedWithCode(0), "");
 
-//             ReadBuffer sb(memBuffer);
-//             EXPECT_TRUE(sb.read(&viewedPid).isOk());
-//             EXPECT_EQ(childPid, viewedPid);
+    uint64 viewedPid;
+    char message[10];
+    auto messageDest = wrapMemory(message);
 
-//             EXPECT_TRUE(sb.read(messageDest, 5).isOk());
-//             message[5] = 0;
-//             EXPECT_EQ(StringView("child"), StringView(message));
-//         }
+    ReadBuffer sb(memBuffer);
+    EXPECT_TRUE(sb.read(&viewedPid).isOk());
 
-//         }
-//     }
-//     if (isChild) {
-//         throw InterruptTest();
-//     }
-// }
+    EXPECT_TRUE(sb.read(messageDest, 6).isOk());
+    message[5] = 0;
+    EXPECT_EQ(StringView("child"), StringView(message));
+}

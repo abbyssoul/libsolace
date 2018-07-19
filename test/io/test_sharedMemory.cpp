@@ -74,59 +74,36 @@ TEST_F(TestSharedMemory, testOpen_Exclusive) {
     EXPECT_THROW(auto mem = SharedMemory::open(name), IOException);
 }
 
-// to do : RETEST
-// TEST_F(TestSharedMemory, testCreateAndMap) {
-//     const SharedMemory::size_type memSize = 24;
-//     bool isChild = false;
-//     {
-//         auto mem = SharedMemory::create(Path("/somename"), memSize);
-//         EXPECT_TRUE(mem);
+void writeMessageAndExit(uint64 memSize, MemoryBuffer& view) {
+    EXPECT_EQ(memSize, view.size());
 
-//         auto view = mem.map(SharedMemory::Access::Shared);
-//         EXPECT_EQ(memSize, mem.size());
-//         EXPECT_EQ(memSize, view.size());
+    WriteBuffer sb(view);
+    sb.write(memSize);
+    sb.write(StringView("child").view());
 
-//         const auto childPid = fork();
-//         switch (childPid) {           /* Parent and child share mapping */
-//         case -1:
-//             FAIL() << ("fork");
-//             return;
+    exit(0);
+}
 
-//         case 0: {                     /* Child: increment shared integer and exit */
-//             EXPECT_EQ(memSize, mem.size());
-//             EXPECT_EQ(memSize, view.size());
+TEST_F(TestSharedMemory, testCreateAndMap) {
+    const SharedMemory::size_type memSize = 24;
 
-//             isChild = true;
-//             WriteBuffer sb(view);
-//             sb.write(getpid());
-//             sb.write(StringView("child").view());
+    auto mem = SharedMemory::create(Path("/somename"), memSize);
+    EXPECT_TRUE(mem);
 
-//             // Child will quit after that and this will signal the parent to read data from the shared memory.
-//         } break;
+    auto view = mem.map(SharedMemory::Access::Shared);
+    EXPECT_EQ(memSize, mem.size());
+    EXPECT_EQ(memSize, view.size());
 
-//         default: {  /* Parent: wait for child to terminate */
-//             if (waitpid(childPid, nullptr, 0) == -1) {
-//                 const auto msg = String::join(": ", {"waitpid", strerror(errno)});
-//                 FAIL() << (msg.c_str());
-//             }
+    EXPECT_EXIT(writeMessageAndExit(memSize, view), ::testing::ExitedWithCode(0), "");
 
-//             int viewedPid;
-//             char message[10];
-//             auto messageDest = wrapMemory(message);
+    uint64 viewedMemsize;
+    char message[10];
+    auto messageDest = wrapMemory(message);
 
-//             ReadBuffer sb(view);
-//             EXPECT_TRUE(sb.read(&viewedPid).isOk());
-//             EXPECT_EQ(childPid, viewedPid);
+    ReadBuffer sb(view);
+    EXPECT_TRUE(sb.read(&viewedMemsize).isOk());
+    EXPECT_EQ(memSize, viewedMemsize);
 
-//             EXPECT_TRUE(sb.read(messageDest, 5).isOk());
-//             message[5] = 0;
-//             EXPECT_EQ(StringView("child"), StringView(message));
-//         } break;
-
-//         }
-//     }
-
-//     if (isChild) {
-//         throw InterruptTest();
-//     }
-// }
+    EXPECT_TRUE(sb.read(messageDest, 6).isOk()); message[5] = 0;
+    EXPECT_EQ(StringView("child"), StringView(message));
+}
