@@ -74,36 +74,36 @@ TEST_F(TestSharedMemory, testOpen_Exclusive) {
     EXPECT_THROW(auto mem = SharedMemory::open(name), IOException);
 }
 
-// void writeMessageAndExit(uint64 memSize, MemoryBuffer& view) {
-//     EXPECT_EQ(memSize, view.size());
+void writeMessageAndExit(uint64 memSize, MemoryBuffer& view) {
+    EXPECT_EQ(memSize, view.size());
 
-//     WriteBuffer sb(view);
-//     sb.write(memSize);
-//     sb.write(StringView("child").view());
+    WriteBuffer sb(view);
+    sb.write(memSize);
+    sb.write(StringView("child").view());
 
-//     exit(0);
-// }
+    exit(0);
+}
 
-// TEST_F(TestSharedMemory, testCreateAndMap) {
-//     const SharedMemory::size_type memSize = 24;
+TEST_F(TestSharedMemory, DISABLED_testCreateAndMap) {
+    const SharedMemory::size_type memSize = 24;
 
-//     auto mem = SharedMemory::create(Path("/somename"), memSize);
-//     EXPECT_TRUE(mem);
+    auto mem = SharedMemory::create(Path("/somename"), memSize);
+    EXPECT_TRUE(mem);
 
-//     auto view = mem.map(SharedMemory::Access::Shared);
-//     EXPECT_EQ(memSize, mem.size());
-//     EXPECT_EQ(memSize, view.size());
+    auto view = mem.map(SharedMemory::Access::Shared);
+    EXPECT_EQ(memSize, mem.size());
+    EXPECT_EQ(memSize, view.size());
 
-//     EXPECT_EXIT(writeMessageAndExit(memSize, view), ::testing::ExitedWithCode(0), ".*");
+    EXPECT_EXIT(writeMessageAndExit(memSize, view), ::testing::ExitedWithCode(0), ".*");
 
-//     uint64 viewedMemsize;
-//     char message[10];
-//     auto messageDest = wrapMemory(message);
+    uint64 viewedMemsize;
+    char message[10];
+    auto messageDest = wrapMemory(message);
 
-//     ReadBuffer sb(view);
-//     EXPECT_TRUE(sb.read(&viewedMemsize).isOk());
-//     EXPECT_EQ(memSize, viewedMemsize);
+    ReadBuffer sb(view);
+    EXPECT_TRUE(sb.read(&viewedMemsize).isOk());
+    EXPECT_EQ(memSize, viewedMemsize);
 
-//     EXPECT_TRUE(sb.read(messageDest, 6).isOk()); message[5] = 0;
-//     EXPECT_EQ(StringView("child"), StringView(message));
-// }
+    EXPECT_TRUE(sb.read(messageDest, 6).isOk()); message[5] = 0;
+    EXPECT_EQ(StringView("child"), StringView(message));
+}

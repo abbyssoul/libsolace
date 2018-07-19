@@ -78,33 +78,33 @@ TEST_F(TestAnonSharedMemory, testFill) {
     }
 }
 
-// void writeTextAndExit(uint64 memSize, MemoryBuffer& memBuffer) {
-//     EXPECT_EQ(memSize, memBuffer.size());
+void writeTextAndExit(uint64 memSize, MemoryBuffer& memBuffer) {
+    EXPECT_EQ(memSize, memBuffer.size());
 
-//     WriteBuffer wb(memBuffer);
-//     wb.write(memSize);
-//     wb.write(StringView("child").view());
+    WriteBuffer wb(memBuffer);
+    wb.write(memSize);
+    wb.write(StringView("child").view());
 
-//     exit(0);
-// }
+    exit(0);
+}
 
-// TEST_F(TestAnonSharedMemory, testShareAndMap) {
-//     const SharedMemory::size_type memSize = 24;
-//     auto memBuffer = SharedMemory::createAnon(memSize, SharedMemory::Access::Shared);
+TEST(DISABLED_TestAnonSharedMemory, DISABLED_testShareAndMap) {
+    const SharedMemory::size_type memSize = 24;
+    auto memBuffer = SharedMemory::createAnon(memSize, SharedMemory::Access::Shared);
 
-//     EXPECT_TRUE(memBuffer);
-//     EXPECT_EQ(memSize, memBuffer.size());
+    EXPECT_TRUE(memBuffer);
+    EXPECT_EQ(memSize, memBuffer.size());
 
-//     EXPECT_EXIT(writeTextAndExit(memSize, memBuffer), ::testing::ExitedWithCode(0), ".*");
+    EXPECT_EXIT(writeTextAndExit(memSize, memBuffer), ::testing::ExitedWithCode(0), ".*");
 
-//     uint64 viewedPid;
-//     char message[10];
-//     auto messageDest = wrapMemory(message);
+    uint64 viewedPid;
+    char message[10];
+    auto messageDest = wrapMemory(message);
 
-//     ReadBuffer sb(memBuffer);
-//     EXPECT_TRUE(sb.read(&viewedPid).isOk());
+    ReadBuffer sb(memBuffer);
+    EXPECT_TRUE(sb.read(&viewedPid).isOk());
 
-//     EXPECT_TRUE(sb.read(messageDest, 6).isOk());
-//     message[5] = 0;
-//     EXPECT_EQ(StringView("child"), StringView(message));
-// }
+    EXPECT_TRUE(sb.read(messageDest, 6).isOk());
+    message[5] = 0;
+    EXPECT_EQ(StringView("child"), StringView(message));
+}
