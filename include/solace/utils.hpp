@@ -43,14 +43,18 @@ template <typename T>
 T instance() noexcept;
 
 
-template<typename F, typename...Args> struct isCallable {
-  template<typename F2, typename...Args2> static constexpr std::true_type
-  test(decltype(instance<F2>()(instance<Args2>()...)) *) { return {}; }
+template<typename F, typename...Args>
+struct isCallable {
 
-  template<typename F2, typename...Args2> static constexpr std::false_type
-  test(...) { return {}; }
+    template<typename F2, typename...Args2>
+    static constexpr std::true_type
+    test(decltype(instance<F2>()(instance<Args2>()...)) *) { return {}; }
 
-  static constexpr bool value = decltype(test<F, Args...>(nullptr))::value;
+    template<typename F2, typename...Args2>
+    static constexpr std::false_type
+    test(...) { return {}; }
+
+    static constexpr bool value = decltype(test<F, Args...>(nullptr))::value;
 };
 
 

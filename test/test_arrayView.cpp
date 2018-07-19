@@ -906,7 +906,7 @@ public:
         const ArrayView<int> array = {1, 2, 3, 4, 5, 6};
         bool allEq = true;
 
-        array.forEachIndexed([&allEq](ArrayView<int>::size_type i, ArrayView<int>::size_type x) {
+        array.forEach([&allEq](ArrayView<int>::size_type i, int x) {
             allEq &= (i + 1 == x);
         });
 

@@ -1147,7 +1147,7 @@ public:
 
         CPPUNIT_ASSERT(!futureArrayReady);
 
-        promises.forEachIndexed([](int index, Promise<int>& promise) {
+        promises.forEach([](int index, Promise<int>& promise) {
             promise.setValue(bias + index);
         });
 
@@ -1214,7 +1214,7 @@ public:
         CPPUNIT_ASSERT(!futureArrayReady);
         CPPUNIT_ASSERT(!futureArrayErrored);
 
-        promises.forEachIndexed([](int index, Promise<int>& promise) {
+        promises.forEach([](int index, Promise<int>& promise) {
             if ((index % failEach) == 0) {
                 promise.setError(Error("failed", 321));
             } else {
@@ -1253,7 +1253,7 @@ public:
         CPPUNIT_ASSERT(!futureArrayReady);
         CPPUNIT_ASSERT(!futureArrayErrored);
 
-        promises.forEachIndexed([failEach](auto index, Promise<void>& promise) {
+        promises.forEach([failEach](auto index, Promise<void>& promise) {
             if ((index % failEach) == 0) {
                 promise.setError(Error("failed", 321));
             } else {

@@ -690,8 +690,8 @@ public:
         const Array<int> array = {1, 2, 3, 4, 5, 6};
         bool allEq = true;
 
-        array.forEachIndexed([&allEq](Array<int>::size_type i, Array<int>::size_type x) {
-            allEq &= (i + 1 == x);
+        array.forEach([&allEq](Array<int>::size_type i, int value) {
+            allEq &= (i + 1 == value);
         });
 
         CPPUNIT_ASSERT_EQUAL(true, allEq);

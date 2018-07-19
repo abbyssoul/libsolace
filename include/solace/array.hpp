@@ -250,7 +250,11 @@ public:
      */
 
     template<typename F>
-    const Array<T>& forEach(F&& f) {
+    std::enable_if_t<
+                isCallable<F, T>::value ||
+                isCallable<F, T&>::value,
+    Array<T>& >
+    forEach(F&& f) {
         for (auto& x : _storage) {
             f(x);
         }
@@ -259,7 +263,8 @@ public:
     }
 
     template<typename F>
-    const Array<T>& forEach(F&& f) const {
+    std::enable_if_t<isCallable<F, const T&>::value, const Array<T>& >
+    forEach(F&& f) const {
         for (auto& x : _storage) {
             f(x);
         }
@@ -268,7 +273,10 @@ public:
     }
 
     template<typename F>
-    const Array<T>& forEachIndexed(F&& f) const {
+    std::enable_if_t<
+            isCallable<F, size_type, const T&>::value,
+    const Array<T>& >
+    forEach(F&& f) const {
         const auto thisSize = size();
         for (size_type i = 0; i < thisSize; ++i) {
             f(i, _storage[i]);
@@ -279,7 +287,11 @@ public:
 
 
     template<typename F>
-    const Array<T>& forEachIndexed(F&& f) {
+    std::enable_if_t<
+            isCallable<F, size_type, T>::value ||
+            isCallable<F, size_type, T&>::value,
+    Array<T>& >
+    forEach(F&& f) {
         const auto thisSize = size();
         for (size_type i = 0; i < thisSize; ++i) {
             f(i, _storage[i]);
