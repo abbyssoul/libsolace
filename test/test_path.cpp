@@ -164,12 +164,12 @@ public:
             CPPUNIT_ASSERT(p.startsWith("som"));
             CPPUNIT_ASSERT(p.startsWith("some"));
 
-            CPPUNIT_ASSERT_EQUAL(true, p.startsWith({"some", "pa"}));
-            CPPUNIT_ASSERT_EQUAL(true, p.startsWith({"some", "path"}));
-            CPPUNIT_ASSERT_EQUAL(true, p.startsWith({"some", "path", "t"}));
+            CPPUNIT_ASSERT_EQUAL(true, p.startsWith(Path{"some", "pa"}));
+            CPPUNIT_ASSERT_EQUAL(true, p.startsWith(Path{"some", "path"}));
+            CPPUNIT_ASSERT_EQUAL(true, p.startsWith(Path{"some", "path", "t"}));
 
-            CPPUNIT_ASSERT_EQUAL(false, p.startsWith({"so", "pa"}));
-            CPPUNIT_ASSERT_EQUAL(false, p.startsWith({"some", "pa", "to"}));
+            CPPUNIT_ASSERT_EQUAL(false, p.startsWith(Path{"so", "pa"}));
+            CPPUNIT_ASSERT_EQUAL(false, p.startsWith(Path{"some", "pa", "to"}));
         }
 
         {
@@ -195,9 +195,9 @@ public:
             CPPUNIT_ASSERT(p.endsWith("awe"));
             CPPUNIT_ASSERT(p.endsWith("file.awe"));
 
-            CPPUNIT_ASSERT_EQUAL(true, p.endsWith({"some", "file.awe"}));
-            CPPUNIT_ASSERT_EQUAL(true, p.endsWith({"awesome", "file.awe"}));
-            CPPUNIT_ASSERT_EQUAL(true, p.endsWith({"to", "awesome", "file.awe"}));
+            CPPUNIT_ASSERT_EQUAL(true, p.endsWith(Path{"some", "file.awe"}));
+            CPPUNIT_ASSERT_EQUAL(true, p.endsWith(Path{"awesome", "file.awe"}));
+            CPPUNIT_ASSERT_EQUAL(true, p.endsWith(Path{"to", "awesome", "file.awe"}));
 
             CPPUNIT_ASSERT_EQUAL(false, p.endsWith({"to", "awe", "file.awe"}));
             CPPUNIT_ASSERT_EQUAL(false, p.endsWith({"to", "some", "file.awe"}));

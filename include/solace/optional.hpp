@@ -88,7 +88,7 @@ public:
     /**
      * Construct an new empty optional value.
      */
-    constexpr Optional()
+    constexpr Optional() noexcept
         : _empty{}
     {}
 

@@ -39,25 +39,25 @@ namespace types {
 
 template<typename T>
 struct Ok {
-    typedef T value_type;
+    using value_type = T;
 
-    Ok(const T& val) : val_(val) { }
-    Ok(T&& val) : val_(std::move(val)) { }
+    constexpr Ok(const T& val) noexcept(std::is_nothrow_copy_constructible<T>::value) : val_(val) { }
+    constexpr Ok(T&& val) noexcept(std::is_nothrow_move_constructible<T>::value) : val_(std::move(val)) { }
 
     T val_;
 };
 
 template<>
 struct Ok<void> {
-    typedef void value_type;
+    using value_type = void;
 };
 
 
 
 template<typename E>
 struct Err {
-    Err(const E& val) : val_(val) { }
-    Err(E&& val) : val_(std::move(val)) { }
+    constexpr Err(const E& val) noexcept(std::is_nothrow_copy_constructible<E>::value) : val_(val) { }
+    constexpr Err(E&& val)noexcept(std::is_nothrow_move_constructible<E>::value) : val_(std::move(val)) { }
 
     E val_;
 };
@@ -81,8 +81,8 @@ inline types::Ok<CleanT> Ok(T&& val) {
  * A specialisation of Ok helper function to construct successful Result<Void, E>
  * @return type::Ok<T> that can be converted into a successful Result<T, E>
  */
-inline types::Ok<void> Ok() {
-    return types::Ok<void>();
+inline None Ok() {
+    return none;
 }
 
 
@@ -106,7 +106,7 @@ template <typename TV, typename TE, typename T>
 struct isResult : std::false_type {
     using std::false_type::value;
 
-    typedef T value_type;
+    using value_type = T;
 };
 
 
@@ -115,7 +115,7 @@ template <typename T>
 struct isSomeResult : std::false_type {
     using std::false_type::value;
 
-    typedef T value_type;
+    using value_type = T;
 };
 
 template <typename V, typename E>
@@ -124,8 +124,8 @@ struct isSomeResult<Result<V, E>> : std::true_type {
 
     using type = Result<V, E>;
 
-    typedef typename type::value_type value_type;
-    typedef typename type::error_type error_type;
+    using value_type = typename type::value_type;
+    using error_type = typename type::error_type;
 };
 
 
@@ -138,8 +138,8 @@ struct isResult<OV, OE, Result<V, E>> : public std::true_type {
 
     using type = Result<V, E>;
 
-    typedef typename type::value_type value_type;
-    typedef typename type::error_type error_type;
+    using value_type = typename type::value_type;
+    using error_type = typename type::error_type;
 };
 
 
@@ -151,8 +151,8 @@ struct isResult<OV, OE, types::Ok<V>> : public std::true_type {
 
     using type = Result<V, OE>;
 
-    typedef typename type::value_type value_type;
-    typedef typename type::error_type error_type;
+    using value_type = typename type::value_type;
+    using error_type = typename type::error_type;
 };
 
 template <
@@ -163,8 +163,8 @@ struct isResult<OV, OE, types::Err<E>> : public std::true_type {
 
     using type = Result<OV, E>;
 
-    typedef typename type::value_type value_type;
-    typedef typename type::error_type error_type;
+    using value_type = typename type::value_type;
+    using error_type = typename type::error_type;
 };
 
 
@@ -231,21 +231,24 @@ public:
      * Copy construct Result of the same type
      * @param rhs Source to copy values from
      */
-    Result(const Result& rhs) /*noexcept*/ {
-        if (rhs.isOk()) {
-            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(rhs._value);
-            _engaged = true;
-        } else {
-            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(rhs._error);
-            _engaged = false;
-        }
-    }
+    Result(Result const& rhs) = delete;
+
+//    Result(const Result& rhs) /*noexcept*/ {
+//        if (rhs.isOk()) {
+//            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(rhs._value);
+//            _engaged = true;
+//        } else {
+//            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(rhs._error);
+//            _engaged = false;
+//        }
+//    }
 
     /**
      * Move-Construct Result of the same type
      * @param rhs Source to move values from
      */
-    Result(Result&& rhs) noexcept {
+    Result(Result&& rhs) noexcept(std::is_nothrow_move_constructible<V>::value
+                                  && std::is_nothrow_move_constructible<E>::value) {
         if (rhs.isOk()) {
             ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(std::move(rhs._value));
             _engaged = true;
@@ -255,16 +258,16 @@ public:
         }
     }
 
-    template<typename DV>
-    Result(const Result<DV, E>& rhs) /*noexcept*/ {
-        if (rhs.isOk()) {
-            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(rhs._value);
-            _engaged = true;
-        } else {
-            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(rhs._error);
-            _engaged = false;
-        }
-    }
+//    template<typename DV>
+//    Result(const Result<DV, E>& rhs) /*noexcept*/ {
+//        if (rhs.isOk()) {
+//            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(rhs._value);
+//            _engaged = true;
+//        } else {
+//            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(rhs._error);
+//            _engaged = false;
+//        }
+//    }
 
     template<typename DV>
     Result(Result<DV, E>&& rhs) noexcept {
@@ -327,7 +330,7 @@ public:
             // TODO(abbyssoul): Handle exeptions and convert them into error_type
             f(moveResult());
 
-            return Ok();
+            return none;
         }
 
         return Err(moveError());
@@ -533,45 +536,56 @@ public:
 
 public:
 
-    ~Result() = default;
+    ~Result() noexcept(std::is_nothrow_destructible<E>::value) = default;
+
+    Result(Result const&) = delete;
+    Result& operator= (Result const&) = delete;
+
+    /**
+      Construct Ok<void> result from `none`.
+     * Empty optional state interop
+     */
+    constexpr Result(None) noexcept
+        : _maybeError{}
+    {}
 
     /**
      * Construct Ok result by copying value
      * @param value Ok value to copy
      */
-    Result(const types::Ok<void>& SOLACE_UNUSED(value)) :
-        _maybeError()
+    constexpr Result(const types::Ok<void>& SOLACE_UNUSED(value)) noexcept
+        : _maybeError{}
     {}
 
     /**
      * Move-Construct Ok result
      * @param value Ok value to move from
      */
-    Result(types::Ok<void>&& SOLACE_UNUSED(value)):
-        _maybeError()
+    constexpr Result(types::Ok<void>&& SOLACE_UNUSED(value)) noexcept
+        : _maybeError{}
     {}
 
     /**
      * Construct Err result by copying error value
      * @param err Err value to copy from
      */
-    Result(const types::Err<E>& err):
-        _maybeError(err.val_)
+    Result(const types::Err<E>& err) noexcept(std::is_nothrow_move_constructible<E>::value)
+        : _maybeError{err.val_}
     {}
 
     /**
      * Move-Construct Err result by moving error value
      * @param err Err value to move from
      */
-    Result(types::Err<E>&& err):
-        _maybeError(std::move(err.val_))
+    Result(types::Err<E>&& err) noexcept(std::is_nothrow_move_constructible<E>::value)
+        : _maybeError(std::move(err.val_))
     {}
 
     /**
      * Move-Construct Result of the same type
      * @param rhs Source to move values from
      */
-    Result(Result&& rhs) noexcept :
+    Result(Result&& rhs) noexcept(std::is_nothrow_move_constructible<E>::value) :
         _maybeError(std::move(rhs._maybeError))
     {}
 
@@ -617,34 +631,19 @@ public:
     template <typename F,
               typename R = typename std::result_of<F(void)>::type
               >
-    std::enable_if_t<std::is_same<void, R>::value, Result<R, E>>
+    std::enable_if_t<std::is_same<void, R>::value, Result<void, E>>
     then(F&& f) {
 
         if (isOk()) {
             // TODO(abbyssoul): Handle exeptions and convert then into Error
             f();
 
-            return Ok();
+            return none;
         }
 
         return Err(moveError());
     }
 
-    template <typename F,
-              typename R = typename std::result_of<F(void)>::type
-              >
-    std::enable_if_t<std::is_same<void, R>::value, Result<R, E>>
-    then(F&& f) const {
-
-        if (isOk()) {
-            // TODO(abbyssoul): Handle exeptions and convert then into Error
-            f();
-
-            return Ok();
-        }
-
-        return Err(moveError());
-    }
 
     //------------------------------------------------------------------
 
@@ -653,7 +652,7 @@ public:
     std::enable_if_t<isResult<void, E, R>::value, typename isResult<void, E, R>::type>
     orElse(F&& f) {
         if (isOk()) {
-            return Ok();
+            return none;
         }
 
         return f(moveError());
@@ -664,7 +663,7 @@ public:
     std::enable_if_t<!std::is_same<void, R>::value && !isResult<void, E, R>::value, Result<R, E>>
     orElse(F&& f) {
         if (isOk()) {
-            return Ok();
+            return none;
         }
 
         return Ok<R>(f(moveError()));
@@ -675,12 +674,12 @@ public:
     std::enable_if_t<std::is_same<void, U>::value, Result<U, E>>
     orElse(F&& f) {
         if (isOk()) {
-            return Ok();
+            return none;
         }
 
         f(moveError());
 
-        return Ok();
+        return none;
     }
 
 
@@ -694,7 +693,7 @@ public:
              typename ER = typename std::result_of<F(E)>::type>
     Result<void, ER> mapError(F&& f) {
         if (isOk()) {
-            return Ok();
+            return none;
         }
 
         return Err(f(moveError()));
@@ -709,8 +708,6 @@ public:
     Result& operator= (Result&& rhs) noexcept {
         return swap(rhs);
     }
-
-    Result& operator= (const Result& rhs) noexcept = delete;
 
     explicit operator bool () const noexcept {
         return isOk();
@@ -741,23 +738,37 @@ private:
 };
 
 
+template<typename E>
+bool operator== (None, Result<void, E> const& res) noexcept { return res.isOk(); }
+
+template<typename E>
+bool operator== (Result<void, E> const& res, None) noexcept { return res.isOk(); }
+
+template<typename E>
+bool operator!= (None, Result<void, E> const& res) noexcept { return res.isError(); }
+
+template<typename E>
+bool operator!= (Result<void, E> const& res, None) noexcept { return res.isError(); }
+
+
+
 template<typename V, typename E>
-bool operator == (const types::Ok<V>& okValue, const Result<V, E>& res) {
+bool operator== (const types::Ok<V>& okValue, const Result<V, E>& res) {
     return res.isOk() && (res.unwrap() == okValue.val_);
 }
 
 template<typename V, typename E>
-bool operator == (const Result<V, E>& res, const types::Ok<V>& okValue) {
+bool operator== (const Result<V, E>& res, const types::Ok<V>& okValue) {
     return res.isOk() && (res.unwrap() == okValue.val_);
 }
 
 template<typename V, typename E>
-bool operator == (const types::Err<E>& errValue, const Result<V, E>& res) {
+bool operator== (const types::Err<E>& errValue, const Result<V, E>& res) {
     return res.isError() && (res.getError() == errValue.val_);
 }
 
 template<typename V, typename E>
-bool operator == (const Result<V, E>& res, const types::Err<E>& errValue) {
+bool operator== (const Result<V, E>& res, const types::Err<E>& errValue) {
     return res.isError() && (res.getError() == errValue.val_);
 }
 
