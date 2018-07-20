@@ -82,17 +82,15 @@ struct SimpleType {
 
     static int InstanceCount;
 
-    int x, y, z;
+    int x{}, y{}, z{};
 
     ~SimpleType() {
         --InstanceCount;
     }
 
-    SimpleType() noexcept :
-        x(),
-        y(),
-        z()
-    {}
+    SimpleType() noexcept {
+        ++InstanceCount;
+    }
 
     SimpleType(int x_, int y_, int z_) noexcept :
         x(x_),
@@ -110,7 +108,7 @@ struct SimpleType {
         ++InstanceCount;
     }
 
-    SimpleType(SimpleType&& rhs): SimpleType() {
+    SimpleType(SimpleType&& rhs) noexcept {
         ++InstanceCount;
 
         swap(rhs);

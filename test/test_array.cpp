@@ -21,47 +21,17 @@
 #include <solace/array.hpp>    // Class being tested.
 #include <solace/string.hpp>   // Non POD subject.
 
-
-#include <cppunit/extensions/HelperMacros.h>
+#include <gtest/gtest.h>
 #include "mockTypes.hpp"
 
-
 using namespace Solace;
-
 
 template <typename T, size_t N>
 typename Array<T>::size_type nativeArrayLength(const T (& SOLACE_UNUSED(t))[N]) { return N; }
 
 
-class TestArray : public CppUnit::TestFixture  {
 
-    CPPUNIT_TEST_SUITE(TestArray);
-        CPPUNIT_TEST(testEmpty);
-        CPPUNIT_TEST(testCopy);
-        CPPUNIT_TEST(testComposite);
-
-        CPPUNIT_TEST(testBasics);
-        CPPUNIT_TEST(testString);
-        CPPUNIT_TEST(testNonPods);
-        CPPUNIT_TEST(testInitializerList);
-        CPPUNIT_TEST(testFromNativeConvertion);
-        CPPUNIT_TEST(testMoveAssignment);
-
-        CPPUNIT_TEST(testEquals);
-        CPPUNIT_TEST(testIndexOf);
-        CPPUNIT_TEST(testContains);
-        CPPUNIT_TEST(testExtend);
-
-        // ForEach methods
-        CPPUNIT_TEST(testForEach_byValue);
-        CPPUNIT_TEST(testForEach_byValueConversion);
-        CPPUNIT_TEST(testForEach_byConstRef);
-        CPPUNIT_TEST(testForEachIndexed);
-
-        CPPUNIT_TEST(testMap);
-
-        CPPUNIT_TEST(testDeallocationWhenElementConstructorThrows);
-    CPPUNIT_TEST_SUITE_END();
+class TestArray : public ::testing::Test  {
 
 protected:
 
@@ -78,6 +48,11 @@ protected:
 
 		int iValue;
 		String str;
+
+
+        virtual ~NonPodStruct() {
+            --TotalCount;
+        }
 
 		NonPodStruct(int i, const String& inStr) :
 			iValue(i), str(inStr)
@@ -100,9 +75,6 @@ protected:
             ++TotalCount;
         }
 
-        virtual ~NonPodStruct() {
-			--TotalCount;
-		}
 
         NonPodStruct& operator= (const NonPodStruct& rhs) {
             iValue = rhs.iValue;
@@ -120,9 +92,8 @@ protected:
 	struct DerivedNonPodStruct  : public NonPodStruct {
 		float fValue;
 
-        virtual ~DerivedNonPodStruct() = default;
 
-		DerivedNonPodStruct() :
+        DerivedNonPodStruct() :
             NonPodStruct(312, "Derived String"), fValue(3.1415f)
 		{
 		}
@@ -136,18 +107,18 @@ protected:
 
 public:
 
-    void setUp() override {
+    void setUp() {
         // TODO(abbyssoul): Debug::BeginMemCheck();
-        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
-        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
-        CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
+        EXPECT_EQ(0, NonPodStruct::TotalCount);
+        EXPECT_EQ(0, SimpleType::InstanceCount);
+        EXPECT_EQ(0, SometimesConstructable::InstanceCount);
 	}
 
-    void tearDown() override {
+    void tearDown() {
         // TODO(abbyssoul): Debug::EndMemCheck();
-        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
-        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
-        CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
+        EXPECT_EQ(0, NonPodStruct::TotalCount);
+        EXPECT_EQ(0, SimpleType::InstanceCount);
+        EXPECT_EQ(0, SometimesConstructable::InstanceCount);
     }
 
 
@@ -162,582 +133,569 @@ public:
             simpletons(simps)
         {}
     };
+};
 
-    void testComposite() {
-        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
-        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
 
-        CPPUNIT_ASSERT_EQUAL(21, Composite(21, {}, {{41, -18, 3}, {2, 743, 1}}).uselessPadding);
-        CPPUNIT_ASSERT_EQUAL(98, Composite(16, {}, {{14, 17, -7}, {45, 98, -717}}).simpletons[1].y);
-
-        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
-        CPPUNIT_ASSERT_EQUAL(0, SimpleType::InstanceCount);
-    }
-
-	void testEmpty() {
+TEST_F(TestArray, testEmpty) {
         {
             const Array<int> empty_array(0);
 
-            CPPUNIT_ASSERT(empty_array.empty());
-            CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
-            CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
+            EXPECT_TRUE(empty_array.empty());
+            EXPECT_EQ(ZERO, empty_array.size());
+            EXPECT_TRUE(empty_array.begin() == empty_array.end());
         }
 
         {
             Array<NonPodStruct> empty_array;
 
-            CPPUNIT_ASSERT(empty_array.empty());
-            CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
-            CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
+            EXPECT_TRUE(empty_array.empty());
+            EXPECT_EQ(ZERO, empty_array.size());
+            EXPECT_TRUE(empty_array.begin() == empty_array.end());
         }
 
         {
             const Array<NonPodStruct> empty_array(0);
 
-            CPPUNIT_ASSERT(empty_array.empty());
-            CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
-            CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
+            EXPECT_TRUE(empty_array.empty());
+            EXPECT_EQ(ZERO, empty_array.size());
+            EXPECT_TRUE(empty_array.begin() == empty_array.end());
         }
 
         {
             const Array<DerivedNonPodStruct> empty_array(0);
 
-            CPPUNIT_ASSERT(empty_array.empty());
-            CPPUNIT_ASSERT_EQUAL(ZERO, empty_array.size());
-            CPPUNIT_ASSERT(empty_array.begin() == empty_array.end());
+            EXPECT_TRUE(empty_array.empty());
+            EXPECT_EQ(ZERO, empty_array.size());
+            EXPECT_TRUE(empty_array.begin() == empty_array.end());
+        }
+}
+
+TEST_F(TestArray, testCopy) {
+    {
+        Array<int> a1(0);
+        Array<int> a2(20);
+
+        EXPECT_TRUE(a1.empty());
+        EXPECT_TRUE(!a2.empty());
+
+        for (Array<int>::size_type i = 0; i < a2.size(); ++i) {
+            a2[i] = static_cast<int>(2*i) - 1;
         }
 
-	}
-
-	void testCopy() {
-        {
-            Array<int> a1(0);
-            Array<int> a2(20);
-
-            CPPUNIT_ASSERT(a1.empty());
-            CPPUNIT_ASSERT(!a2.empty());
-
-            for (Array<int>::size_type i = 0; i < a2.size(); ++i) {
-                a2[i] = static_cast<int>(2*i) - 1;
-            }
-
-            a1 = a2;
-            CPPUNIT_ASSERT(!a1.empty());
-            CPPUNIT_ASSERT_EQUAL(a1.size(), a2.size());
-            for (Array<int>::size_type i = 0; i < a1.size(); ++i) {
-                CPPUNIT_ASSERT_EQUAL(static_cast<int>(2*i) - 1, a1[i]);
-            }
-        }
-	}
-
-	void testBasics() {
-		Array<uint> array(TEST_SIZE_0);
-
-		CPPUNIT_ASSERT(!array.empty());
-		CPPUNIT_ASSERT_EQUAL(TEST_SIZE_0, array.size());
-
-		for (auto i = ZERO, end = array.size(); i < end; ++i) {
-			CPPUNIT_ASSERT_EQUAL(0U, array[i]);
-		}
-
-		uint count = 0;
-		for (auto i = array.begin(), end = array.end(); i != end; ++i) {
-			CPPUNIT_ASSERT_EQUAL(0U, *i);
-
-			*i = count++;
-		}
-		CPPUNIT_ASSERT_EQUAL(static_cast<Array<uint>::size_type>(count), array.size());
-
-		for (auto i = ZERO, end = array.size(); i < end; ++i) {
-			CPPUNIT_ASSERT_EQUAL(static_cast<uint>(i), array[i]);
-		}
-
-        // TODO(abbyssoul): Test access pass end!!
-	}
-
-	void testString() {
-		Array<String> array(TEST_SIZE_0);
-
-		CPPUNIT_ASSERT(!array.empty());
-		CPPUNIT_ASSERT_EQUAL(TEST_SIZE_0, array.size());
-
-		for (auto i = ZERO, end = array.size(); i < end; ++i) {
-			CPPUNIT_ASSERT_EQUAL(String::Empty, array[i]);
-		}
-
-		auto count = ZERO;
-		for (auto& i : array) {
-			CPPUNIT_ASSERT(i.empty());
-
-			i = "Item " + std::to_string(count++);
-		}
-
-		CPPUNIT_ASSERT_EQUAL(count, array.size());
-
-		for (auto i = ZERO, end = array.size(); i < end; ++i) {
-			CPPUNIT_ASSERT_EQUAL(String("Item " + std::to_string(i)), array[i]);
-		}
-	}
-
-	void testNonPods() {
-        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
-        {
-            Array<NonPodStruct> array(TEST_SIZE_1);
-
-            CPPUNIT_ASSERT_EQUAL(TEST_SIZE_1, array.size());
-            CPPUNIT_ASSERT_EQUAL(static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount), array.size());
-
-            for (auto i = ZERO, end = array.size(); i < end; ++i) {
-                CPPUNIT_ASSERT_EQUAL(NonPodStruct::IVALUE_DEFAULT, array[i].iValue);
-                CPPUNIT_ASSERT_EQUAL(NonPodStruct::STR_DEFAULT, array[i].str);
-            }
-
-            decltype(NonPodStruct::iValue) count = ZERO;
-            for (auto &i : array) {
-                CPPUNIT_ASSERT_EQUAL(NonPodStruct::IVALUE_DEFAULT, i.iValue);
-                CPPUNIT_ASSERT_EQUAL(NonPodStruct::STR_DEFAULT, i.str);
-
-                i.iValue = count++;
-                i.str = "Item " + std::to_string(i.iValue);
-            }
-
-            CPPUNIT_ASSERT_EQUAL(static_cast<Array<NonPodStruct>::size_type>(count), array.size());
-
-            for (auto i = ZERO, end = array.size(); i < end; ++i) {
-                CPPUNIT_ASSERT_EQUAL(static_cast<int>(i), array[i].iValue);
-                CPPUNIT_ASSERT_EQUAL(String("Item " + std::to_string(i)), array[i].str);
-            }
-        }
-        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
-	}
-
-	void testInitializerList() {
-		{
-			const int native_array[] = {0, 1, 2, 3};
-			const Array<int> array = {0, 1, 2, 3};
-
-            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
-
-			for (auto i = ZERO, end = array.size(); i < end; ++i) {
-				CPPUNIT_ASSERT_EQUAL(native_array[i], array[i]);
-			}
-		}
-
-		{
-			const String native_array[] = {"Abc", "", "dfe", "_xyz3"};
-			const Array<String> array = {"Abc", "", "dfe", "_xyz3"};
-
-            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
-
-			for (auto i = ZERO, end = array.size(); i < end; ++i) {
-				CPPUNIT_ASSERT_EQUAL(native_array[i], array[i]);
-			}
-		}
-
-        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
-		{
-			const NonPodStruct native_array[] = {
-					NonPodStruct(0, "yyyz"),
-					NonPodStruct(),
-					NonPodStruct(-321, "yyx"),
-					NonPodStruct(990, "x^hhf")
-			};
-            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array),
-                                 static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount));
-
-			const Array<NonPodStruct> array = {
-					NonPodStruct(0, "yyyz"),
-					NonPodStruct(),
-					NonPodStruct(-321, "yyx"),
-					NonPodStruct(990, "x^hhf")
-			};
-
-            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
-            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array) + array.size(),
-                                 static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount));
-
-			for (auto i = ZERO, end = array.size(); i < end; ++i) {
-				CPPUNIT_ASSERT_EQUAL(native_array[i].iValue, array[i].iValue);
-				CPPUNIT_ASSERT_EQUAL(native_array[i].str, array[i].str);
-			}
-		}
-        CPPUNIT_ASSERT_EQUAL(0, NonPodStruct::TotalCount);
-
-	}
-
-	void testFromNativeConvertion() {
-
-		{
-			const int native_array[] = {0, 1, 2, 3};
-            const Array<int> array(nativeArrayLength(native_array), native_array);
-
-            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
-
-			for (auto i = ZERO, end = array.size(); i < end; ++i) {
-				CPPUNIT_ASSERT_EQUAL(native_array[i], array[i]);
-			}
-		}
-
-		{
-			const String native_array[] = {"Abc", "", "dfe", "_xyz3"};
-            const Array<String> array(nativeArrayLength(native_array), native_array);
-
-            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
-
-			for (auto i = ZERO, end = array.size(); i < end; ++i) {
-				CPPUNIT_ASSERT_EQUAL(native_array[i], array[i]);
-			}
-		}
-
-		{
-			const NonPodStruct native_array[] = {
-					NonPodStruct(0, "yyyz"),
-					NonPodStruct(),
-					NonPodStruct(-321, "yyx"),
-					NonPodStruct(990, "x^hhf")
-			};
-            const Array<NonPodStruct> array(nativeArrayLength(native_array), native_array);
-
-            CPPUNIT_ASSERT_EQUAL(nativeArrayLength(native_array), array.size());
-
-			for (auto i = ZERO, end = array.size(); i < end; ++i) {
-				CPPUNIT_ASSERT_EQUAL(native_array[i].iValue, array[i].iValue);
-				CPPUNIT_ASSERT_EQUAL(native_array[i].str, array[i].str);
-			}
-		}
-	}
-
-    template <typename T>
-    Array<T> moveArray(std::initializer_list<T> list) {
-        return {list};
-    }
-
-	void testMoveAssignment() {
-		{// Test on integral types
-			Array<int> array(0);
-
-            CPPUNIT_ASSERT(array.empty());
-			CPPUNIT_ASSERT_EQUAL(ZERO, array.size());
-
-            array = moveArray<int>({1, 2, 3});
-            CPPUNIT_ASSERT(!array.empty());
-            const int src1[] = {1, 2, 3};
-
-            CPPUNIT_ASSERT_EQUAL(static_cast<Array<int>::size_type>(3), array.size());
-			for (auto i = ZERO, end = array.size(); i < end; ++i) {
-				CPPUNIT_ASSERT_EQUAL(src1[i], array[i]);
-			}
-		}
-
-        {   // Test on strings types
-			Array<String> array(0);
-            CPPUNIT_ASSERT(array.empty());
-
-            array = moveArray<String>({"tasrd", "", "hhha", "asd"});
-            CPPUNIT_ASSERT(!array.empty());
-
-            const String src[] = {"tasrd", "", "hhha", "asd"};
-            CPPUNIT_ASSERT_EQUAL(static_cast<Array<String>::size_type>(4), array.size());
-			for (auto i = ZERO, end = array.size(); i < end; ++i) {
-				CPPUNIT_ASSERT_EQUAL(src[i], array[i]);
-			}
-		}
-
-        {   // Test on non-pod types
-            Array<NonPodStruct> array(0);
-			const NonPodStruct src[] = {
-					NonPodStruct(0, "yyyz"),
-					NonPodStruct(),
-					NonPodStruct(-321, "yyx"),
-					NonPodStruct(990, "x^hhf")
-			};
-            CPPUNIT_ASSERT(array.empty());
-
-            array = moveArray<NonPodStruct>({
-                                                    NonPodStruct(0, "yyyz"),
-                                                    NonPodStruct(),
-                                                    NonPodStruct(-321, "yyx"),
-                                                    NonPodStruct(990, "x^hhf")
-                                            });
-            CPPUNIT_ASSERT(!array.empty());
-            CPPUNIT_ASSERT_EQUAL(static_cast<Array<NonPodStruct>::size_type>(4), array.size());
-
-			for (auto i = ZERO, end = array.size(); i < end; ++i) {
-				CPPUNIT_ASSERT_EQUAL(src[i].iValue, array[i].iValue);
-				CPPUNIT_ASSERT_EQUAL(src[i].str, array[i].str);
-			}
-		}
-	}
-
-	void testEquals() {
-		{
-			const Array<int> array = {1, 2, 3};
-
-			const int equal_native_array[] = {1, 2, 3};
-            const auto equal_native_array_length = nativeArrayLength(equal_native_array);
-
-			const int nequal_native_array_0[] = {0, 1, 2, 3};
-            const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
-
-			const int nequal_native_array_1[] = {3, 2, 1};
-            const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
-
-			const Array<int> array_eq(equal_native_array_length, equal_native_array);
-			const Array<int> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
-			const Array<int> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
-
-			CPPUNIT_ASSERT_EQUAL(equal_native_array_length, array.size());
-			CPPUNIT_ASSERT(nequal_native_array_0_length != array.size());
-			CPPUNIT_ASSERT(nequal_native_array_1_length == array.size());
-
-			CPPUNIT_ASSERT(array.equals({1, 2, 3}));
-			CPPUNIT_ASSERT(!array.equals({3, 2, 3}));
-			CPPUNIT_ASSERT(!array.equals({1, 2, 3, 4}));
-
-			CPPUNIT_ASSERT(array.equals(array_eq));
-			CPPUNIT_ASSERT(!array.equals(array_neq_0));
-			CPPUNIT_ASSERT(!array.equals(array_neq_1));
-
-			CPPUNIT_ASSERT_EQUAL(true, array == array_eq);
-			CPPUNIT_ASSERT_EQUAL(false, array != array_eq);
-
-			CPPUNIT_ASSERT_EQUAL(false, array == array_neq_0);
-			CPPUNIT_ASSERT_EQUAL(true, array != array_neq_0);
-
-			CPPUNIT_ASSERT_EQUAL(false, array == array_neq_1);
-			CPPUNIT_ASSERT_EQUAL(true, array != array_neq_1);
-		}
-
-		{
-			const Array<String> array = {"tasrd", "", "hhha", "asd"};
-
-			const String equal_native_array[] = {"tasrd", "", "hhha", "asd"};
-            const auto equal_native_array_length = nativeArrayLength(equal_native_array);
-
-			const String nequal_native_array_0[] = {"tasrd", "", "hhha", "asd", "ugaga"};
-            const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
-
-			const String nequal_native_array_1[] = {"tasrd", "", "hhha", "basd"};
-            const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
-
-			const Array<String> array_eq(equal_native_array_length, equal_native_array);
-			const Array<String> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
-			const Array<String> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
-
-			CPPUNIT_ASSERT_EQUAL(equal_native_array_length, array.size());
-			CPPUNIT_ASSERT(nequal_native_array_0_length != array.size());
-			CPPUNIT_ASSERT(nequal_native_array_1_length == array.size());
-
-			CPPUNIT_ASSERT(array.equals({"tasrd", "", "hhha", "asd"}));
-			CPPUNIT_ASSERT(!array.equals({"tasrd", "", "hhha", "basd"}));
-			CPPUNIT_ASSERT(!array.equals({"ugaga", "tasrd", "", "hhha", "asd"}));
-
-			CPPUNIT_ASSERT(array.equals(array_eq));
-			CPPUNIT_ASSERT(!array.equals(array_neq_0));
-			CPPUNIT_ASSERT(!array.equals(array_neq_1));
-
-			CPPUNIT_ASSERT_EQUAL(true, array == array_eq);
-			CPPUNIT_ASSERT_EQUAL(false, array != array_eq);
-
-			CPPUNIT_ASSERT_EQUAL(false, array == array_neq_0);
-			CPPUNIT_ASSERT_EQUAL(true, array != array_neq_0);
-
-			CPPUNIT_ASSERT_EQUAL(false, array == array_neq_1);
-			CPPUNIT_ASSERT_EQUAL(true, array != array_neq_1);
-		}
-
-		{
-			const Array<NonPodStruct> array = {
-					NonPodStruct(0, "yyyz"),
-					NonPodStruct(),
-					NonPodStruct(-321, "yyx"),
-					NonPodStruct(990, "x^hhf")
-			};
-
-			const NonPodStruct equal_native_array[] = {
-                    NonPodStruct(0, "yyyz"),
-                    NonPodStruct(),
-                    NonPodStruct(-321, "yyx"),
-                    NonPodStruct(990, "x^hhf")
-            };
-            const auto equal_native_array_length = nativeArrayLength(equal_native_array);
-
-			const NonPodStruct nequal_native_array_0[] = {
-                    NonPodStruct(-31, "kek-yyyz"),
-                    NonPodStruct(81, "ddds"),
-                    NonPodStruct(-321, "yyx"),
-                    NonPodStruct(21, "32"),
-                    NonPodStruct(990, "x^hhf")
-            };
-            const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
-
-			const NonPodStruct nequal_native_array_1[] = {
-                    NonPodStruct(-31, "kek-yyyz"),
-                    NonPodStruct(-1, "ddds"),
-                    NonPodStruct(0, "dhf")
-            };
-
-            const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
-
-			const Array<NonPodStruct> array_eq(equal_native_array_length, equal_native_array);
-			const Array<NonPodStruct> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
-			const Array<NonPodStruct> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
-
-			CPPUNIT_ASSERT_EQUAL(equal_native_array_length, array.size());
-			CPPUNIT_ASSERT(nequal_native_array_0_length != array.size());
-			CPPUNIT_ASSERT(nequal_native_array_1_length != array.size());
-
-			CPPUNIT_ASSERT(array.equals({
-                                                NonPodStruct(0, "yyyz"),
-                                                NonPodStruct(),
-                                                NonPodStruct(-321, "yyx"),
-                                                NonPodStruct(990, "x^hhf")
-                                        }));
-
-			CPPUNIT_ASSERT(array.equals(array_eq));
-			CPPUNIT_ASSERT(!array.equals(array_neq_0));
-			CPPUNIT_ASSERT(!array.equals(array_neq_1));
-
-			CPPUNIT_ASSERT_EQUAL(true, array == array_eq);
-			CPPUNIT_ASSERT_EQUAL(false, array != array_eq);
-
-			CPPUNIT_ASSERT_EQUAL(false, array == array_neq_0);
-			CPPUNIT_ASSERT_EQUAL(true, array != array_neq_0);
-
-			CPPUNIT_ASSERT_EQUAL(false, array == array_neq_1);
-			CPPUNIT_ASSERT_EQUAL(true, array != array_neq_1);
-		}
-	}
-
-	void testIndexOf() {
-        // TODO(abbyssoul): Implementation
-	}
-
-    void testContains() {
-        // TODO(abbyssoul): Implementation
-    }
-
-    void testExtend() {
-        // TODO(abbyssoul): Implementation
-    }
-
-/*
-    void testFill() {
-        {
-            Array<int> array(5);
-
-            const int equal_array[] = {1, 2, 3};
-            const size_t equal_length = nativeArrayLength(equal_array);
-
-            const int nequal_array[] = {0, 1, 2, 3};
-            const size_t nequal_length = nativeArrayLength(nequal_array);
-
-            array.fill(equal_array, equal_length, 1);
-            CPPUNIT_ASSERT_EQUAL(true, array.equals({1, 1, 2, 3, array[4]}));
-
-            array.fill(nequal_array, nequal_length, 1);
-            CPPUNIT_ASSERT_EQUAL(true, array.equals({1, 0, 1, 2, 3}));
-
-            CPPUNIT_ASSERT_THROW(array.fill(nequal_array, nequal_length, 1),
-                    std::overflow_error);
-
-            CPPUNIT_ASSERT_THROW(array.fill(nequal_array, 1, array.size() + 1),
-                    std::range_error);
-
-            CPPUNIT_ASSERT_THROW(array.fill({5, 4, 3, 2, 1, 0}),
-                    std::overflow_error);
-
-            array.fill({4, 3, 2, 1, 0});
-            CPPUNIT_ASSERT_EQUAL(true, array.equals({4, 3, 2, 1, 0}));
+        a1 = a2;
+        EXPECT_TRUE(!a1.empty());
+        EXPECT_EQ(a1.size(), a2.size());
+        for (Array<int>::size_type i = 0; i < a1.size(); ++i) {
+            EXPECT_EQ(static_cast<int>(2*i) - 1, a1[i]);
         }
     }
-*/
+}
 
-    void testForEach_byValue() {
-        const Array<int> array = {1, 2, 3, 4, 5, 6};
+TEST_F(TestArray, testBasics) {
+    Array<uint> array(TEST_SIZE_0);
 
-        int acc = 0;
-        array.forEach([&acc](int x) {
-            acc += x;
-        });
+    EXPECT_TRUE(!array.empty());
+    EXPECT_EQ(TEST_SIZE_0, array.size());
 
-        CPPUNIT_ASSERT_EQUAL(21, acc);
+    for (auto i = ZERO, end = array.size(); i < end; ++i) {
+        EXPECT_EQ(0U, array[i]);
     }
 
-    void testForEach_byConstRef() {
-        const Array<String> array = {"Hello", " ", "world", "!"};
+    uint count = 0;
+    for (auto i = array.begin(), end = array.end(); i != end; ++i) {
+        EXPECT_EQ(0U, *i);
 
-        String acc;
-        array.forEach([&acc](const String& x) {
-            acc = acc.concat(x);
-        });
+        *i = count++;
+    }
+    EXPECT_EQ(static_cast<Array<uint>::size_type>(count), array.size());
 
-        CPPUNIT_ASSERT_EQUAL(String("Hello world!"), acc);
+    for (auto i = ZERO, end = array.size(); i < end; ++i) {
+        EXPECT_EQ(static_cast<uint>(i), array[i]);
     }
 
-    void testForEach_byValueConversion() {
-        const Array<int> array = {1, 2, 3, 4, 5, 6};
+    // TODO(abbyssoul): Test access pass end!!
+}
 
-        double acc = 0;
-        array.forEach([&acc](double x) {
-            acc += x;
-        });
+TEST_F(TestArray, testString) {
+    Array<String> array(TEST_SIZE_0);
 
-        CPPUNIT_ASSERT_DOUBLES_EQUAL(21.0, acc, 0.001);
+    EXPECT_TRUE(!array.empty());
+    EXPECT_EQ(TEST_SIZE_0, array.size());
+
+    for (auto i = ZERO, end = array.size(); i < end; ++i) {
+        EXPECT_EQ(String::Empty, array[i]);
     }
 
-    void testForEachIndexed() {
-        const Array<int> array = {1, 2, 3, 4, 5, 6};
-        bool allEq = true;
+    auto count = ZERO;
+    for (auto& i : array) {
+        EXPECT_TRUE(i.empty());
 
-        array.forEach([&allEq](Array<int>::size_type i, int value) {
-            allEq &= (i + 1 == value);
-        });
-
-        CPPUNIT_ASSERT_EQUAL(true, allEq);
+        i = "Item " + std::to_string(count++);
     }
 
+    EXPECT_EQ(count, array.size());
 
-    void testMap() {
-        const Array<DerivedNonPodStruct> array = {
-                DerivedNonPodStruct(32, 2.4, "hello"),
-                DerivedNonPodStruct(-24, 2.4, " "),
-                DerivedNonPodStruct(10, 2.4, "world"),
+    for (auto i = ZERO, end = array.size(); i < end; ++i) {
+        EXPECT_EQ(String("Item " + std::to_string(i)), array[i]);
+    }
+}
+
+TEST_F(TestArray, testNonPods) {
+    EXPECT_EQ(0, NonPodStruct::TotalCount);
+    {
+        Array<NonPodStruct> array(TEST_SIZE_1);
+
+        EXPECT_EQ(TEST_SIZE_1, array.size());
+        EXPECT_EQ(static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount), array.size());
+
+        for (auto i = ZERO, end = array.size(); i < end; ++i) {
+            EXPECT_EQ(NonPodStruct::IVALUE_DEFAULT, array[i].iValue);
+            EXPECT_EQ(NonPodStruct::STR_DEFAULT, array[i].str);
+        }
+
+        decltype(NonPodStruct::iValue) count = ZERO;
+        for (auto &i : array) {
+            EXPECT_EQ(NonPodStruct::IVALUE_DEFAULT, i.iValue);
+            EXPECT_EQ(NonPodStruct::STR_DEFAULT, i.str);
+
+            i.iValue = count++;
+            i.str = "Item " + std::to_string(i.iValue);
+        }
+
+        EXPECT_EQ(static_cast<Array<NonPodStruct>::size_type>(count), array.size());
+
+        for (auto i = ZERO, end = array.size(); i < end; ++i) {
+            EXPECT_EQ(static_cast<int>(i), array[i].iValue);
+            EXPECT_EQ(String("Item " + std::to_string(i)), array[i].str);
+        }
+    }
+    EXPECT_EQ(0, NonPodStruct::TotalCount);
+}
+
+TEST_F(TestArray, testInitializerList) {
+    {
+        const int native_array[] = {0, 1, 2, 3};
+        const Array<int> array = {0, 1, 2, 3};
+
+        EXPECT_EQ(nativeArrayLength(native_array), array.size());
+
+        for (auto i = ZERO, end = array.size(); i < end; ++i) {
+            EXPECT_EQ(native_array[i], array[i]);
+        }
+    }
+
+    {
+        const String native_array[] = {"Abc", "", "dfe", "_xyz3"};
+        const Array<String> array = {"Abc", "", "dfe", "_xyz3"};
+
+        EXPECT_EQ(nativeArrayLength(native_array), array.size());
+
+        for (auto i = ZERO, end = array.size(); i < end; ++i) {
+            EXPECT_EQ(native_array[i], array[i]);
+        }
+    }
+
+    EXPECT_EQ(0, NonPodStruct::TotalCount);
+    {
+        const NonPodStruct native_array[] = {
+                NonPodStruct(0, "yyyz"),
+                NonPodStruct(),
+                NonPodStruct(-321, "yyx"),
+                NonPodStruct(990, "x^hhf")
+        };
+        EXPECT_EQ(nativeArrayLength(native_array),
+                                static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount));
+
+        const Array<NonPodStruct> array = {
+                NonPodStruct(0, "yyyz"),
+                NonPodStruct(),
+                NonPodStruct(-321, "yyx"),
+                NonPodStruct(990, "x^hhf")
         };
 
-        {
-            auto r = array.map([](const DerivedNonPodStruct& content) {
-                return content.iValue;
-            });
+        EXPECT_EQ(nativeArrayLength(native_array), array.size());
+        EXPECT_EQ(nativeArrayLength(native_array) + array.size(),
+                                static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount));
 
-            CPPUNIT_ASSERT_EQUAL(array.size(), r.size());
-            for (Array<int>::size_type i = 0; i < array.size(); ++i) {
-                CPPUNIT_ASSERT_EQUAL(r[i], array[i].iValue);
-            }
-
+        for (auto i = ZERO, end = array.size(); i < end; ++i) {
+            EXPECT_EQ(native_array[i].iValue, array[i].iValue);
+            EXPECT_EQ(native_array[i].str, array[i].str);
         }
-        {
-            auto r = array.map([](const DerivedNonPodStruct& content) {
-                return content.str;
-            });
+    }
+    EXPECT_EQ(0, NonPodStruct::TotalCount);
 
-            CPPUNIT_ASSERT_EQUAL(array.size(), r.size());
-            for (Array<int>::size_type i = 0; i < array.size(); ++i) {
-                CPPUNIT_ASSERT_EQUAL(r[i], array[i].str);
-            }
+}
 
+TEST_F(TestArray, testFromNativeConvertion) {
+
+    {
+        const int native_array[] = {0, 1, 2, 3};
+        const Array<int> array(nativeArrayLength(native_array), native_array);
+
+        EXPECT_EQ(nativeArrayLength(native_array), array.size());
+
+        for (auto i = ZERO, end = array.size(); i < end; ++i) {
+            EXPECT_EQ(native_array[i], array[i]);
         }
     }
 
-    void testDeallocationWhenElementConstructorThrows() {
+    {
+        const String native_array[] = {"Abc", "", "dfe", "_xyz3"};
+        const Array<String> array(nativeArrayLength(native_array), native_array);
 
-        SometimesConstructable::BlowUpEveryInstance = 9;
+        EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
-        CPPUNIT_ASSERT_THROW(const Array<SometimesConstructable> sholdFail(10), Exception);
-        CPPUNIT_ASSERT_EQUAL(0, SometimesConstructable::InstanceCount);
+        for (auto i = ZERO, end = array.size(); i < end; ++i) {
+            EXPECT_EQ(native_array[i], array[i]);
+        }
     }
 
-};
+    {
+        const NonPodStruct native_array[] = {
+                NonPodStruct(0, "yyyz"),
+                NonPodStruct(),
+                NonPodStruct(-321, "yyx"),
+                NonPodStruct(990, "x^hhf")
+        };
+        const Array<NonPodStruct> array(nativeArrayLength(native_array), native_array);
+
+        EXPECT_EQ(nativeArrayLength(native_array), array.size());
+
+        for (auto i = ZERO, end = array.size(); i < end; ++i) {
+            EXPECT_EQ(native_array[i].iValue, array[i].iValue);
+            EXPECT_EQ(native_array[i].str, array[i].str);
+        }
+    }
+}
+
+template <typename T>
+Array<T> moveArray(std::initializer_list<T> list) {
+    Array<T> array {list};
+
+    return array;
+}
+
+TEST_F(TestArray, testMoveAssignment) {
+    {
+        // Test on integral types
+        Array<int> array(0);
+
+        EXPECT_TRUE(array.empty());
+        EXPECT_EQ(ZERO, array.size());
+
+        array = moveArray<int>({1, 2, 3});
+        EXPECT_TRUE(!array.empty());
+        const int src1[] = {1, 2, 3};
+
+        EXPECT_EQ(static_cast<Array<int>::size_type>(3), array.size());
+        for (auto i = ZERO, end = array.size(); i < end; ++i) {
+            EXPECT_EQ(src1[i], array[i]);
+        }
+    }
+
+    {   // Test on strings types
+        Array<String> array(0);
+        EXPECT_TRUE(array.empty());
+
+        array = moveArray<String>({"tasrd", "", "hhha", "asd"});
+        EXPECT_TRUE(!array.empty());
+
+        const String src[] = {"tasrd", "", "hhha", "asd"};
+        EXPECT_EQ(static_cast<Array<String>::size_type>(4), array.size());
+        for (auto i = ZERO, end = array.size(); i < end; ++i) {
+            EXPECT_EQ(src[i], array[i]);
+        }
+    }
+
+    {   // Test on non-pod types
+        Array<NonPodStruct> array(0);
+        const NonPodStruct src[] = {
+                NonPodStruct(0, "yyyz"),
+                NonPodStruct(),
+                NonPodStruct(-321, "yyx"),
+                NonPodStruct(990, "x^hhf")
+        };
+        EXPECT_TRUE(array.empty());
+
+        array = moveArray<NonPodStruct>({
+                                            NonPodStruct(0, "yyyz"),
+                                            NonPodStruct(),
+                                            NonPodStruct(-321, "yyx"),
+                                            NonPodStruct(990, "x^hhf")
+                                        });
+        EXPECT_TRUE(!array.empty());
+        EXPECT_EQ(static_cast<Array<NonPodStruct>::size_type>(4), array.size());
+
+        for (auto i = ZERO, end = array.size(); i < end; ++i) {
+            EXPECT_EQ(src[i].iValue, array[i].iValue);
+            EXPECT_EQ(src[i].str, array[i].str);
+        }
+    }
+}
+
+TEST_F(TestArray, testEquals) {
+    {
+        const Array<int> array = {1, 2, 3};
+
+        const int equal_native_array[] = {1, 2, 3};
+        const auto equal_native_array_length = nativeArrayLength(equal_native_array);
+
+        const int nequal_native_array_0[] = {0, 1, 2, 3};
+        const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
+
+        const int nequal_native_array_1[] = {3, 2, 1};
+        const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
+
+        const Array<int> array_eq(equal_native_array_length, equal_native_array);
+        const Array<int> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
+        const Array<int> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
+
+        EXPECT_EQ(equal_native_array_length, array.size());
+        EXPECT_TRUE(nequal_native_array_0_length != array.size());
+        EXPECT_TRUE(nequal_native_array_1_length == array.size());
+
+        EXPECT_TRUE(array.equals({1, 2, 3}));
+        EXPECT_TRUE(!array.equals({3, 2, 3}));
+        EXPECT_TRUE(!array.equals({1, 2, 3, 4}));
+
+        EXPECT_TRUE(array.equals(array_eq));
+        EXPECT_TRUE(!array.equals(array_neq_0));
+        EXPECT_TRUE(!array.equals(array_neq_1));
+
+        EXPECT_EQ(true, array == array_eq);
+        EXPECT_EQ(false, array != array_eq);
+
+        EXPECT_EQ(false, array == array_neq_0);
+        EXPECT_EQ(true, array != array_neq_0);
+
+        EXPECT_EQ(false, array == array_neq_1);
+        EXPECT_EQ(true, array != array_neq_1);
+    }
+
+    {
+        const Array<String> array = {"tasrd", "", "hhha", "asd"};
+
+        const String equal_native_array[] = {"tasrd", "", "hhha", "asd"};
+        const auto equal_native_array_length = nativeArrayLength(equal_native_array);
+
+        const String nequal_native_array_0[] = {"tasrd", "", "hhha", "asd", "ugaga"};
+        const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
+
+        const String nequal_native_array_1[] = {"tasrd", "", "hhha", "basd"};
+        const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
+
+        const Array<String> array_eq(equal_native_array_length, equal_native_array);
+        const Array<String> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
+        const Array<String> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
+
+        EXPECT_EQ(equal_native_array_length, array.size());
+        EXPECT_TRUE(nequal_native_array_0_length != array.size());
+        EXPECT_TRUE(nequal_native_array_1_length == array.size());
+
+        EXPECT_TRUE(array.equals({"tasrd", "", "hhha", "asd"}));
+        EXPECT_TRUE(!array.equals({"tasrd", "", "hhha", "basd"}));
+        EXPECT_TRUE(!array.equals({"ugaga", "tasrd", "", "hhha", "asd"}));
+
+        EXPECT_TRUE(array.equals(array_eq));
+        EXPECT_TRUE(!array.equals(array_neq_0));
+        EXPECT_TRUE(!array.equals(array_neq_1));
+
+        EXPECT_EQ(true, array == array_eq);
+        EXPECT_EQ(false, array != array_eq);
+
+        EXPECT_EQ(false, array == array_neq_0);
+        EXPECT_EQ(true, array != array_neq_0);
+
+        EXPECT_EQ(false, array == array_neq_1);
+        EXPECT_EQ(true, array != array_neq_1);
+    }
+
+    {
+        const Array<NonPodStruct> array = {
+                NonPodStruct(0, "yyyz"),
+                NonPodStruct(),
+                NonPodStruct(-321, "yyx"),
+                NonPodStruct(990, "x^hhf")
+        };
+
+        const NonPodStruct equal_native_array[] = {
+                NonPodStruct(0, "yyyz"),
+                NonPodStruct(),
+                NonPodStruct(-321, "yyx"),
+                NonPodStruct(990, "x^hhf")
+        };
+        const auto equal_native_array_length = nativeArrayLength(equal_native_array);
+
+        const NonPodStruct nequal_native_array_0[] = {
+                NonPodStruct(-31, "kek-yyyz"),
+                NonPodStruct(81, "ddds"),
+                NonPodStruct(-321, "yyx"),
+                NonPodStruct(21, "32"),
+                NonPodStruct(990, "x^hhf")
+        };
+        const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
+
+        const NonPodStruct nequal_native_array_1[] = {
+                NonPodStruct(-31, "kek-yyyz"),
+                NonPodStruct(-1, "ddds"),
+                NonPodStruct(0, "dhf")
+        };
+
+        const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
+
+        const Array<NonPodStruct> array_eq(equal_native_array_length, equal_native_array);
+        const Array<NonPodStruct> array_neq_0(nequal_native_array_0_length, nequal_native_array_0);
+        const Array<NonPodStruct> array_neq_1(nequal_native_array_1_length, nequal_native_array_1);
+
+        EXPECT_EQ(equal_native_array_length, array.size());
+        EXPECT_TRUE(nequal_native_array_0_length != array.size());
+        EXPECT_TRUE(nequal_native_array_1_length != array.size());
+
+        EXPECT_TRUE(array.equals({
+                                    NonPodStruct(0, "yyyz"),
+                                    NonPodStruct(),
+                                    NonPodStruct(-321, "yyx"),
+                                    NonPodStruct(990, "x^hhf")
+                                }));
+
+        EXPECT_TRUE(array.equals(array_eq));
+        EXPECT_TRUE(!array.equals(array_neq_0));
+        EXPECT_TRUE(!array.equals(array_neq_1));
+
+        EXPECT_EQ(true, array == array_eq);
+        EXPECT_EQ(false, array != array_eq);
+
+        EXPECT_EQ(false, array == array_neq_0);
+        EXPECT_EQ(true, array != array_neq_0);
+
+        EXPECT_EQ(false, array == array_neq_1);
+        EXPECT_EQ(true, array != array_neq_1);
+    }
+}
+
+TEST_F(TestArray, testIndexOf) {
+    // TODO(abbyssoul): Implementation
+}
+
+TEST_F(TestArray, testContains) {
+    // TODO(abbyssoul): Implementation
+}
+
+TEST_F(TestArray, testExtend) {
+    // TODO(abbyssoul): Implementation
+}
+
+
+/*
+TEST_F(TestArray, testFill) {
+    {
+        Array<int> array(5);
+        const int equal_array[] = {1, 2, 3};
+        const size_t equal_length = nativeArrayLength(equal_array);
+        const int nequal_array[] = {0, 1, 2, 3};
+        const size_t nequal_length = nativeArrayLength(nequal_array);
+        array.fill(equal_array, equal_length, 1);
+        EXPECT_EQ(true, array.equals({1, 1, 2, 3, array[4]}));
+        array.fill(nequal_array, nequal_length, 1);
+        EXPECT_EQ(true, array.equals({1, 0, 1, 2, 3}));
+        EXPECT_THROW(array.fill(nequal_array, nequal_length, 1),
+                std::overflow_error);
+        EXPECT_THROW(array.fill(nequal_array, 1, array.size() + 1),
+                std::range_error);
+        EXPECT_THROW(array.fill({5, 4, 3, 2, 1, 0}),
+                std::overflow_error);
+        array.fill({4, 3, 2, 1, 0});
+        EXPECT_EQ(true, array.equals({4, 3, 2, 1, 0}));
+    }
+}
+*/
+
+TEST_F(TestArray, testForEach_byValue) {
+    const Array<int> array = {1, 2, 3, 4, 5, 6};
+
+    int acc = 0;
+    array.forEach([&acc](int x) {
+        acc += x;
+    });
+
+
+    EXPECT_EQ(21, acc);
+}
+
+TEST_F(TestArray, testForEach_byConstRef) {
+    const Array<String> array = {"Hello", " ", "world", "!"};
+
+    String acc;
+    array.forEach([&acc](const String& x) {
+        acc = acc.concat(x);
+    });
+
+    EXPECT_EQ(String("Hello world!"), acc);
+}
+
+TEST_F(TestArray, testForEach_byValueConversion) {
+    const Array<int> array = {1, 2, 3, 4, 5, 6};
+
+    double acc = 0;
+    array.forEach([&acc](double x) {
+        acc += x;
+    });
+
+    EXPECT_FLOAT_EQ(21.0, acc);
+}
+
+TEST_F(TestArray, testForEachIndexed) {
+    const Array<int> array = {1, 2, 3, 4, 5, 6};
+    bool allEq = true;
+
+    array.forEach([&allEq](Array<int>::size_type i, Array<int>::size_type x) {
+        allEq &= (i + 1 == x);
+    });
+
+    EXPECT_EQ(true, allEq);
+}
+
+
+TEST_F(TestArray, testMap) {
+    const Array<DerivedNonPodStruct> array = {
+            DerivedNonPodStruct(32, 2.4, "hello"),
+            DerivedNonPodStruct(-24, 2.4, " "),
+            DerivedNonPodStruct(10, 2.4, "world"),
+    };
+
+    {
+        auto r = array.map([](const DerivedNonPodStruct& content) {
+            return content.iValue;
+        });
+
+        EXPECT_EQ(array.size(), r.size());
+        for (Array<int>::size_type i = 0; i < array.size(); ++i) {
+            EXPECT_EQ(r[i], array[i].iValue);
+        }
+
+    }
+    {
+        auto r = array.map([](const DerivedNonPodStruct& content) {
+            return content.str;
+        });
+
+        EXPECT_EQ(array.size(), r.size());
+        for (Array<int>::size_type i = 0; i < array.size(); ++i) {
+            EXPECT_EQ(r[i], array[i].str);
+        }
+
+    }
+}
+
+TEST_F(TestArray, testDeallocationWhenElementConstructorThrows) {
+    SometimesConstructable::BlowUpEveryInstance = 9;
+
+    EXPECT_ANY_THROW(const Array<SometimesConstructable> sholdFail(10));
+
+    EXPECT_EQ(0, SometimesConstructable::InstanceCount);
+}
+
+
 
 const Array<int>::size_type TestArray::ZERO = 0;
 const Array<int>::size_type TestArray::TEST_SIZE_0 = 7;
@@ -747,6 +705,3 @@ const int 		TestArray::NonPodStruct::IVALUE_DEFAULT = -123;
 const String 	TestArray::NonPodStruct::STR_DEFAULT = "test_value";
 
 int TestArray::NonPodStruct::TotalCount = 0;
-
-
-CPPUNIT_TEST_SUITE_REGISTRATION(TestArray);

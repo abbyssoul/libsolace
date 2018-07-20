@@ -43,7 +43,7 @@ public:
 
 public:
 
-    /** Construct an empty buffer of size zero */
+    /** Construct an empty writer that has nowhere to write too */
     WriteBuffer() noexcept = default;
 
     WriteBuffer(WriteBuffer const& other) = delete;

@@ -230,7 +230,7 @@ public:
 
     /** Test to see if file is still opened.
      */
-    explicit inline operator bool() { return isOpened(); }
+    explicit inline operator bool() const { return isOpened(); }
 
     /** Test to see if file is still opened.
      *

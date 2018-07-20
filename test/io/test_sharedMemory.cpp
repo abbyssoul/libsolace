@@ -26,7 +26,7 @@
 #include <solace/io/file.hpp>
 #include <solace/exception.hpp>
 
-#include <cppunit/extensions/HelperMacros.h>
+#include <gtest/gtest.h>
 
 #include <cstring>
 #include <unistd.h>
@@ -37,105 +37,67 @@
 
 #include "../interruptexception.hpp"
 
-
 using namespace Solace;
 using namespace Solace::IO;
 
 
-class TestSharedMemory: public CppUnit::TestFixture  {
+TEST(TestSharedMemory, testCreate_InvalidFilename) {
+    EXPECT_THROW(auto mem = SharedMemory::create(Path("/somewhere/XXX"), 128), IOException);
+}
 
-    CPPUNIT_TEST_SUITE(TestSharedMemory);
-        CPPUNIT_TEST(testCreate_InvalidFilename);
-        CPPUNIT_TEST(testCreate_InvalidSize);
+TEST(TestSharedMemory, testCreate_InvalidSize) {
+    EXPECT_THROW(auto mem = SharedMemory::create(Path("/validname"), 0), IOException);
+}
 
-        CPPUNIT_TEST(testOpen_NonExisting);
-        CPPUNIT_TEST(testOpen_Exclusive);
+TEST(TestSharedMemory, testOpen_NonExisting) {
+    const auto uuid = UUID::random();
+    const auto name = Path::Root.join(uuid.toString());
+    EXPECT_THROW(auto mem = SharedMemory::open(name), IOException);
+}
 
-        CPPUNIT_TEST(testCreateAndMap);
-    CPPUNIT_TEST_SUITE_END();
+TEST(TestSharedMemory, testOpen_Exclusive) {
+    const auto uuid = UUID::random();
+    const auto name = Path::Root.join(uuid.toString());
+    auto mem1 = SharedMemory::create(name, 128, File::AccessMode::ReadWrite,
+                                        File::Flags::Exlusive);
 
-public:
+    EXPECT_THROW(auto mem = SharedMemory::open(name), IOException);
+}
 
-    void testCreate_InvalidFilename() {
-        CPPUNIT_ASSERT_THROW(auto mem = SharedMemory::create(Path("/somewhere/XXX"), 128), IOException);
+
+[[noreturn]]
+void writeMessageAndExit(uint64 memSize, MemoryBuffer& view) {
+    EXPECT_EQ(memSize, view.size());
+
+    {
+        WriteBuffer sb(view);
+        sb.write(memSize);
+        sb.write(StringView("child").view());
     }
 
-    void testCreate_InvalidSize() {
-        CPPUNIT_ASSERT_THROW(auto mem = SharedMemory::create(Path("/validname"), 0), IOException);
-    }
+    exit(0);
+}
 
-    void testOpen_NonExisting() {
-        const auto uuid = UUID::random();
-        const auto name = Path::Root.join(uuid.toString());
-        CPPUNIT_ASSERT_THROW(auto mem = SharedMemory::open(name), IOException);
-    }
+TEST(TestSharedMemory, testCreateAndMap) {
+    const SharedMemory::size_type memSize = 24;
 
-    void testOpen_Exclusive() {
-        const auto uuid = UUID::random();
-        const auto name = Path::Root.join(uuid.toString());
-        auto mem1 = SharedMemory::create(name, 128, File::AccessMode::ReadWrite,
-                                         File::Flags::Exlusive);
+    auto mem = SharedMemory::create(Path("/somename"), memSize);
+    EXPECT_TRUE(mem);
 
-        CPPUNIT_ASSERT_THROW(auto mem = SharedMemory::open(name), IOException);
-    }
+    auto view = mem.map(SharedMemory::Access::Shared);
+    EXPECT_EQ(memSize, mem.size());
+    EXPECT_EQ(memSize, view.size());
 
-    void testCreateAndMap() {
-        const SharedMemory::size_type memSize = 24;
-        bool isChild = false;
-        {
-            auto mem = SharedMemory::create(Path("/somename"), memSize);
-            CPPUNIT_ASSERT(mem);
+    EXPECT_EXIT(writeMessageAndExit(memSize, view), ::testing::ExitedWithCode(0), ".*");
 
-            auto view = mem.map(SharedMemory::Access::Shared);
-            CPPUNIT_ASSERT_EQUAL(memSize, mem.size());
-            CPPUNIT_ASSERT_EQUAL(memSize, view.size());
+    uint64 viewedMemsize;
+    char message[10];
+    auto messageDest = wrapMemory(message);
 
-            const auto childPid = fork();
-            switch (childPid) {           /* Parent and child share mapping */
-            case -1:
-                CPPUNIT_FAIL("fork");
-                return;
+    ReadBuffer sb(view);
+    EXPECT_TRUE(sb.read(&viewedMemsize).isOk());
+    EXPECT_EQ(memSize, viewedMemsize);
 
-            case 0: {                     /* Child: increment shared integer and exit */
-                CPPUNIT_ASSERT_EQUAL(memSize, mem.size());
-                CPPUNIT_ASSERT_EQUAL(memSize, view.size());
-
-                isChild = true;
-                WriteBuffer sb(view);
-                sb.write(getpid());
-                sb.write(StringView("child").view());
-
-                // Child will quit after that and this will signal the parent to read data from the shared memory.
-            } break;
-
-            default: {  /* Parent: wait for child to terminate */
-                if (waitpid(childPid, nullptr, 0) == -1) {
-                    const auto msg = String::join(": ", {"waitpid", strerror(errno)});
-                    CPPUNIT_FAIL(msg.c_str());
-                }
-
-
-                int viewedPid;
-                char message[10];
-                auto messageDest = wrapMemory(message);
-
-                ReadBuffer sb(view);
-                CPPUNIT_ASSERT(sb.read(&viewedPid).isOk());
-                CPPUNIT_ASSERT_EQUAL(childPid, viewedPid);
-
-                CPPUNIT_ASSERT(sb.read(messageDest, 5).isOk());
-                message[5] = 0;
-                CPPUNIT_ASSERT_EQUAL(StringView("child"), StringView(message));
-            } break;
-
-            }
-        }
-
-        if (isChild) {
-            throw InterruptTest();
-        }
-    }
-
-};
-
-CPPUNIT_TEST_SUITE_REGISTRATION(TestSharedMemory);
+    EXPECT_TRUE(sb.read(messageDest, 6).isOk()); message[5] = 0;
+    EXPECT_EQ(StringView("child"), StringView(message));
+}

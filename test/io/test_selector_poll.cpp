@@ -25,117 +25,107 @@
 #include <solace/io/pipe.hpp>
 #include <solace/exception.hpp>
 
-#include <cppunit/extensions/HelperMacros.h>
-
+#include <gtest/gtest.h>
 
 using namespace Solace;
 using namespace Solace::IO;
 
-
-class TestPollSelector : public CppUnit::TestFixture  {
-
-    CPPUNIT_TEST_SUITE(TestPollSelector);
-        CPPUNIT_TEST(testSubscription);
-        CPPUNIT_TEST(testEmptyPolling);
-        CPPUNIT_TEST(testRemoval);
-        CPPUNIT_TEST(testRemovalOfNotAddedItem);
-        CPPUNIT_TEST(testReadPolling);
-    CPPUNIT_TEST_SUITE_END();
+class TestPollSelector : public ::testing::Test {
 
 public:
 
-    void testSubscription() {
-        Pipe p;
+    void setUp() {
+	}
 
-        auto s = Selector::createPoll(5);
-        s.add(&p.getReadEnd(), Selector::Read);
-        s.add(&p.getWriteEnd(), Selector::Write);
-
-        auto i = s.poll(1);
-        CPPUNIT_ASSERT(i != i.end());
-
-        auto ev = *i;
-        CPPUNIT_ASSERT_EQUAL(p.getWriteEnd().getSelectId(), ev.fd);
-    }
-
-
-    void testReadPolling() {
-        Pipe p;
-
-        auto s = Selector::createPoll(5);
-        s.add(&p.getReadEnd(), Selector::Read);
-
-        auto i = s.poll(1);
-
-        // Test that poll times out correctly as nothing has been written so far.
-        CPPUNIT_ASSERT(i == i.end());
-
-        char msg[] = "message";
-        const auto written = p.write(wrapMemory(msg));
-        CPPUNIT_ASSERT(written.isOk());
-
-        i = s.poll(1);
-        CPPUNIT_ASSERT(i != i.end());
-
-        auto ev = *i;
-        CPPUNIT_ASSERT_EQUAL(p.getReadEnd().getSelectId(), ev.fd);
-
-        char buff[100];
-        auto m = wrapMemory(buff);
-        auto dest = m.slice(0, written.unwrap());
-        const auto bytesRead = p.read(dest);
-        CPPUNIT_ASSERT(bytesRead.isOk());
-        CPPUNIT_ASSERT_EQUAL(written.unwrap(), bytesRead.unwrap());
-
-        // There is no more data in the pipe so the next poll must time-out
-        i = s.poll(1);
-
-        // Test that poll times out correctly as nothing has been written so far.
-        CPPUNIT_ASSERT(i == i.end());
-    }
-
-
-    void testEmptyPolling() {
-        auto s = Selector::createPoll(3);
-
-        auto i = s.poll(1);
-        CPPUNIT_ASSERT(!(i != i.end()));
-        CPPUNIT_ASSERT_THROW(++i, IndexOutOfRangeException);
-    }
-
-
-    void testRemoval() {
-        Pipe p;
-
-        Selector s = Selector::createPoll(5);
-        s.add(&p.getReadEnd(), Selector::Read);
-        s.add(&p.getWriteEnd(), Selector::Write);
-
-        {
-            auto i = s.poll(1);
-            CPPUNIT_ASSERT(i != i.end());
-
-            auto ev = *i;
-//            CPPUNIT_ASSERT_EQUAL(static_cast<void*>(&p.getWriteEnd()), ev.data);
-            CPPUNIT_ASSERT_EQUAL(p.getWriteEnd().getSelectId(), ev.fd);
-        }
-
-        {
-            s.remove(&p.getWriteEnd());
-            auto i = s.poll(1);
-            CPPUNIT_ASSERT(i == i.end());
-//            CPPUNIT_ASSERT_EQUAL(static_cast<uint>(0), i.getSize());
-        }
-    }
-
-    void testRemovalOfNotAddedItem() {
-        Pipe p;
-
-        auto s = Selector::createPoll(5);
-        CPPUNIT_ASSERT_NO_THROW(s.remove(&p.getReadEnd()));
-        CPPUNIT_ASSERT_NO_THROW(s.remove(&p.getWriteEnd()));
-    }
-
+    void tearDown() {
+	}
 };
 
-CPPUNIT_TEST_SUITE_REGISTRATION(TestPollSelector);
+TEST_F(TestPollSelector, testSubscription) {
+    Pipe p;
+
+    auto s = Selector::createPoll(5);
+    s.add(&p.getReadEnd(), Selector::Read);
+    s.add(&p.getWriteEnd(), Selector::Write);
+
+    auto i = s.poll(1);
+    EXPECT_TRUE(i != i.end());
+
+    auto ev = *i;
+    EXPECT_EQ(p.getWriteEnd().getSelectId(), ev.fd);
+}
+
+TEST_F(TestPollSelector, testReadPolling) {
+    Pipe p;
+
+    auto s = Selector::createPoll(5);
+    s.add(&p.getReadEnd(), Selector::Read);
+
+    auto i = s.poll(1);
+
+    // Test that poll times out correctly as nothing has been written so far.
+    EXPECT_TRUE(i == i.end());
+
+    char msg[] = "message";
+    const auto written = p.write(wrapMemory(msg));
+    EXPECT_TRUE(written.isOk());
+
+    i = s.poll(1);
+    EXPECT_TRUE(i != i.end());
+
+    auto ev = *i;
+    EXPECT_EQ(p.getReadEnd().getSelectId(), ev.fd);
+
+    char buff[100];
+    auto m = wrapMemory(buff);
+    auto dest = m.slice(0, written.unwrap());
+    const auto bytesRead = p.read(dest);
+    EXPECT_TRUE(bytesRead.isOk());
+    EXPECT_EQ(written.unwrap(), bytesRead.unwrap());
+
+    // There is no more data in the pipe so the next poll must time-out
+    i = s.poll(1);
+
+    // Test that poll times out correctly as nothing has been written so far.
+    EXPECT_TRUE(i == i.end());
+}
+
+TEST_F(TestPollSelector, testEmptyPolling) {
+    auto s = Selector::createPoll(3);
+
+    auto i = s.poll(1);
+    EXPECT_TRUE(!(i != i.end()));
+    EXPECT_THROW(++i, IndexOutOfRangeException);
+}
+
+TEST_F(TestPollSelector, testRemoval) {
+    Pipe p;
+
+    Selector s = Selector::createPoll(5);
+    s.add(&p.getReadEnd(), Selector::Read);
+    s.add(&p.getWriteEnd(), Selector::Write);
+
+    {
+        auto i = s.poll(1);
+        EXPECT_TRUE(i != i.end());
+
+        auto ev = *i;
+//            EXPECT_EQ(static_cast<void*>(&p.getWriteEnd()), ev.data);
+        EXPECT_EQ(p.getWriteEnd().getSelectId(), ev.fd);
+    }
+
+    {
+        s.remove(&p.getWriteEnd());
+        auto i = s.poll(1);
+        EXPECT_TRUE(i == i.end());
+//            EXPECT_EQ(static_cast<uint>(0), i.getSize());
+    }
+}
+
+TEST_F(TestPollSelector, testRemovalOfNotAddedItem) {
+    Pipe p;
+
+    auto s = Selector::createPoll(5);
+    EXPECT_NO_THROW(s.remove(&p.getReadEnd()));
+    EXPECT_NO_THROW(s.remove(&p.getWriteEnd()));
+}

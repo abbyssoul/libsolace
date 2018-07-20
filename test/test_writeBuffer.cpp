@@ -20,146 +20,126 @@
 *******************************************************************************/
 #include <solace/writeBuffer.hpp>  // Class being tested
 
-#include <cppunit/extensions/HelperMacros.h>
-
-
+#include <gtest/gtest.h>
 
 using namespace Solace;
 
 
-class TestWriteBuffer :
-        public CppUnit::TestFixture  {
+TEST(TestWriteBuffer, testConstruction) {
+}
 
-    CPPUNIT_TEST_SUITE(TestWriteBuffer);
-        CPPUNIT_TEST(testConstruction);
-        CPPUNIT_TEST(testPositioning);
-        CPPUNIT_TEST(testWrite);
+TEST(TestWriteBuffer, testPositioning) {
+    byte mem[12];
+    constexpr WriteBuffer::size_type testSize = sizeof(mem);
+    auto buffer = WriteBuffer(wrapMemory(mem));
 
-        CPPUNIT_TEST(writeBigEndian);
-        CPPUNIT_TEST(writeLittleEndian);
-    CPPUNIT_TEST_SUITE_END();
+    EXPECT_EQ(testSize, buffer.capacity());
+    EXPECT_EQ(testSize, buffer.limit());
+    EXPECT_EQ(static_cast<WriteBuffer::size_type>(0), buffer.position());
 
-public:
+    EXPECT_TRUE(buffer.position(buffer.position() + 12).isOk());
+    EXPECT_TRUE(buffer.position(0).isOk());
+    EXPECT_TRUE(buffer.advance(12).isOk());
+    EXPECT_TRUE(buffer.position(0).isOk());
 
-    void testConstruction() {
+    for (WriteBuffer::size_type i = 0; i < testSize; ++i) {
+        buffer.advance(1);
+    }
+    EXPECT_EQ(buffer.limit(), buffer.position());
+
+    EXPECT_TRUE(buffer.position(buffer.limit() + 1).isError());
+
+    EXPECT_TRUE(buffer.position(buffer.limit()).isOk());
+    EXPECT_TRUE(buffer.advance(1).isError());
+}
+
+TEST(TestWriteBuffer, testWrite) {
+    byte destMem[7];
+
+    {  // Happy path
+        byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
+
+        WriteBuffer buffer(wrapMemory(destMem));
+        EXPECT_NO_THROW(buffer.write(wrapMemory(bytes)));
+        EXPECT_EQ(buffer.limit(), buffer.position());
     }
 
-    void testPositioning() {
-        byte mem[12];
-        constexpr WriteBuffer::size_type testSize = sizeof(mem);
-        auto buffer = WriteBuffer(wrapMemory(mem));
+    {  // Error cases
+        byte truckLoadOfData[] = {'a', 'b', 'c', 0, 'd', 'e', 'f', 'g'};
+        auto viewBytes = wrapMemory(truckLoadOfData);
 
-        CPPUNIT_ASSERT_EQUAL(testSize, buffer.capacity());
-        CPPUNIT_ASSERT_EQUAL(testSize, buffer.limit());
-        CPPUNIT_ASSERT_EQUAL(static_cast<WriteBuffer::size_type>(0), buffer.position());
+        WriteBuffer buffer(wrapMemory(destMem));
+        // Attempt to write more bytes then fit into the dest buffer
+        EXPECT_TRUE(buffer.write(viewBytes).isError());
 
-        CPPUNIT_ASSERT(buffer.position(buffer.position() + 12).isOk());
-        CPPUNIT_ASSERT(buffer.position(0).isOk());
-        CPPUNIT_ASSERT(buffer.advance(12).isOk());
-        CPPUNIT_ASSERT(buffer.position(0).isOk());
+        // Attempt to write more bytes then availible in the source buffer
+        EXPECT_TRUE(buffer.write(viewBytes, 128).isError());
+    }
+}
 
-        for (WriteBuffer::size_type i = 0; i < testSize; ++i) {
-            buffer.advance(1);
-        }
-        CPPUNIT_ASSERT_EQUAL(buffer.limit(), buffer.position());
 
-        CPPUNIT_ASSERT(buffer.position(buffer.limit() + 1).isError());
+TEST(TestWriteBuffer, writeBigEndian) {
+    byte bytes[8];
 
-        CPPUNIT_ASSERT(buffer.position(buffer.limit()).isOk());
-        CPPUNIT_ASSERT(buffer.advance(1).isError());
+    {
+        uint16 const value(1025);
+        EXPECT_TRUE(WriteBuffer(wrapMemory(bytes)).writeBE(value).isOk());
+        EXPECT_EQ(static_cast<byte>(0x04), bytes[0]);
+        EXPECT_EQ(static_cast<byte>(0x01), bytes[1]);
     }
 
-    void testWrite() {
-        byte destMem[7];
-
-        {  // Happy path
-            byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
-
-            WriteBuffer buffer(wrapMemory(destMem));
-            CPPUNIT_ASSERT_NO_THROW(buffer.write(wrapMemory(bytes)));
-            CPPUNIT_ASSERT_EQUAL(buffer.limit(), buffer.position());
-        }
-
-        {  // Error cases
-            byte truckLoadOfData[] = {'a', 'b', 'c', 0, 'd', 'e', 'f', 'g'};
-            auto viewBytes = wrapMemory(truckLoadOfData);
-
-            WriteBuffer buffer(wrapMemory(destMem));
-            // Attempt to write more bytes then fit into the dest buffer
-            CPPUNIT_ASSERT(buffer.write(viewBytes).isError());
-
-            // Attempt to write more bytes then availible in the source buffer
-            CPPUNIT_ASSERT(buffer.write(viewBytes, 128).isError());
-        }
+    {
+        uint32 const value(0x842da380);
+        EXPECT_TRUE(WriteBuffer(wrapMemory(bytes)).writeBE(value).isOk());
+        EXPECT_EQ(static_cast<byte>(0x84), bytes[0]);
+        EXPECT_EQ(static_cast<byte>(0x2d), bytes[1]);
+        EXPECT_EQ(static_cast<byte>(0xa3), bytes[2]);
+        EXPECT_EQ(static_cast<byte>(0x80), bytes[3]);
     }
 
+    {
+        uint64 const value(0x842da380e3426dff);
+        EXPECT_TRUE(WriteBuffer(wrapMemory(bytes)).writeBE(value).isOk());
+        EXPECT_EQ(static_cast<byte>(0x84), bytes[0]);
+        EXPECT_EQ(static_cast<byte>(0x2d), bytes[1]);
+        EXPECT_EQ(static_cast<byte>(0xa3), bytes[2]);
+        EXPECT_EQ(static_cast<byte>(0x80), bytes[3]);
+        EXPECT_EQ(static_cast<byte>(0xe3), bytes[4]);
+        EXPECT_EQ(static_cast<byte>(0x42), bytes[5]);
+        EXPECT_EQ(static_cast<byte>(0x6d), bytes[6]);
+        EXPECT_EQ(static_cast<byte>(0xff), bytes[7]);
+    }
+}
 
-    void writeBigEndian() {
-        byte bytes[8];
 
-        {
-            uint16 const value(1025);
-            CPPUNIT_ASSERT(WriteBuffer(wrapMemory(bytes)).writeBE(value).isOk());
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x04), bytes[0]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x01), bytes[1]);
-        }
-
-        {
-            uint32 const value(0x842da380);
-            CPPUNIT_ASSERT(WriteBuffer(wrapMemory(bytes)).writeBE(value).isOk());
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x84), bytes[0]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x2d), bytes[1]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xa3), bytes[2]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x80), bytes[3]);
-        }
-
-        {
-            uint64 const value(0x842da380e3426dff);
-            CPPUNIT_ASSERT(WriteBuffer(wrapMemory(bytes)).writeBE(value).isOk());
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x84), bytes[0]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x2d), bytes[1]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xa3), bytes[2]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x80), bytes[3]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xe3), bytes[4]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x42), bytes[5]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x6d), bytes[6]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xff), bytes[7]);
-        }
+TEST(TestWriteBuffer, writeLittleEndian) {
+    byte bytes[8];
+    {
+        uint16 const value(1025);
+        EXPECT_TRUE(WriteBuffer(wrapMemory(bytes)).writeLE(value).isOk());
+        EXPECT_EQ(static_cast<byte>(0x01), bytes[0]);
+        EXPECT_EQ(static_cast<byte>(0x04), bytes[1]);
     }
 
-
-    void writeLittleEndian() {
-        byte bytes[8];
-        {
-            uint16 const value(1025);
-            CPPUNIT_ASSERT(WriteBuffer(wrapMemory(bytes)).writeLE(value).isOk());
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x01), bytes[0]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x04), bytes[1]);
-        }
-
-        {
-            uint32 const value(1025);
-            CPPUNIT_ASSERT(WriteBuffer(wrapMemory(bytes)).writeLE(value).isOk());
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x01), bytes[0]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x04), bytes[1]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x00), bytes[2]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x00), bytes[3]);
-        }
-
-        {
-            uint64 const value(0x842da380e3426dff);
-            CPPUNIT_ASSERT(WriteBuffer(wrapMemory(bytes)).writeLE(value).isOk());
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xff), bytes[0]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x6d), bytes[1]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x42), bytes[2]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xe3), bytes[3]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x80), bytes[4]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0xa3), bytes[5]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x2d), bytes[6]);
-            CPPUNIT_ASSERT_EQUAL(static_cast<byte>(0x84), bytes[7]);
-        }
+    {
+        uint32 const value(1025);
+        EXPECT_TRUE(WriteBuffer(wrapMemory(bytes)).writeLE(value).isOk());
+        EXPECT_EQ(static_cast<byte>(0x01), bytes[0]);
+        EXPECT_EQ(static_cast<byte>(0x04), bytes[1]);
+        EXPECT_EQ(static_cast<byte>(0x00), bytes[2]);
+        EXPECT_EQ(static_cast<byte>(0x00), bytes[3]);
     }
 
-};
-
-CPPUNIT_TEST_SUITE_REGISTRATION(TestWriteBuffer);
+    {
+        uint64 const value(0x842da380e3426dff);
+        EXPECT_TRUE(WriteBuffer(wrapMemory(bytes)).writeLE(value).isOk());
+        EXPECT_EQ(static_cast<byte>(0xff), bytes[0]);
+        EXPECT_EQ(static_cast<byte>(0x6d), bytes[1]);
+        EXPECT_EQ(static_cast<byte>(0x42), bytes[2]);
+        EXPECT_EQ(static_cast<byte>(0xe3), bytes[3]);
+        EXPECT_EQ(static_cast<byte>(0x80), bytes[4]);
+        EXPECT_EQ(static_cast<byte>(0xa3), bytes[5]);
+        EXPECT_EQ(static_cast<byte>(0x2d), bytes[6]);
+        EXPECT_EQ(static_cast<byte>(0x84), bytes[7]);
+    }
+}

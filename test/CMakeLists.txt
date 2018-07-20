@@ -1,21 +1,12 @@
-
-find_package(PkgConfig REQUIRED)
-pkg_search_module(CPPUNIT REQUIRED cppunit)
-
-# Main lib project may disable rtti by default but cppunit requires it
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -frtti")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-
 # Maybe someday...
 # TODO(abbyssoul): Disabled as not supported by clang (without gold linker that is)
-# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto -fwhole-program")
-
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto")
 
 set(TEST_SOURCE_FILES
-        main.cpp
+        main_gtest.cpp
         mockTypes.cpp
         ci/teamcity_messages.cpp
-        ci/teamcity_cppunit.cpp
+        ci/teamcity_gtest.cpp
 
         test_array.cpp
         test_arrayView.cpp
@@ -55,17 +46,19 @@ set(TEST_SOURCE_FILES
         hashing/test_sha256.cpp
         )
 
+
+include_directories(${gtest_SOURCE_DIR}/include ${COMMON_INCLUDES})
 add_executable(test_${PROJECT_NAME} ${TEST_SOURCE_FILES})
 
 if(UNIX AND NOT APPLE)
     target_link_libraries(test_${PROJECT_NAME} PRIVATE
         ${PROJECT_NAME}
-        ${CPPUNIT_LIBRARIES}
+        gtest
         rt
         fmt-header-only)
 else()
     target_link_libraries(test_${PROJECT_NAME} PRIVATE
         ${PROJECT_NAME}
-        ${CPPUNIT_LIBRARIES}
+        gtest
         fmt-header-only)
 endif()

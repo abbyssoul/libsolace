@@ -42,8 +42,10 @@ const int SharedMemory::Protection::Write = PROT_WRITE;
 const int SharedMemory::Protection::Exec = PROT_EXEC;
 
 
+namespace {
 
-void* mapMemory(SharedMemory::size_type memSize, int protection, SharedMemory::Access mapping, int fd) {
+ImmutableMemoryView::MemoryAddress
+mapMemory(SharedMemory::size_type memSize, int protection, SharedMemory::Access mapping, int fd) {
     if (memSize == 0) {
         Solace::raise<IllegalArgumentException>("size");
     }
@@ -63,7 +65,12 @@ void* mapMemory(SharedMemory::size_type memSize, int protection, SharedMemory::A
 }
 
 
-class MappedMemoryDisposer : public MemoryViewDisposer {
+
+/**
+ * Memory disposer to unmap mapped memory.
+ */
+class MappedMemoryDisposer :
+        public MemoryViewDisposer {
 public:
 
     void dispose(ImmutableMemoryView* view) const override {
@@ -80,6 +87,8 @@ public:
 };
 
 static MappedMemoryDisposer g_mappedMemoryDisposer;
+
+}  // namespace
 
 SharedMemory::~SharedMemory() {
     if ((_fd != File::InvalidFd)) {
@@ -191,11 +200,12 @@ MemoryBuffer
 SharedMemory::mapMem(int fd, size_type memSize, SharedMemory::Access mapping, int protection) {
     auto addr = mapMemory(memSize, protection, mapping, fd);
 
-    return MemoryBuffer(wrapMemory(addr, memSize), &g_mappedMemoryDisposer);
+    return MemoryBuffer{wrapMemory(addr, memSize), &g_mappedMemoryDisposer};
 }
 
 
-SharedMemory SharedMemory::create(const Path& pathname, size_type memSize, File::AccessMode mode, int permissionsMode) {
+SharedMemory
+SharedMemory::create(const Path& pathname, size_type memSize, File::AccessMode mode, int permissionsMode) {
 
     if (memSize == 0) {
         raise<IOException>("Invalid size");
@@ -235,7 +245,8 @@ SharedMemory SharedMemory::create(const Path& pathname, size_type memSize, File:
 }
 
 
-SharedMemory SharedMemory::open(const Path& pathname, File::AccessMode mode) {
+SharedMemory
+SharedMemory::open(const Path& pathname, File::AccessMode mode) {
     if (pathname.length() >= NAME_MAX) {
         raise<IOException>("Name too long");
     }

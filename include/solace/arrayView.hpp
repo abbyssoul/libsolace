@@ -274,9 +274,23 @@ public:
      * Functional methods that operates on the collection without changing it.
      *--------------------------------------------------------------------------
      */
+    template<typename F>
+    std::enable_if_t<
+                isCallable<F, T>::value ||
+                isCallable<F, T&>::value,
+    ArrayView<T>& >
+    forEach(F&& f) {
+        for (auto& x : *this) {
+            f(x);
+        }
+
+        return *this;
+    }
 
     template<typename F>
-    const ArrayView& forEach(F&& f) const {
+    std::enable_if_t<isCallable<F, const T&>::value,
+    const ArrayView<T>& >
+    forEach(F&& f) const {
         for (const auto& x : *this) {
             f(x);
         }
@@ -284,6 +298,37 @@ public:
         return *this;
     }
 
+    template<typename F>
+    std::enable_if_t<
+            isCallable<F, size_type, const T&>::value,
+    const ArrayView<T>& >
+    forEach(F&& f) const {
+        const auto thisSize = size();
+        const auto pData = _memory.dataAs<T>();
+
+        for (size_type i = 0; i < thisSize; ++i) {
+            f(i, pData[i]);
+        }
+
+        return *this;
+    }
+
+
+    template<typename F>
+    std::enable_if_t<
+            isCallable<F, size_type, T>::value ||
+            isCallable<F, size_type, T&>::value,
+    ArrayView<T>& >
+    forEach(F&& f) {
+        const auto thisSize = size();
+        const auto pData = _memory.dataAs<T>();
+
+        for (size_type i = 0; i < thisSize; ++i) {
+            f(i, pData[i]);
+        }
+
+        return *this;
+    }
 
 private:
 
