@@ -40,32 +40,22 @@
 using namespace Solace;
 using namespace Solace::IO;
 
-class TestSharedMemory: public ::testing::Test {
 
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-};
-
-TEST_F(TestSharedMemory, testCreate_InvalidFilename) {
+TEST(TestSharedMemory, testCreate_InvalidFilename) {
     EXPECT_THROW(auto mem = SharedMemory::create(Path("/somewhere/XXX"), 128), IOException);
 }
 
-TEST_F(TestSharedMemory, testCreate_InvalidSize) {
+TEST(TestSharedMemory, testCreate_InvalidSize) {
     EXPECT_THROW(auto mem = SharedMemory::create(Path("/validname"), 0), IOException);
 }
 
-TEST_F(TestSharedMemory, testOpen_NonExisting) {
+TEST(TestSharedMemory, testOpen_NonExisting) {
     const auto uuid = UUID::random();
     const auto name = Path::Root.join(uuid.toString());
     EXPECT_THROW(auto mem = SharedMemory::open(name), IOException);
 }
 
-TEST_F(TestSharedMemory, testOpen_Exclusive) {
+TEST(TestSharedMemory, testOpen_Exclusive) {
     const auto uuid = UUID::random();
     const auto name = Path::Root.join(uuid.toString());
     auto mem1 = SharedMemory::create(name, 128, File::AccessMode::ReadWrite,
@@ -74,17 +64,21 @@ TEST_F(TestSharedMemory, testOpen_Exclusive) {
     EXPECT_THROW(auto mem = SharedMemory::open(name), IOException);
 }
 
+
+[[noreturn]]
 void writeMessageAndExit(uint64 memSize, MemoryBuffer& view) {
     EXPECT_EQ(memSize, view.size());
 
-    WriteBuffer sb(view);
-    sb.write(memSize);
-    sb.write(StringView("child").view());
+    {
+        WriteBuffer sb(view);
+        sb.write(memSize);
+        sb.write(StringView("child").view());
+    }
 
     exit(0);
 }
 
-TEST_F(TestSharedMemory, DISABLED_testCreateAndMap) {
+TEST(TestSharedMemory, testCreateAndMap) {
     const SharedMemory::size_type memSize = 24;
 
     auto mem = SharedMemory::create(Path("/somename"), memSize);

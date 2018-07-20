@@ -37,26 +37,17 @@
 using namespace Solace;
 using namespace Solace::IO;
 
-class TestAnonSharedMemory: public ::testing::Test {
 
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-};
-
-TEST_F(TestAnonSharedMemory, testCreate_InvalidSize) {
+TEST(TestAnonSharedMemory, testCreate_InvalidSize) {
     EXPECT_THROW(auto mem = SharedMemory::createAnon(0), IllegalArgumentException);
 }
 
 
-TEST_F(TestAnonSharedMemory, testOpen_Exclusive) {
+TEST(TestAnonSharedMemory, testOpen_Exclusive) {
 }
 
-TEST_F(TestAnonSharedMemory, testFill) {
+
+TEST(TestAnonSharedMemory, testFill) {
     auto buffer = SharedMemory::createAnon(47);
 
     buffer.view().fill(0);
@@ -78,17 +69,21 @@ TEST_F(TestAnonSharedMemory, testFill) {
     }
 }
 
+[[noreturn]]
 void writeTextAndExit(uint64 memSize, MemoryBuffer& memBuffer) {
     EXPECT_EQ(memSize, memBuffer.size());
 
-    WriteBuffer wb(memBuffer);
-    wb.write(memSize);
-    wb.write(StringView("child").view());
+    {
+        WriteBuffer wb(std::move(memBuffer));
+        wb.write(memSize);
+        wb.write(StringView("child").view());
+    }
 
     exit(0);
 }
 
-TEST(DISABLED_TestAnonSharedMemory, DISABLED_testShareAndMap) {
+
+TEST(TestAnonSharedMemory, testShareAndMap) {
     const SharedMemory::size_type memSize = 24;
     auto memBuffer = SharedMemory::createAnon(memSize, SharedMemory::Access::Shared);
 

@@ -59,14 +59,6 @@ public:
 
         return count;
     }
-
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
 };
 
 TEST_F(TestCommandlineParser, parseNullString) {
@@ -591,19 +583,19 @@ TEST_F(TestCommandlineParser, testRepeatingOptionsCustomHandler) {
 
     Parser("Something awesome")
             .options({
-                            {{"i", "intValue"}, "Value",
-                            Parser::OptionArgument::Required,
-                            [&vValue](const Optional<StringView>& value, const Parser::Context&) -> Optional<Error>{
-                                auto res = tryParse<int>(value.get());
-                                if (res) {
-                                    vValue += res.unwrap();
-                                    return none;
-                                } else {
-                                    return Optional<Error>(res.moveError());
-                                }
-                            }},
-                            {{"v"}, "Useless value", &unusedValue}
-                        })
+                        {{"i", "intValue"}, "Value",
+                        Parser::OptionArgument::Required,
+                        [&vValue](const Optional<StringView>& value, const Parser::Context&) -> Optional<Error>{
+                            auto res = tryParse<int>(value.get());
+                            if (res) {
+                                vValue += res.unwrap();
+                                return none;
+                            } else {
+                                return Optional<Error>(res.moveError());
+                            }
+                        }},
+                        {{"v"}, "Useless value", &unusedValue}
+                    })
             .parse(countArgc(argv), argv)
             .then([&parsedSuccessully](Parser::ParseResult&&) {parsedSuccessully = true; })
             .orElse([&parsedSuccessully](Error&& e) {
@@ -644,7 +636,7 @@ TEST_F(TestCommandlineParser, testMandatoryArgument) {
     const char* argv[] = {"prog", "-x", "756", "98765", nullptr};
     Parser("Something awesome", {
                             {{"x", "xxx"}, "Something", &xValue}
-                        })
+            })
             .arguments({
                 {"manarg", "Mandatory argument", &mandatoryArg}
             })
@@ -705,15 +697,14 @@ TEST_F(TestCommandlineParser, testMandatoryArgumentMissing) {
 
     const char* argv[] = {"prog", "-x", "756", nullptr};
     Parser("Something awesome", {
-                            {{"x", "xxx"}, "Something", &xValue}
-                        })
+                {{"x", "xxx"}, "Something", &xValue}
+            })
             .arguments({
-                            {"manarg", "Mandatory argument", &mandatoryArg}
+                {"manarg", "Mandatory argument", &mandatoryArg}
             })
             .parse(countArgc(argv), argv)
             .then([&parsedSuccessully](Parser::ParseResult&&) { parsedSuccessully = true; })
             .orElse([&parsedSuccessully](Error) { parsedSuccessully = false; });
-
 
     EXPECT_TRUE(!parsedSuccessully);
     EXPECT_EQ(0, mandatoryArg);
@@ -726,15 +717,14 @@ TEST_F(TestCommandlineParser, testMandatoryArgumentNotEnough) {
     int mandatoryArgInt2 = 0;
 
     const char* argv[] = {"prog", "do", "321", nullptr};
-    const auto result = Parser("Something awesome")
+    EXPECT_TRUE(Parser("Something awesome")
             .arguments({
                 {"manarg1", "Mandatory argument", &mandatoryArgStr},
                 {"manarg2", "Mandatory argument", &mandatoryArgInt},
                 {"manarg3", "Mandatory argument", &mandatoryArgInt2}
             })
-            .parse(countArgc(argv), argv);
-
-    EXPECT_TRUE(result.isError());
+            .parse(countArgc(argv), argv)
+            .isError());
 }
 
 TEST_F(TestCommandlineParser, testMandatoryArgumentTooMany) {
@@ -742,14 +732,13 @@ TEST_F(TestCommandlineParser, testMandatoryArgumentTooMany) {
     int mandatoryArgInt = 0;
 
     const char* argv[] = {"prog", "some", "756", "other", nullptr};
-    const auto result = Parser("Something awesome")
+    EXPECT_TRUE(Parser("Something awesome")
             .arguments({
                 {"manarg1", "Mandatory argument", &mandatoryArgStr},
                 {"manarg2", "Mandatory argument", &mandatoryArgInt}
             })
-            .parse(countArgc(argv), argv);
-
-    EXPECT_TRUE(result.isError());
+            .parse(countArgc(argv), argv)
+            .isError());
 }
 
 TEST_F(TestCommandlineParser, testTrailingArgumentsWithRegular) {
@@ -784,8 +773,8 @@ TEST_F(TestCommandlineParser, testTrailingArguments) {
     const char* argv[] = {"prog", "some", "756", "other", nullptr};
     const auto result = Parser("Something awesome")
             .arguments({
-                {"*", "Input", [&nbTimesInvoked](StringView, const Parser::Context&) -> Optional<Error>
-                {
+                {"*", "Input",
+                 [&nbTimesInvoked](StringView, const Parser::Context&) -> Optional<Error> {
                     nbTimesInvoked += 1;
                     return none;
                 }}
@@ -823,8 +812,8 @@ TEST_F(TestCommandlineParser, testTrailingNoArgumentsLeft) {
     const char* argv[] = {"prog", "man1", "man2", nullptr};
     const auto result = Parser("Something awesome")
             .arguments({
-                            {"manarg1", "Mandatory argument", &mandatoryArgStr1},
-                            {"manarg2", "Mandatory argument", &mandatoryArgStr2},
+                {"manarg1", "Mandatory argument", &mandatoryArgStr1},
+                {"manarg2", "Mandatory argument", &mandatoryArgStr2},
                 {"*", "Input", [&nbTimesInvoked](StringView, const Parser::Context&) -> Optional<Error>
                 {
                     nbTimesInvoked += 1;
@@ -847,7 +836,7 @@ TEST_F(TestCommandlineParser, testTrailingArgumentsWithOptions) {
     const char* argv[] = {"prog", "--opt", "756", "maybe_not", nullptr};
     const auto result = Parser("Something awesome")
             .options({
-                            {{"opt"}, "Option", &optValue}
+                {{"opt"}, "Option", &optValue}
             })
             .arguments({
                 {"*", "Input",
@@ -872,11 +861,10 @@ TEST_F(TestCommandlineParser, testCommandGivenButNotExpected) {
     bool givenOpt = false;
 
     const char* argv[] = {"prog", "command", nullptr};
-    const auto result = Parser("Something awesome",
-                        {{{"b", "bsome"}, "Some option", &givenOpt}
+    const auto result = Parser("Something awesome",{
+                            {{"b", "bsome"}, "Some option", &givenOpt}
                         })
             .parse(countArgc(argv), argv);
-
 
     EXPECT_TRUE(result.isError());
     EXPECT_TRUE(!commandExecuted);
@@ -929,7 +917,7 @@ TEST_F(TestCommandlineParser, testInvalidCommand) {
     bool commandExecuted = false;
 
     const char* argv[] = {"prog", "somethingElse", nullptr};
-    const auto result = Parser("Something awesome")
+    EXPECT_TRUE(Parser("Something awesome")
             .commands({
                             {"doIt", {"Pass the test",
                             [&commandExecuted]() -> Result<void, Error> {
@@ -937,9 +925,9 @@ TEST_F(TestCommandlineParser, testInvalidCommand) {
                                 return Ok();
                             }}}
                         })
-            .parse(countArgc(argv), argv);
+            .parse(countArgc(argv), argv)
+            .isError());
 
-    EXPECT_TRUE(result.isError());
     EXPECT_TRUE(!commandExecuted);
 }
 
@@ -952,7 +940,7 @@ TEST_F(TestCommandlineParser, testInvalidArgumentsForCommand) {
     } cmdCntx;
 
     const char* argv[] = {"prog", "doIt", "b", "blah!", nullptr};
-    const auto result = Parser("Something awesome")
+    EXPECT_TRUE(Parser("Something awesome")
             .commands({
                             {"doIt", {"Pass the test",
                             [&commandExecuted]() -> Result<void, Error> {
@@ -962,9 +950,9 @@ TEST_F(TestCommandlineParser, testInvalidArgumentsForCommand) {
                                 {{"a", "all"}, "Do something everywhere", &cmdCntx.all}
                             }}}
                         })
-            .parse(countArgc(argv), argv);
+            .parse(countArgc(argv), argv)
+            .isError());
 
-    EXPECT_TRUE(result.isError());
     EXPECT_TRUE(!commandExecuted);
 }
 
@@ -976,7 +964,7 @@ TEST_F(TestCommandlineParser, testUnexpectedArgumentsForCommand) {
     } cmdCntx;
 
     const char* argv[] = {"prog", "doIt", "-a", "-b", "blah!", nullptr};
-    const auto result = Parser("Something awesome")
+    EXPECT_TRUE(Parser("Something awesome")
             .commands({
                             {"doIt", {"Pass the test",
                             [&commandExecuted]() -> Result<void, Error> {
@@ -987,9 +975,9 @@ TEST_F(TestCommandlineParser, testUnexpectedArgumentsForCommand) {
                                 {{"a", "all"}, "Do something everywhere", &cmdCntx.all}
                             }}}
                         })
-            .parse(countArgc(argv), argv);
+            .parse(countArgc(argv), argv)
+            .isError());
 
-    EXPECT_TRUE(result.isError());
     EXPECT_TRUE(!commandExecuted);
 }
 
@@ -999,18 +987,18 @@ TEST_F(TestCommandlineParser, multipleCommandSelection) {
     const char* argv[] = {"prog", "comm-1", nullptr};
     auto parseResult = Parser("Something awesome")
             .commands({
-                            {"comm-1", {"Run 1st command",
-                            [&]() -> Result<void, Error> {
-                                commandExecuted[0] = true;
-                                return Ok();
-                            }}},
+                {"comm-1", {"Run 1st command",
+                [&]() -> Result<void, Error> {
+                    commandExecuted[0] = true;
+                    return Ok();
+                }}},
 
-                            {"comm-2", {"Run 2nd command",
-                            [&]() -> Result<void, Error> {
-                                commandExecuted[1] = true;
-                                return Ok();
-                            }}}
-                        })
+                {"comm-2", {"Run 2nd command",
+                [&]() -> Result<void, Error> {
+                    commandExecuted[1] = true;
+                    return Ok();
+                }}}
+            })
             .parse(countArgc(argv), argv);
 
     if (!parseResult) {
