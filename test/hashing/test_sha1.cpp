@@ -26,24 +26,14 @@
 using namespace Solace;
 using namespace Solace::hashing;
 
-class TestHashingSHA1: public ::testing::Test {
 
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-};
-
-TEST_F(TestHashingSHA1, testAlgorithmName) {
+TEST(TestHashingSHA1, testAlgorithmName) {
     Sha1 hash;
 
     EXPECT_EQ(String("SHA1"), hash.getAlgorithm());
 }
 
-TEST_F(TestHashingSHA1, hashEmptyMessage) {
+TEST(TestHashingSHA1, hashEmptyMessage) {
     Sha1 hash;
 
     char message[] = "";
@@ -54,7 +44,7 @@ TEST_F(TestHashingSHA1, hashEmptyMessage) {
                             hash.digest());
 }
 
-TEST_F(TestHashingSHA1, hashSingleLetter) {
+TEST(TestHashingSHA1, hashSingleLetter) {
     Sha1 hash;
 
     char message[] = "a";
@@ -65,7 +55,7 @@ TEST_F(TestHashingSHA1, hashSingleLetter) {
                             hash.digest());
 }
 
-TEST_F(TestHashingSHA1, hashAx1000) {
+TEST(TestHashingSHA1, hashAx1000) {
     Sha1 hash;
 
     char message[] = "a";
@@ -78,7 +68,7 @@ TEST_F(TestHashingSHA1, hashAx1000) {
                             hash.digest());
 }
 
-TEST_F(TestHashingSHA1, hashABC) {
+TEST(TestHashingSHA1, hashABC) {
     Sha1 hash;
 
     char message[] = "abc";
@@ -89,7 +79,7 @@ TEST_F(TestHashingSHA1, hashABC) {
                             hash.digest());
 }
 
-TEST_F(TestHashingSHA1, hashMessageDigest) {
+TEST(TestHashingSHA1, hashMessageDigest) {
     Sha1 hash;
 
     EXPECT_EQ(static_cast<Sha1::size_type>(20), hash.getDigestLength());

@@ -26,24 +26,14 @@
 using namespace Solace;
 using namespace Solace::hashing;
 
-class TestHashingSHA256: public ::testing::Test {
 
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-};
-
-TEST_F(TestHashingSHA256, testAlgorithmName) {
+TEST(TestHashingSHA256, testAlgorithmName) {
     Sha256 hash;
 
     EXPECT_EQ(String("SHA256"), hash.getAlgorithm());
 }
 
-TEST_F(TestHashingSHA256, hashEmptyMessage) {
+TEST(TestHashingSHA256, hashEmptyMessage) {
     Sha256 hash;
 
     char message[] = "";
@@ -56,7 +46,7 @@ TEST_F(TestHashingSHA256, hashEmptyMessage) {
                             hash.digest());
 }
 
-TEST_F(TestHashingSHA256, hashSingleLetter) {
+TEST(TestHashingSHA256, hashSingleLetter) {
     Sha256 hash;
 
     char message[] = "a";
@@ -69,7 +59,7 @@ TEST_F(TestHashingSHA256, hashSingleLetter) {
                             hash.digest());
 }
 
-TEST_F(TestHashingSHA256, hashABC) {
+TEST(TestHashingSHA256, hashABC) {
     Sha256 hash;
 
     char message[] = "abc";
@@ -82,7 +72,7 @@ TEST_F(TestHashingSHA256, hashABC) {
                             hash.digest());
 }
 
-TEST_F(TestHashingSHA256, hashMessageDigest) {
+TEST(TestHashingSHA256, hashMessageDigest) {
     Sha256 hash;
 
     EXPECT_EQ(static_cast<Sha256::size_type>(256 / 8), hash.getDigestLength());

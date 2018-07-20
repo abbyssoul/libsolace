@@ -29,21 +29,10 @@
 
 using namespace Solace;
 
-
-class TestVersion : public ::testing::Test {
-
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-};
-	/**
-	 * Test implementation and contract of IComparable
-	 */
-TEST_F(TestVersion, testComparable) {
+/**
+ * Test implementation and contract of IComparable
+ */
+TEST(TestVersion, testComparable) {
 	const Version v1(1, 2, 3);
 	const Version v2(1, 2, 3);
 	const Version v_different(3, 2, 3);
@@ -69,7 +58,7 @@ TEST_F(TestVersion, testComparable) {
 /**
 	* Test version comparison rules as defined in specs
 	*/
-TEST_F(TestVersion, testSpecs) {
+TEST(TestVersion, testSpecs) {
 	{
 		// 1.0.0 < 2.0.0 < 2.1.0 < 2.1.1
 		const Version v1(1, 0, 0);
@@ -121,7 +110,7 @@ TEST_F(TestVersion, testSpecs) {
 }
 
 
-TEST_F(TestVersion, testSpecs_ignoringMeta) {
+TEST(TestVersion, testSpecs_ignoringMeta) {
 	{
 		// 1.0.0 < 2.0.0 < 2.1.0 < 2.1.1
 		const Version v1(1, 0, 0, String::Empty, "Something");
@@ -175,7 +164,7 @@ TEST_F(TestVersion, testSpecs_ignoringMeta) {
 /**
 	* Test implementation and contract of IFormattable
 	*/
-TEST_F(TestVersion, testToString) {
+TEST(TestVersion, testToString) {
 	{
 		const Version v(3, 2, 1);
 		EXPECT_EQ(String("3.2.1"), v.toString());
@@ -218,7 +207,7 @@ TEST_F(TestVersion, testToString) {
 /**
 	* Test implementation and contract of parsable
 	*/
-TEST_F(TestVersion, testParsing) {
+TEST(TestVersion, testParsing) {
 	{
 		auto parseResult = Version::parse("3.231.1");
 		EXPECT_TRUE(parseResult.isOk());
@@ -269,7 +258,7 @@ TEST_F(TestVersion, testParsing) {
 /**
 	* Test consistency of parsing and toString implementation
 	*/
-TEST_F(TestVersion, testParsing_and_ToString_are_consistent) {
+TEST(TestVersion, testParsing_and_ToString_are_consistent) {
 	{
 		const String src("0.4.9");
 		auto parseResult = Version::parse(src.view());
@@ -296,22 +285,24 @@ TEST_F(TestVersion, testParsing_and_ToString_are_consistent) {
 /**
 	* Test consistency of parsing and toString implementation
 */
-TEST_F(TestVersion, testContainerReq) {
+TEST(TestVersion, testContainerReq) {
+    constexpr static uint kTestSetSize = 32;
 	std::vector<Version> versions;
+    versions.reserve(kTestSetSize);
 
-	for (uint i = 0; i < 32; ++i) {
+    for (uint i = 0; i < kTestSetSize; ++i) {
 		versions.emplace_back(i, i % 3, 2*i + 1);
 	}
 
-	for (uint i = 0; i < 32; ++i) {
+    for (uint i = 0; i < kTestSetSize; ++i) {
 		EXPECT_EQ(Version(i, i % 3, 2*i + 1), versions[i]);
 	}
 
-	for (uint i = 0; i < 32; ++i) {
+    for (uint i = 0; i < kTestSetSize; ++i) {
 		versions[i] = Version(2*i + 1, i, i % 3, String::Empty, "Some-tags");
 	}
 
-	for (uint i = 0; i < 32; ++i) {
+    for (uint i = 0; i < kTestSetSize; ++i) {
 		EXPECT_EQ(Version(2*i + 1, i, i % 3, String::Empty, "Some-tags"), versions[i]);
 	}
 }

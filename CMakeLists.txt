@@ -19,18 +19,13 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors") #  -f
 # Enable stack-protector if compiler supports it (it should)
 check_cxx_compiler_flag("-fvtable-verify" WITH_VTABLE_VERIFY)
 check_cxx_compiler_flag("-Wimplicit-fallthrough=2" WITH_IMPLICIT_FALLTHROUGH)
-check_cxx_compiler_flag("-Wl,-fuse-ld=gold" WITH_GOLD_LINKER)
+#check_cxx_compiler_flag("-Wl,-fuse-ld=gold" WITH_GOLD_LINKER)
 check_cxx_compiler_flag("-fstack-protector" WITH_STACK_PROTECTOR)
 check_cxx_compiler_flag("-fno-omit-frame-pointer" WITH_FRAME_POINTER)
 check_cxx_compiler_flag("-fsanitize-address-use-after-scope" WITH_SANITIZE_ADDRESS_USE_AFTER_SCOPE)
 check_cxx_compiler_flag("-fsanitize=signed-integer-overflow" WITH_SANITIZE_SIGNED_INTEGER_OVERFLOW)
 check_cxx_compiler_flag("-fsanitize=unsigned-integer-overflow" WITH_SANITIZE_UNSIGNED_INTEGER_OVERFLOW)
 
-
-if (WITH_GOLD_LINKER)
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
-endif (WITH_GOLD_LINKER)
 
 # Enable all the warnings one can get
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wmissing-include-dirs -Wpacked -Wredundant-decls")
@@ -72,7 +67,6 @@ if (WITH_STACK_PROTECTOR)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fstack-protector-strong")
 endif (WITH_STACK_PROTECTOR)
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
 
 # Debug flags
 set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb3 -D _DEBUG -D DEBUG")
@@ -89,8 +83,19 @@ endif (WITH_VTABLE_VERIFY)
 
 # Release Optimization flags
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG")
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -mtune=native")
+
+# Extra optimizations on GCC
+if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU" AND NOT MINGW)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -fuse-ld=gold")
+    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fuse-linker-plugin -flto-report -flto")
+
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fuse-ld=gold")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fuse-ld=gold")
+endif()
 
 
+# When sanitizers are ON
 if (SANITIZE)
     check_cxx_compiler_flag("-fsanitize=leak" WITH_SANITIZE_LEAK)
     if (WITH_SANITIZE_LEAK)
@@ -133,7 +138,6 @@ endif()
 # Build project dependencies (should be removed eventually)
 set(FMT_USE_CPP11 OFF CACHE BOOL "Don't add std by fmt" FORCE)
 add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
-
 add_subdirectory(external/gtest/googletest EXCLUDE_FROM_ALL)
 
 include_directories(include)

@@ -27,22 +27,12 @@
 
 using namespace Solace;
 
-class TestByteBuffer : public ::testing::Test  {
 
-public:
-
-    void setUp() {
-    }
-
-    void tearDown() {
-    }
-};
-
-TEST_F(TestByteBuffer, testConstruction) {
+TEST(TestByteBuffer, testConstruction) {
     //
 }
 
-TEST_F(TestByteBuffer, testPositioning) {
+TEST(TestByteBuffer, testPositioning) {
     byte mem[12];
     constexpr ByteBuffer::size_type testSize = sizeof(mem);
     ByteBuffer buffer(wrapMemory(mem));
@@ -68,7 +58,7 @@ TEST_F(TestByteBuffer, testPositioning) {
     EXPECT_TRUE(buffer.advance(1).isError());
 }
 
-TEST_F(TestByteBuffer, testWrite) {
+TEST(TestByteBuffer, testWrite) {
     byte destMem[7];
 
     {  // Happy path
@@ -92,7 +82,7 @@ TEST_F(TestByteBuffer, testWrite) {
     }
 }
 
-TEST_F(TestByteBuffer, readBigEndian) {
+TEST(TestByteBuffer, readBigEndian) {
     byte bytes[] = {0x84, 0x2d, 0xa3, 0x80,
                     0xe3, 0x42, 0x6d, 0xff};
 
@@ -126,7 +116,7 @@ TEST_F(TestByteBuffer, readBigEndian) {
 }
 
 
-TEST_F(TestByteBuffer, readLittleEndian) {
+TEST(TestByteBuffer, readLittleEndian) {
     byte bytes[] = {0x01, 0x04, 0x00, 0x00,
                     0xe3, 0x42, 0x6d, 0xff};
 
@@ -161,7 +151,7 @@ TEST_F(TestByteBuffer, readLittleEndian) {
 
 
 
-TEST_F(TestByteBuffer, writeBigEndian) {
+TEST(TestByteBuffer, writeBigEndian) {
     byte bytes[8];
     ByteBuffer buffer(wrapMemory(bytes));
 
@@ -196,7 +186,7 @@ TEST_F(TestByteBuffer, writeBigEndian) {
 }
 
 
-TEST_F(TestByteBuffer, writeLittleEndian) {
+TEST(TestByteBuffer, writeLittleEndian) {
     byte bytes[8];
     ByteBuffer buffer(wrapMemory(bytes));
 
@@ -230,7 +220,7 @@ TEST_F(TestByteBuffer, writeLittleEndian) {
     }
 }
 
-TEST_F(TestByteBuffer, endianConsisten) {
+TEST(TestByteBuffer, endianConsisten) {
     byte bytes[8];
 
     {

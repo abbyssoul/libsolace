@@ -861,7 +861,7 @@ TEST_F(TestCommandlineParser, testCommandGivenButNotExpected) {
     bool givenOpt = false;
 
     const char* argv[] = {"prog", "command", nullptr};
-    const auto result = Parser("Something awesome",{
+    const auto result = Parser("Something awesome", {
                             {{"b", "bsome"}, "Some option", &givenOpt}
                         })
             .parse(countArgc(argv), argv);

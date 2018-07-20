@@ -28,25 +28,17 @@
 
 using namespace Solace;
 
-class TestStringView : public ::testing::Test {
+using array_size_t = Array<StringView>::size_type;
 
-public:
-    using array_size_t = Array<StringView>::size_type;
 
-    void setUp() {
-	}
 
-    void tearDown() {
-	}
-};
-
-TEST_F(TestStringView, testConstructionFromNull) {
+TEST(TestStringView, testConstructionFromNull) {
     const char* nullCString = nullptr;
 
     EXPECT_THROW(StringView nullString(nullCString), Exception);
 }
 
-TEST_F(TestStringView, testConstructEmptyString) {
+TEST(TestStringView, testConstructEmptyString) {
     StringView value;
     EXPECT_TRUE(value.empty());
     EXPECT_EQ(static_cast<StringView::size_type>(0), value.size());
@@ -55,7 +47,7 @@ TEST_F(TestStringView, testConstructEmptyString) {
     EXPECT_TRUE(StringView("").empty());
 }
 
-TEST_F(TestStringView, testConstructionUnsized) {
+TEST(TestStringView, testConstructionUnsized) {
     const char *cstr = "world";
     EXPECT_TRUE(!StringView("Non-empty").empty());
     EXPECT_EQ(static_cast<StringView::size_type>(5), StringView(cstr).size());
@@ -63,7 +55,7 @@ TEST_F(TestStringView, testConstructionUnsized) {
     EXPECT_EQ(cstr, StringView(cstr).data());
 }
 
-TEST_F(TestStringView, testConstructionSized) {
+TEST(TestStringView, testConstructionSized) {
     const char *cstr = "world";
 
     EXPECT_EQ(static_cast<StringView::size_type>(3), StringView(cstr, 3).length());
@@ -72,7 +64,7 @@ TEST_F(TestStringView, testConstructionSized) {
     EXPECT_EQ(cstr + 2, StringView(&cstr[2], 3).data());
 }
 
-TEST_F(TestStringView, testAssignmentFromCstring) {
+TEST(TestStringView, testAssignmentFromCstring) {
     StringView value("world");
     EXPECT_EQ(static_cast<StringView::size_type>(5), value.length());
     EXPECT_EQ(0, strcmp("world", value.data()));
@@ -86,7 +78,7 @@ TEST_F(TestStringView, testAssignmentFromCstring) {
 /**
     * @see StringView::operator=
     */
-TEST_F(TestStringView, testAssignment) {
+TEST(TestStringView, testAssignment) {
     StringView value("world");
     StringView other("Completely different value");
 
@@ -101,7 +93,7 @@ TEST_F(TestStringView, testAssignment) {
     * @see StringView::equals
     * @see StringView::operator==
     */
-TEST_F(TestStringView, testEquality) {
+TEST(TestStringView, testEquality) {
     StringView value1("hello");
     StringView value2("Completely different value");
     StringView value3("hello");
@@ -129,7 +121,7 @@ TEST_F(TestStringView, testEquality) {
 /**
     * @see StringView::length
     */
-TEST_F(TestStringView, testLength) {
+TEST(TestStringView, testLength) {
     // FIXME: Add utf9 example
 
     EXPECT_EQ(static_cast<StringView::size_type>(0), StringView().length());
@@ -141,7 +133,7 @@ TEST_F(TestStringView, testLength) {
 /**
     * @see StringView::startsWith
     */
-TEST_F(TestStringView, testStartsWith) {
+TEST(TestStringView, testStartsWith) {
     EXPECT_TRUE(StringView().startsWith('\0'));
     EXPECT_TRUE(!StringView("Hello world").startsWith('\0'));
     EXPECT_TRUE(StringView("Hello world").startsWith('H'));
@@ -154,7 +146,7 @@ TEST_F(TestStringView, testStartsWith) {
 /**
     * @see StringView::endsWith
     */
-TEST_F(TestStringView, testEndsWith) {
+TEST(TestStringView, testEndsWith) {
     EXPECT_TRUE(!StringView("Hello world!").endsWith('\0'));
     EXPECT_TRUE(StringView("Hello world!").endsWith('!'));
     EXPECT_TRUE(StringView("Hello world!").endsWith("world!"));
@@ -166,7 +158,7 @@ TEST_F(TestStringView, testEndsWith) {
 /**
     * @see StringView::substring
     */
-TEST_F(TestStringView, testSubstring) {
+TEST(TestStringView, testSubstring) {
     const StringView source("Hello, world! Good bye, World - and again!");
     const StringView bye("bye");
     const StringView andAgain("and again!");
@@ -196,7 +188,7 @@ TEST_F(TestStringView, testSubstring) {
 /**
     * @see StringView::trim
     */
-TEST_F(TestStringView, testTrim) {
+TEST(TestStringView, testTrim) {
     EXPECT_TRUE(StringView().trim().empty());
 
     // Total trim
@@ -219,7 +211,7 @@ TEST_F(TestStringView, testTrim) {
 /**
     * @see StringView::indexOf
     */
-TEST_F(TestStringView, testIndexOf) {
+TEST(TestStringView, testIndexOf) {
     const StringView src("Hello, world! $$Blarg");
 
     // Happy case:
@@ -253,7 +245,7 @@ TEST_F(TestStringView, testIndexOf) {
 /**
     * @see StringView::lastIndexOf
     */
-TEST_F(TestStringView, testLastIndexOf) {
+TEST(TestStringView, testLastIndexOf) {
     const StringView source("Hello, World! Good bye, World - and again rld!");
     const StringView world("World");
 
@@ -280,7 +272,7 @@ TEST_F(TestStringView, testLastIndexOf) {
 /**
     * @see StringView::contains
     */
-TEST_F(TestStringView, testContains) {
+TEST(TestStringView, testContains) {
     EXPECT_TRUE(StringView("Hello, world!").contains('e'));
     EXPECT_TRUE(StringView("Hello, world!").contains("world"));
     EXPECT_TRUE(!StringView("hi").contains('!'));
@@ -290,14 +282,14 @@ TEST_F(TestStringView, testContains) {
 /**
     * @see StringView::hashCode
     */
-TEST_F(TestStringView, testHashCode) {
+TEST(TestStringView, testHashCode) {
     EXPECT_NE(StringView("Hello otu there").hashCode(), 0);
 
     EXPECT_TRUE(StringView("Hello otu there").hashCode() !=
                     StringView("Hello out there").hashCode());
 }
 
-TEST_F(TestStringView, testSplitByChar) {
+TEST(TestStringView, testSplitByChar) {
 
     // Splitting empty string gives you 1 item in a collection - empty string
     EXPECT_EQ(static_cast<array_size_t>(1),
@@ -353,7 +345,7 @@ TEST_F(TestStringView, testSplitByChar) {
 
 }
 
-TEST_F(TestStringView, testSplitByStringToken) {
+TEST(TestStringView, testSplitByStringToken) {
     // Splitting empty string gives you 1 item in a collection - empty string
     EXPECT_EQ(static_cast<array_size_t>(1),
                             StringView()

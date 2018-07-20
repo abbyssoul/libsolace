@@ -29,18 +29,8 @@
 
 using namespace Solace;
 
-class TestMemoryManager: public ::testing::Test  {
 
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-};
-
-TEST_F(TestMemoryManager, testConstruction) {
+TEST(TestMemoryManager, testConstruction) {
     {   // NullPointer smoke test
 //             EXPECT_THROW(Buffer nullbuffer(321, nullptr), IllegalArgumentException);
         MemoryManager nullManager(0);
@@ -59,7 +49,7 @@ TEST_F(TestMemoryManager, testConstruction) {
     }
 }
 
-TEST_F(TestMemoryManager, testNativePageSize) {
+TEST(TestMemoryManager, testNativePageSize) {
     MemoryManager test(1024);
 
     EXPECT_EQ(static_cast<MemoryView::size_type>(getpagesize()), test.getPageSize());
@@ -67,7 +57,7 @@ TEST_F(TestMemoryManager, testNativePageSize) {
 }
 
 
-TEST_F(TestMemoryManager, testNativePageCount) {
+TEST(TestMemoryManager, testNativePageCount) {
     MemoryManager test(1024);
 
     EXPECT_EQ(static_cast<MemoryView::size_type>(sysconf(_SC_PHYS_PAGES)), test.getNbPages());
@@ -79,7 +69,7 @@ TEST_F(TestMemoryManager, testNativePageCount) {
     #endif
 }
 
-TEST_F(TestMemoryManager, testAllocation) {
+TEST(TestMemoryManager, testAllocation) {
     MemoryManager test(1024);
 
     {
@@ -94,7 +84,7 @@ TEST_F(TestMemoryManager, testAllocation) {
     EXPECT_EQ(static_cast<MemoryView::size_type>(0), test.size());
 }
 
-TEST_F(TestMemoryManager, testAllocationBeyondCapacity) {
+TEST(TestMemoryManager, testAllocationBeyondCapacity) {
     MemoryManager test(128);
     EXPECT_THROW(auto memBlock = test.create(2048), OverflowException);
     {
@@ -113,7 +103,7 @@ TEST_F(TestMemoryManager, testAllocationBeyondCapacity) {
 }
 
 
-TEST_F(TestMemoryManager, testAllocationLocking) {
+TEST(TestMemoryManager, testAllocationLocking) {
     MemoryManager test(128);
 
     {

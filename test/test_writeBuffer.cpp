@@ -24,21 +24,11 @@
 
 using namespace Solace;
 
-class TestWriteBuffer : public ::testing::Test {
 
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-};
-
-TEST_F(TestWriteBuffer, testConstruction) {
+TEST(TestWriteBuffer, testConstruction) {
 }
 
-TEST_F(TestWriteBuffer, testPositioning) {
+TEST(TestWriteBuffer, testPositioning) {
     byte mem[12];
     constexpr WriteBuffer::size_type testSize = sizeof(mem);
     auto buffer = WriteBuffer(wrapMemory(mem));
@@ -63,7 +53,7 @@ TEST_F(TestWriteBuffer, testPositioning) {
     EXPECT_TRUE(buffer.advance(1).isError());
 }
 
-TEST_F(TestWriteBuffer, testWrite) {
+TEST(TestWriteBuffer, testWrite) {
     byte destMem[7];
 
     {  // Happy path
@@ -88,7 +78,7 @@ TEST_F(TestWriteBuffer, testWrite) {
 }
 
 
-TEST_F(TestWriteBuffer, writeBigEndian) {
+TEST(TestWriteBuffer, writeBigEndian) {
     byte bytes[8];
 
     {
@@ -122,7 +112,7 @@ TEST_F(TestWriteBuffer, writeBigEndian) {
 }
 
 
-TEST_F(TestWriteBuffer, writeLittleEndian) {
+TEST(TestWriteBuffer, writeLittleEndian) {
     byte bytes[8];
     {
         uint16 const value(1025);

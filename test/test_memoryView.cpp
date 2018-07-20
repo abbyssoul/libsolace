@@ -27,22 +27,12 @@
 
 using namespace Solace;
 
-class TestMemoryView: public ::testing::Test {
-
-public:
-
-    struct LargePodType {
-        SimpleType i1, i2, i3;
-    };
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
+struct LargePodType {
+    SimpleType i1, i2, i3;
 };
 
-TEST_F(TestMemoryView, testFill) {
+
+TEST(TestMemoryView, testFill) {
     byte buff[48];
     MemoryView buffer = wrapMemory(buff);
 
@@ -83,7 +73,7 @@ TEST_F(TestMemoryView, testFill) {
     EXPECT_THROW(buffer.fill(3, 100, 130), IndexOutOfRangeException);
 }
 
-TEST_F(TestMemoryView, testWrapping) {
+TEST(TestMemoryView, testWrapping) {
     void* nullB = nullptr;
     EXPECT_NO_THROW(auto buffer = wrapMemory(nullB, 0));
 
@@ -116,7 +106,7 @@ TEST_F(TestMemoryView, testWrapping) {
     }
 }
 
-TEST_F(TestMemoryView, testConstruction) {
+TEST(TestMemoryView, testConstruction) {
     {   // Fixed size constructor
         byte buff[3102];
         MemoryView test = wrapMemory(buff);
@@ -156,7 +146,7 @@ TEST_F(TestMemoryView, testConstruction) {
     }
 }
 
-TEST_F(TestMemoryView, testRead) {
+TEST(TestMemoryView, testRead) {
     byte b1[128], b2[24];
     MemoryView buffer = wrapMemory(b1);
     MemoryView dest = wrapMemory(b2);
@@ -211,7 +201,7 @@ TEST_F(TestMemoryView, testRead) {
     }
 }
 
-TEST_F(TestMemoryView, testReadingPastTheSize) {
+TEST(TestMemoryView, testReadingPastTheSize) {
     byte src[15];
 
     auto&& buffer = wrapMemory(src);
@@ -219,7 +209,7 @@ TEST_F(TestMemoryView, testReadingPastTheSize) {
     EXPECT_THROW(buffer.dataAddress(16), IndexOutOfRangeException);
 }
 
-TEST_F(TestMemoryView, testDataAs) {
+TEST(TestMemoryView, testDataAs) {
     byte src[sizeof(SimpleType) + 5];
 
     byte n = 0;
@@ -261,7 +251,7 @@ TEST_F(TestMemoryView, testDataAs) {
     EXPECT_NO_THROW(buffer2.dataAs<LargePodType>());
 }
 
-TEST_F(TestMemoryView, testWrite) {
+TEST(TestMemoryView, testWrite) {
     byte b1[128], b2[24];
     MemoryView buffer = wrapMemory(b1);
     MemoryView src = wrapMemory(b2);
@@ -337,7 +327,7 @@ TEST_F(TestMemoryView, testWrite) {
     }
 }
 
-TEST_F(TestMemoryView, testSlice) {
+TEST(TestMemoryView, testSlice) {
     byte src[64];
 
     byte i = 0;
@@ -357,7 +347,7 @@ TEST_F(TestMemoryView, testSlice) {
     EXPECT_THROW(buffer.slice(31, 939), IndexOutOfRangeException);
 }
 
-TEST_F(TestMemoryView, testZeroSizedSlice) {
+TEST(TestMemoryView, testZeroSizedSlice) {
     byte src[24];
     auto&& buffer = wrapMemory(src);
     buffer.fill(124);
@@ -370,7 +360,7 @@ TEST_F(TestMemoryView, testZeroSizedSlice) {
 }
 
 
-TEST_F(TestMemoryView, testPlacementConstruct) {
+TEST(TestMemoryView, testPlacementConstruct) {
     {
         byte src[3];
         auto buffer = wrapMemory(src);

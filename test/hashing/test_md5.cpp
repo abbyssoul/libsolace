@@ -26,24 +26,13 @@
 using namespace Solace;
 using namespace Solace::hashing;
 
-class TestHashingMD5: public ::testing::Test  {
-
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-    }
-};
-
-TEST_F(TestHashingMD5, testAlgorithmName) {
+TEST(TestHashingMD5, testAlgorithmName) {
     MD5 hash;
 
     EXPECT_EQ(String("MD5"), hash.getAlgorithm());
 }
 
-TEST_F(TestHashingMD5, hashEmptyMessage) {
+TEST(TestHashingMD5, hashEmptyMessage) {
     MD5 hash;
 
     char message[] = "";
@@ -54,7 +43,7 @@ TEST_F(TestHashingMD5, hashEmptyMessage) {
                             hash.digest());
 }
 
-TEST_F(TestHashingMD5, hashSingleLetter) {
+TEST(TestHashingMD5, hashSingleLetter) {
     MD5 hash;
 
     char message[] = "a";
@@ -65,7 +54,7 @@ TEST_F(TestHashingMD5, hashSingleLetter) {
                             hash.digest());
 }
 
-TEST_F(TestHashingMD5, hashABC) {
+TEST(TestHashingMD5, hashABC) {
     MD5 hash;
 
     char message[] = "abc";
@@ -76,7 +65,7 @@ TEST_F(TestHashingMD5, hashABC) {
                             hash.digest());
 }
 
-TEST_F(TestHashingMD5, hashMessageDigest) {
+TEST(TestHashingMD5, hashMessageDigest) {
     MD5 hash;
 
     EXPECT_EQ(static_cast<MD5::size_type>(128 / 8), hash.getDigestLength());
@@ -89,7 +78,7 @@ TEST_F(TestHashingMD5, hashMessageDigest) {
                             hash.digest());
 }
 
-TEST_F(TestHashingMD5, hashAlphabet) {
+TEST(TestHashingMD5, hashAlphabet) {
     MD5 hash;
 
     char message[] = "abcdefghijklmnopqrstuvwxyz";
@@ -100,7 +89,7 @@ TEST_F(TestHashingMD5, hashAlphabet) {
                             hash.digest());
 }
 
-TEST_F(TestHashingMD5, hashAlphanum) {
+TEST(TestHashingMD5, hashAlphanum) {
     MD5 hash;
 
     char message[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -111,7 +100,7 @@ TEST_F(TestHashingMD5, hashAlphanum) {
                             hash.digest());
 }
 
-TEST_F(TestHashingMD5, hashNumbers) {
+TEST(TestHashingMD5, hashNumbers) {
     MD5 hash;
 
     char message[] = "12345678901234567890123456789012345678901234567890123456789012" \

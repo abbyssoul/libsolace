@@ -29,31 +29,16 @@
 
 using namespace Solace;
 
-class TestPath : public testing::Test  {
 
-public:
-
-    Path moveMe() {
-        return Path("abc");
-    }
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-
-};
-
-TEST_F(TestPath, testRootIsSingleComponent) {
+TEST(TestPath, testRootIsSingleComponent) {
     EXPECT_EQ(static_cast<Path::size_type>(1), Path::Root.getComponentsCount());
 }
 
-TEST_F(TestPath, testRootAbsolute) {
+TEST(TestPath, testRootAbsolute) {
     EXPECT_TRUE(Path::Root.isAbsolute());
 }
 
-TEST_F(TestPath, testEmpty) {
+TEST(TestPath, testEmpty) {
     Path emptyPath;
     EXPECT_TRUE(emptyPath.empty());
 
@@ -64,7 +49,7 @@ TEST_F(TestPath, testEmpty) {
     EXPECT_TRUE(!notEmptyPath.empty());
 }
 
-TEST_F(TestPath, testLength) {
+TEST(TestPath, testLength) {
     EXPECT_EQ(static_cast<String::size_type>(0), Path().length());
 
     EXPECT_EQ(static_cast<String::size_type>(4), Path("file").length());
@@ -89,7 +74,7 @@ TEST_F(TestPath, testLength) {
 /**
     * Test implementation and contract of IComparable
     */
-TEST_F(TestPath, testComparable) {
+TEST(TestPath, testComparable) {
     const Path p1({"1", "2", "3", "4", "file"});
     const Path p2({"1", "2", "3", "4", "file"});
     const Path p_different({"something", "2", "3", "file"});
@@ -123,7 +108,7 @@ TEST_F(TestPath, testComparable) {
     EXPECT_GT(Path({"a", "c", "c", "d", "e"}).compareTo({"a", "a", "c"}), 0);
 }
 
-TEST_F(TestPath, testStartsWith) {
+TEST(TestPath, testStartsWith) {
     {
         const Path p({"some", "path", "to", "a", "file"});
         EXPECT_TRUE(p.startsWith(p));
@@ -154,7 +139,7 @@ TEST_F(TestPath, testStartsWith) {
     }
 }
 
-TEST_F(TestPath, testEndsWith) {
+TEST(TestPath, testEndsWith) {
     {
         const Path p({"some", "path", "to", "awesome", "file.awe"});
         EXPECT_TRUE(p.endsWith(p));
@@ -185,7 +170,7 @@ TEST_F(TestPath, testEndsWith) {
     }
 }
 
-TEST_F(TestPath, testContains) {
+TEST(TestPath, testContains) {
     const Path p1({"1", "2", "3", "4", "file"});
     const Path p2({"2", "3", "4"});
     const Path p3({"4", "3", "file"});
@@ -204,7 +189,7 @@ TEST_F(TestPath, testContains) {
     EXPECT_EQ(false, p1.contains(Path({"1", "2", "5"})));
 }
 
-TEST_F(TestPath, testGetParent) {
+TEST(TestPath, testGetParent) {
     {
         const Path root("");
         EXPECT_EQ(root, root.getParent());
@@ -222,13 +207,14 @@ TEST_F(TestPath, testGetParent) {
         Path p = root.getParent();
         EXPECT_TRUE(p.empty());
 
-        root = moveMe();
+        auto somePath = Path{"abc"};
+        root = std::move(somePath);
+        EXPECT_TRUE(somePath.empty());
         EXPECT_TRUE(!root.empty());
-        EXPECT_TRUE(p.empty());
     }
 }
 
-TEST_F(TestPath, testBasename) {
+TEST(TestPath, testBasename) {
     EXPECT_EQ(StringView(), Path().getBasename());
     EXPECT_EQ(Path::Delimiter, Path({""}).getBasename());
     EXPECT_EQ(StringView("file"), Path("file").getBasename());
@@ -250,7 +236,7 @@ TEST_F(TestPath, testBasename) {
 }
 
 
-TEST_F(TestPath, testUnixBasename) {
+TEST(TestPath, testUnixBasename) {
     EXPECT_EQ(StringView("lib"),
                             Path::parse("/usr/lib").unwrap().getBasename());
 
@@ -263,7 +249,7 @@ TEST_F(TestPath, testUnixBasename) {
 }
 
 
-TEST_F(TestPath, testComponents) {
+TEST(TestPath, testComponents) {
     const String components[] = {"1", "2", "3", "4", "file"};
     const Path p({components[0], components[1], components[2], components[3], components[4]});
 
@@ -273,7 +259,7 @@ TEST_F(TestPath, testComponents) {
     }
 }
 
-TEST_F(TestPath, testFirst) {
+TEST(TestPath, testFirst) {
     EXPECT_EQ(String::Empty, Path().first());
     EXPECT_EQ(String::Empty, Path({""}).first());
 
@@ -282,7 +268,7 @@ TEST_F(TestPath, testFirst) {
     EXPECT_EQ(String(""), Path({"", "etc", "file"}).first());
 }
 
-TEST_F(TestPath, testLast) {
+TEST(TestPath, testLast) {
     EXPECT_EQ(String::Empty, Path().last());
     EXPECT_EQ(String::Empty, Path({""}).last());
 
@@ -291,7 +277,7 @@ TEST_F(TestPath, testLast) {
     EXPECT_EQ(String("file"), Path({"", "etc", "file"}).last());
 }
 
-TEST_F(TestPath, testSubpath) {
+TEST(TestPath, testSubpath) {
     EXPECT_EQ(Path({"1", "2", "3"}), Path({"1", "2", "3", "4", "file"}).subpath(0, 3));
     EXPECT_EQ(Path({"3", "4", "file"}), Path({"1", "2", "3", "4", "file"}).subpath(2, 5));
     EXPECT_EQ(Path({"2", "3"}), Path({"1", "2", "3", "4", "file"}).subpath(1, 3));
@@ -307,7 +293,7 @@ TEST_F(TestPath, testSubpath) {
 }
 
 
-TEST_F(TestPath, testJoin) {
+TEST(TestPath, testJoin) {
     EXPECT_EQ(Path({"etc", "file"}), Path("etc").join(Path("file")));
     EXPECT_EQ(Path({"etc", "file"}), Path("etc").join("file"));
 
@@ -323,7 +309,7 @@ TEST_F(TestPath, testJoin) {
                             Path({"etc", "some"}) / Path("long") / Path("path"));
 }
 
-TEST_F(TestPath, testIterable) {
+TEST(TestPath, testIterable) {
     const Path p({"e", "so", "lon", "path", "foilx"});
 
     String::size_type i = 0;
@@ -333,7 +319,7 @@ TEST_F(TestPath, testIterable) {
     }
 }
 
-TEST_F(TestPath, testForEach) {
+TEST(TestPath, testForEach) {
     int index = 0;
     Array<int> counts(6);
 
@@ -345,7 +331,7 @@ TEST_F(TestPath, testForEach) {
 }
 
 
-TEST_F(TestPath, testIsAbsolute) {
+TEST(TestPath, testIsAbsolute) {
     EXPECT_TRUE(!Path("etc").isAbsolute());
     EXPECT_TRUE(!Path({"etc", "2", "file"}).isAbsolute());
     EXPECT_TRUE(Path({"", "etc", "dir", "file"}).isAbsolute());
@@ -353,7 +339,7 @@ TEST_F(TestPath, testIsAbsolute) {
 }
 
 
-TEST_F(TestPath, testIsRelative) {
+TEST(TestPath, testIsRelative) {
     EXPECT_TRUE(Path("etc").isRelative());
     EXPECT_TRUE(Path({"1", "2", "f"}).isRelative());
     EXPECT_TRUE(!Path({"", "1", "2", "f"}).isRelative());
@@ -361,7 +347,7 @@ TEST_F(TestPath, testIsRelative) {
 }
 
 
-TEST_F(TestPath, testNormalize) {
+TEST(TestPath, testNormalize) {
 
     EXPECT_EQ(Path({"1", "2", "f"}),
                             Path({"1", ".", "2", "f"}).normalize());
@@ -376,7 +362,7 @@ TEST_F(TestPath, testNormalize) {
 /**
     * Test implementation and contract of IFormattable
     */
-TEST_F(TestPath, testToString) {
+TEST(TestPath, testToString) {
     EXPECT_EQ(String("/"), Path("").toString());
     EXPECT_EQ(String("[:]"), Path("").toString("[:]"));
     EXPECT_EQ(String("filename"), Path("filename").toString());
@@ -401,7 +387,7 @@ TEST_F(TestPath, testToString) {
 /**
     * Test implementation and contract of parsable
     */
-TEST_F(TestPath, testParsing) {
+TEST(TestPath, testParsing) {
     {
         EXPECT_EQ(Path("some-long_path"),
                                 Path::parse("some-long_path").unwrap());
@@ -452,7 +438,7 @@ TEST_F(TestPath, testParsing) {
 /**
     * Test consistency of parsing and toString implementation
     */
-TEST_F(TestPath, testParsing_and_ToString_are_consistent) {
+TEST(TestPath, testParsing_and_ToString_are_consistent) {
     {
         const String src("some-long_path");
         const auto v = Path::parse(src.view()).unwrap();

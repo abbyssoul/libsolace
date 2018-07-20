@@ -25,18 +25,8 @@
 
 using namespace Solace;
 
-class TestBase16: public ::testing::Test  {
 
-public:
-
-    void setUp() {
-    }
-
-    void tearDown() {
-    }
-};
-
-TEST_F(TestBase16, testEncodedSize) {
+TEST(TestBase16, testEncodedSize) {
     EXPECT_EQ(static_cast<Base16Encoder::size_type>(0), Base16Encoder::encodedSize(0));
     EXPECT_EQ(static_cast<Base16Encoder::size_type>(2), Base16Encoder::encodedSize(1));
     EXPECT_EQ(static_cast<Base16Encoder::size_type>(4), Base16Encoder::encodedSize(2));
@@ -46,7 +36,7 @@ TEST_F(TestBase16, testEncodedSize) {
     EXPECT_EQ(static_cast<Base16Encoder::size_type>(12), Base16Encoder::encodedSize(6));
 }
 
-TEST_F(TestBase16, testDecodedSize) {
+TEST(TestBase16, testDecodedSize) {
     EXPECT_EQ(static_cast<Base16Decoder::size_type>(0), Base16Decoder::encodedSize(0));
     EXPECT_EQ(static_cast<Base16Decoder::size_type>(0), Base16Decoder::encodedSize(1));
     EXPECT_EQ(static_cast<Base16Decoder::size_type>(1), Base16Decoder::encodedSize(2));
@@ -56,7 +46,7 @@ TEST_F(TestBase16, testDecodedSize) {
     EXPECT_EQ(static_cast<Base16Decoder::size_type>(3), Base16Decoder::encodedSize(6));
 }
 
-TEST_F(TestBase16, testBasicEncoding) {
+TEST(TestBase16, testBasicEncoding) {
     byte buffer[80];
     WriteBuffer dest(wrapMemory(buffer));
     Base16Encoder encoder(dest);
@@ -105,7 +95,7 @@ TEST_F(TestBase16, testBasicEncoding) {
                             dest.viewWritten().viewImmutableShallow());
 }
 
-TEST_F(TestBase16, testBasicEncodingIterator) {
+TEST(TestBase16, testBasicEncodingIterator) {
     auto encodedText = "546869732069732074657374206d6573736167652077652077616e7420746f20656e636f6465";
     auto message = wrapMemory("This is test message we want to encode", 38);
 
@@ -118,7 +108,7 @@ TEST_F(TestBase16, testBasicEncodingIterator) {
     }
 }
 
-TEST_F(TestBase16, testBasicDecoding) {
+TEST(TestBase16, testBasicDecoding) {
     byte buffer[80];
     WriteBuffer dest(wrapMemory(buffer));
 
@@ -165,7 +155,7 @@ TEST_F(TestBase16, testBasicDecoding) {
 
 }
 
-TEST_F(TestBase16, testDecodingIterator) {
+TEST(TestBase16, testDecodingIterator) {
 
     auto encodedText = wrapMemory("546869732069732074657374206d6573736167652077652077616e7420746f20656e636f6465");
     auto message = wrapMemory("This is test message we want to encode", 38);
@@ -178,7 +168,7 @@ TEST_F(TestBase16, testDecodingIterator) {
     }
 }
 
-TEST_F(TestBase16, testDecodingIterator_InvalidInputLenght) {
+TEST(TestBase16, testDecodingIterator_InvalidInputLenght) {
     {
         auto const encodedText1 = wrapMemory("F");
         EXPECT_TRUE(base16Decode_end(encodedText1) == base16Decode_begin(encodedText1));
@@ -193,7 +183,7 @@ TEST_F(TestBase16, testDecodingIterator_InvalidInputLenght) {
     }
 }
 
-TEST_F(TestBase16, testDecodingIterator_InvalidData) {
+TEST(TestBase16, testDecodingIterator_InvalidData) {
     {
         auto const encodedText = wrapMemory("pX");
         EXPECT_TRUE(base16Decode_end(encodedText) == base16Decode_begin(encodedText));
@@ -209,7 +199,7 @@ TEST_F(TestBase16, testDecodingIterator_InvalidData) {
 }
 
 
-TEST_F(TestBase16, decodingInvalidInputThrows) {
+TEST(TestBase16, decodingInvalidInputThrows) {
     byte buffer[30];
     WriteBuffer dest(wrapMemory(buffer));
     Base16Decoder v(dest);
@@ -217,7 +207,7 @@ TEST_F(TestBase16, decodingInvalidInputThrows) {
     EXPECT_TRUE(v.encode(wrapMemory("some! Not base16 (c)", 18)).isError());
 }
 
-TEST_F(TestBase16, decodingInputOfUnEvenSizeThrows) {
+TEST(TestBase16, decodingInputOfUnEvenSizeThrows) {
     byte buffer[30];
     WriteBuffer dest(wrapMemory(buffer));
     Base16Decoder v(dest);
@@ -226,7 +216,7 @@ TEST_F(TestBase16, decodingInputOfUnEvenSizeThrows) {
     EXPECT_TRUE(v.encode(wrapMemory("666F6F626172", 9)).isError());
 }
 
-TEST_F(TestBase16, decodingIntoSmallerBufferErrors) {
+TEST(TestBase16, decodingIntoSmallerBufferErrors) {
     byte buffer[3];
     WriteBuffer dest(wrapMemory(buffer));
     Base16Decoder v(dest);

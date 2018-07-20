@@ -22,23 +22,12 @@
 *******************************************************************************/
 #include <solace/char.hpp>  // Class being tested.
 
-#include <string.h>
 #include <gtest/gtest.h>
 
 using namespace Solace;
 
-class TestChar : public ::testing::Test  {
 
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-};
-
-TEST_F(TestChar, testConstruction) {
+TEST(TestChar, testConstruction) {
     EXPECT_TRUE(Char::max_bytes >= sizeof(uint32));
 
     {
@@ -78,10 +67,10 @@ TEST_F(TestChar, testConstruction) {
     }
 }
 
-TEST_F(TestChar, testAssignment) {
+TEST(TestChar, testAssignment) {
 }
 
-TEST_F(TestChar, testEquality) {
+TEST(TestChar, testEquality) {
     const Char a{'a'};
     const Char b{'b'};
 

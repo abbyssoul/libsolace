@@ -28,26 +28,11 @@
 
 using namespace Solace;
 
-class TestString : public ::testing::Test {
+using array_size_t = Array<String>::size_type;
+const char* kSomeConstString = "Some static string";
 
-public:
 
-    typedef Array<String>::size_type array_size_t;
-
-	static const char* someConstString;
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-
-	static String moveMe() {
-		return String { someConstString };
-	}
-};
-
-TEST_F(TestString, testConstruction_null) {
+TEST(TestString, testConstruction_null) {
     {   // NullPointer smoke test
         const char* nullCString = nullptr;
 
@@ -85,7 +70,7 @@ TEST_F(TestString, testConstruction_null) {
 /**
     * Test construction calls
     */
-TEST_F(TestString, testConstruction) {
+TEST(TestString, testConstruction) {
     EXPECT_TRUE(String{}.equals(String::Empty));
     EXPECT_TRUE(String{}.empty());
 
@@ -94,20 +79,22 @@ TEST_F(TestString, testConstruction) {
     EXPECT_TRUE(cstrFromTo.equals("cstr"));
 
 
-    const String cstr(someConstString);
-    EXPECT_TRUE(cstr.equals(someConstString));
+    String cstr(kSomeConstString);
+    EXPECT_TRUE(cstr.equals(kSomeConstString));
 
-    const String moved = moveMe();
+    const String moved = std::move(cstr);
+    EXPECT_FALSE(cstr.equals(kSomeConstString));
+    EXPECT_TRUE(moved.equals(kSomeConstString));
 
-
-    const String strCopy(cstr);
-    EXPECT_TRUE(strCopy.equals(cstr));
+    const String strCopy(moved);
+    EXPECT_TRUE(strCopy.equals(kSomeConstString));
+    EXPECT_TRUE(moved.equals(kSomeConstString));
 }
 
 /**
     * Tests assignment
     */
-TEST_F(TestString, testAssignment) {
+TEST(TestString, testAssignment) {
     String str1;
     String substr;
     EXPECT_TRUE(str1.empty());
@@ -124,7 +111,7 @@ TEST_F(TestString, testAssignment) {
 /**
     * @brief Test string equality functions.
     */
-TEST_F(TestString, testEquality) {
+TEST(TestString, testEquality) {
     static const char* source1 = "some test string";
     static const char* source2 = "some other test string";
     static const char* source3 = "some test string";
@@ -169,7 +156,7 @@ TEST_F(TestString, testEquality) {
     EXPECT_EQ(str3, str1);
 }
 
-TEST_F(TestString, testContains) {
+TEST(TestString, testContains) {
     const String source("Hello, world!  ");
     const String world("world");
 
@@ -178,7 +165,7 @@ TEST_F(TestString, testContains) {
     EXPECT_TRUE(!source.contains("a"));
 }
 
-TEST_F(TestString, testLength) {
+TEST(TestString, testLength) {
     const String source("");
     const String world("world");
     // FIXME: Add utf9 example
@@ -187,7 +174,7 @@ TEST_F(TestString, testLength) {
     EXPECT_EQ(static_cast<String::size_type>(5), world.length());
 }
 
-TEST_F(TestString, testReplace) {
+TEST(TestString, testReplace) {
     const String source("attraction{holder}");
     const String dest0("aXXracXion{holder}");
     const String dest1("aWORDraction{holder}");
@@ -200,7 +187,7 @@ TEST_F(TestString, testReplace) {
     EXPECT_EQ(dest2, source.replace("{holder}", value));
 }
 
-TEST_F(TestString, testSplit) {
+TEST(TestString, testSplit) {
     const String dest0("boo");
     const String dest1("and");
     const String dest2("foo");
@@ -245,7 +232,7 @@ TEST_F(TestString, testSplit) {
     }
 }
 
-TEST_F(TestString, testIndexOf) {
+TEST(TestString, testIndexOf) {
     const String source("Hello, World! Good bye, World ");
     const String world("World");
 
@@ -273,7 +260,7 @@ TEST_F(TestString, testIndexOf) {
     EXPECT_TRUE(world.indexOf('!', source.length() + 25).isNone());
 }
 
-TEST_F(TestString, testLastIndexOf) {
+TEST(TestString, testLastIndexOf) {
     const String source("Hello, World! Good bye, World - and again!");
     const String world("World");
 
@@ -293,7 +280,7 @@ TEST_F(TestString, testLastIndexOf) {
     EXPECT_TRUE(world.lastIndexOf('/').isNone());
 }
 
-TEST_F(TestString, testConcat) {
+TEST(TestString, testConcat) {
     const String hello("Hello");
     const String space(", ");
     const String world("world!");
@@ -309,7 +296,7 @@ TEST_F(TestString, testConcat) {
 /**
     * @see String::substring
     */
-TEST_F(TestString, testSubstring) {
+TEST(TestString, testSubstring) {
     const String source("Hello, World! Good bye, World - and again!");
     const String world("World");
     const String bye("bye");
@@ -325,7 +312,7 @@ TEST_F(TestString, testSubstring) {
 /**
     * @see String::trim
     */
-TEST_F(TestString, testTrim) {
+TEST(TestString, testTrim) {
     String testString;
 
     EXPECT_TRUE(testString.empty());
@@ -374,7 +361,7 @@ TEST_F(TestString, testTrim) {
 /**
     * Test string's toLowerCase
     */
-TEST_F(TestString, testToLowerCase) {
+TEST(TestString, testToLowerCase) {
     // Lower case -> lower case
     {
         const String lowerCaseSource("hello there");
@@ -406,7 +393,7 @@ TEST_F(TestString, testToLowerCase) {
 /**
     * Test string's toUpperCase
     */
-TEST_F(TestString, testToUpperCase) {
+TEST(TestString, testToUpperCase) {
     // Lower case -> upper case
     {
         const String lowerCaseSource("hello@there-out*&%!1");
@@ -438,7 +425,7 @@ TEST_F(TestString, testToUpperCase) {
 /**
     * Test string's 'startsWith'
     */
-TEST_F(TestString, testStartsWith) {
+TEST(TestString, testStartsWith) {
     const String source("Hello, world out there!");
     const String hello("Hello");
     const String there("there!");
@@ -457,7 +444,7 @@ TEST_F(TestString, testStartsWith) {
 /**
     * Test string's 'endsWith'
     */
-TEST_F(TestString, testEndsWith) {
+TEST(TestString, testEndsWith) {
     const String source("Hello, world out there !");
     const String hello("Hello");
     const String there("there !");
@@ -477,7 +464,7 @@ TEST_F(TestString, testEndsWith) {
 /**
     * Test string's 'hashCode' method.
     */
-TEST_F(TestString, testHashCode) {
+TEST(TestString, testHashCode) {
     const String testString1 = "Hello otu there";
     const String testString2 = "Hello out there";
 
@@ -533,13 +520,13 @@ void testFormat() {
 }
 */
 
-TEST_F(TestString, testToString) {
-    const String ident(someConstString);
+TEST(TestString, testToString) {
+    const String ident(kSomeConstString);
 
     EXPECT_EQ(ident,  ident.toString());
 }
 
-TEST_F(TestString, test_cstr) {
+TEST(TestString, test_cstr) {
     {   // Empty sting is empty
         const char* bait = "";
         const String str("");
@@ -549,16 +536,16 @@ TEST_F(TestString, test_cstr) {
         EXPECT_EQ(0, strcmp(bait, str.c_str()));
     }
     {   // Non-empty sting is non-empty
-        const String str(someConstString);
+        const String str(kSomeConstString);
 
         EXPECT_TRUE(!str.empty());
 
-        EXPECT_EQ(0, strcmp(someConstString, str.c_str()));
+        EXPECT_EQ(0, strcmp(kSomeConstString, str.c_str()));
     }
 }
 
-TEST_F(TestString, test_iterable_forEach) {
-//        const String ident(someConstString);
+TEST(TestString, test_iterable_forEach) {
+//        const String ident(kSomeConstString);
 
 //        int summ = 0;
 //        for (auto c : ident.view()) {
@@ -571,5 +558,3 @@ TEST_F(TestString, test_iterable_forEach) {
 
 //        EXPECT_EQ(0, summ);
 }
-
-const char* TestString::someConstString = "Some static string";

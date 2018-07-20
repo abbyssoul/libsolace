@@ -27,18 +27,8 @@
 
 using namespace Solace;
 
-class TestBase64: public ::testing::Test  {
 
-public:
-
-    void setUp() {
-    }
-
-    void tearDown() {
-    }
-};
-
-TEST_F(TestBase64, testEncodedSize) {
+TEST(TestBase64, testEncodedSize) {
     EXPECT_EQ(static_cast<Base64Encoder::size_type>(0), Base64Encoder::encodedSize(0));
     EXPECT_EQ(static_cast<Base64Encoder::size_type>(4), Base64Encoder::encodedSize(1));
     EXPECT_EQ(static_cast<Base64Encoder::size_type>(4), Base64Encoder::encodedSize(2));
@@ -48,7 +38,7 @@ TEST_F(TestBase64, testEncodedSize) {
     EXPECT_EQ(static_cast<Base64Encoder::size_type>(8), Base64Encoder::encodedSize(6));
 }
 
-TEST_F(TestBase64, testDecodedSize) {
+TEST(TestBase64, testDecodedSize) {
     const char* nullStr = nullptr;
     EXPECT_EQ(static_cast<Base64Decoder::size_type>(0),
                             Base64Decoder::decodedSize(wrapMemory(nullStr, 0)));
@@ -66,7 +56,7 @@ TEST_F(TestBase64, testDecodedSize) {
                             Base64Decoder::decodedSize(wrapMemory("Zm9vYmFy", 8)));
 }
 
-TEST_F(TestBase64, testBasicEncoding) {
+TEST(TestBase64, testBasicEncoding) {
     byte buffer[64];
     WriteBuffer dest(wrapMemory(buffer));
     Base64Encoder encoder(dest);
@@ -114,7 +104,7 @@ TEST_F(TestBase64, testBasicEncoding) {
                             dest.viewWritten().viewImmutableShallow());
 }
 
-TEST_F(TestBase64, testBasicDecoding) {
+TEST(TestBase64, testBasicDecoding) {
     byte buffer[64];
     WriteBuffer dest(wrapMemory(buffer));
 
@@ -161,7 +151,7 @@ TEST_F(TestBase64, testBasicDecoding) {
 
 }
 
-TEST_F(TestBase64, testBasicUrlEncoding) {
+TEST(TestBase64, testBasicUrlEncoding) {
     byte buffer[70];
     WriteBuffer dest(wrapMemory(buffer));
 
@@ -172,7 +162,7 @@ TEST_F(TestBase64, testBasicUrlEncoding) {
                             dest.viewWritten().viewImmutableShallow());
 }
 
-TEST_F(TestBase64, testBasicUrlDecoding) {
+TEST(TestBase64, testBasicUrlDecoding) {
     byte buffer[70];
     WriteBuffer dest(wrapMemory(buffer));
 
@@ -184,7 +174,7 @@ TEST_F(TestBase64, testBasicUrlDecoding) {
 }
 
 
-TEST_F(TestBase64, testMultilineMessageEncoding) {
+TEST(TestBase64, testMultilineMessageEncoding) {
     byte buffer[90];
     WriteBuffer dest(wrapMemory(buffer));
 
@@ -198,7 +188,7 @@ TEST_F(TestBase64, testMultilineMessageEncoding) {
     EXPECT_EQ(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten().viewImmutableShallow());
 }
 
-TEST_F(TestBase64, testMultilineMessageDecoding) {
+TEST(TestBase64, testMultilineMessageDecoding) {
     byte buffer[90];
     WriteBuffer dest(wrapMemory(buffer));
 
@@ -211,7 +201,7 @@ TEST_F(TestBase64, testMultilineMessageDecoding) {
     EXPECT_EQ(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten().viewImmutableShallow());
 }
 
-TEST_F(TestBase64, testUnicodeCharactersEncoding) {
+TEST(TestBase64, testUnicodeCharactersEncoding) {
     byte buffer[30];
     WriteBuffer dest(wrapMemory(buffer));
 
@@ -224,7 +214,7 @@ TEST_F(TestBase64, testUnicodeCharactersEncoding) {
     EXPECT_EQ(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten().viewImmutableShallow());
 }
 
-TEST_F(TestBase64, testUnicodeCharactersDecoding) {
+TEST(TestBase64, testUnicodeCharactersDecoding) {
     byte buffer[30];
     WriteBuffer dest(wrapMemory(buffer));
 

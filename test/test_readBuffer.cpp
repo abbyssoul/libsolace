@@ -25,21 +25,10 @@
 using namespace Solace;
 
 
-class TestReadBuffer: public ::testing::Test  {
+using size_type = ReadBuffer::size_type;
 
-protected:
-    using size_type = ReadBuffer::size_type;
 
-public:
-
-    void setUp() {
-    }
-
-    void tearDown() {
-    }
-};
-
-TEST_F(TestReadBuffer, defaultConstructedBufferIsEmpty) {
+TEST(TestReadBuffer, defaultConstructedBufferIsEmpty) {
     ReadBuffer buffer;
 
     EXPECT_EQ(0, buffer.capacity());
@@ -48,7 +37,7 @@ TEST_F(TestReadBuffer, defaultConstructedBufferIsEmpty) {
 }
 
 
-TEST_F(TestReadBuffer, constructFromImmutableMemory) {
+TEST(TestReadBuffer, constructFromImmutableMemory) {
     const byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
     constexpr size_type testSize = sizeof (bytes);
 
@@ -58,7 +47,7 @@ TEST_F(TestReadBuffer, constructFromImmutableMemory) {
     EXPECT_EQ(0, buffer.position());
 }
 
-TEST_F(TestReadBuffer, constructFromMutableMemory) {
+TEST(TestReadBuffer, constructFromMutableMemory) {
     byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
     constexpr size_type testSize = sizeof (bytes);
 
@@ -71,7 +60,7 @@ TEST_F(TestReadBuffer, constructFromMutableMemory) {
 }
 
 
-TEST_F(TestReadBuffer, testPositioning) {
+TEST(TestReadBuffer, testPositioning) {
     const byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
 
     ReadBuffer buffer(wrapMemory(bytes));
@@ -94,7 +83,7 @@ TEST_F(TestReadBuffer, testPositioning) {
     EXPECT_TRUE(buffer.advance(1).isError());
 }
 
-TEST_F(TestReadBuffer, testGetByte) {
+TEST(TestReadBuffer, testGetByte) {
     const byte srcBytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
     ReadBuffer buffer(wrapMemory(srcBytes));
 
@@ -116,7 +105,7 @@ TEST_F(TestReadBuffer, testGetByte) {
 }
 
 
-TEST_F(TestReadBuffer, testByteRead) {
+TEST(TestReadBuffer, testByteRead) {
     const byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
     constexpr size_type kTestSize = sizeof(bytes);
     byte readBytes[kTestSize];
@@ -135,7 +124,7 @@ TEST_F(TestReadBuffer, testByteRead) {
     }
 }
 
-TEST_F(TestReadBuffer, testReadIntoBuffer) {
+TEST(TestReadBuffer, testReadIntoBuffer) {
     byte const srcBytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
     constexpr size_type testSize = sizeof(srcBytes);
 
@@ -157,7 +146,7 @@ TEST_F(TestReadBuffer, testReadIntoBuffer) {
     EXPECT_TRUE(buffer.read(destView, testSize).isError());
 }
 
-TEST_F(TestReadBuffer, testReadFromOffset) {
+TEST(TestReadBuffer, testReadFromOffset) {
     byte const srcBytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
     constexpr size_type testSize = sizeof(srcBytes);
 
@@ -184,7 +173,7 @@ TEST_F(TestReadBuffer, testReadFromOffset) {
 }
 
 
-TEST_F(TestReadBuffer, readBigEndian) {
+TEST(TestReadBuffer, readBigEndian) {
     byte const bytes[] =   {0x84, 0x2d, 0xa3, 0x80,
                             0xe3, 0x42, 0x6d, 0xff};
 
@@ -218,7 +207,7 @@ TEST_F(TestReadBuffer, readBigEndian) {
 }
 
 
-TEST_F(TestReadBuffer, readLittleEndian) {
+TEST(TestReadBuffer, readLittleEndian) {
     byte const bytes[] =   {0x01, 0x04, 0x00, 0x00,
                             0xe3, 0x42, 0x6d, 0xff};
 

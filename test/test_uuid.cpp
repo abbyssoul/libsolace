@@ -29,29 +29,15 @@
 
 using namespace Solace;
 
-class TestUUID : public ::testing::Test {
-
-public:
-    static constexpr size_t RandomSampleSize = 100;
-
-    UUID moveMe(const MemoryView& b) {
-        return b;
-    }
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-};
+static constexpr size_t RandomSampleSize = 100;
 
 
-TEST_F(TestUUID, testStaticConstraints) {
+TEST(TestUUID, testStaticConstraints) {
     EXPECT_EQ(static_cast<UUID::size_type>(16), UUID::StaticSize);
     EXPECT_EQ(static_cast<UUID::size_type>(36), UUID::StringSize);
 }
 
-TEST_F(TestUUID, testRandom) {
+TEST(TestUUID, testRandom) {
     UUID ids[RandomSampleSize];
 
     for (auto& id : ids) {
@@ -65,7 +51,7 @@ TEST_F(TestUUID, testRandom) {
     }
 }
 
-TEST_F(TestUUID, testConstruction) {
+TEST(TestUUID, testConstruction) {
 
     // Random UUID using default constructor
     UUID uid;
@@ -80,7 +66,7 @@ TEST_F(TestUUID, testConstruction) {
     {
         byte buff[] = {7, 5, 3, 4, 8, 6, 7, 8, 3, 7, 3, 4, 5, 6, 7, 8};
 
-        UUID uid4(moveMe(wrapMemory(buff, sizeof(buff))));
+        UUID uid4(wrapMemory(buff, sizeof(buff)));
         for (UUID::size_type i = 0; i < sizeof(buff); ++i) {
             EXPECT_EQ(buff[i], uid4[i]);
         }
@@ -104,7 +90,7 @@ TEST_F(TestUUID, testConstruction) {
     EXPECT_THROW(auto x = UUID(wrapMemory(bytes, 7)), IllegalArgumentException);
 }
 
-TEST_F(TestUUID, testComparable) {
+TEST(TestUUID, testComparable) {
     EXPECT_EQ(
                 UUID({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}),
                 UUID({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}));
@@ -114,7 +100,7 @@ TEST_F(TestUUID, testComparable) {
                 UUID({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}));
 }
 
-TEST_F(TestUUID, testIterable) {
+TEST(TestUUID, testIterable) {
 
     byte startValue = 15;
     UUID uuid({15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0});
@@ -128,7 +114,7 @@ TEST_F(TestUUID, testIterable) {
     EXPECT_THROW(UUID().operator [](UUID::StaticSize), IndexOutOfRangeException);
 }
 
-TEST_F(TestUUID, testFormattable) {
+TEST(TestUUID, testFormattable) {
     EXPECT_EQ(String("123e4567-e89b-12d3-a456-426655440000"),
                             UUID({0x12, 0x3e, 0x45, 0x67, 0xe8, 0x9b, 0x12, 0xd3,
                                 0xa4, 0x56, 0x42, 0x66, 0x55, 0x44, 0x0, 0x0})
@@ -140,7 +126,7 @@ TEST_F(TestUUID, testFormattable) {
 
 }
 
-TEST_F(TestUUID, testParsable) {
+TEST(TestUUID, testParsable) {
     auto nullParseResult = UUID::parse("00000000-0000-0000-0000-000000000000");
     EXPECT_TRUE(nullParseResult.isOk());
     EXPECT_TRUE(nullParseResult.unwrap().isNull());
@@ -153,7 +139,7 @@ TEST_F(TestUUID, testParsable) {
     EXPECT_TRUE(UUID::parse("1203045e-X054-Y000-3e3d-000000000000").isError());
 }
 
-TEST_F(TestUUID, testParsing_and_ToString_are_consistent) {
+TEST(TestUUID, testParsing_and_ToString_are_consistent) {
     for (uint i = 0; i < RandomSampleSize; ++i) {
         UUID r0 = UUID::random();
         auto parseResult = UUID::parse(r0.toString().view());
@@ -162,7 +148,7 @@ TEST_F(TestUUID, testParsing_and_ToString_are_consistent) {
     }
 }
 
-TEST_F(TestUUID, testContainerReq) {
+TEST(TestUUID, testContainerReq) {
     {
         Array<UUID> uids(2);
         EXPECT_EQ(UUID::StaticSize, uids[0].size());

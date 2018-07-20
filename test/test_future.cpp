@@ -39,28 +39,16 @@ static int resolveVoidFunc() {
 }
 
 
-class TestFuture : public ::testing::Test  {
+template<typename T>
+Future<T> makeOrphant() {
+    auto p = Promise<T>();
 
-protected:
+    return p.getFuture();
+}
 
-    template<typename T>
-    Future<T> makeOrphant() {
-        auto p = Promise<T>();
 
-        return p.getFuture();
-    }
 
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-};
-
-TEST_F(TestFuture, orphanIntegralFutureThrows) {
-
+TEST(TestFuture, orphanIntegralFutureThrows) {
     auto f = makeOrphant<int>();
 
     int x = 9;
@@ -71,7 +59,7 @@ TEST_F(TestFuture, orphanIntegralFutureThrows) {
                             Solace::Exception);
 }
 
-TEST_F(TestFuture, orphanVoidFutureThrows) {
+TEST(TestFuture, orphanVoidFutureThrows) {
     auto f = makeOrphant<void>();
 
     int x = 9;
@@ -82,7 +70,7 @@ TEST_F(TestFuture, orphanVoidFutureThrows) {
                             Solace::Exception);
 }
 
-TEST_F(TestFuture, destoyingIntFuturePropagatesViaThen) {
+TEST(TestFuture, destoyingIntFuturePropagatesViaThen) {
     Promise<int> p;
     bool resolved1 = false;
 
@@ -101,7 +89,7 @@ TEST_F(TestFuture, destoyingIntFuturePropagatesViaThen) {
 }
 
 
-TEST_F(TestFuture, destoyingVoidFuturePropagatesViaThen) {
+TEST(TestFuture, destoyingVoidFuturePropagatesViaThen) {
     Promise<void> p;
     bool resolved1 = false;
 
@@ -117,7 +105,7 @@ TEST_F(TestFuture, destoyingVoidFuturePropagatesViaThen) {
     EXPECT_TRUE(resolved1);
 }
 
-TEST_F(TestFuture, integralFutureIntegralContinuation) {
+TEST(TestFuture, integralFutureIntegralContinuation) {
     auto p = Promise<int>();
     auto f = p.getFuture();
     bool resolved1 = false;
@@ -138,7 +126,7 @@ TEST_F(TestFuture, integralFutureIntegralContinuation) {
     EXPECT_TRUE(resolved2);
 }
 
-TEST_F(TestFuture, integralFutureVoidContinuation) {
+TEST(TestFuture, integralFutureVoidContinuation) {
     auto p = Promise<int>();
     auto f = p.getFuture();
     bool resolved1 = false;
@@ -158,7 +146,7 @@ TEST_F(TestFuture, integralFutureVoidContinuation) {
 }
 
 
-TEST_F(TestFuture, voidFutureIntegralContinuation) {
+TEST(TestFuture, voidFutureIntegralContinuation) {
     auto p = Promise<void>();
     auto f = p.getFuture();
     bool resolved1 = false;
@@ -179,7 +167,7 @@ TEST_F(TestFuture, voidFutureIntegralContinuation) {
     EXPECT_TRUE(resolved2);
 }
 
-TEST_F(TestFuture, voidFutureVoidContinuation) {
+TEST(TestFuture, voidFutureVoidContinuation) {
     auto p = Promise<void>();
     auto f = p.getFuture();
     bool resolved1 = false;
@@ -204,7 +192,7 @@ TEST_F(TestFuture, voidFutureVoidContinuation) {
 
 
 
-TEST_F(TestFuture, structFutureErrorContinuation) {
+TEST(TestFuture, structFutureErrorContinuation) {
     auto p = Promise<int>();
     auto f = p.getFuture();
     bool resolved1 = false;
@@ -232,7 +220,7 @@ TEST_F(TestFuture, structFutureErrorContinuation) {
     EXPECT_TRUE(resolved3);
 }
 
-TEST_F(TestFuture, integralFutureErrorContinuation) {
+TEST(TestFuture, integralFutureErrorContinuation) {
     auto p = Promise<int>();
     auto f = p.getFuture();
     bool resolved1 = false;
@@ -261,7 +249,7 @@ TEST_F(TestFuture, integralFutureErrorContinuation) {
 }
 
 
-TEST_F(TestFuture, voidFutureErrorContinuation) {
+TEST(TestFuture, voidFutureErrorContinuation) {
     auto p = Promise<void>();
     auto f = p.getFuture();
     bool resolved1 = false;
@@ -286,7 +274,7 @@ TEST_F(TestFuture, voidFutureErrorContinuation) {
 }
 
 
-TEST_F(TestFuture, structFutureErrorResultErrors) {
+TEST(TestFuture, structFutureErrorResultErrors) {
     auto p = Promise<SimpleType>();
     auto f = p.getFuture();
     bool resolved1 = false;
@@ -319,7 +307,7 @@ TEST_F(TestFuture, structFutureErrorResultErrors) {
     EXPECT_TRUE(resolved4);
 }
 
-TEST_F(TestFuture, integralFutureErrorResultErrors) {
+TEST(TestFuture, integralFutureErrorResultErrors) {
     auto p = Promise<int>();
     auto f = p.getFuture();
     bool resolved1 = false;
@@ -352,7 +340,7 @@ TEST_F(TestFuture, integralFutureErrorResultErrors) {
     EXPECT_TRUE(resolved4);
 }
 
-TEST_F(TestFuture, voidFutureErrorResultErrors) {
+TEST(TestFuture, voidFutureErrorResultErrors) {
     auto p = Promise<void>();
     auto f = p.getFuture();
     bool resolved1 = false;
@@ -388,7 +376,7 @@ TEST_F(TestFuture, voidFutureErrorResultErrors) {
 // Tests for continuations returning Futures
 //------------------------------------------------------------------------------------------------------------------
 
-TEST_F(TestFuture, integralFutureIntegralFutureContinuation) {
+TEST(TestFuture, integralFutureIntegralFutureContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
 
@@ -415,7 +403,7 @@ TEST_F(TestFuture, integralFutureIntegralFutureContinuation) {
     EXPECT_TRUE(resolved2);
 }
 
-TEST_F(TestFuture, voidFutureIntegralFutureContinuation) {
+TEST(TestFuture, voidFutureIntegralFutureContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
 
@@ -442,7 +430,7 @@ TEST_F(TestFuture, voidFutureIntegralFutureContinuation) {
     EXPECT_TRUE(resolved2);
 }
 
-TEST_F(TestFuture, integralFutureVoidFutureContinuation) {
+TEST(TestFuture, integralFutureVoidFutureContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
 
@@ -469,7 +457,7 @@ TEST_F(TestFuture, integralFutureVoidFutureContinuation) {
     EXPECT_TRUE(resolved2);
 }
 
-TEST_F(TestFuture, voidFutureVoidFutureContinuation) {
+TEST(TestFuture, voidFutureVoidFutureContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
 
@@ -498,7 +486,7 @@ TEST_F(TestFuture, voidFutureVoidFutureContinuation) {
 
 
 
-TEST_F(TestFuture, integralFutureIntegralFutureErrorsContinuation) {
+TEST(TestFuture, integralFutureIntegralFutureErrorsContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
     bool resolved3 = false;
@@ -531,7 +519,7 @@ TEST_F(TestFuture, integralFutureIntegralFutureErrorsContinuation) {
     EXPECT_TRUE(resolved3);
 }
 
-TEST_F(TestFuture, voidFutureIntegralFutureErrorsContinuation) {
+TEST(TestFuture, voidFutureIntegralFutureErrorsContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
     bool resolved3 = false;
@@ -564,7 +552,7 @@ TEST_F(TestFuture, voidFutureIntegralFutureErrorsContinuation) {
     EXPECT_TRUE(resolved3);
 }
 
-TEST_F(TestFuture, integralFutureVoidFutureErrorsContinuation) {
+TEST(TestFuture, integralFutureVoidFutureErrorsContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
     bool resolved3 = false;
@@ -597,7 +585,7 @@ TEST_F(TestFuture, integralFutureVoidFutureErrorsContinuation) {
     EXPECT_TRUE(resolved3);
 }
 
-TEST_F(TestFuture, voidFutureVoidFutureErrorsContinuation) {
+TEST(TestFuture, voidFutureVoidFutureErrorsContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
     bool resolved3 = false;
@@ -635,7 +623,7 @@ TEST_F(TestFuture, voidFutureVoidFutureErrorsContinuation) {
 // Tests for continuations returning Results
 //------------------------------------------------------------------------------------------------------------------
 
-TEST_F(TestFuture, integralFutureIntegralResultContinuation) {
+TEST(TestFuture, integralFutureIntegralResultContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
 
@@ -656,7 +644,7 @@ TEST_F(TestFuture, integralFutureIntegralResultContinuation) {
     EXPECT_TRUE(resolved2);
 }
 
-TEST_F(TestFuture, voidFutureIntegralResultContinuation) {
+TEST(TestFuture, voidFutureIntegralResultContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
 
@@ -677,7 +665,7 @@ TEST_F(TestFuture, voidFutureIntegralResultContinuation) {
     EXPECT_TRUE(resolved2);
 }
 
-TEST_F(TestFuture, integralFutureVoidResultContinuation) {
+TEST(TestFuture, integralFutureVoidResultContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
 
@@ -698,7 +686,7 @@ TEST_F(TestFuture, integralFutureVoidResultContinuation) {
     EXPECT_TRUE(resolved2);
 }
 
-TEST_F(TestFuture, voidFutureVoidResultContinuation) {
+TEST(TestFuture, voidFutureVoidResultContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
 
@@ -721,7 +709,7 @@ TEST_F(TestFuture, voidFutureVoidResultContinuation) {
 
 
 
-TEST_F(TestFuture, integralFutureIntegralResultErrorsContinuation) {
+TEST(TestFuture, integralFutureIntegralResultErrorsContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
     bool resolved3 = false;
@@ -747,7 +735,7 @@ TEST_F(TestFuture, integralFutureIntegralResultErrorsContinuation) {
     EXPECT_TRUE(resolved3);
 }
 
-TEST_F(TestFuture, voidFutureIntegralResultErrorsContinuation) {
+TEST(TestFuture, voidFutureIntegralResultErrorsContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
     bool resolved3 = false;
@@ -773,7 +761,7 @@ TEST_F(TestFuture, voidFutureIntegralResultErrorsContinuation) {
     EXPECT_TRUE(resolved3);
 }
 
-TEST_F(TestFuture, integralFutureVoidResultErrorsContinuation) {
+TEST(TestFuture, integralFutureVoidResultErrorsContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
     bool resolved3 = false;
@@ -799,7 +787,7 @@ TEST_F(TestFuture, integralFutureVoidResultErrorsContinuation) {
     EXPECT_TRUE(resolved3);
 }
 
-TEST_F(TestFuture, voidFutureVoidResultErrorsContinuation) {
+TEST(TestFuture, voidFutureVoidResultErrorsContinuation) {
     bool resolved1 = false;
     bool resolved2 = false;
     bool resolved3 = false;
@@ -827,7 +815,7 @@ TEST_F(TestFuture, voidFutureVoidResultErrorsContinuation) {
 
 
 
-TEST_F(TestFuture, testThenWithStandaloneFunction) {
+TEST(TestFuture, testThenWithStandaloneFunction) {
     bool resolved1 = false;
     bool errored1 = false;
 
@@ -856,7 +844,7 @@ TEST_F(TestFuture, testThenWithStandaloneFunction) {
 
 
 
-TEST_F(TestFuture, testThenResultContinuation) {
+TEST(TestFuture, testThenResultContinuation) {
     auto p = Promise<int>();
     auto f = p.getFuture();
     bool resolved = false;
@@ -883,7 +871,7 @@ TEST_F(TestFuture, testThenResultContinuation) {
 }
 
 
-TEST_F(TestFuture, testThenVoidResultContinuation) {
+TEST(TestFuture, testThenVoidResultContinuation) {
     auto p = Promise<int>();
     auto f = p.getFuture();
     bool resolved = false;
@@ -911,7 +899,7 @@ TEST_F(TestFuture, testThenVoidResultContinuation) {
 
 
 
-TEST_F(TestFuture, testThenFutureContinuation) {
+TEST(TestFuture, testThenFutureContinuation) {
     auto p1 = Promise<int>();
     auto f1 = p1.getFuture();
 
@@ -943,7 +931,7 @@ TEST_F(TestFuture, testThenFutureContinuation) {
 }
 
 
-TEST_F(TestFuture, testOnErrorHandler) {
+TEST(TestFuture, testOnErrorHandler) {
     auto p1 = Promise<int>();
     auto f1 = p1.getFuture();
 
@@ -966,7 +954,7 @@ TEST_F(TestFuture, testOnErrorHandler) {
     EXPECT_TRUE(secondCallbackOk);
 }
 
-TEST_F(TestFuture, testOnErrorRestoresTheChain) {
+TEST(TestFuture, testOnErrorRestoresTheChain) {
     auto p1 = Promise<int>();
     auto f1 = p1.getFuture();
 
@@ -994,7 +982,7 @@ TEST_F(TestFuture, testOnErrorRestoresTheChain) {
     EXPECT_TRUE(thirdCallbackOk);
 }
 
-TEST_F(TestFuture, testOnErrorSkippedOnSuccess) {
+TEST(TestFuture, testOnErrorSkippedOnSuccess) {
     auto p1 = Promise<int>();
     auto f1 = p1.getFuture();
 
@@ -1024,28 +1012,28 @@ TEST_F(TestFuture, testOnErrorSkippedOnSuccess) {
 }
 
 
-TEST_F(TestFuture, testIntegralPromiseThrowsOnDoubleSetValue) {
+TEST(TestFuture, testIntegralPromiseThrowsOnDoubleSetValue) {
     Promise<int> promise;
 
     promise.setValue(123);
     EXPECT_THROW(promise.setValue(-3123), Solace::Exception);
 }
 
-TEST_F(TestFuture, testVoidPromiseThrowsOnDoubleSetValue) {
+TEST(TestFuture, testVoidPromiseThrowsOnDoubleSetValue) {
     Promise<void> promise;
 
     promise.setValue();
     EXPECT_THROW(promise.setValue(), Solace::Exception);
 }
 
-TEST_F(TestFuture, testIntegralPromiseThrowsOnDoubleSetError) {
+TEST(TestFuture, testIntegralPromiseThrowsOnDoubleSetError) {
     Promise<int> promise;
 
     promise.setError(Error("testError", 991));
     EXPECT_THROW(promise.setError(Error("testError", -187)), Solace::Exception);
 }
 
-TEST_F(TestFuture, testVoidPromiseThrowsOnDoubleSetError) {
+TEST(TestFuture, testVoidPromiseThrowsOnDoubleSetError) {
     Promise<void> promise;
 
     promise.setError(Error("testError", 991));
@@ -1053,7 +1041,7 @@ TEST_F(TestFuture, testVoidPromiseThrowsOnDoubleSetError) {
 }
 
 
-TEST_F(TestFuture, testCollectIntgralWhenAllSuccess) {
+TEST(TestFuture, testCollectIntgralWhenAllSuccess) {
     const int bias = -338;
     const uint testGroupSize = 16;
 
@@ -1086,7 +1074,7 @@ TEST_F(TestFuture, testCollectIntgralWhenAllSuccess) {
     EXPECT_TRUE(futureArrayReady);
 }
 
-TEST_F(TestFuture, testCollectVoidWhenAllSuccess) {
+TEST(TestFuture, testCollectVoidWhenAllSuccess) {
     const uint testGroupSize = 8;
 
     Array<Promise<void>> promises(testGroupSize);
@@ -1113,7 +1101,7 @@ TEST_F(TestFuture, testCollectVoidWhenAllSuccess) {
 }
 
 
-TEST_F(TestFuture, testCollectIntegralWhenOneFailure) {
+TEST(TestFuture, testCollectIntegralWhenOneFailure) {
     const int bias = -338;
     const uint testGroupSize = 16;
     const int failEach = 12;
@@ -1159,7 +1147,7 @@ TEST_F(TestFuture, testCollectIntegralWhenOneFailure) {
 }
 
 
-TEST_F(TestFuture, testCollectVoidWhenOneFailure) {
+TEST(TestFuture, testCollectVoidWhenOneFailure) {
     const uint testGroupSize = 16;
     const uint failEach = 12;
 
@@ -1197,7 +1185,7 @@ TEST_F(TestFuture, testCollectVoidWhenOneFailure) {
     EXPECT_TRUE(futureArrayErrored);
 }
 
-TEST_F(TestFuture, testThenFiredDeletesClosure) {
+TEST(TestFuture, testThenFiredDeletesClosure) {
     Promise<int> p;
     auto f = p.getFuture();
 
@@ -1212,7 +1200,7 @@ TEST_F(TestFuture, testThenFiredDeletesClosure) {
 }
 
 
-TEST_F(TestFuture, readyFuture) {
+TEST(TestFuture, readyFuture) {
     bool thenFired = false;
     bool futureErrored = false;
 

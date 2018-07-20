@@ -30,18 +30,8 @@
 using namespace Solace;
 using namespace Solace::Process;
 
-class TestProcessEnv: public ::testing::Test {
 
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
-};
-
-TEST_F(TestProcessEnv, testComplex) {
+TEST(TestProcessEnv, testComplex) {
     const auto uid1 = UUID::random();
     const auto uid2 = UUID::random();
     const auto uid3 = UUID::random();
@@ -59,7 +49,7 @@ TEST_F(TestProcessEnv, testComplex) {
     EXPECT_EQ(uid2.toString(), env.get(name).get());
 }
 
-TEST_F(TestProcessEnv, testSize) {
+TEST(TestProcessEnv, testSize) {
     const auto uid = UUID::random();
     const auto name = String::join("-", {"test", "env", uid.toString()});
 
@@ -72,7 +62,7 @@ TEST_F(TestProcessEnv, testSize) {
     EXPECT_EQ(currentSize + 1, env.size());
 }
 
-TEST_F(TestProcessEnv, testUnset) {
+TEST(TestProcessEnv, testUnset) {
     const auto uid = UUID::random();
     const auto name = String::join("-", {"test", "env", uid.toString()});
 
@@ -87,7 +77,7 @@ TEST_F(TestProcessEnv, testUnset) {
     EXPECT_EQ(currentSize, env.size());
 }
 
-TEST_F(TestProcessEnv, testSetIllFormatedVar) {
+TEST(TestProcessEnv, testSetIllFormatedVar) {
     auto env = Env();
 
     EXPECT_THROW(env.set(String::Empty, "whatever"), Exception);
@@ -96,7 +86,7 @@ TEST_F(TestProcessEnv, testSetIllFormatedVar) {
     EXPECT_THROW(env.unset(String::Empty), Exception);
 }
 
-TEST_F(TestProcessEnv, testSetEmptyString) {
+TEST(TestProcessEnv, testSetEmptyString) {
     auto env = Env();
 
     const auto uid = UUID::random();
@@ -109,7 +99,7 @@ TEST_F(TestProcessEnv, testSetEmptyString) {
     EXPECT_TRUE(env.get(name).isNone());
 }
 
-TEST_F(TestProcessEnv, testIteration) {
+TEST(TestProcessEnv, testIteration) {
     const auto uid = UUID::random();
     const auto name = String::join("-", {"test", "env", uid.toString()});
 
