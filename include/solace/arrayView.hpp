@@ -346,7 +346,7 @@ void swap(ArrayView<T>& lhs, ArrayView<T>& rhs) noexcept {
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-constexpr ArrayView<T> arryaView(T* ptr, size_t size) {
+constexpr ArrayView<T> arrayView(T* ptr, size_t size) {
   return ArrayView<T>(ptr, size);
 }
 
