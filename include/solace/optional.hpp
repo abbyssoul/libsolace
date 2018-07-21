@@ -163,10 +163,10 @@ public:
         } else {  // We got nothing:
             if (rhs.isNone()) {
                 return *this;
-            } else {
-                construct(std::move(rhs._payload));
-                rhs.destroy();
             }
+
+            construct(std::move(rhs._payload));
+            rhs.destroy();
         }
 
         return (*this);
@@ -199,9 +199,13 @@ public:
 
     constexpr bool isNone() const noexcept { return !_engaged; }
 
+    T& operator* () { return get(); }
+    const T& operator* () const { return get(); }
+
     const T& get() const {
-        if (isNone())
+        if (isNone()) {
             raiseInvalidStateError();
+        }
 
         return _payload;
     }

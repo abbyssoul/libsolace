@@ -106,5 +106,11 @@ inline void swap(Error& lhs, Error& rhs) noexcept {
     lhs.swap(rhs);
 }
 
+
+Error make_error(char const* msg);
+Error make_errno();
+
+
+
 }  // End of namespace Solace
 #endif  // SOLACE_ERROR_HPP_

@@ -581,6 +581,16 @@ public:
         : _maybeError(std::move(err.val_))
     {}
 
+
+    /**
+     * Move-Construct Err result by moving error value
+     * @param err Err value to move from
+     */
+    Result(E&& err) noexcept(std::is_nothrow_move_constructible<E>::value)
+        : _maybeError(std::move(err))
+    {}
+
+
     /**
      * Move-Construct Result of the same type
      * @param rhs Source to move values from

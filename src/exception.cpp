@@ -166,12 +166,6 @@ NoSuchElementException::NoSuchElementException(const char* elementName) noexcept
 }
 
 
-InvalidMarkException::InvalidMarkException() noexcept:
-    Exception("InvalidMarkException")
-{
-    // Nothing else to do here
-}
-
 
 IOException::IOException(const std::string& msg) noexcept
     : Exception(msg)

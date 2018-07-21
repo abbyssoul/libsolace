@@ -22,11 +22,12 @@ set(SOURCE_FILES
         stringBuilder.cpp
         stringView.cpp
 
-        ioobject.cpp
         version.cpp
         path.cpp
         encoder.cpp
+        env.cpp
 
+        ioobject.cpp
         io/file.cpp
         io/duplex.cpp
         io/pipe.cpp
@@ -38,8 +39,6 @@ set(SOURCE_FILES
         io/selector_epoll.cpp
         io/platformFilesystem.cpp
         io/sharedMemory.cpp
-
-        process/env.cpp
 
         cli/helpPrinter.cpp
         cli/parser.cpp

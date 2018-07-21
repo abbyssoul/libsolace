@@ -27,6 +27,7 @@ set(TEST_SOURCE_FILES
         test_stringBuilder.cpp
         test_stringView.cpp
         test_path.cpp
+        test_env.cpp
         test_version.cpp
 
         io/test_signalDispatcher.cpp
@@ -37,7 +38,6 @@ set(TEST_SOURCE_FILES
         io/test_mappedMemory.cpp
         io/test_pipe.cpp
 
-        process/test_env.cpp
         cli/test_parser.cpp
 
         hashing/test_md5.cpp

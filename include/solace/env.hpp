@@ -15,7 +15,7 @@
 */
 /*******************************************************************************
  * libSolace: Process runtime environment variables
- *	@file		solace/process/env.hpp
+ *	@file		solace/env.hpp
  *	@author		$LastChangedBy: $
  *	@date		$LastChangedDate: $
  *	@brief		Runtime environment variables
@@ -25,49 +25,28 @@
 #ifndef SOLACE_PROCESS_ENV
 #define SOLACE_PROCESS_ENV
 
-#include "solace/string.hpp"
-#include "solace/traits/iterable.hpp"
+
+#include "solace/stringView.hpp"
+#include "solace/error.hpp"
+#include "solace/result.hpp"
 
 
-namespace Solace { namespace Process {
+namespace Solace {
 
 /**
- * This class incapsulates access to the processes runtime environment variables.
+ * This class incapsulates access to the running process runtime environment variables.
  */
-class Env : public Iterable<Env, String> {
+class Env {
 public:
 
-    typedef size_t size_type;
+    using size_type = size_t;
 
     /**
-     * Object representing environment variable.
+     * Struct representing environment variable.
      */
     struct Var {
-        String name;
-        String value;
-
-        Var(const String& inName, const String& inValue): name(inName), value(inValue)
-        {}
-
-        Var(const Var&) = delete;
-
-        Var(Var&& other): name(std::move(other.name)), value(std::move(other.value))
-        {}
-
-        Var& swap(Var& other) noexcept {
-            using std::swap;
-
-            swap(name, other.name);
-            swap(value, other.value);
-
-            return *this;
-        }
-
-        Var& operator= (const Var&) = delete;
-
-        Var& operator= (Var&& rhs) noexcept {
-            return swap(rhs);
-        }
+        StringView name;
+        StringView value;
     };
 
     /**
@@ -86,7 +65,7 @@ public:
         Iterator& operator++ ();
 
         Var operator* () const {
-            return this->operator ->();
+            return operator ->();
         }
 
         Var operator-> () const;
@@ -98,35 +77,32 @@ public:
             return *this;
         }
 
-        Iterator(size_type size, size_type position);
-
-        Iterator(const Iterator& rhs):
-            _index(rhs._index),
-            _size(rhs._size)
+        Iterator(size_type size, size_type position) noexcept
+            : _index(position)
+            , _size(size)
         {}
 
-        Iterator(Iterator&& rhs):
-            _index(rhs._index),
-            _size(rhs._size)
+        Iterator(Iterator const& rhs) noexcept = default;
+
+        Iterator(Iterator&& rhs) noexcept
+            : _index(rhs._index)
+            , _size(rhs._size)
         {}
 
         Iterator& operator= (Iterator&& rhs) noexcept {
             return swap(rhs);
         }
 
+        size_type getIndex() const noexcept { return _index; }
+
     private:
         size_type _index;
         size_type _size;
     };
 
-    typedef const Iterator const_iterator;
+    using const_iterator = const Iterator;
 
 public:
-
-    /**
-     * Construct an environment access class
-     */
-    Env();
 
     /**
      * Get a value of the environment variable if one exists.
@@ -134,7 +110,7 @@ public:
      * @param name Name of the variable to get value of.
      * @return Value of the variable or None if no variable is set.
      */
-    Optional<String> get(const String& name) const;
+    Optional<StringView> get(StringView name) const;
 
     /**
      * Set a value of the environment variable.
@@ -142,39 +118,37 @@ public:
      * @param name Name of the variable to set value of.
      * @param value Value of the variable to set to.
      * @param replace If true and variable already set - the value will be replace. If false old value is preserved.
-     *
-     * FIXME(abbyssoul): This operation can fail according to specs. Use Result<>
      */
-    void set(const String& name, const String& value, bool replace = true);
+    Result<void, Error> set(StringView name, StringView value, bool replace = true);
 
     /**
-     * Set a value of the environment variable.
+     * Un-Set a value of the given environment variable.
      *
      * @param name Name of the variable to get value of.
-     * @return Value of the variable or None if no variable is set.
-     *
-     * FIXME(abbyssoul): This operation can fail according to specs. Use Result<>
+     * @return Result of the unset operation.
      */
-    void unset(const String& name);
+    Result<void, Error> unset(StringView name);
 
     /**
      * Clear current environment.
      *
-     * FIXME(abbyssoul): This operation can fail according to specs. Use Result<>
+     * @return Result of the unset operation.
      */
-    void clear();
-
-    //-----------------------------------------------------------------------------------
-    // Iterable interface goes next
-    //-----------------------------------------------------------------------------------
+    Result<void, Error> clear();
 
     /**
-     * Check if this collection is empty.
+     * Check if there are no environment variables.
+     *
      * @return True is this is an empty collection.
      */
     bool empty() const noexcept {
         return (size() == 0);
     }
+
+
+    //-----------------------------------------------------------------------------------
+    // Iterable trait
+    //-----------------------------------------------------------------------------------
 
     /**
      * Get the number of elements in this array
@@ -182,22 +156,49 @@ public:
      */
     size_type size() const noexcept;
 
-    String operator[] (const String& name) const;
+    const_iterator begin() const noexcept {
+        return Iterator(size(), 0);
+    }
 
-    const_iterator begin() const;
+    const_iterator end() const noexcept {
+        auto const pos = size();
+        return Iterator(pos, pos);
+    }
 
-    const_iterator end() const;
 
-    const Env& forEach(const std::function<void(const String&)> &f) const override;
+    template<typename F>
+    std::enable_if_t<isCallable<F, const Var>::value, const Env& >
+    forEach(F&& f) const {
+        for (auto x : *this) {
+            f(x);
+        }
 
+        return *this;
+    }
+
+    template<typename F>
+    std::enable_if_t<isCallable<F, const StringView, const StringView>::value, const Env& >
+    forEach(F&& f) const {
+        for (auto x : *this) {
+            f(x.name, x.value);
+        }
+
+        return *this;
+    }
+
+
+    template<typename F>
+    std::enable_if_t<isCallable<F, size_type, const Var>::value, const Env& >
+    forEach(F&& f) const {
+        for (auto i = begin(), ends = end(); i != ends; ++i) {
+            f(i.getIndex(), *i);
+        }
+
+        return *this;
+    }
 };
 
 
-inline void swap(Env::Var& lhs, Env::Var& rhs) noexcept {
-    lhs.swap(rhs);
-}
 
-
-}  // End of namespace Process
 }  // End of namespace Solace
 #endif  // SOLACE_PROCESS_ENV

@@ -168,6 +168,7 @@ public:
 
     /** @see IFormattable::toString() */
     String toString() const override;
+    StringView toString(MemoryView buffer) const;
 
     friend bool operator < (UUID const& lhs, UUID const& rhs) noexcept;
 

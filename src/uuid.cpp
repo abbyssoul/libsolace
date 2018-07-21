@@ -138,10 +138,16 @@ MemoryView UUID::view() noexcept {
 }
 
 
-String UUID::toString() const {
+String
+UUID::toString() const {
     char buffer[StringSize];
+    return toString(wrapMemory(buffer));
+}
 
-    WriteBuffer dest(wrapMemory(buffer));
+
+StringView
+UUID::toString(MemoryView buffer) const {
+    WriteBuffer dest(buffer);
     Base16Encoder encoder(dest);
 
     auto dataView = view();
@@ -157,8 +163,9 @@ String UUID::toString() const {
     dest.write('-');
     encoder.encode(dataView.slice(10, 16));
 
-    return String(buffer, StringSize);
+    return StringView{buffer.dataAs<char>(), StringSize};
 }
+
 
 
 // Here we are stealing a function from base16.cpp

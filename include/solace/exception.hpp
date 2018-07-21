@@ -85,8 +85,6 @@ public:
     IllegalArgumentException(const char* argumentName) noexcept;
 
     explicit IllegalArgumentException(const std::string& msg) noexcept;
-
-    virtual ~IllegalArgumentException() noexcept = default;
 };
 
 
@@ -106,8 +104,6 @@ public:
 
     //! Construct exception with custom message
     IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue, const char* messagePrefix) noexcept;
-
-    virtual ~IndexOutOfRangeException() noexcept = default;
 };
 
 /**
@@ -119,8 +115,6 @@ public:
     OverflowException(const char* indexName, size_t index, size_t minValue, size_t maxValue) noexcept;
 
     OverflowException(size_t index, size_t minValue, size_t maxValue) noexcept;
-
-    virtual ~OverflowException() noexcept = default;
 };
 
 
@@ -133,22 +127,7 @@ public:
     NoSuchElementException() noexcept;
 
     NoSuchElementException(const char* elementName) noexcept;
-
-    virtual ~NoSuchElementException() noexcept = default;
 };
-
-
-/**
- * And exception thrown when an attempt is made to reset a buffer when its mark is not defined.
- */
-class InvalidMarkException: public Exception {
-public:
-    InvalidMarkException() noexcept;
-
-    virtual ~InvalidMarkException() noexcept = default;
-};
-
-
 
 /**
  * Exception during IO operations
@@ -162,7 +141,6 @@ public:
 
     IOException(const std::string& msg) noexcept;
 
-    virtual ~IOException() noexcept = default;
 
     int getErrorCode() const noexcept {
         return _errorCode;
