@@ -14,12 +14,6 @@ add_executable(cli_multi ${EXAMPLE_APPFRAMEWORK_SOURCE_FILES})
 target_link_libraries(cli_multi ${PROJECT_NAME})
 
 
-# Application framework usage example
-set(EXAMPLE_APPFRAMEWORK_SOURCE_FILES application.cpp)
-add_executable(application ${EXAMPLE_APPFRAMEWORK_SOURCE_FILES})
-target_link_libraries(application ${PROJECT_NAME})
-
-
 # Serial port communication example
 set(EXAMPLE_SERIAL_SOURCE_FILES serial.cpp)
 add_executable(serial ${EXAMPLE_SERIAL_SOURCE_FILES})

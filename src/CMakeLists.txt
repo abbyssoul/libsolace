@@ -44,8 +44,6 @@ set(SOURCE_FILES
         cli/helpPrinter.cpp
         cli/parser.cpp
 
-        framework/application.cpp
-
         hashing/messageDigest.cpp
         hashing/md5.cpp
         hashing/murmur3.cpp
