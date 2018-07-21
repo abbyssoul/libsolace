@@ -1,11 +1,14 @@
-libSolace
-===============
+libsolace   [![C++ standard][c++-standard-shield]][c++-standard-link] [![License][license-shield]][license-link]
+---
 [![TravisCI][travis-shield]][travis-link]
 [![Codecov][codecov-shield]][codecov-link]
 [![Coverity][coverity-shield]][coverity-link]
 [![Coverage Status][coveralls-shield]][coveralls-link]
-[![License][license-shield]][license-link]
 
+[c++-standard-shield]: https://img.shields.io/badge/c%2B%2B-14/17/20-blue.svg)
+[c++-standard-link]: https://en.wikipedia.org/wiki/C%2B%2B#Standardization
+[license-shield]: https://img.shields.io/badge/License-Apache%202.0-blue.svg
+[license-link]: https://opensource.org/licenses/Apache-2.0
 [travis-shield]: https://travis-ci.org/abbyssoul/libsolace.png?branch=master
 [travis-link]: https://travis-ci.org/abbyssoul/libsolace
 [codecov-shield]: https://codecov.io/gh/abbyssoul/libsolace/branch/master/graph/badge.svg
@@ -14,14 +17,14 @@ libSolace
 [coverity-link]: https://scan.coverity.com/projects/abbyssoul-libsolace
 [coveralls-shield]: https://coveralls.io/repos/github/abbyssoul/libsolace/badge.svg?branch=master
 [coveralls-link]: https://coveralls.io/github/abbyssoul/libsolace?branch=master
-[license-shield]: https://img.shields.io/badge/License-Apache%202.0-blue.svg
-[license-link]: https://opensource.org/licenses/Apache-2.0
 
-libSolace is a toolkit for building mission critical application.
+libSolace is a _library_ to help building mission critical application.
+> library: a collection of types, functions, classes, etc. implementing a set of facilities (abstractions) meant to be potentially used as part of more that one program. From [Cpp Code guidelines gloassay](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#glossary)
+
 Idea of this library is partially inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).
-That is the library aims to provide building blocks for fast and reliable applications using modern C++ dialect (At least C++14).
-Note: the implementation attempts to respect P10 rules only to extent practical. It is an ongoing effort.
-In this context simple means that it provides minimal necessary set of tools to solve a problem.
+That is the aims is to provide building blocks for efficient and reliable applications using modern C++ (at least **C++14**).
+_Note: it is by no means as strict implementation of all of P10 rules but an attempt to provide components that make it easy to observe this rules._
+
 ### Motivation
 Solace is used to provide building primitives to develop a systems of communicating process that solve a problem via collaboration (aka cluster application / actor system). As such it will never spawn a thread or allocate memory after initialisation.
 
@@ -41,18 +44,17 @@ The project build is managed via CMake with a Makefile provided to automate some
 In order to build this project following tools must be present in the system:
 * git (to check out project and it’s external modules, see dependencies section)
 * cmake (version 3.0 and above)
-* cppunit (Unit testing framework for C++)
-* doxygen (for documentation)
-* cppcheck (static code analysis, latest version from git is used as part of the 'codecheck' step)
+* doxygen (for documentation generation)
+* cppcheck (static code analysis, latest version from git is used as part of the 'codecheck' build step)
 * cpplint (for static code analysis in addition to cppcheck)
 * valgrind (for runtime code quality verification)
 
-This project is using C++14 features extensively. The minimal tested/required version of gcc is gcc-4.9.
+This project is using **C++14** features extensively. The minimal tested/required version of gcc is gcc-4.9.
 CI is using clang-5 and gcc-7.
 To install build tools on Debian based Linux distribution:
 ```shell
 sudo apt-get update -qq
-sudo apt-get install cmake doxygen python-pip valgrind ggcov libcppunit-dev
+sudo apt-get install cmake doxygen python-pip valgrind ggcov
 sudo pip install cpplint
 ```
 

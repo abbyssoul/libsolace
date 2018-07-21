@@ -14,9 +14,9 @@ addons:
  apt:
    sources:
    - ubuntu-toolchain-r-test
-   - llvm-toolchain-trusty-5.0
+   - llvm-toolchain-trusty-6.0
    packages:
-   - clang-5.0
+   - clang-6.0
    - gcc-7
    - g++-7
    - binutils-2.26
@@ -27,7 +27,6 @@ addons:
    - ggcov
    - lcov
    - curl
-   - libcppunit-dev
  coverity_scan:
   project:
       name: "abbyssoul/libsolace"
@@ -45,14 +44,14 @@ install:
   - lcov --version
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 90 --slave /usr/bin/g++ g++ /usr/bin/g++-7
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-7 90
-  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-5.0" CC="clang-5.0"; fi
+  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-6.0" CC="clang-6.0"; fi
   - echo $CXX
   - $CXX --version
   - ld --version
 
 script:
   - ./configure --enable-sanitizer
-  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make clean && make codecheck; fi
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make clean codecheck; fi
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make -j2 test; fi
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./configure --disable-sanitizer --enable-debug && make clean && make verify ; fi
 
