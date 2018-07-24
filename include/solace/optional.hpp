@@ -25,11 +25,10 @@
 #define SOLACE_OPTIONAL_HPP
 
 #include "solace/types.hpp"
-#include "solace/traits/icomparable.hpp"
+#include "solace/utils.hpp"     // type-traits: isCallable<>
 #include "solace/assert.hpp"
 
 
-#include <functional>   // std::function
 #include <ostream>
 #include <type_traits>  // std::aligned_storage
 
@@ -60,6 +59,23 @@ struct None {
 /// Tag to disengage optional objects.
 /*inline*/ constexpr None none { None::_Construct::_Token };
 
+
+// Forward declaration for type-trait
+template<typename T>
+class Optional;
+
+/// Optional type-trait
+template <typename MaybeOptional>
+struct is_optional: std::false_type {
+    using std::false_type::value;
+};
+
+template <typename T>
+struct is_optional<Optional<T>>: std::true_type {
+    using std::true_type::value;
+
+    using value_type = T;
+};
 
 
 /** Optional monad
@@ -252,12 +268,27 @@ public:
     }
 
 
-    template <typename U>
-    Optional<U> flatMap(std::function<Optional<U> (T const&)> const& f) const {
+    template <typename F,
+              typename U = typename std::result_of<F(T)>::type>
+    std::enable_if_t<is_optional<U>::value && (isCallable<F, T>::value || isCallable<F, const T&>::value),
+    U >
+    flatMap(F&& f) const {
         return (isSome())
                 ? f(_payload)
                 : none;
     }
+
+
+    template <typename F,
+              typename U = typename std::result_of<F(T)>::type>
+    std::enable_if_t<is_optional<U>::value && (isCallable<F, T&&>::value || isCallable<F, T>::value),
+    U >
+    flatMap(F&& f) && {
+        return (isSome())
+                ? f(std::move(_payload))
+                : none;
+    }
+
 
     template <typename F>
     const Optional<T>& filter(F&& predicate) const {

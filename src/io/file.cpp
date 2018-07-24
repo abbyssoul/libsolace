@@ -50,11 +50,14 @@ const int File::Flags::Async = O_ASYNC;
 const int File::Flags::CloseExec = O_CLOEXEC;
 
 #ifdef SOLACE_PLATFORM_LINUX
+const int File::Flags::DSync = O_DSYNC;
+#endif
+
+#ifndef SOLACE_PLATFORM_APPLE
 const int File::Flags::Direct = O_DIRECT;
 #endif
 
 const int File::Flags::Directory = O_DIRECTORY;
-const int File::Flags::DSync = O_DSYNC;
 const int File::Flags::Exlusive = O_EXCL;
 const int File::Flags::NoCTTY = O_NOCTTY;
 const int File::Flags::NonBlock = O_NONBLOCK;

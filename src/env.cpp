@@ -112,7 +112,7 @@ Env::set(StringView name, StringView value, bool replace) {
 
 
 Result<void, Error> Env::unset(StringView name) {
-    return (unsetenv(name.data()) == 0)
+    return (unsetenv(name.empty() ? "" : name.data()) == 0)
             ? none
             : Result<void, Error>{make_errno()};
 }

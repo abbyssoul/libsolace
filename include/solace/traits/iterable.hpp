@@ -25,28 +25,10 @@
 #ifndef SOLACE_TRAITS_ITERABLE_HPP
 #define SOLACE_TRAITS_ITERABLE_HPP
 
-#include <functional>
-
 
 namespace Solace {
 
-/**
-* Base interface for all classes that has collection semantics
-*
-* Any class implementing iterable trait should publicly inherit this interface
-*/
-template <
-        typename C,  // Type of the collection
-        typename T   // Type of the item in the collection
->
-class Iterable {
-public:
-
-    virtual ~Iterable() noexcept = default;
-
-    virtual const C& forEach(const std::function<void(const T&)> &f) const = 0;
-
-};
+// TBD: Itreable trait
 
 }  // namespace Solace
 #endif  // SOLACE_TRAITS_ITERABLE_HPP

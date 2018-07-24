@@ -371,13 +371,13 @@ TEST_F(TestOptional, testFlatMap) {
     };
 
     const auto v1 = Optional<SimpleType>(test)
-            .flatMap<int>(f);
+            .flatMap(f);
 
     EXPECT_TRUE(v1.isSome());
     EXPECT_EQ(test.x*2, v1.get());
 
     const auto v2 = Optional<SimpleType>{}
-            .flatMap<int>(f);
+            .flatMap(f);
 
     EXPECT_TRUE(v2.isNone());
     EXPECT_EQ(42, v2.orElse(42));

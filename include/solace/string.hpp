@@ -454,7 +454,16 @@ public:
 */
 
     /** @see Iterable::forEach */
-//    String const& forEach(const std::function<void(const value_type&)> &f) const override;
+    template<typename F>
+    std::enable_if_t<isCallable<F, const value_type&>::value || isCallable<F, value_type>::value,
+    const String& >
+    forEach(F&& f) const {
+        for (const auto& x : _str) {
+            f(x);
+        }
+
+        return *this;
+    }
 
 private:
 

@@ -290,7 +290,7 @@ Path PlatformFilesystem::getExecPath() const {
     const size_t buffSize = sizeof(execPath);
 
     ssize_t bytesRead = readlink("/proc/self/exe", execPath, buffSize - 1);
-    if (bytesRead == -1) {
+    if (bytesRead < 0) {
         raise<IOException>(errno);
     } else {
         execPath[bytesRead] = 0;
