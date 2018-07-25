@@ -106,5 +106,11 @@ T exchange(T& obj, U&& newValue) {
 }
 
 
+/// An expressive way to do narrowing casts
+template <typename T, typename U>
+constexpr T narrow_cast(U&& u) noexcept {
+    return static_cast<T>(std::forward<U>(u));
+}
+
 }  // End of namespace Solace
 #endif  // SOLACE_UTILS_HPP

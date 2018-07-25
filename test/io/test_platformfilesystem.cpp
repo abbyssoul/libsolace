@@ -15,7 +15,7 @@
 */
 /*******************************************************************************
  * libSolace Unit Test Suit
- * @file: test/io/test_platformFilesystem.cpp
+ * @file: test/io/test_platformfilesystem.cpp
  * @author: soultaker
  *
  * Created on: 20/06/2016

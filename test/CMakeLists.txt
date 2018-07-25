@@ -15,7 +15,6 @@ set(TEST_SOURCE_FILES
         test_memoryBuffer.cpp
         test_base16.cpp
         test_base64.cpp
-        test_byteBuffer.cpp
         test_readBuffer.cpp
         test_writeBuffer.cpp
         test_optional.cpp

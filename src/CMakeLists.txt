@@ -9,7 +9,6 @@ set(SOURCE_FILES
         memoryView.cpp
         memoryBuffer.cpp
         memoryManager.cpp
-        byteBuffer.cpp
         readBuffer.cpp
         writeBuffer.cpp
 
