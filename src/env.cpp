@@ -37,6 +37,12 @@ int clearenv(void) {
     environ[0] = nullptr;
     return 0;
 }
+#elif defined SOLACE_PLATFORM_BSD
+extern char **environ;
+int clearenv(void) {
+    environ[0] = nullptr;
+    return 0;
+}
 #else
 extern char **environ;
 #endif
