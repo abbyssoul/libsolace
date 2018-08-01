@@ -24,7 +24,7 @@
 #define SOLACE_HASHING_DIGESTALGORITHM_HPP
 
 #include "solace/hashing/messageDigest.hpp"
-#include "solace/readBuffer.hpp"
+#include "solace/byteReader.hpp"
 
 namespace Solace {
 namespace hashing {
@@ -66,7 +66,7 @@ public:
      * @param input A byte buffer to read message from.
      * @return A reference to self for a fluent interface.
      */
-    virtual HashingAlgorithm& update(ReadBuffer& input) {
+    virtual HashingAlgorithm& update(ByteReader& input) {
         auto const memView = input.viewRemaining();
         update(memView);
         input.advance(memView.size());

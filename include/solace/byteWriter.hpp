@@ -14,13 +14,13 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Write buffer
- *	@file		solace/WriteBuffer.hpp
- *	@brief		Write-only adapter for a buffer.
+ * libSolace: Byte Writer
+ *	@file		solace/ByteWriter.hpp
+ *	@brief		Write-only adapter for a memory buffer/view.
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_WRITEBUFFER_HPP
-#define SOLACE_WRITEBUFFER_HPP
+#ifndef SOLACE_BYTEWRITER_HPP
+#define SOLACE_BYTEWRITER_HPP
 
 #include "solace/mutableMemoryView.hpp"
 #include "solace/memoryBuffer.hpp"
@@ -33,35 +33,33 @@ namespace Solace {
 
 
 /**
- * Write-only adapter for a memory buffer.
+ * Write-only adapter for a memory buffer/view.
  */
-class WriteBuffer {
+class ByteWriter {
 public:
-
-    using Storage = MemoryBuffer;
-    using size_type = Storage::size_type;
+    using size_type = MemoryBuffer::size_type;
 
 public:
 
     /** Construct an empty writer that has nowhere to write too */
-    WriteBuffer() noexcept = default;
+    ByteWriter() noexcept = default;
 
-    WriteBuffer(WriteBuffer const& other) = delete;
-    WriteBuffer& operator= (WriteBuffer const&) = delete;
+    ByteWriter(ByteWriter const& other) = delete;
+    ByteWriter& operator= (ByteWriter const&) = delete;
 
 
     /**
      * Construct the byte buffer by moving content from the other buffer
      * @param other Other buffer to take over from
      */
-    WriteBuffer(WriteBuffer&& other) = default;
+    ByteWriter(ByteWriter&& other) = default;
 
-    WriteBuffer(MemoryBuffer& buffer) :
+    ByteWriter(MemoryBuffer& buffer) :
         _limit(buffer.size()),
         _storage(buffer.view(), nullptr)
     {}
 
-    WriteBuffer(MemoryBuffer&& buffer) :
+    ByteWriter(MemoryBuffer&& buffer) :
         _limit(buffer.size()),
         _storage(std::move(buffer))
     {}
@@ -70,13 +68,13 @@ public:
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    WriteBuffer(MutableMemoryView memView) :
+    ByteWriter(MutableMemoryView memView) :
         _limit(memView.size()),
         _storage(std::move(memView), nullptr)
     {}
 
 
-    WriteBuffer& swap(WriteBuffer& rhs) noexcept {
+    ByteWriter& swap(ByteWriter& rhs) noexcept {
         using std::swap;
 
         swap(_position, rhs._position);
@@ -86,7 +84,7 @@ public:
         return *this;
     }
 
-    WriteBuffer& operator= (WriteBuffer&& rhs) noexcept {
+    ByteWriter& operator= (ByteWriter&& rhs) noexcept {
         return swap(rhs);
     }
 
@@ -96,7 +94,7 @@ public:
      * It alwats works.
      * @return A reference to this for fluency.
      */
-    WriteBuffer& rewind() noexcept {
+    ByteWriter& rewind() noexcept {
         _position = 0;
 
         return *this;
@@ -174,7 +172,7 @@ public:
     /**
      * Set the limit to the capacity and the position to zero.
      */
-    WriteBuffer& clear() noexcept {
+    ByteWriter& clear() noexcept {
         _position = 0;
         _limit = capacity();
 
@@ -184,7 +182,7 @@ public:
     /**
      * Set the limit to the current position and then sets the position to zero.
      */
-    WriteBuffer& flip() noexcept {
+    ByteWriter& flip() noexcept {
         _limit = _position;
         _position = 0;
 
@@ -267,13 +265,13 @@ private:
     size_type           _position{};
     size_type           _limit{};
 
-    Storage             _storage;
+    MemoryBuffer        _storage;
 };
 
 
-inline void swap(WriteBuffer& lhs, WriteBuffer& rhs) noexcept {
+inline void swap(ByteWriter& lhs, ByteWriter& rhs) noexcept {
     lhs.swap(rhs);
 }
 
 }  // End of namespace Solace
-#endif  // SOLACE_WRITEBUFFER_HPP
+#endif  // SOLACE_BYTEWRITER_HPP

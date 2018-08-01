@@ -9,8 +9,8 @@ set(SOURCE_FILES
         mutableMemoryView.cpp
         memoryBuffer.cpp
         memoryManager.cpp
-        readBuffer.cpp
-        writeBuffer.cpp
+        byteReader.cpp
+        byteWriter.cpp
 
         base16.cpp
 #        base32.cpp

@@ -37,7 +37,7 @@ operator<< (std::ostream& ostr, MessageDigest const& a) {
     ostr << '[';
 
     char buffer[3];
-    WriteBuffer dest(wrapMemory(buffer));
+    ByteWriter dest(wrapMemory(buffer));
     Base16Encoder encoder(dest);
 
     for (MessageDigest::size_type end = a.size(), i = 0; i < end; ++i) {
@@ -57,7 +57,7 @@ String
 MessageDigest::toString() const {
     std::vector<char> stringRepr;
     stringRepr.reserve(Base16Encoder::encodedSize(size()));
-    WriteBuffer dest(wrapMemory(stringRepr.data(), stringRepr.size()));
+    ByteWriter dest(wrapMemory(stringRepr.data(), stringRepr.size()));
 
     for (auto i = base16Encode_begin(_storage.view()),
          end = base16Encode_end(_storage.view());

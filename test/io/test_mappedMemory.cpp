@@ -74,7 +74,7 @@ void writeTextAndExit(uint64 memSize, MemoryBuffer& memBuffer) {
     EXPECT_EQ(memSize, memBuffer.size());
 
     {
-        WriteBuffer wb(std::move(memBuffer));
+        ByteWriter wb(std::move(memBuffer));
         wb.write(memSize);
         wb.write(StringView("child").view());
     }
@@ -96,7 +96,7 @@ TEST(TestAnonSharedMemory, testShareAndMap) {
     char message[10];
     auto messageDest = wrapMemory(message);
 
-    ReadBuffer sb(memBuffer);
+    ByteReader sb(memBuffer);
     EXPECT_TRUE(sb.read(&viewedPid).isOk());
 
     EXPECT_TRUE(sb.read(messageDest, 6).isOk());

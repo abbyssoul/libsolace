@@ -70,7 +70,7 @@ void writeMessageAndExit(uint64 memSize, MemoryBuffer& view) {
     EXPECT_EQ(memSize, view.size());
 
     {
-        WriteBuffer sb(view);
+        ByteWriter sb(view);
         sb.write(memSize);
         sb.write(StringView("child").view());
     }
@@ -94,7 +94,7 @@ TEST(TestSharedMemory, testCreateAndMap) {
     char message[10];
     auto messageDest = wrapMemory(message);
 
-    ReadBuffer sb(view);
+    ByteReader sb(view);
     EXPECT_TRUE(sb.read(&viewedMemsize).isOk());
     EXPECT_EQ(memSize, viewedMemsize);
 

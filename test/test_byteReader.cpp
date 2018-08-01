@@ -18,18 +18,18 @@
  * @file: test/test_readBuffer.cpp
  * @author: soultaker
  ********************************************************************************/
-#include <solace/readBuffer.hpp>  // Class being tested
+#include <solace/byteReader.hpp>  // Class being tested
 
 #include <gtest/gtest.h>
 
 using namespace Solace;
 
 
-using size_type = ReadBuffer::size_type;
+using size_type = ByteReader::size_type;
 
 
 TEST(TestReadBuffer, defaultConstructedBufferIsEmpty) {
-    ReadBuffer buffer;
+    ByteReader buffer;
 
     EXPECT_EQ(0, buffer.capacity());
     EXPECT_EQ(0, buffer.limit());
@@ -41,7 +41,7 @@ TEST(TestReadBuffer, constructFromImmutableMemory) {
     const byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
     constexpr size_type testSize = sizeof (bytes);
 
-    ReadBuffer buffer(wrapMemory(bytes));
+    ByteReader buffer(wrapMemory(bytes));
     EXPECT_EQ(testSize, buffer.capacity());
     EXPECT_EQ(testSize, buffer.limit());
     EXPECT_EQ(0, buffer.position());
@@ -53,7 +53,7 @@ TEST(TestReadBuffer, constructFromMutableMemory) {
 
     MutableMemoryView memView = wrapMemory(bytes);
 
-    ReadBuffer buffer(std::move(memView));
+    ByteReader buffer(std::move(memView));
     EXPECT_EQ(testSize, buffer.capacity());
     EXPECT_EQ(testSize, buffer.limit());
     EXPECT_EQ(0, buffer.position());
@@ -63,7 +63,7 @@ TEST(TestReadBuffer, constructFromMutableMemory) {
 TEST(TestReadBuffer, testPositioning) {
     const byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
 
-    ReadBuffer buffer(wrapMemory(bytes));
+    ByteReader buffer(wrapMemory(bytes));
 
     // We can re-position safely
     EXPECT_TRUE(buffer.position(4).isOk());
@@ -85,7 +85,7 @@ TEST(TestReadBuffer, testPositioning) {
 
 TEST(TestReadBuffer, testGetByte) {
     const byte srcBytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
-    ReadBuffer buffer(wrapMemory(srcBytes));
+    ByteReader buffer(wrapMemory(srcBytes));
 
     size_type i = 0;
     for (auto b : srcBytes) {
@@ -110,7 +110,7 @@ TEST(TestReadBuffer, testByteRead) {
     constexpr size_type kTestSize = sizeof(bytes);
     byte readBytes[kTestSize];
 
-    ReadBuffer buffer(wrapMemory(bytes));
+    ByteReader buffer(wrapMemory(bytes));
 
     for (size_type i = 0; i < kTestSize; ++i) {
         buffer.read(&(readBytes[i]));
@@ -131,7 +131,7 @@ TEST(TestReadBuffer, testReadIntoBuffer) {
     byte destBuffer[128];
     constexpr size_type readBufferChunk = 3;
 
-    ReadBuffer buffer(wrapMemory(srcBytes));
+    ByteReader buffer(wrapMemory(srcBytes));
     MutableMemoryView destView = wrapMemory(destBuffer);
 
     EXPECT_TRUE(buffer.read(destView, readBufferChunk).isOk());
@@ -153,7 +153,7 @@ TEST(TestReadBuffer, testReadFromOffset) {
     byte readBuffer[128];
     constexpr size_type readBufferChunk = 3;
 
-    ReadBuffer buffer(wrapMemory(srcBytes));
+    ByteReader buffer(wrapMemory(srcBytes));
     MutableMemoryView destView = wrapMemory(readBuffer);
 
     // Read data from an offset
@@ -184,24 +184,24 @@ TEST(TestReadBuffer, readBigEndian) {
 
     {
         uint8 result;
-        EXPECT_TRUE(ReadBuffer(wrapMemory(bytes)).readBE(result).isOk());
+        EXPECT_TRUE(ByteReader(wrapMemory(bytes)).readBE(result).isOk());
         EXPECT_EQ(expected8, result);
     }
     {
         uint16 result;
-        EXPECT_TRUE(ReadBuffer(wrapMemory(bytes)).readBE(result).isOk());
+        EXPECT_TRUE(ByteReader(wrapMemory(bytes)).readBE(result).isOk());
         EXPECT_EQ(expected16, result);
     }
 
     {
         uint32 result;
-        EXPECT_TRUE(ReadBuffer(wrapMemory(bytes)).readBE(result).isOk());
+        EXPECT_TRUE(ByteReader(wrapMemory(bytes)).readBE(result).isOk());
         EXPECT_EQ(expected32, result);
     }
 
     {
         uint64 result;
-        EXPECT_TRUE(ReadBuffer(wrapMemory(bytes)).readBE(result).isOk());
+        EXPECT_TRUE(ByteReader(wrapMemory(bytes)).readBE(result).isOk());
         EXPECT_EQ(expected64, result);
     }
 }
@@ -218,24 +218,24 @@ TEST(TestReadBuffer, readLittleEndian) {
 
     {
         uint8 result;
-        EXPECT_TRUE(ReadBuffer(wrapMemory(bytes)).readLE(result).isOk());
+        EXPECT_TRUE(ByteReader(wrapMemory(bytes)).readLE(result).isOk());
         EXPECT_EQ(expected8, result);
     }
     {
         uint16 result;
-        EXPECT_TRUE(ReadBuffer(wrapMemory(bytes)).readLE(result).isOk());
+        EXPECT_TRUE(ByteReader(wrapMemory(bytes)).readLE(result).isOk());
         EXPECT_EQ(expected16, result);
     }
 
     {
         uint32 result;
-        EXPECT_TRUE(ReadBuffer(wrapMemory(bytes)).readLE(result).isOk());
+        EXPECT_TRUE(ByteReader(wrapMemory(bytes)).readLE(result).isOk());
         EXPECT_EQ(expected32, result);
     }
 
     {
         uint64 result;
-        EXPECT_TRUE(ReadBuffer(wrapMemory(bytes)).readLE(result).isOk());
+        EXPECT_TRUE(ByteReader(wrapMemory(bytes)).readLE(result).isOk());
         EXPECT_EQ(expected64, result);
     }
 }

@@ -48,7 +48,7 @@ TEST(TestBase16, testDecodedSize) {
 
 TEST(TestBase16, testBasicEncoding) {
     byte buffer[80];
-    WriteBuffer dest(wrapMemory(buffer));
+    ByteWriter dest(wrapMemory(buffer));
     Base16Encoder encoder(dest);
 
     const char* srcMem = "foobar";
@@ -110,7 +110,7 @@ TEST(TestBase16, testBasicEncodingIterator) {
 
 TEST(TestBase16, testBasicDecoding) {
     byte buffer[80];
-    WriteBuffer dest(wrapMemory(buffer));
+    ByteWriter dest(wrapMemory(buffer));
 
     Base16Decoder decoder(dest);
 
@@ -201,7 +201,7 @@ TEST(TestBase16, testDecodingIterator_InvalidData) {
 
 TEST(TestBase16, decodingInvalidInputThrows) {
     byte buffer[30];
-    WriteBuffer dest(wrapMemory(buffer));
+    ByteWriter dest(wrapMemory(buffer));
     Base16Decoder v(dest);
 
     EXPECT_TRUE(v.encode(wrapMemory("some! Not base16 (c)", 18)).isError());
@@ -209,7 +209,7 @@ TEST(TestBase16, decodingInvalidInputThrows) {
 
 TEST(TestBase16, decodingInputOfUnEvenSizeThrows) {
     byte buffer[30];
-    WriteBuffer dest(wrapMemory(buffer));
+    ByteWriter dest(wrapMemory(buffer));
     Base16Decoder v(dest);
 
     EXPECT_TRUE(v.encode(wrapMemory("666F6F626172", 11)).isError());
@@ -218,7 +218,7 @@ TEST(TestBase16, decodingInputOfUnEvenSizeThrows) {
 
 TEST(TestBase16, decodingIntoSmallerBufferErrors) {
     byte buffer[3];
-    WriteBuffer dest(wrapMemory(buffer));
+    ByteWriter dest(wrapMemory(buffer));
     Base16Decoder v(dest);
 
     EXPECT_TRUE(v.encode(wrapMemory("666F6F626172", 12)).isError());

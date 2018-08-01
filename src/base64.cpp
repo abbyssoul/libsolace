@@ -34,7 +34,7 @@ static constexpr byte kBase64UrlAlphabet[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef
 
 
 Result<void, Error>
-base64encode(WriteBuffer& dest, MemoryView const& src, byte const alphabet[65]) {
+base64encode(ByteWriter& dest, MemoryView const& src, byte const alphabet[65]) {
     MemoryView::size_type i = 0;
 
     for (; i + 2 < src.size(); i += 3) {
@@ -120,7 +120,7 @@ static const byte prUrl2six[256] = {
 
 
 Result<void, Error>
-base64decode(WriteBuffer& dest, MemoryView const& src, byte const* decodingTable) {
+base64decode(ByteWriter& dest, MemoryView const& src, byte const* decodingTable) {
     byte const* bufin = src.dataAddress();
     if (!bufin || src.size() == 0) {
         return Err(Error("Base64Decoding error: No data"));

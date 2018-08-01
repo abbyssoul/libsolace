@@ -14,16 +14,16 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Read Buffer
- *	@file		solace/readBuffer.hpp
- *	@brief		Read-only byte buffer
+ * libSolace: Byte Reader
+ *	@file		solace/byteReader.hpp
+ *	@brief		Read-only adapter for a memory buffer/view.
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_READBUFFER_HPP
-#define SOLACE_READBUFFER_HPP
+#ifndef SOLACE_BYTEREADER_HPP
+#define SOLACE_BYTEREADER_HPP
 
 #include "solace/memoryView.hpp"
-#include "solace/mutableMemoryView.hpp"
+#include "solace/mutableMemoryView.hpp"     // read destination
 #include "solace/memoryBuffer.hpp"
 
 #include "solace/result.hpp"
@@ -34,30 +34,28 @@ namespace Solace {
 
 /**
  * A byte buffer with stream access semantic.
- * This is an adapter on top of Immutable Memory view (@see ImmutableMemoryView) to enable easy reading of data.
+ * This is an adapter on top of Memory view (@see ImmutableMemoryView) to enable easy reading of data.
  *
  */
-class ReadBuffer {
+class ByteReader {
 public:
-
-    using Storage = MemoryBuffer;
-    using size_type = Storage::size_type;
+    using size_type = MemoryBuffer::size_type;
 
 public:
 
     /** Construct an empty buffer of size zero */
-    ReadBuffer() noexcept = default;
+    ByteReader() noexcept = default;
 
 
-    ReadBuffer(ReadBuffer const& other) = delete;
-    ReadBuffer& operator= (ReadBuffer const&) = delete;
+    ByteReader(ByteReader const& other) = delete;
+    ByteReader& operator= (ByteReader const&) = delete;
 
 
     /**
      * Construct the byte buffer by moving content from the other buffer
      * @param other Other buffer to take over from
      */
-    ReadBuffer(ReadBuffer&& other) :
+    ByteReader(ByteReader&& other) :
         _position(other._position),
         _limit(other._storage.size()),
         _storage(std::move(other._storage))
@@ -70,7 +68,7 @@ public:
      * Use move constructor if you want to delegate life-time management to the instance of the reader.
      * @param other Other buffer to copy data from
      */
-    ReadBuffer(MemoryBuffer& buffer) :
+    ByteReader(MemoryBuffer& buffer) :
         _limit(buffer.size()),
         _storage(buffer.view(), nullptr)
     {
@@ -80,7 +78,7 @@ public:
      * Construct the byte buffer from the memory buffer object
      * @param other Other buffer to copy data from
      */
-    ReadBuffer(MemoryBuffer&& buffer) :
+    ByteReader(MemoryBuffer&& buffer) :
         _limit(buffer.size()),
         _storage(std::move(buffer))
     {
@@ -90,14 +88,14 @@ public:
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    ReadBuffer(MemoryView view) :
+    ByteReader(MemoryView view) :
         _limit(view.size()),
         _storage(wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()), nullptr)
     {
     }
 
 
-    ReadBuffer& swap(ReadBuffer& rhs) noexcept {
+    ByteReader& swap(ByteReader& rhs) noexcept {
         using std::swap;
 
         swap(_position, rhs._position);
@@ -108,7 +106,7 @@ public:
     }
 
 
-    ReadBuffer& operator= (ReadBuffer&& rhs) noexcept {
+    ByteReader& operator= (ByteReader&& rhs) noexcept {
         return swap(rhs);
     }
 
@@ -117,7 +115,7 @@ public:
      * Leave the limit unchanged and sets the position to zero.
      * @return A reference to this for fluency.
      */
-    ReadBuffer& rewind() noexcept {
+    ByteReader& rewind() noexcept {
         _position = 0;
 
         return *this;
@@ -273,15 +271,15 @@ protected:
     size_type           _position{};
     size_type           _limit{};
 
-    Storage             _storage;
+    MemoryBuffer        _storage;
 
 };
 
 
 inline
-void swap(ReadBuffer& lhs, ReadBuffer& rhs) noexcept {
+void swap(ByteReader& lhs, ByteReader& rhs) noexcept {
     lhs.swap(rhs);
 }
 
 }  // End of namespace Solace
-#endif  // SOLACE_READBUFFER_HPP
+#endif  // SOLACE_BYTEREADER_HPP

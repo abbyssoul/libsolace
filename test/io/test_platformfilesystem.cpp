@@ -100,7 +100,7 @@ TEST_F(TestPlatformFs, testCreation) {
 
         f->seek(0, File::Seek::Set);
 
-        WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
+        ByteWriter readBuffer(_memoryManager.create(fileUIDBytes.size()));
         const auto read = f->read(readBuffer);
         EXPECT_TRUE(read.isOk());
         const MutableMemoryView::size_type bytesRead = read.unwrap();
@@ -133,7 +133,7 @@ TEST_F(TestPlatformFs, testCreationAndRemoval) {
         f->write(fileUIDBytes);
         f->close();
 
-        WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
+        ByteWriter readBuffer(_memoryManager.create(fileUIDBytes.size()));
         EXPECT_THROW(f->seek(0, File::Seek::Set), NotOpen);
         EXPECT_THROW(f->read(readBuffer), NotOpen);
     }
@@ -147,7 +147,7 @@ TEST_F(TestPlatformFs, testCreationAndRemoval) {
     {
         auto f = fs.open(filename);
 
-        WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
+        ByteWriter readBuffer(_memoryManager.create(fileUIDBytes.size()));
         const auto read = f->read(readBuffer);
         EXPECT_TRUE(read.isOk());
         const MutableMemoryView::size_type bytesRead = read.unwrap();
@@ -215,7 +215,7 @@ TEST_F(TestPlatformFs, testTemp) {
 
         f->seek(0, File::Seek::Set);
 
-        WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
+        ByteWriter readBuffer(_memoryManager.create(fileUIDBytes.size()));
         const auto read = f->read(readBuffer);
         EXPECT_TRUE(read.isOk());
         const MutableMemoryView::size_type bytesRead = read.unwrap();

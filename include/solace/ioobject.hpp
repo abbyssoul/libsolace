@@ -30,8 +30,8 @@
 #include "solace/result.hpp"
 #include "solace/error.hpp"
 
-#include "solace/readBuffer.hpp"
-#include "solace/writeBuffer.hpp"
+#include "solace/byteReader.hpp"
+#include "solace/byteWriter.hpp"
 
 
 namespace Solace {
@@ -97,7 +97,7 @@ public:
      * @param buffer Byte buffer to read data into.
      * @return Number of bytes actually read.
      */
-    IOResult read(WriteBuffer& destBuffer) {
+    IOResult read(ByteWriter& destBuffer) {
         return read(destBuffer, destBuffer.remaining());
     }
 
@@ -111,7 +111,7 @@ public:
      *
      * @return Number of bytes actually read.
      */
-    IOResult read(WriteBuffer& destBuffer, size_type bytesToRead);
+    IOResult read(ByteWriter& destBuffer, size_type bytesToRead);
 
 
     /** Read data from the io object into the given memory location/buffer.
@@ -135,7 +135,7 @@ public:
 
      * @return Number of bytes actually writen
      */
-    IOResult write(ReadBuffer& srcBuffer) {
+    IOResult write(ByteReader& srcBuffer) {
         return write(srcBuffer, srcBuffer.remaining());
     }
 
@@ -151,7 +151,7 @@ public:
      *
      * @return Number of bytes actually writen
      */
-    IOResult write(ReadBuffer& srcBuffer, size_type bytesToWrite);
+    IOResult write(ByteReader& srcBuffer, size_type bytesToWrite);
 
 
     /** Write data from the given byte buffer into this io object.

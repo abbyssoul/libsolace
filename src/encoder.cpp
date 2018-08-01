@@ -25,7 +25,7 @@ using namespace Solace;
 Encoder::~Encoder() = default;
 
 
-Result<void, Error> Encoder::encode(ReadBuffer& src) {
+Result<void, Error> Encoder::encode(ByteReader& src) {
     const auto remaining = src.remaining();
     return encode(src.viewRemaining())
             .then([&src, remaining]() { return src.advance(remaining); });

@@ -26,7 +26,7 @@
 #define SOLACE_STRINGBUILDER_HPP
 
 
-#include "solace/writeBuffer.hpp"
+#include "solace/byteWriter.hpp"
 #include "solace/string.hpp"
 
 #include "solace/traits/iformattable.hpp"
@@ -165,7 +165,7 @@ public:
 
 private:
 
-    WriteBuffer  _buffer;
+    ByteWriter  _buffer;
 };
 
 

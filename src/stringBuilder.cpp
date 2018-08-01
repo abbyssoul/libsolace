@@ -24,7 +24,7 @@
 #include "solace/stringBuilder.hpp"
 #include "solace/exception.hpp"
 
-#include "solace/readBuffer.hpp"
+#include "solace/byteReader.hpp"
 
 using namespace Solace;
 
@@ -102,7 +102,7 @@ StringBuilder::indexOf(const Char& ch, size_type fromIndex) const {
     auto b = wrapMemory(buffer);
 
 
-    ReadBuffer reader(_buffer.viewWritten());
+    ByteReader reader(_buffer.viewWritten());
     for (size_type i = fromIndex; i + ch.getBytesCount() < reader.limit(); ++i) {
         reader.read(i, b, ch.getBytesCount());
 

@@ -18,7 +18,7 @@
  * @file: test/test_writeBuffer.cpp
  * @author: soultaker
 *******************************************************************************/
-#include <solace/writeBuffer.hpp>  // Class being tested
+#include <solace/byteWriter.hpp>  // Class being tested
 
 #include <gtest/gtest.h>
 
@@ -30,19 +30,19 @@ TEST(TestWriteBuffer, testConstruction) {
 
 TEST(TestWriteBuffer, testPositioning) {
     byte mem[12];
-    constexpr WriteBuffer::size_type testSize = sizeof(mem);
-    auto buffer = WriteBuffer(wrapMemory(mem));
+    constexpr ByteWriter::size_type testSize = sizeof(mem);
+    auto buffer = ByteWriter(wrapMemory(mem));
 
     EXPECT_EQ(testSize, buffer.capacity());
     EXPECT_EQ(testSize, buffer.limit());
-    EXPECT_EQ(static_cast<WriteBuffer::size_type>(0), buffer.position());
+    EXPECT_EQ(static_cast<ByteWriter::size_type>(0), buffer.position());
 
     EXPECT_TRUE(buffer.position(buffer.position() + 12).isOk());
     EXPECT_TRUE(buffer.position(0).isOk());
     EXPECT_TRUE(buffer.advance(12).isOk());
     EXPECT_TRUE(buffer.position(0).isOk());
 
-    for (WriteBuffer::size_type i = 0; i < testSize; ++i) {
+    for (ByteWriter::size_type i = 0; i < testSize; ++i) {
         buffer.advance(1);
     }
     EXPECT_EQ(buffer.limit(), buffer.position());
@@ -59,7 +59,7 @@ TEST(TestWriteBuffer, testWrite) {
     {  // Happy path
         byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
 
-        WriteBuffer buffer(wrapMemory(destMem));
+        ByteWriter buffer(wrapMemory(destMem));
         EXPECT_NO_THROW(buffer.write(wrapMemory(bytes)));
         EXPECT_EQ(buffer.limit(), buffer.position());
     }
@@ -68,7 +68,7 @@ TEST(TestWriteBuffer, testWrite) {
         byte truckLoadOfData[] = {'a', 'b', 'c', 0, 'd', 'e', 'f', 'g'};
         auto viewBytes = wrapMemory(truckLoadOfData);
 
-        WriteBuffer buffer(wrapMemory(destMem));
+        ByteWriter buffer(wrapMemory(destMem));
         // Attempt to write more bytes then fit into the dest buffer
         EXPECT_TRUE(buffer.write(viewBytes).isError());
 
@@ -83,14 +83,14 @@ TEST(TestWriteBuffer, writeBigEndian) {
 
     {
         uint16 const value(1025);
-        EXPECT_TRUE(WriteBuffer(wrapMemory(bytes)).writeBE(value).isOk());
+        EXPECT_TRUE(ByteWriter(wrapMemory(bytes)).writeBE(value).isOk());
         EXPECT_EQ(static_cast<byte>(0x04), bytes[0]);
         EXPECT_EQ(static_cast<byte>(0x01), bytes[1]);
     }
 
     {
         uint32 const value(0x842da380);
-        EXPECT_TRUE(WriteBuffer(wrapMemory(bytes)).writeBE(value).isOk());
+        EXPECT_TRUE(ByteWriter(wrapMemory(bytes)).writeBE(value).isOk());
         EXPECT_EQ(static_cast<byte>(0x84), bytes[0]);
         EXPECT_EQ(static_cast<byte>(0x2d), bytes[1]);
         EXPECT_EQ(static_cast<byte>(0xa3), bytes[2]);
@@ -99,7 +99,7 @@ TEST(TestWriteBuffer, writeBigEndian) {
 
     {
         uint64 const value(0x842da380e3426dff);
-        EXPECT_TRUE(WriteBuffer(wrapMemory(bytes)).writeBE(value).isOk());
+        EXPECT_TRUE(ByteWriter(wrapMemory(bytes)).writeBE(value).isOk());
         EXPECT_EQ(static_cast<byte>(0x84), bytes[0]);
         EXPECT_EQ(static_cast<byte>(0x2d), bytes[1]);
         EXPECT_EQ(static_cast<byte>(0xa3), bytes[2]);
@@ -116,14 +116,14 @@ TEST(TestWriteBuffer, writeLittleEndian) {
     byte bytes[8];
     {
         uint16 const value(1025);
-        EXPECT_TRUE(WriteBuffer(wrapMemory(bytes)).writeLE(value).isOk());
+        EXPECT_TRUE(ByteWriter(wrapMemory(bytes)).writeLE(value).isOk());
         EXPECT_EQ(static_cast<byte>(0x01), bytes[0]);
         EXPECT_EQ(static_cast<byte>(0x04), bytes[1]);
     }
 
     {
         uint32 const value(1025);
-        EXPECT_TRUE(WriteBuffer(wrapMemory(bytes)).writeLE(value).isOk());
+        EXPECT_TRUE(ByteWriter(wrapMemory(bytes)).writeLE(value).isOk());
         EXPECT_EQ(static_cast<byte>(0x01), bytes[0]);
         EXPECT_EQ(static_cast<byte>(0x04), bytes[1]);
         EXPECT_EQ(static_cast<byte>(0x00), bytes[2]);
@@ -132,7 +132,7 @@ TEST(TestWriteBuffer, writeLittleEndian) {
 
     {
         uint64 const value(0x842da380e3426dff);
-        EXPECT_TRUE(WriteBuffer(wrapMemory(bytes)).writeLE(value).isOk());
+        EXPECT_TRUE(ByteWriter(wrapMemory(bytes)).writeLE(value).isOk());
         EXPECT_EQ(static_cast<byte>(0xff), bytes[0]);
         EXPECT_EQ(static_cast<byte>(0x6d), bytes[1]);
         EXPECT_EQ(static_cast<byte>(0x42), bytes[2]);

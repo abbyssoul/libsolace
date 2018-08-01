@@ -1,5 +1,5 @@
 /*
-*  Copyright 2018 Ivan Ryabov
+*  Copyright 2016 Ivan Ryabov
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -15,10 +15,10 @@
 */
 /*******************************************************************************
  * libSolace
- *	@file		writeBuffer.cpp
- *	@brief		Implementation of WriteBuffer
+ *	@file		byteWriter.cpp
+ *	@brief		Implementation of ByteWriter
  ******************************************************************************/
-#include "solace/writeBuffer.hpp"
+#include "solace/byteWriter.hpp"
 
 
 #include <cstring>  // memcpy
@@ -28,7 +28,7 @@ using namespace Solace;
 
 
 Result<void, Error>
-WriteBuffer::limit(size_type newLimit) {
+ByteWriter::limit(size_type newLimit) {
     if (capacity() < newLimit) {
         return Err(Error("OverflowError: limit(): new limit is greater then capacity."));
     }
@@ -40,7 +40,7 @@ WriteBuffer::limit(size_type newLimit) {
 
 
 Result<void, Error>
-WriteBuffer::position(size_type newPosition) {
+ByteWriter::position(size_type newPosition) {
     if (limit() < newPosition) {
         return Err(Error("OverflowError: position(): value pass the buffer end."));
     }
@@ -52,7 +52,7 @@ WriteBuffer::position(size_type newPosition) {
 
 
 Result<void, Error>
-WriteBuffer::advance(size_type increment) {
+ByteWriter::advance(size_type increment) {
     if (remaining() < increment) {
         return Err(Error("OverflowError: advance(): move pass the buffer end."));
     }
@@ -64,7 +64,7 @@ WriteBuffer::advance(size_type increment) {
 
 
 Result<void, Error>
-WriteBuffer::write(const MemoryView& data, size_type bytesToWrite) {
+ByteWriter::write(const MemoryView& data, size_type bytesToWrite) {
     if (data.size() < bytesToWrite) {
         return Err(Error("OverflowError: write(dest, size): destination buffer is too small"));
     }
@@ -74,7 +74,7 @@ WriteBuffer::write(const MemoryView& data, size_type bytesToWrite) {
 
 
 Result<void, Error>
-WriteBuffer::write(void const* data, size_type count) {
+ByteWriter::write(void const* data, size_type count) {
     if (count == 0) {
         return Ok();
     }
@@ -92,7 +92,7 @@ WriteBuffer::write(void const* data, size_type count) {
 
 
 Result<void, Error>
-WriteBuffer::writeLE(uint16 value) {
+ByteWriter::writeLE(uint16 value) {
     constexpr auto valueSize = sizeof(value);
     auto result = value;
 
@@ -108,7 +108,7 @@ WriteBuffer::writeLE(uint16 value) {
 
 
 Result<void, Error>
-WriteBuffer::writeLE(uint32 value) {
+ByteWriter::writeLE(uint32 value) {
     constexpr auto valueSize = sizeof(value);
     auto result = value;
 
@@ -126,7 +126,7 @@ WriteBuffer::writeLE(uint32 value) {
 
 
 Result<void, Error>
-WriteBuffer::writeLE(uint64 value) {
+ByteWriter::writeLE(uint64 value) {
     constexpr auto valueSize = sizeof(value);
     auto result = value;
 
@@ -148,7 +148,7 @@ WriteBuffer::writeLE(uint64 value) {
 
 
 Result<void, Error>
-WriteBuffer::writeBE(uint16 value) {
+ByteWriter::writeBE(uint16 value) {
     constexpr auto valueSize = sizeof(value);
     auto result = value;
 
@@ -164,7 +164,7 @@ WriteBuffer::writeBE(uint16 value) {
 
 
 Result<void, Error>
-WriteBuffer::writeBE(uint32 value) {
+ByteWriter::writeBE(uint32 value) {
     constexpr auto valueSize = sizeof(value);
     auto result = value;
 
@@ -182,7 +182,7 @@ WriteBuffer::writeBE(uint32 value) {
 
 
 Result<void, Error>
-WriteBuffer::writeBE(uint64 value) {
+ByteWriter::writeBE(uint64 value) {
     constexpr auto valueSize = sizeof(value);
     auto result = value;
 

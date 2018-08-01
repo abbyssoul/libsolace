@@ -147,7 +147,7 @@ UUID::toString() const {
 
 StringView
 UUID::toString(MutableMemoryView buffer) const {
-    WriteBuffer dest(buffer);
+    ByteWriter dest(buffer);
     Base16Encoder encoder(dest);
 
     auto dataView = view();

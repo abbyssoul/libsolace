@@ -15,10 +15,10 @@
 */
 /*******************************************************************************
  * libSolace
- *	@file		readBuffer.cpp
- *	@brief		Implementation of ReadBuffer
+ *	@file		byteReader.cpp
+ *	@brief		Implementation of Byte Reader
  ******************************************************************************/
-#include "solace/readBuffer.hpp"
+#include "solace/byteReader.hpp"
 
 
 #include <cstring>  // memcpy
@@ -28,7 +28,7 @@ using namespace Solace;
 
 
 Result<void, Error>
-ReadBuffer::limit(size_type newLimit) {
+ByteReader::limit(size_type newLimit) {
     if (capacity() < newLimit) {
         return Err<Error>(StringView("OverflowError: limit(): new limit is greater then capacity."));
     }
@@ -40,7 +40,7 @@ ReadBuffer::limit(size_type newLimit) {
 
 
 Result<void, Error>
-ReadBuffer::position(size_type newPosition) {
+ByteReader::position(size_type newPosition) {
     if (limit() < newPosition) {
         return Err<Error>(StringView("OverflowError: position(): value pass the buffer end."));
     }
@@ -52,7 +52,7 @@ ReadBuffer::position(size_type newPosition) {
 
 
 Result<void, Error>
-ReadBuffer::advance(size_type increment) {
+ByteReader::advance(size_type increment) {
     if (remaining() < increment) {
         return Err<Error>(StringView("OverflowError: advance(): move pass the buffer end."));
     }
@@ -64,7 +64,7 @@ ReadBuffer::advance(size_type increment) {
 
 
 Result<byte, Error>
-ReadBuffer::get() {
+ByteReader::get() {
     if (remaining() < 1) {
         return Err<Error>(StringView("OverflowError: get(): no data remained in the buffer"));
     }
@@ -73,7 +73,7 @@ ReadBuffer::get() {
 }
 
 Result<byte, Error>
-ReadBuffer::get(size_type pos) const {
+ByteReader::get(size_type pos) const {
     if (limit() <= pos) {
         return Err<Error>(StringView("OverflowError: get(pos): offset outside of the buffer"));
     }
@@ -83,7 +83,7 @@ ReadBuffer::get(size_type pos) const {
 
 
 Result<void, Error>
-ReadBuffer::read(MutableMemoryView& dest, size_type bytesToRead) {
+ByteReader::read(MutableMemoryView& dest, size_type bytesToRead) {
     if (dest.size() < bytesToRead) {
         return Err<Error>(StringView("OverflowError: read(dest, size): destination buffer is too small"));
     }
@@ -93,7 +93,7 @@ ReadBuffer::read(MutableMemoryView& dest, size_type bytesToRead) {
 
 
 Result<void, Error>
-ReadBuffer::read(void* dest, size_type bytesToRead) {
+ByteReader::read(void* dest, size_type bytesToRead) {
     if (remaining() < bytesToRead) {
         return Err<Error>(StringView("UnderflowError: read(dest, size): not enough data in the buffer"));
     }
@@ -107,7 +107,7 @@ ReadBuffer::read(void* dest, size_type bytesToRead) {
 
 
 Result<void, Error>
-ReadBuffer::read(size_type offset, MutableMemoryView& dest, size_type bytesToRead) const {
+ByteReader::read(size_type offset, MutableMemoryView& dest, size_type bytesToRead) const {
     if (dest.size() < bytesToRead) {
         return Err<Error>(StringView("OverflowError: read(dest, size): destination buffer is too small"));
     }
@@ -124,7 +124,7 @@ ReadBuffer::read(size_type offset, MutableMemoryView& dest, size_type bytesToRea
 
 
 Result<void, Error>
-ReadBuffer::readLE(uint16& value) {
+ByteReader::readLE(uint16& value) {
     constexpr auto valueSize = sizeof(value);
     return read(&value, valueSize)
             .then([&]() {
@@ -139,7 +139,7 @@ ReadBuffer::readLE(uint16& value) {
 }
 
 Result<void, Error>
-ReadBuffer::readLE(uint32& value) {
+ByteReader::readLE(uint32& value) {
     constexpr auto valueSize = sizeof(value);
     return read(&value, valueSize)
             .then([&]() {
@@ -157,7 +157,7 @@ ReadBuffer::readLE(uint32& value) {
 
 
 Result<void, Error>
-ReadBuffer::readLE(uint64& value) {
+ByteReader::readLE(uint64& value) {
     constexpr auto valueSize = sizeof(value);
     return read(&value, valueSize)
             .then([&]() {
@@ -179,7 +179,7 @@ ReadBuffer::readLE(uint64& value) {
 
 
 Result<void, Error>
-ReadBuffer::readBE(uint16& value) {
+ByteReader::readBE(uint16& value) {
     constexpr auto valueSize = sizeof(value);
     return read(&value, valueSize)
             .then([&]() {
@@ -194,7 +194,7 @@ ReadBuffer::readBE(uint16& value) {
 }
 
 Result<void, Error>
-ReadBuffer::readBE(uint32& value) {
+ByteReader::readBE(uint32& value) {
     constexpr auto valueSize = sizeof(value);
     return read(&value, valueSize)
             .then([&]() {
@@ -211,7 +211,7 @@ ReadBuffer::readBE(uint32& value) {
 }
 
 Result<void, Error>
-ReadBuffer::readBE(uint64& value) {
+ByteReader::readBE(uint64& value) {
     constexpr auto valueSize = sizeof(value);
     return read(&value, valueSize)
             .then([&]() {
