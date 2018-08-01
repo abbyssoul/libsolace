@@ -22,8 +22,8 @@
 #ifndef SOLACE_READBUFFER_HPP
 #define SOLACE_READBUFFER_HPP
 
-#include "solace/immutableMemoryView.hpp"
 #include "solace/memoryView.hpp"
+#include "solace/mutableMemoryView.hpp"
 #include "solace/memoryBuffer.hpp"
 
 #include "solace/result.hpp"
@@ -90,9 +90,9 @@ public:
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    ReadBuffer(ImmutableMemoryView view) :
+    ReadBuffer(MemoryView view) :
         _limit(view.size()),
-        _storage(wrapMemory(const_cast<ImmutableMemoryView::value_type*>(view.dataAddress()), view.size()), nullptr)
+        _storage(wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()), nullptr)
     {
     }
 
@@ -211,26 +211,26 @@ public:
      * @return Nothing if successfull or an error.
      */
     Result<void, Error>
-    read(MemoryView& dest) {
+    read(MutableMemoryView& dest) {
         return read(dest, dest.size());
     }
 
     Result<void, Error>
-    read(MemoryView& dest, size_type bytesToRead);
+    read(MutableMemoryView& dest, size_type bytesToRead);
 
     Result<void, Error>
-    read(size_type offset, MemoryView& dest, size_type bytesToRead) const;
+    read(size_type offset, MutableMemoryView& dest, size_type bytesToRead) const;
 
     Result<void, Error>
-    read(size_type offset, MemoryView& dest) const  {
+    read(size_type offset, MutableMemoryView& dest) const  {
         return read(offset, dest, dest.size());
     }
 
-    ImmutableMemoryView viewRemaining() const {
+    MemoryView viewRemaining() const {
         return _storage.view().slice(position(), limit());
     }
 
-    ImmutableMemoryView viewWritten() const {
+    MemoryView viewWritten() const {
         return _storage.view().slice(0, position());
     }
 

@@ -29,7 +29,7 @@
 
 using Solace::byte;
 using Solace::Char;
-using Solace::ImmutableMemoryView;
+using Solace::MemoryView;
 
 
 const Char Char::Eof {static_cast<value_type>(EOF)};
@@ -54,7 +54,7 @@ Char::Char(char c) {
 }
 
 
-Char::Char(const ImmutableMemoryView& bytes) {
+Char::Char(const MemoryView& bytes) {
     // TODO(abbyssoul): Assert::notNull(bytes);
     // TODO(abbyssoul): Assert::indexInRange(count, 0, max_bytes);
 
@@ -92,7 +92,7 @@ const char* Char::c_str() const noexcept {
 }
 
 
-const ImmutableMemoryView Char::getBytes() const {
+const MemoryView Char::getBytes() const {
     return wrapMemory(_bytes, getBytesCount());
 }
 

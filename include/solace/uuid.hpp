@@ -28,7 +28,7 @@
 #include "solace/traits/iformattable.hpp"
 #include "solace/traits/icomparable.hpp"
 
-#include "solace/immutableMemoryView.hpp"
+#include "solace/memoryView.hpp"
 #include "solace/string.hpp"
 #include "solace/result.hpp"
 #include "solace/error.hpp"
@@ -97,7 +97,7 @@ public:
      * Try to construct the UUID from individual bytes
      * @note This can throw if number of byte given is less then expected
      */
-    UUID(ImmutableMemoryView s);
+    UUID(MemoryView s);
 
 public:
 
@@ -163,12 +163,12 @@ public:
     value_type operator[] (size_type index) const;
 
     // TODO(abbyssoul): should be ImmutableMemoryView
-    ImmutableMemoryView view() const noexcept;
-    MemoryView view() noexcept;
+    MemoryView view() const noexcept;
+    MutableMemoryView view() noexcept;
 
     /** @see IFormattable::toString() */
     String toString() const override;
-    StringView toString(MemoryView buffer) const;
+    StringView toString(MutableMemoryView buffer) const;
 
     friend bool operator < (UUID const& lhs, UUID const& rhs) noexcept;
 

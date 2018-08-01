@@ -42,14 +42,14 @@ public:
     {}
 
 
-    size_type encodedSize(ImmutableMemoryView const& data) const override {
+    size_type encodedSize(MemoryView const& data) const override {
         return encodedSize(data.size());
     }
 
     using Encoder::encode;
 
     Result<void, Error>
-    encode(ImmutableMemoryView const& src) override;
+    encode(MemoryView const& src) override;
 };
 
 
@@ -60,7 +60,7 @@ class Base64Decoder : public Encoder {
 public:
     using Encoder::size_type;
 
-    static size_type decodedSize(ImmutableMemoryView const& data);
+    static size_type decodedSize(MemoryView const& data);
 
 public:
 
@@ -68,12 +68,12 @@ public:
         Encoder(dest)
     {}
 
-    size_type encodedSize(ImmutableMemoryView const& data) const override;
+    size_type encodedSize(MemoryView const& data) const override;
 
     using Encoder::encode;
 
     Result<void, Error>
-    encode(ImmutableMemoryView const& src) override;
+    encode(MemoryView const& src) override;
 
 };
 
@@ -95,7 +95,7 @@ public:
     using Base64Encoder::encode;
 
     Result<void, Error>
-    encode(ImmutableMemoryView const& src) override;
+    encode(MemoryView const& src) override;
 };
 
 
@@ -118,7 +118,7 @@ public:
     using Base64Decoder::encode;
 
     Result<void, Error>
-    encode(ImmutableMemoryView const& src) override;
+    encode(MemoryView const& src) override;
 };
 
 

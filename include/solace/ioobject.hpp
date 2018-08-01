@@ -37,8 +37,8 @@
 namespace Solace {
 
 
-class ImmutableMemoryView;
 class MemoryView;
+class MutableMemoryView;
 
 
 /**
@@ -123,7 +123,7 @@ public:
      * @param destBuffer Destanation buffer to read data into
      * @return Result of number of bytes actually read if successful or an error.
      */
-    virtual IOResult read(MemoryView& destBuffer) = 0;
+    virtual IOResult read(MutableMemoryView& destBuffer) = 0;
 
     /** Write data from the given byte buffer into this io object.
      * The write operation attempts to write as much data as availiable the given buffer.
@@ -162,7 +162,7 @@ public:
 
      * @return Number of bytes actually writen
      */
-    virtual IOResult write(const ImmutableMemoryView& srcBuffer) = 0;
+    virtual IOResult write(const MemoryView& srcBuffer) = 0;
 
 };
 

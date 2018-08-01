@@ -51,7 +51,7 @@ TEST(TestReadBuffer, constructFromMutableMemory) {
     byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
     constexpr size_type testSize = sizeof (bytes);
 
-    MemoryView memView = wrapMemory(bytes);
+    MutableMemoryView memView = wrapMemory(bytes);
 
     ReadBuffer buffer(std::move(memView));
     EXPECT_EQ(testSize, buffer.capacity());
@@ -132,7 +132,7 @@ TEST(TestReadBuffer, testReadIntoBuffer) {
     constexpr size_type readBufferChunk = 3;
 
     ReadBuffer buffer(wrapMemory(srcBytes));
-    MemoryView destView = wrapMemory(destBuffer);
+    MutableMemoryView destView = wrapMemory(destBuffer);
 
     EXPECT_TRUE(buffer.read(destView, readBufferChunk).isOk());
     for (size_type i = 0; i < readBufferChunk; ++i) {
@@ -154,7 +154,7 @@ TEST(TestReadBuffer, testReadFromOffset) {
     constexpr size_type readBufferChunk = 3;
 
     ReadBuffer buffer(wrapMemory(srcBytes));
-    MemoryView destView = wrapMemory(readBuffer);
+    MutableMemoryView destView = wrapMemory(readBuffer);
 
     // Read data from an offset
     EXPECT_TRUE(buffer.read(4, destView, readBufferChunk).isOk());

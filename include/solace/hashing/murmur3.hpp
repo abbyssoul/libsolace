@@ -62,7 +62,7 @@ public:
      * @param input A memory view to read data from.
      * @return A reference to self for a fluent interface.
      */
-    HashingAlgorithm& update(ImmutableMemoryView input) override;
+    HashingAlgorithm& update(MemoryView input) override;
 
     /*
      * Completes the hash computation by performing final operations such as padding.
@@ -108,7 +108,7 @@ public:
      * @param input A memory view to read data from.
      * @return A reference to self for a fluent interface.
      */
-    HashingAlgorithm& update(ImmutableMemoryView input) override;
+    HashingAlgorithm& update(MemoryView input) override;
 
     /*
      * Completes the hash computation by performing final operations such as padding.

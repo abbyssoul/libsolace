@@ -16,187 +16,192 @@
 /*******************************************************************************
  * libSolace: MemoryView
  *	@file		solace/memoryView.hpp
- *	@author		$LastChangedBy: $
- *	@date		$LastChangedDate: $
  *	@brief		MemoryView object
- *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_MEMORYVIEW_HPP
 #define SOLACE_MEMORYVIEW_HPP
 
-#include "solace/immutableMemoryView.hpp"
+#include "solace/types.hpp"
+#include "solace/assert.hpp"
+#include "solace/utils.hpp"
 
 
 namespace Solace {
 
-/* View into a fixed-length raw memory buffer which allows mutation of the undelaying data.
- * A very thin abstruction on top of raw memory address - it remembers memory block address and size.
+/**
+ * Check if Runtime platform is big or little endian.
+ * @return True if running on a big endian system.
+ */
+bool isBigendian() noexcept;
+
+
+/* Read-only view into a fixed-length raw memory buffer.
+ * A very thin abstruction on top of raw memory address -
+ * it remembers memory block address and size.
  *
  * View has a value semantic and gives a user random access to the undelying memory.
+ * Howeevr ImmutableMemoryView does not allow for modification of underlaying values - it is read-only.
  *
  * For a mutable access please use @see MemoryView
- * For the a convenient adapter for stream semantic please @see WriteBuffer
+ * For the stream semantic please @see ReadBuffer
+ *
+ * Class invariant:
+ *  * if (a.size() > 0) => (a.dataAddress() != nullptr)
+ *  * if (a.dataAddress() == nullptr) => (a.size() == 0)
+ *
  */
-class MemoryView
-        : public ImmutableMemoryView {
-public:
-    using ImmutableMemoryView::size_type;
-    using ImmutableMemoryView::value_type;
-
-    using ImmutableMemoryView::const_iterator;
-    using ImmutableMemoryView::const_reference;
-
-    using reference = value_type &;
-    using iterator = value_type *;
-
+class MemoryView {
 public:
 
-    /** Destroy the view. No memory will be actually free. */
-    ~MemoryView() = default;
+    using MemoryAddress = void *;
 
-    /** Construct an empty memory view */
-    MemoryView() noexcept = default;
+    using size_type  = uint64;
+    using value_type = byte;
+
+    using const_reference = value_type const&;
+    using const_iterator  = value_type const*;
+
+public:
 
     /**
-     * Construct a memory view from a row pointer and the size
-     * @param data A pointer to the contigues memory region.
-     * @param dataSize The size of the contigues memory region.
-     *
-     * @throws IllegalArgumentException if the `data` is nullptr while size is non-zero.
+     * Construct an empty memory view with:
+     *  size == 0 and dataAddress == nullptr
      */
-    MemoryView(void* data, size_type dataSize) :
-        ImmutableMemoryView(data, dataSize)
+    constexpr MemoryView() noexcept = default;
+
+    /**
+     * Construct an empty memory view with:
+     *  size == 0 and dataAddress == nullptr
+     */
+    constexpr MemoryView(decltype(nullptr)) noexcept
     {}
+
+    /**
+     * Construct an memory view from a data ptr and a size
+     * @param data Memory address.
+     * @param size The size of the memory block.
+     * @note: it is illigal to pass null data with a non 0 size.
+    */
+    MemoryView(void const* data, size_type size);
 
     MemoryView(MemoryView const&) noexcept = default;
     MemoryView& operator= (MemoryView const&) noexcept = default;
 
-    MemoryView(MemoryView&& rhs) noexcept = default;
+    /** Move construct an instance of the memory view **/
+    MemoryView(MemoryView&& rhs) noexcept :
+        _size(std::exchange(rhs._size, 0)),
+        _dataAddress(std::exchange(rhs._dataAddress, nullptr))
+    {
+    }
+
+    /** Move assignment **/
+    MemoryView& operator= (MemoryView&& rhs) noexcept {
+        return swap(rhs);
+    }
 
     MemoryView& swap(MemoryView& rhs) noexcept {
-        ImmutableMemoryView::swap(rhs);
+        using std::swap;
+
+        swap(_size, rhs._size);
+        swap(_dataAddress, rhs._dataAddress);
 
         return (*this);
     }
 
 
-    MemoryView& operator= (MemoryView&& rhs) noexcept {
-        return swap(rhs);
-    }
-
-    using ImmutableMemoryView::equals;
-
     bool equals(MemoryView const& other) const noexcept {
-        return ImmutableMemoryView::equals(other);
+        if ((&other == this) ||
+            ((_size == other._size) && (_dataAddress == other._dataAddress))) {
+            return true;
+        }
+
+        if (_size != other._size) {
+            return false;
+        }
+
+        for (size_type i = 0; i < _size; ++i) {
+            if (_dataAddress[i] != other._dataAddress[i]) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
+    constexpr bool empty() const noexcept {
+        return (_size == 0);
+    }
+
+    explicit operator bool() const noexcept {
+        return (_dataAddress != nullptr);
+    }
+
+    /**
+     * @return The size of this finite collection
+     */
+    constexpr size_type size() const noexcept { return _size; }
 
     /**
      * Return iterator to beginning of the collection
      * @return iterator to beginning of the collection
      */
-    iterator begin() noexcept {
-        return const_cast<value_type*>(dataAddress());
+    const_iterator begin() const noexcept {
+        return _dataAddress;
     }
-    using ImmutableMemoryView::begin;
 
     /**
      * Return iterator to end of the collection
      * @return iterator to end of the collection
      */
-    iterator end() noexcept {
-        return const_cast<value_type*>(dataAddress() + size());
+    const_iterator end() const noexcept {
+        return _dataAddress + _size;
     }
-    using ImmutableMemoryView::end;
-
-    reference  operator[] (size_type index);
-    using ImmutableMemoryView::operator[];
-
-    using ImmutableMemoryView::dataAddress;
-
-    value_type* dataAddress();
-    value_type* dataAddress(size_type offset);
 
 
-    using ImmutableMemoryView::dataAs;
+    value_type first() const noexcept { return _dataAddress[0]; }
+    value_type last()  const noexcept { return _dataAddress[size() - 1]; }
+
+    value_type operator[] (size_type index) const;
+
+    const value_type* dataAddress() const noexcept { return _dataAddress; }
+    const value_type* dataAddress(size_type offset) const;
+
     template <typename T>
-    T* dataAs(size_type offset = 0) {
+    const T* dataAs() const noexcept { return reinterpret_cast<const T*>(_dataAddress); }
+
+    template <typename T>
+    const T* dataAs(size_type offset) const {
         assertIndexInRange(offset, 0, this->size());
-        assertIndexInRange(offset + sizeof(T), offset, this->size() + 1);
+        assertIndexInRange(offset + sizeof(T), offset, this->size());
 
-        return reinterpret_cast<T*>(dataAddress() + offset);
+        return reinterpret_cast<const T*>(_dataAddress + offset);
     }
 
 
-    /**
-     * Copy data from the given memory view into this one
-     * @param source Source of data to be written into this location.
-     * @param offset Offset location into this buffer to copy data to.
-     */
-    void write(ImmutableMemoryView const& source, size_type offset = 0);
 
-    /**
-     * Copy data from this buffer into the given one.
-     * @param data Data destinatio to transer data into.
-     */
-    void read(MemoryView& dest);
-
-    /**
-     * Copy data from this buffer into the given one.
-     * @param data Data destinatio to transer data into.
-     * @param bytesToRead Number of bytes to copy from this bufer into the destanation.
-     * @param offset Offset location into this buffer to start reading from.
-     */
-    void read(MemoryView& dest, size_type bytesToRead, size_type offset = 0);
-
-    /** Fill memory block with the given value.
+    /**  Create a slice/window view of this memory segment.
      *
-     * @param value Value to fill memory block with.
+     * @param from [in] Offset to begin the slice from.
+     * @param to [in] The last element to slice to.
      *
-     * @return A reference to this for fluent interface
+     * @return The slice of the memory segment.
      */
-    MemoryView& fill(byte value);
-
-    /** Fill memory block with the given value.
-     *
-     * @param value Value to fill memory block with.
-     * @param from Offset to start the fill from.
-     * @param to Index to fill the view upto.
-     *
-     * @return A reference to this for fluent interface
-     */
-    MemoryView& fill(byte value, size_type from, size_type to);
+    MemoryView slice(size_type from, size_type to) const;
 
     /**
-     * Lock this virtual address space memory into RAM, preventing that memory from being paged to the swap area.
-     * @note: Memory locking and unlocking are performed in units of whole pages.
-     * That is if when this memory view if locked - it will lock all memory that falls onto the same pages as this.
+     * Get a shallow view of this memory buffer.
+     * Shallow view does not get any ownership of the memory.
+     * When owner of the memory goes out of scope the view will become invalid.
+     *
+     * @return A memory view without ownership of the memory.
      */
-    MemoryView& lock();
+    MemoryView viewImmutableShallow() const;
 
-    /**
-     * Unlock virtual address space, so that pages in the specified virtual address range may once more to be
-     * swapped out if required by the kernel memory manager.
-     * @note: Memory locking and unlocking are performed in units of whole pages.
-     * That is if when this memory view is unlocked - it will also unlock all memory that falls onto the same pages.
-     */
-    MemoryView& unlock();
+private:
 
-    using ImmutableMemoryView::slice;
-    MemoryView slice(size_type from, size_type to);
-
-    template<typename T, typename... Args>
-    T* construct(Args&&... args) {
-        assertIndexInRange(static_cast<size_type>(sizeof(T)), static_cast<size_type>(0), this->size() + 1);
-
-        return new (dataAddress()) T(std::forward<Args>(args)...);
-    }
-
-    template<typename T>
-    void destruct(T* t) {
-        t->~T();
-    }
+    size_type                   _size{};
+    byte const*                 _dataAddress{nullptr};
 };
 
 
@@ -210,129 +215,37 @@ public:
  *
  * @return MemoryView object wrapping the memory address given
  */
-inline MemoryView wrapMemory(void* data, MemoryView::size_type size) { return {data, size}; }
+inline MemoryView wrapMemory(void const* data, MemoryView::size_type size) { return {data, size}; }
 
-inline MemoryView wrapMemory(byte* data, MemoryView::size_type size) { return {data, size}; }
+inline MemoryView wrapMemory(byte const* data, MemoryView::size_type size) { return {data, size}; }
 
-inline MemoryView wrapMemory(char* data, MemoryView::size_type size) { return {data, size}; }
+inline MemoryView wrapMemory(char const* data, MemoryView::size_type size) { return {data, size}; }
 
 template<typename PodType, size_t N>
-inline MemoryView wrapMemory(PodType (&data)[N]) {
-    return wrapMemory(static_cast<void*>(data), N * sizeof(PodType));
+inline MemoryView wrapMemory(PodType const (&data)[N]) {
+    return wrapMemory(static_cast<void const*>(data), N * sizeof(PodType));
 }
 
 
-inline void
-swap(MemoryView& a, MemoryView& b) {
+inline void swap(MemoryView& a, MemoryView& b) {
     a.swap(b);
 }
 
 
 inline
-bool operator== (MemoryView const& rhs, MemoryView const& lhs) noexcept {
-    return rhs.equals(lhs);
+bool operator== (MemoryView const& lhs, MemoryView const& rhs) noexcept {
+    return lhs.equals(rhs);
 }
 
 inline
-bool operator!= (MemoryView const& rhs, MemoryView const& lhs) noexcept {
-    return !rhs.equals(lhs);
-}
-
-inline
-bool operator== (MemoryView const& rhs, ImmutableMemoryView const& lhs) noexcept {
-    return rhs.equals(lhs);
-}
-
-inline
-bool operator!= (MemoryView const& rhs, ImmutableMemoryView const& lhs) noexcept {
-    return !rhs.equals(lhs);
+bool operator!= (MemoryView const& lhs, MemoryView const& rhs) noexcept {
+    return !lhs.equals(rhs);
 }
 
 
-/// Some data manipulication utilities:
 
-/*
- * 32-bit integer manipulation (big endian)
- */
-inline
-void getUint32_BE(uint32& n, const byte* b, size_t i) {
-    n =   static_cast<uint32>(b[i    ]) << 24
-        | static_cast<uint32>(b[i + 1]) << 16
-        | static_cast<uint32>(b[i + 2]) <<  8
-        | static_cast<uint32>(b[i + 3]);
-}
+std::ostream& operator<< (std::ostream& ostr, MemoryView const& str);
 
-inline
-void putUint32_BE(uint32& n, byte* b, size_t i) {
-    b[i    ] = static_cast<byte>(n >> 24);
-    b[i + 1] = static_cast<byte>(n >> 16);
-    b[i + 2] = static_cast<byte>(n >>  8);
-    b[i + 3] = static_cast<byte>(n);
-}
-
-
-/*
- * 32-bit integer manipulation macros (little endian)
- */
-inline
-void getInt32_LE(int32& n, const byte* b, size_t i) {
-    n =   static_cast<int32>(b[i   ])
-        | static_cast<int32>(b[i + 1]) <<  8
-        | static_cast<int32>(b[i + 2]) << 16
-        | static_cast<int32>(b[i + 3]) << 24;
-}
-
-inline
-void getUint32_LE(uint32& n, const byte* b, size_t i) {
-    n =   static_cast<uint32>(b[i   ])
-        | static_cast<uint32>(b[i + 1]) <<  8
-        | static_cast<uint32>(b[i + 2]) << 16
-        | static_cast<uint32>(b[i + 3]) << 24;
-}
-
-inline
-void putInt32_LE(int32& n, byte* b, size_t i) {
-    b[i    ] = static_cast<byte>((n)       & 0xFF);
-    b[i + 1] = static_cast<byte>((n >>  8) & 0xFF);
-    b[i + 2] = static_cast<byte>((n >> 16) & 0xFF);
-    b[i + 3] = static_cast<byte>((n >> 24) & 0xFF);
-}
-
-inline
-void putUint32_LE(uint32& n, byte* b, size_t i) {
-    b[i    ] = static_cast<byte>((n)       & 0xFF);
-    b[i + 1] = static_cast<byte>((n >>  8) & 0xFF);
-    b[i + 2] = static_cast<byte>((n >> 16) & 0xFF);
-    b[i + 3] = static_cast<byte>((n >> 24) & 0xFF);
-}
-
-
-/*
- * 64-bit integer manipulation macros (little endian)
- */
-inline
-void getUint64_LE(uint64& n, const byte* b, size_t i) {
-    n =   static_cast<uint64>(b[i   ])
-        | static_cast<uint64>(b[i + 1]) <<  8
-        | static_cast<uint64>(b[i + 2]) << 16
-        | static_cast<uint64>(b[i + 3]) << 24
-        | static_cast<uint64>(b[i + 4]) << 32
-        | static_cast<uint64>(b[i + 5]) << 40
-        | static_cast<uint64>(b[i + 6]) << 48
-        | static_cast<uint64>(b[i + 7]) << 56;
-}
-
-inline
-void putUint64_LE(uint64& n, byte* b, size_t i) {
-    b[i    ] = static_cast<byte>((n)       & 0xFF);
-    b[i + 1] = static_cast<byte>((n >>  8) & 0xFF);
-    b[i + 2] = static_cast<byte>((n >> 16) & 0xFF);
-    b[i + 3] = static_cast<byte>((n >> 24) & 0xFF);
-    b[i + 4] = static_cast<byte>((n >> 32) & 0xFF);
-    b[i + 5] = static_cast<byte>((n >> 40) & 0xFF);
-    b[i + 6] = static_cast<byte>((n >> 48) & 0xFF);
-    b[i + 7] = static_cast<byte>((n >> 56) & 0xFF);
-}
 
 }  // End of namespace Solace
 #endif  // SOLACE_MEMORYVIEW_HPP

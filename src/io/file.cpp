@@ -33,7 +33,7 @@
 using Solace::IOObject;
 using Solace::String;
 using Solace::Path;
-using Solace::MemoryView;
+using Solace::MutableMemoryView;
 
 using Solace::IO::ISelectable;
 using Solace::IO::File;
@@ -147,7 +147,7 @@ bool File::isOpened() const {
 
 
 IOObject::IOResult
-File::read(MemoryView& buffer) {
+File::read(MutableMemoryView& buffer) {
     const auto fd = validateFd();
     const auto bytesRead = ::read(fd, buffer.dataAddress(), buffer.size());
 
@@ -160,7 +160,7 @@ File::read(MemoryView& buffer) {
 
 
 IOObject::IOResult
-File::write(const Solace::ImmutableMemoryView& buffer) {
+File::write(const Solace::MemoryView& buffer) {
     const auto fd = validateFd();
     const auto bytesWritten = ::write(fd, buffer.dataAddress(), buffer.size());
 

@@ -20,7 +20,7 @@
  *
  * Created on: 20 Jun 2016
 *******************************************************************************/
-#include <solace/memoryView.hpp>  // Class being tested
+#include <solace/mutableMemoryView.hpp>  // Class being tested
 
 #include <gtest/gtest.h>
 #include "mockTypes.hpp"
@@ -34,14 +34,14 @@ struct LargePodType {
 
 TEST(TestMemoryView, testFill) {
     byte buff[48];
-    MemoryView buffer = wrapMemory(buff);
+    MutableMemoryView buffer = wrapMemory(buff);
 
     buffer.fill(0);
     for (const auto& v : buffer) {
         EXPECT_EQ(static_cast<byte>(0), v);
     }
 
-    MemoryView::size_type r = 0;
+    MutableMemoryView::size_type r = 0;
     buffer.fill(1);
     for (const auto& v : buffer) {
         EXPECT_EQ(static_cast<byte>(1), v);
@@ -55,7 +55,7 @@ TEST(TestMemoryView, testFill) {
     }
 
     buffer.fill(36, 20, 40);
-    for (MemoryView::size_type i = 0; i < buffer.size(); ++i) {
+    for (MutableMemoryView::size_type i = 0; i < buffer.size(); ++i) {
         if (i >= 20 && i < 40) {
             EXPECT_EQ(static_cast<byte>(36), buffer[i]);
         } else {
@@ -86,9 +86,9 @@ TEST(TestMemoryView, testWrapping) {
         auto test = wrapMemory(example);
 
         EXPECT_TRUE(!test.empty());
-        EXPECT_EQ(static_cast<MemoryView::size_type>(6), test.size());
+        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(6), test.size());
 
-        for (MemoryView::size_type i = 0; i < test.size(); ++i) {
+        for (MutableMemoryView::size_type i = 0; i < test.size(); ++i) {
             EXPECT_EQ(example[i], test.dataAddress()[i]);
         }
     }
@@ -98,9 +98,9 @@ TEST(TestMemoryView, testWrapping) {
         auto test = wrapMemory(example, 4);
 
         EXPECT_TRUE(!test.empty());
-        EXPECT_EQ(static_cast<MemoryView::size_type>(4), test.size());
+        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(4), test.size());
 
-        for (MemoryView::size_type i = 0; i < test.size(); ++i) {
+        for (MutableMemoryView::size_type i = 0; i < test.size(); ++i) {
             EXPECT_EQ(example[i], test.dataAddress()[i]);
         }
     }
@@ -109,10 +109,10 @@ TEST(TestMemoryView, testWrapping) {
 TEST(TestMemoryView, testConstruction) {
     {   // Fixed size constructor
         byte buff[3102];
-        MemoryView test = wrapMemory(buff);
+        MutableMemoryView test = wrapMemory(buff);
 
         EXPECT_TRUE(!test.empty());
-        EXPECT_EQ(static_cast<MemoryView::size_type>(3102), test.size());
+        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(3102), test.size());
         test[0] = 19;
         test[2] = 17;
         test[1] = 4;
@@ -126,30 +126,30 @@ TEST(TestMemoryView, testConstruction) {
 
     {   // Move-constructor
         byte example[] = {7, 10, 13, 16, 19, 22, 25};  // size = 7
-        const MemoryView::size_type exampleSize = sizeof(example);
+        const MutableMemoryView::size_type exampleSize = sizeof(example);
         auto b1 = wrapMemory(example);
         {
-            MemoryView b2(std::move(b1));
+            MutableMemoryView b2(std::move(b1));
 
-            EXPECT_EQ(static_cast<MemoryView::size_type>(0), b1.size());
+            EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), b1.size());
             EXPECT_EQ(exampleSize, b2.size());
 
-            for (MemoryView::size_type i = 0; i < b2.size(); ++i) {
+            for (MutableMemoryView::size_type i = 0; i < b2.size(); ++i) {
                 EXPECT_EQ(example[i], b2[i]);
             }
         }
 
         // Test that after b2 has been destroyed - the memory is still valid.
-        for (MemoryView::size_type i = 0; i < b1.size(); ++i) {
-            EXPECT_EQ(7 + 3*i, static_cast<MemoryView::size_type>(b1[i]));
+        for (MutableMemoryView::size_type i = 0; i < b1.size(); ++i) {
+            EXPECT_EQ(7 + 3*i, static_cast<MutableMemoryView::size_type>(b1[i]));
         }
     }
 }
 
 TEST(TestMemoryView, testRead) {
     byte b1[128], b2[24];
-    MemoryView buffer = wrapMemory(b1);
-    MemoryView dest = wrapMemory(b2);
+    MutableMemoryView buffer = wrapMemory(b1);
+    MutableMemoryView dest = wrapMemory(b2);
 
     dest.fill(0);
     buffer.fill(64);
@@ -253,34 +253,34 @@ TEST(TestMemoryView, testDataAs) {
 
 TEST(TestMemoryView, testWrite) {
     byte b1[128], b2[24];
-    MemoryView buffer = wrapMemory(b1);
-    MemoryView src = wrapMemory(b2);
+    MutableMemoryView buffer = wrapMemory(b1);
+    MutableMemoryView src = wrapMemory(b2);
 
     src.fill(32);
     buffer.fill(0);
 
     {  // Identity writing:
         buffer.write(buffer);
-        for (MemoryView::size_type i = 0; i < buffer.size(); ++i) {
+        for (MutableMemoryView::size_type i = 0; i < buffer.size(); ++i) {
             EXPECT_EQ(static_cast<byte>(0), buffer[i]);
         }
     }
     {
         // Test simple read
         buffer.write(src);
-        for (MemoryView::size_type i = 0; i < src.size(); ++i) {
+        for (MutableMemoryView::size_type i = 0; i < src.size(); ++i) {
             EXPECT_EQ(static_cast<byte>(32), buffer[i]);
         }
-        for (MemoryView::size_type i = src.size(); i < buffer.size(); ++i) {
+        for (MutableMemoryView::size_type i = src.size(); i < buffer.size(); ++i) {
             EXPECT_EQ(static_cast<byte>(0), buffer[i]);
         }
 
         // Test that source is independent of dest
         src.fill(76);
-        for (MemoryView::size_type i = 0; i < src.size(); ++i) {
+        for (MutableMemoryView::size_type i = 0; i < src.size(); ++i) {
             EXPECT_EQ(static_cast<byte>(32), buffer[i]);
         }
-        for (MemoryView::size_type i = src.size(); i < buffer.size(); ++i) {
+        for (MutableMemoryView::size_type i = src.size(); i < buffer.size(); ++i) {
             EXPECT_EQ(static_cast<byte>(0), buffer[i]);
         }
     }
@@ -303,25 +303,25 @@ TEST(TestMemoryView, testWrite) {
         buffer.fill(76, 24, buffer.size());
 
         buffer.write(src, 24);
-        for (MemoryView::size_type i = 0; i < 24; ++i) {
+        for (MutableMemoryView::size_type i = 0; i < 24; ++i) {
             EXPECT_EQ(static_cast<byte>(67), buffer[i]);
         }
-        for (MemoryView::size_type i = 24; i < 24 + src.size(); ++i) {
+        for (MutableMemoryView::size_type i = 24; i < 24 + src.size(); ++i) {
             EXPECT_EQ(static_cast<byte>(41), buffer[i]);
         }
-        for (MemoryView::size_type i = 24 + src.size(); i < buffer.size(); ++i) {
+        for (MutableMemoryView::size_type i = 24 + src.size(); i < buffer.size(); ++i) {
             EXPECT_EQ(static_cast<byte>(76), buffer[i]);
         }
 
         src.fill(71);
         buffer.write(src, 14);
-        for (MemoryView::size_type i = 0; i < 14; ++i) {
+        for (MutableMemoryView::size_type i = 0; i < 14; ++i) {
             EXPECT_EQ(static_cast<byte>(67), buffer[i]);
         }
-        for (MemoryView::size_type i = 14; i < 14 + src.size(); ++i) {
+        for (MutableMemoryView::size_type i = 14; i < 14 + src.size(); ++i) {
             EXPECT_EQ(static_cast<byte>(71), buffer[i]);
         }
-        for (MemoryView::size_type i = 24 + src.size(); i < buffer.size(); ++i) {
+        for (MutableMemoryView::size_type i = 24 + src.size(); i < buffer.size(); ++i) {
             EXPECT_EQ(static_cast<byte>(76), buffer[i]);
         }
     }
@@ -338,7 +338,7 @@ TEST(TestMemoryView, testSlice) {
     auto&& buffer = wrapMemory(src);
 
     auto slice = buffer.slice(32, buffer.size());
-    EXPECT_EQ(static_cast<MemoryView::size_type>(32), slice.size());
+    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(32), slice.size());
     EXPECT_EQ(static_cast<byte>(32), slice[0]);
     EXPECT_EQ(static_cast<byte>(63), slice[31]);
 
@@ -353,10 +353,10 @@ TEST(TestMemoryView, testZeroSizedSlice) {
     buffer.fill(124);
 
     auto slice = buffer.slice(3, 3);
-    EXPECT_EQ(static_cast<MemoryView::size_type>(0), slice.size());
+    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), slice.size());
 
-    EXPECT_EQ(static_cast<MemoryView::size_type>(0), ImmutableMemoryView().slice(0, 0).size());
-    EXPECT_EQ(static_cast<MemoryView::size_type>(0), MemoryView().slice(0, 0).size());
+    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), MemoryView().slice(0, 0).size());
+    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), MutableMemoryView().slice(0, 0).size());
 }
 
 

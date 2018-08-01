@@ -52,7 +52,7 @@ public:
 
     MessageDigest(MessageDigest&& rhs) = default;
 
-    MessageDigest(ImmutableMemoryView const& viewBytes) : _storage(viewBytes.size(), viewBytes.dataAddress())
+    MessageDigest(MemoryView const& viewBytes) : _storage(viewBytes.size(), viewBytes.dataAddress())
     { }
 
     MessageDigest(Storage const& bytes) : _storage(bytes)
@@ -127,7 +127,7 @@ public:
         return _storage.data();
     }
 
-    ImmutableMemoryView view() const noexcept {
+    MemoryView view() const noexcept {
         return _storage.view();
     }
 

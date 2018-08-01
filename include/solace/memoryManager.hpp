@@ -40,8 +40,8 @@ namespace Solace {
  */
 class MemoryManager {
 public:
-    using size_type = MemoryView::size_type;
-    using value_type = MemoryView::value_type;
+    using size_type = MutableMemoryView::size_type;
+    using value_type = MutableMemoryView::value_type;
 
     using MemoryAddress = void *;
 
@@ -135,7 +135,7 @@ protected:
         HeapMemoryDisposer(MemoryManager* self) : _self(self)
         {}
 
-        void dispose(ImmutableMemoryView* view) const override;
+        void dispose(MemoryView* view) const override;
 
     private:
         MemoryManager* _self;
@@ -144,7 +144,7 @@ protected:
 
     friend class HeapMemoryDisposer;
 
-    void free(ImmutableMemoryView* view);
+    void free(MemoryView* view);
 
 private:
 

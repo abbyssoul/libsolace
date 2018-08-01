@@ -93,11 +93,11 @@ public:
 
 
     // IOObject read/write interface
-    IOObject::IOResult read(MemoryView& buffer) override {
+    IOObject::IOResult read(MutableMemoryView& buffer) override {
         return _in.read(buffer);
     }
 
-    IOObject::IOResult write(const ImmutableMemoryView& buffer) override {
+    IOObject::IOResult write(const MemoryView& buffer) override {
         return _out.write(buffer);
     }
 

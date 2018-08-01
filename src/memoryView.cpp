@@ -15,15 +15,16 @@
 */
 /*******************************************************************************
  * libSolace
- *	@file		memoryView.cpp
+ *	@file		immutableMemoryView.cpp
  *	@author		$LastChangedBy: soultaker $
  *	@date		$LastChangedDate$
- *	@brief		Implementation of MemoryView
+ *	@brief		Implementation of ImmutableMemoryView
  *	ID:			$Id$
  ******************************************************************************/
 #include "solace/memoryView.hpp"
 #include "solace/exception.hpp"
 
+#include "solace/base16.hpp"    //  For operator<<
 
 #include <cstring>  // memcpy
 #include <utility>
@@ -33,125 +34,46 @@
 
 using namespace Solace;
 
+constexpr int kOne = 1;
 
-MemoryView::reference
-MemoryView::operator[] (size_type index) {
-    return *const_cast<value_type*>(dataAddress(index));
+
+bool Solace::isBigendian() noexcept {
+    return *reinterpret_cast<const char*>(&kOne) == 0;
 }
 
 
-MemoryView::value_type*
-MemoryView::dataAddress(size_type offset) {
-    return const_cast<value_type*>(ImmutableMemoryView::dataAddress(offset));
+MemoryView::MemoryView(const void* data, size_type newSize) :
+    _size(newSize),
+    _dataAddress(reinterpret_cast<const value_type*>(data))
+{
+    if (!_dataAddress && _size) {
+        raise<IllegalArgumentException>("data");
+    }
 }
 
 
-MemoryView::value_type*
-MemoryView::dataAddress() {
-    return const_cast<value_type*>(ImmutableMemoryView::dataAddress());
+MemoryView::value_type
+MemoryView::operator[] (size_type index) const {
+    if (index >= size()) {
+        raise<IndexOutOfRangeException>("index", index, 0, size());
+    }
+
+    return _dataAddress[index];
 }
 
 
-MemoryView&
-MemoryView::fill(byte value, size_type from, size_type to) {
-    if (from >= size()) {
-        raise<IndexOutOfRangeException>("from", from, 0, size());
+const MemoryView::value_type*
+MemoryView::dataAddress(size_type offset) const {
+    if ((offset != 0) && (offset > size())) {
+        raise<IndexOutOfRangeException>("offset", offset, 0, size());
     }
 
-    if (to < from) {
-        raise<IndexOutOfRangeException>("to", to, from, size());
-    }
-
-    if (to > size()) {
-        raise<IndexOutOfRangeException>("to", to, from, size());
-    }
-
-    memset(const_cast<value_type*>(dataAddress(from)), value, to - from);
-
-    return (*this);
-}
-
-
-void MemoryView::write(const ImmutableMemoryView& source, size_type offset) {
-    const auto thisSize = size();
-
-    if (offset > thisSize) {  // Make sure that offset is within [0, size())
-        raise<IndexOutOfRangeException>("offset", offset, 0, thisSize);
-    }
-
-    if (source.size() > thisSize - offset) {  // Make sure that source is writing no more then there is room.
-        raise<OverflowException>("source", source.size(), 0, thisSize - offset);
-    }
-
-    memmove(const_cast<value_type*>(dataAddress(offset)), source.dataAddress(), source.size());
-
-    // TODO(abbyssoul): return Result<>;
-}
-
-
-void MemoryView::read(MemoryView& dest) {
-    const auto thisSize = size();
-
-    if (thisSize < dest.size()) {
-        raise<OverflowException>("dest", thisSize, 0, dest.size());
-    }
-
-    memmove(const_cast<value_type*>(dest.dataAddress()), dataAddress(), dest.size());
-    // TODO(abbyssoul): return Result<>;
-}
-
-
-void MemoryView::read(MemoryView& dest, size_type bytesToRead, size_type offset) {
-    const auto thisSize = size();
-
-    if (thisSize < offset) {  // Make sure that offset is within [0, size())
-        raise<IndexOutOfRangeException>("offset", offset, 0, thisSize);
-    }
-
-    if (bytesToRead > thisSize - offset) {  // Make sure that bytes to read is within [offset, size())
-        raise<IndexOutOfRangeException>("bytesToRead", offset, 0, thisSize - offset);
-    }
-
-    if (dest.size() < bytesToRead) {  // Make sure that dest has enough space to store data
-        raise<OverflowException>("dest.size()", dest.size(), 0, bytesToRead);
-    }
-
-    memmove(const_cast<value_type*>(dest.dataAddress()), dataAddress(offset), bytesToRead);
-
-    // TODO(abbyssoul): return Result<>;
-}
-
-
-MemoryView& MemoryView::fill(byte value) {
-    memset(const_cast<value_type*>(dataAddress()), value, size());
-
-    return (*this);
-}
-
-
-MemoryView& MemoryView::lock() {
-    if (mlock(dataAddress(), size()) < 0) {
-        // TODO(abbyssoul): shold use ErrnoException
-        raise<Exception>("failed to lock the memory buffer");
-    }
-
-    return (*this);
-}
-
-
-MemoryView&
-MemoryView::unlock() {
-    if (munlock(dataAddress(), size()) < 0) {
-        // TODO(abbyssoul): shold use ErrnoException
-        raise<Exception>("failed to unlock the memory buffer");
-    }
-
-    return (*this);
+    return _dataAddress + offset;
 }
 
 
 MemoryView
-MemoryView::slice(size_type from, size_type to) {
+MemoryView::slice(size_type from, size_type to) const {
     if (to < from) {
         raise<IndexOutOfRangeException>("from", from, 0, to + 1);
     }
@@ -165,5 +87,27 @@ MemoryView::slice(size_type from, size_type to) {
     }
 
 
-    return wrapMemory(const_cast<value_type*>(dataAddress(from)), to - from);
+    return wrapMemory(dataAddress(from), to - from);
+}
+
+
+MemoryView
+MemoryView::viewImmutableShallow() const {
+    return wrapMemory(dataAddress(), size());
+}
+
+
+std::ostream& Solace::operator<<(std::ostream& ostr, MemoryView const& view) {
+    if (view.size() > 0) {
+        // We use custom output printing each byte as \0 bytest and \n are not printable otherwise.
+        auto i = base16Encode_begin(view);
+        auto end = base16Encode_end(view);
+        for (; i != end; ++i) {
+            ostr << *i;
+        }
+    } else {
+        ostr << "<null>";
+    }
+
+    return ostr;
 }

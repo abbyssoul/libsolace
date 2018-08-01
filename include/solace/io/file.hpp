@@ -193,7 +193,7 @@ public:
      * @return Number of bytes actually read.
      * @see File::read()
      */
-    IOResult read(MemoryView& buffer) override;
+    IOResult read(MutableMemoryView& buffer) override;
 
 
     /** Write data from the given byte buffer into this file object.
@@ -205,7 +205,7 @@ public:
      *
      * @throws IOException if underlaying system call failed
      */
-    IOResult write(const ImmutableMemoryView& buffer) override;
+    IOResult write(const MemoryView& buffer) override;
 
 
 	/*

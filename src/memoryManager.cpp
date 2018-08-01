@@ -109,12 +109,12 @@ MemoryManager::size_type MemoryManager::getNbAvailablePages() const {
 
 
 void
-MemoryManager::HeapMemoryDisposer::dispose(ImmutableMemoryView* view) const {
+MemoryManager::HeapMemoryDisposer::dispose(MemoryView* view) const {
     _self->free(view);
 }
 
 
-void MemoryManager::free(ImmutableMemoryView* view) {
+void MemoryManager::free(MemoryView* view) {
     const auto size = view->size();
     delete [] view->dataAddress();
 
@@ -131,7 +131,7 @@ MemoryBuffer MemoryManager::create(size_type dataSize) {
         raise<Exception>("Cannot allocate memory block: allocator is locked.");
     }
 
-    auto data = new MemoryView::value_type[dataSize];
+    auto data = new MutableMemoryView::value_type[dataSize];
 
     _size += dataSize;
 

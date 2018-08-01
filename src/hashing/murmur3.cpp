@@ -335,7 +335,7 @@ Murmur3_32::getDigestLength() const {
 }
 
 
-HashingAlgorithm& Murmur3_32::update(ImmutableMemoryView input) {
+HashingAlgorithm& Murmur3_32::update(MemoryView input) {
     _hash[0] = murmurhash3_x86_32(input.dataAddress(), input.size(), _seed);
 
     return (*this);
@@ -373,7 +373,7 @@ Murmur3_128::size_type Murmur3_128::getDigestLength() const {
 }
 
 
-HashingAlgorithm& Murmur3_128::update(ImmutableMemoryView input) {
+HashingAlgorithm& Murmur3_128::update(MemoryView input) {
 #if  defined(__i386__) || defined(__arm__)
     MurmurHash3_x86_128(input.dataAddress(), input.size(), _seed, _hash);
 #elif  defined(__x86_64__) ||  defined(__aarch64__)

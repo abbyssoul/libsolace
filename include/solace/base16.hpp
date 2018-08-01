@@ -42,17 +42,17 @@ public:
         Encoder(dest)
     {}
 
-    size_type encodedSize(ImmutableMemoryView const& data) const override;
+    size_type encodedSize(MemoryView const& data) const override;
 
     using Encoder::encode;
 
     Result<void, Error>
-    encode(ImmutableMemoryView const& src) override;
+    encode(MemoryView const& src) override;
 };
 
 class Base16Encoded_Iterator {
 public:
-    Base16Encoded_Iterator(ImmutableMemoryView::const_iterator i) :
+    Base16Encoded_Iterator(MemoryView::const_iterator i) :
         _i(i)
     {}
 
@@ -73,16 +73,16 @@ public:
     }
 
 protected:
-    ImmutableMemoryView::const_iterator _i;
+    MemoryView::const_iterator _i;
 };
 
 inline
-Base16Encoded_Iterator base16Encode_begin(ImmutableMemoryView src) {
+Base16Encoded_Iterator base16Encode_begin(MemoryView src) {
     return {src.begin()};
 }
 
 inline
-Base16Encoded_Iterator base16Encode_end(ImmutableMemoryView src) {
+Base16Encoded_Iterator base16Encode_end(MemoryView src) {
     return {src.end()};
 }
 
@@ -102,12 +102,12 @@ public:
         Encoder(dest)
     {}
 
-    size_type encodedSize(const ImmutableMemoryView& data) const override;
+    size_type encodedSize(const MemoryView& data) const override;
 
     using Encoder::encode;
 
     Result<void, Error>
-    encode(const ImmutableMemoryView& src) override;
+    encode(const MemoryView& src) override;
 };
 
 
@@ -118,8 +118,8 @@ public:
 
 public:
 
-    Base16Decoded_Iterator(ImmutableMemoryView::const_iterator i,
-                           ImmutableMemoryView::const_iterator end);
+    Base16Decoded_Iterator(MemoryView::const_iterator i,
+                           MemoryView::const_iterator end);
 
     Base16Decoded_Iterator& operator++ ();
 
@@ -136,18 +136,18 @@ public:
     }
 
 protected:
-    ImmutableMemoryView::const_iterator _i;
-    ImmutableMemoryView::const_iterator _end;
+    MemoryView::const_iterator _i;
+    MemoryView::const_iterator _end;
     value_type _decodedValue;
 };
 
 inline
-Base16Decoded_Iterator base16Decode_begin(ImmutableMemoryView src) {
+Base16Decoded_Iterator base16Decode_begin(MemoryView src) {
     return {src.begin(), src.end()};
 }
 
 inline
-Base16Decoded_Iterator base16Decode_end(ImmutableMemoryView src) {
+Base16Decoded_Iterator base16Decode_end(MemoryView src) {
     return {src.end(), src.end()};
 }
 

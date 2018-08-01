@@ -42,7 +42,7 @@ class PlatformFilesystem :
 public:
 
     //! Type used to represent file sizes
-    using size_type = ImmutableMemoryView::size_type;
+    using size_type = MemoryView::size_type;
 
 
     class BufferedFile :
@@ -52,8 +52,8 @@ public:
         using File::read;
         using File::write;
 
-        IOObject::IOResult read(MemoryView& buffer) override;
-        IOObject::IOResult write(const ImmutableMemoryView& buffer) override;
+        IOObject::IOResult read(MutableMemoryView& buffer) override;
+        IOObject::IOResult write(const MemoryView& buffer) override;
 
         size_type seek(size_type offset, File::Seek type) override;
         void close() override;

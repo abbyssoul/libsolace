@@ -34,8 +34,8 @@ static constexpr byte kBase64UrlAlphabet[65] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdef
 
 
 Result<void, Error>
-base64encode(WriteBuffer& dest, ImmutableMemoryView const& src, byte const alphabet[65]) {
-    ImmutableMemoryView::size_type i = 0;
+base64encode(WriteBuffer& dest, MemoryView const& src, byte const alphabet[65]) {
+    MemoryView::size_type i = 0;
 
     for (; i + 2 < src.size(); i += 3) {
         byte const encoded[] = {
@@ -120,7 +120,7 @@ static const byte prUrl2six[256] = {
 
 
 Result<void, Error>
-base64decode(WriteBuffer& dest, ImmutableMemoryView const& src, byte const* decodingTable) {
+base64decode(WriteBuffer& dest, MemoryView const& src, byte const* decodingTable) {
     byte const* bufin = src.dataAddress();
     if (!bufin || src.size() == 0) {
         return Err(Error("Base64Decoding error: No data"));
@@ -175,7 +175,7 @@ Base64Encoder::encodedSize(size_type len) {
 
 
 Base64Decoder::size_type
-Base64Decoder::decodedSize(ImmutableMemoryView const& data) {
+Base64Decoder::decodedSize(MemoryView const& data) {
     if (data.empty())
         return 0;
 
@@ -195,27 +195,27 @@ Base64Decoder::decodedSize(ImmutableMemoryView const& data) {
 
 
 Base64Decoder::size_type
-Base64Decoder::encodedSize(ImmutableMemoryView const& data) const {
+Base64Decoder::encodedSize(MemoryView const& data) const {
     return decodedSize(data);
 }
 
 
 Result<void, Error>
-Base64Encoder::encode(ImmutableMemoryView const& src) {
+Base64Encoder::encode(MemoryView const& src) {
    return base64encode(*getDestBuffer(), src, kBase64Alphabet);
 }
 
 Result<void, Error>
-Base64UrlEncoder::encode(ImmutableMemoryView const& src) {
+Base64UrlEncoder::encode(MemoryView const& src) {
     return base64encode(*getDestBuffer(), src, kBase64UrlAlphabet);
 }
 
 Result<void, Error>
-Base64Decoder::encode(ImmutableMemoryView const& src) {
+Base64Decoder::encode(MemoryView const& src) {
     return base64decode(*getDestBuffer(), src, pr2six);
 }
 
 Result<void, Error>
-Base64UrlDecoder::encode(ImmutableMemoryView const& src) {
+Base64UrlDecoder::encode(MemoryView const& src) {
     return base64decode(*getDestBuffer(), src, prUrl2six);
 }

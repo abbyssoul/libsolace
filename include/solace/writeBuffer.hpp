@@ -22,7 +22,7 @@
 #ifndef SOLACE_WRITEBUFFER_HPP
 #define SOLACE_WRITEBUFFER_HPP
 
-#include "solace/memoryView.hpp"
+#include "solace/mutableMemoryView.hpp"
 #include "solace/memoryBuffer.hpp"
 
 #include "solace/result.hpp"
@@ -70,7 +70,7 @@ public:
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    WriteBuffer(MemoryView memView) :
+    WriteBuffer(MutableMemoryView memView) :
         _limit(memView.size()),
         _storage(std::move(memView), nullptr)
     {}
@@ -192,19 +192,19 @@ public:
     }
 
 
-    ImmutableMemoryView viewRemaining() const {
+    MemoryView viewRemaining() const {
         return _storage.view().slice(position(), limit());
     }
 
-    MemoryView viewRemaining() {
+    MutableMemoryView viewRemaining() {
         return _storage.view().slice(position(), limit());
     }
 
-    ImmutableMemoryView viewWritten() const {
+    MemoryView viewWritten() const {
         return _storage.view().slice(0, position());
     }
 
-    MemoryView viewWritten() {
+    MutableMemoryView viewWritten() {
         return _storage.view().slice(0, position());
     }
 
@@ -214,7 +214,7 @@ public:
      * @param data Raw bytes data to write.
      * @return Result of write operation.
      */
-    Result<void, Error> write(ImmutableMemoryView const& data) {
+    Result<void, Error> write(MemoryView const& data) {
         return write(data.dataAddress(), data.size());
     }
 
@@ -225,7 +225,7 @@ public:
      * @return Refernce to this for luency.
      * @note Exception is thrown if bytesToWrite exceed buffer capacity.
      */
-    Result<void, Error> write(ImmutableMemoryView const& data, size_type bytesToWrite);
+    Result<void, Error> write(MemoryView const& data, size_type bytesToWrite);
 
     Result<void, Error> write(char value)       { return write(&value, sizeof(value)); }
     Result<void, Error> write(int8 value)       { return write(&value, sizeof(value)); }

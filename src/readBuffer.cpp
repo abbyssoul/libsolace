@@ -83,7 +83,7 @@ ReadBuffer::get(size_type pos) const {
 
 
 Result<void, Error>
-ReadBuffer::read(MemoryView& dest, size_type bytesToRead) {
+ReadBuffer::read(MutableMemoryView& dest, size_type bytesToRead) {
     if (dest.size() < bytesToRead) {
         return Err<Error>(StringView("OverflowError: read(dest, size): destination buffer is too small"));
     }
@@ -107,7 +107,7 @@ ReadBuffer::read(void* dest, size_type bytesToRead) {
 
 
 Result<void, Error>
-ReadBuffer::read(size_type offset, MemoryView& dest, size_type bytesToRead) const {
+ReadBuffer::read(size_type offset, MutableMemoryView& dest, size_type bytesToRead) const {
     if (dest.size() < bytesToRead) {
         return Err<Error>(StringView("OverflowError: read(dest, size): destination buffer is too small"));
     }

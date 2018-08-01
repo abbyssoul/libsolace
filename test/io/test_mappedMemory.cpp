@@ -55,7 +55,7 @@ TEST(TestAnonSharedMemory, testFill) {
         EXPECT_EQ(static_cast<byte>(0), v);
     }
 
-    MemoryView::size_type r = 0;
+    MutableMemoryView::size_type r = 0;
     buffer.view().fill(1);
     for (const auto& v : buffer.view()) {
         EXPECT_EQ(static_cast<byte>(1), v);

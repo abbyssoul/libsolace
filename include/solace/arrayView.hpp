@@ -15,9 +15,7 @@
 */
 /*******************************************************************************
  * libSolace: A OOP wrapper for C-style arrays
- *	@file		solace/arrayRef.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
+ *	@file		solace/arrayView.hpp
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_ARRAYREF_HPP
@@ -25,7 +23,7 @@
 
 #include "solace/utils.hpp"
 #include "solace/assert.hpp"
-#include "solace/memoryView.hpp"
+#include "solace/mutableMemoryView.hpp"
 #include "solace/optional.hpp"
 
 #include <initializer_list>
@@ -81,7 +79,7 @@ public:
         _memory(other._memory)
     {}
 
-    constexpr ArrayView(MemoryView&& memview) noexcept :
+    constexpr ArrayView(MutableMemoryView&& memview) noexcept :
         _memory(std::move(memview))
     {}
 
@@ -214,11 +212,11 @@ public:
         return ArrayView<T>(begin() + from, to - from);
     }
 
-    ImmutableMemoryView view() const noexcept {
+    MemoryView view() const noexcept {
         return _memory;
     }
 
-    MemoryView view() noexcept {
+    MutableMemoryView view() noexcept {
         return _memory;
     }
 
@@ -333,7 +331,7 @@ public:
 private:
 
     /// Memory where the array data is stored.
-    MemoryView _memory;
+    MutableMemoryView _memory;
 };
 
 

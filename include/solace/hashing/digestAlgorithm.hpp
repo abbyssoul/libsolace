@@ -36,7 +36,7 @@ namespace hashing {
  */
 class HashingAlgorithm {
 public:
-    using size_type = ImmutableMemoryView::size_type;
+    using size_type = MemoryView::size_type;
 
 public:
 
@@ -59,7 +59,7 @@ public:
      * @param input A memory view to read data from.
      * @return A reference to self for a fluent interface.
      */
-    virtual HashingAlgorithm& update(ImmutableMemoryView input) = 0;
+    virtual HashingAlgorithm& update(MemoryView input) = 0;
 
     /**
      * Update the digest with the given input.

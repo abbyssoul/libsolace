@@ -29,14 +29,12 @@
 
 #include "solace/assert.hpp"
 #include "solace/arrayView.hpp"
-#include "solace/memoryView.hpp"
+#include "solace/mutableMemoryView.hpp"
+#include "solace/memoryManager.hpp"  // TODO(abbyssoul): Allocate memory via memory manager
 
 
 // TODO(abbyssoul): Remove std dependencies!
 #include <vector>       // TODO(abbyssoul): Remove! No dynamic reallocation is needed!
-
-// TODO(abbyssoul): Allocate memory via memory manager
-#include "solace/memoryManager.hpp"
 
 
 
@@ -66,8 +64,6 @@ public:
     typedef typename Storage::const_pointer     const_pointer;
 
 public:
-
-    ~Array() noexcept = default;
 
     /** Construct an empty array
      * note: stl vector does not guaranty 'noexcept' even for an empty vector :'(
@@ -101,7 +97,7 @@ public:
     }
 
     /** Construct an array from an memory buffer */
-    Array(MemoryView&& memView) : _storage(memView.dataAs<T>(), memView.dataAs<T>() + memView.size() / sizeof(T)) {
+    Array(MutableMemoryView&& memView) : _storage(memView.dataAs<T>(), memView.dataAs<T>() + memView.size() / sizeof(T)) {
         // FIXME(abbyssoul): current implementation copies data but should use mem location.
     }
 
@@ -231,11 +227,11 @@ public:
         return _storage.data();
     }
 
-    ImmutableMemoryView view() const noexcept {
+    MemoryView view() const noexcept {
         return wrapMemory(_storage.data(), _storage.size() * sizeof(T));
     }
 
-    MemoryView view() noexcept {
+    MutableMemoryView view() noexcept {
         return wrapMemory(_storage.data(), _storage.size() * sizeof(T));
     }
 

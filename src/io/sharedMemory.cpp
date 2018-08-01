@@ -44,7 +44,7 @@ const int SharedMemory::Protection::Exec = PROT_EXEC;
 
 namespace {
 
-ImmutableMemoryView::MemoryAddress
+MemoryView::MemoryAddress
 mapMemory(SharedMemory::size_type memSize, int protection, SharedMemory::Access mapping, int fd) {
     if (memSize == 0) {
         Solace::raise<IllegalArgumentException>("size");
@@ -73,10 +73,10 @@ class MappedMemoryDisposer :
         public MemoryViewDisposer {
 public:
 
-    void dispose(ImmutableMemoryView* view) const override {
+    void dispose(MemoryView* view) const override {
         // FIXME(abbyssoul): Some return result check might help.
         const auto size = view->size();
-        auto addr = const_cast<ImmutableMemoryView::value_type*>(view->dataAddress());
+        auto addr = const_cast<MemoryView::value_type*>(view->dataAddress());
         if (addr && size > 0) {
             const auto result = munmap(addr, size);
             if (result != 0) {
@@ -109,14 +109,14 @@ SharedMemory::SharedMemory() noexcept :
 }
 
 
-SharedMemory::SharedMemory(const poll_id fd) noexcept :
+SharedMemory::SharedMemory(poll_id fd) noexcept :
     _fd(fd),
     _linkedPath()
 {
 }
 
 
-SharedMemory::SharedMemory(const poll_id fd, const Path& path) noexcept :
+SharedMemory::SharedMemory(poll_id fd, const Path& path) noexcept :
     _fd(fd),
     _linkedPath(path)
 {

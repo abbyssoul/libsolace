@@ -35,7 +35,7 @@ protected:
         {}
 
 
-        void dispose(ImmutableMemoryView* SOLACE_UNUSED(view)) const override {
+        void dispose(MemoryView* SOLACE_UNUSED(view)) const override {
             // NO-OP
             --_count;
         }

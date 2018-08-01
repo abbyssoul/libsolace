@@ -100,13 +100,13 @@ Base16Encoder::encodedSize(size_type len) {
 
 
 Base16Encoder::size_type
-Base16Encoder::encodedSize(ImmutableMemoryView const& data) const {
+Base16Encoder::encodedSize(MemoryView const& data) const {
     return encodedSize(data.size());
 }
 
 
 Result<void, Error>
-Base16Encoder::encode(ImmutableMemoryView const& src) {
+Base16Encoder::encode(MemoryView const& src) {
     auto& dest = *getDestBuffer();
 
     for (auto value : src) {
@@ -126,7 +126,7 @@ Base16Decoder::encodedSize(size_type len) {
 
 
 Base16Decoder::size_type
-Base16Decoder::encodedSize(ImmutableMemoryView const& data) const {
+Base16Decoder::encodedSize(MemoryView const& data) const {
     return encodedSize(data.size());
 }
 
@@ -134,7 +134,7 @@ Base16Decoder::encodedSize(ImmutableMemoryView const& data) const {
 
 
 Result<void, Error>
-Base16Decoder::encode(ImmutableMemoryView const& src) {
+Base16Decoder::encode(MemoryView const& src) {
     if (src.size() % 2 != 0)
         return Err(Error("Input data size must be even"));
 
@@ -166,7 +166,7 @@ Base16Encoded_Iterator::operator* () const {
 
 
 Result<byte, Error>
-decode16(ImmutableMemoryView::const_iterator i, ImmutableMemoryView::const_iterator j) {
+decode16(MemoryView::const_iterator i, MemoryView::const_iterator j) {
     auto high = charToBin(*i);
     auto low =  charToBin(*j);
 
@@ -179,13 +179,13 @@ decode16(ImmutableMemoryView::const_iterator i, ImmutableMemoryView::const_itera
 }
 
 
-Base16Decoded_Iterator::Base16Decoded_Iterator(ImmutableMemoryView::const_iterator rangeBegin,
-                                               ImmutableMemoryView::const_iterator rangeEnd) :
+Base16Decoded_Iterator::Base16Decoded_Iterator(MemoryView::const_iterator rangeBegin,
+                                               MemoryView::const_iterator rangeEnd) :
     _i(std::move(rangeBegin)),
     _end(std::move(rangeEnd))
 {
 
-    ImmutableMemoryView::const_iterator next = _i;
+    MemoryView::const_iterator next = _i;
     if (_i != _end)
         ++next;
 
@@ -207,7 +207,7 @@ Base16Decoded_Iterator::operator++ () {
     ++_i;
     ++_i;
 
-    ImmutableMemoryView::const_iterator next = _i;
+    MemoryView::const_iterator next = _i;
     if (_i != _end)
         ++next;
 

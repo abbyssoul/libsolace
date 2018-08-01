@@ -64,7 +64,7 @@ WriteBuffer::advance(size_type increment) {
 
 
 Result<void, Error>
-WriteBuffer::write(const ImmutableMemoryView& data, size_type bytesToWrite) {
+WriteBuffer::write(const MemoryView& data, size_type bytesToWrite) {
     if (data.size() < bytesToWrite) {
         return Err(Error("OverflowError: write(dest, size): destination buffer is too small"));
     }

@@ -47,7 +47,7 @@ public:
      ~StringBuilder() = default;
 
     /** Initialize a new instance of StringBuilder with a given storage */
-    StringBuilder(MemoryView&& buffer) :
+    StringBuilder(MutableMemoryView&& buffer) :
         _buffer(std::move(buffer))
     {}
 
@@ -57,7 +57,7 @@ public:
     {}
 
     /** Initialize a new instance of StringBuilder with a given storage and initial string value.*/
-    StringBuilder(MemoryView&& buffer, StringView str);
+    StringBuilder(MutableMemoryView&& buffer, StringView str);
 
     /** Initialize a new instance of StringBuilder with a given storage and initial string value.*/
     StringBuilder(MemoryBuffer&& buffer, StringView str);

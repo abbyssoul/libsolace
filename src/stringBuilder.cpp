@@ -30,7 +30,7 @@ using namespace Solace;
 
 
 
-StringBuilder::StringBuilder(MemoryView&& buffer, StringView str)
+StringBuilder::StringBuilder(MutableMemoryView&& buffer, StringView str)
     : StringBuilder(std::move(buffer))
 {
     _buffer.write(str.view());
@@ -98,7 +98,7 @@ Optional<StringBuilder::size_type>
 StringBuilder::indexOf(const Char& ch, size_type fromIndex) const {
     // TODO(abbyssoul): Check for index out of range
 
-    MemoryView::value_type buffer[Char::max_bytes];
+    MutableMemoryView::value_type buffer[Char::max_bytes];
     auto b = wrapMemory(buffer);
 
 

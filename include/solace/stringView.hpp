@@ -324,7 +324,7 @@ public:
 
     const_iterator end() const noexcept { return begin() + size(); }
 
-    ImmutableMemoryView view() const noexcept {
+    MemoryView view() const noexcept {
         return wrapMemory(_data, _size);
     }
 

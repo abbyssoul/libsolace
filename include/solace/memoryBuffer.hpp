@@ -22,7 +22,7 @@
 #ifndef SOLACE_MEMORYBUFFER_HPP
 #define SOLACE_MEMORYBUFFER_HPP
 
-#include "solace/memoryView.hpp"
+#include "solace/mutableMemoryView.hpp"
 
 
 namespace Solace {
@@ -36,7 +36,7 @@ class MemoryViewDisposer {
 public:
     virtual ~MemoryViewDisposer();
 
-    virtual void dispose(ImmutableMemoryView* view) const = 0;
+    virtual void dispose(MemoryView* view) const = 0;
 };
 
 
@@ -45,7 +45,7 @@ public:
  */
 class MemoryBuffer {
 public:
-    using size_type = MemoryView::size_type;
+    using size_type = MutableMemoryView::size_type;
 
 public:
 
@@ -59,7 +59,7 @@ public:
      * @param data A memory view this buffer owns.
      * @param disposer A disposer to dispose of the memory when this memory buffer is destroyed.
      */
-    MemoryBuffer(MemoryView data, MemoryViewDisposer* disposer = nullptr) noexcept :
+    MemoryBuffer(MutableMemoryView data, MemoryViewDisposer* disposer = nullptr) noexcept :
         _data(std::move(data)),
         _disposer(disposer)
     {}
@@ -84,8 +84,8 @@ public:
         return *this;
     }
 
-    MemoryView&         view() noexcept         { return _data; }
-    MemoryView const&   view() const noexcept   { return _data; }
+    MutableMemoryView&         view() noexcept         { return _data; }
+    MutableMemoryView const&   view() const noexcept   { return _data; }
 
     bool empty() const noexcept {
         return _data.empty();
@@ -102,7 +102,7 @@ public:
 
 private:
 
-    MemoryView                  _data;
+    MutableMemoryView                  _data;
     MemoryViewDisposer const*   _disposer {nullptr};
 };
 

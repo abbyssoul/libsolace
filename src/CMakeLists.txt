@@ -5,8 +5,8 @@ set(SOURCE_FILES
         error.cpp
         char.cpp
 
-        immutableMemoryView.cpp
         memoryView.cpp
+        mutableMemoryView.cpp
         memoryBuffer.cpp
         memoryManager.cpp
         readBuffer.cpp

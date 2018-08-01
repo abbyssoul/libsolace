@@ -95,7 +95,7 @@ TEST_F(TestPlatformFs, testCreation) {
         const auto written = f->write(fileUIDBytes);
         EXPECT_TRUE(written.isOk());
 
-        const MemoryView::size_type bytesWriten = written.unwrap();
+        const MutableMemoryView::size_type bytesWriten = written.unwrap();
         EXPECT_EQ(fileUIDBytes.size(), bytesWriten);
 
         f->seek(0, File::Seek::Set);
@@ -103,7 +103,7 @@ TEST_F(TestPlatformFs, testCreation) {
         WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
         const auto read = f->read(readBuffer);
         EXPECT_TRUE(read.isOk());
-        const MemoryView::size_type bytesRead = read.unwrap();
+        const MutableMemoryView::size_type bytesRead = read.unwrap();
         EXPECT_EQ(fileUIDBytes.size(), bytesRead);
         EXPECT_EQ(false, readBuffer.hasRemaining());
         readBuffer.flip();
@@ -150,7 +150,7 @@ TEST_F(TestPlatformFs, testCreationAndRemoval) {
         WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
         const auto read = f->read(readBuffer);
         EXPECT_TRUE(read.isOk());
-        const MemoryView::size_type bytesRead = read.unwrap();
+        const MutableMemoryView::size_type bytesRead = read.unwrap();
 
         EXPECT_EQ(fileUIDBytes.size(), bytesRead);
         EXPECT_EQ(false, readBuffer.hasRemaining());
@@ -209,7 +209,7 @@ TEST_F(TestPlatformFs, testTemp) {
 
         const auto written = f->write(fileUIDBytes);
         EXPECT_TRUE(written.isOk());
-        const MemoryView::size_type bytesWriten = written.unwrap();
+        const MutableMemoryView::size_type bytesWriten = written.unwrap();
         EXPECT_EQ(fileUIDBytes.size(), bytesWriten);
         EXPECT_EQ(bytesWriten, static_cast<decltype(bytesWriten)>(f->tell()));
 
@@ -218,7 +218,7 @@ TEST_F(TestPlatformFs, testTemp) {
         WriteBuffer readBuffer(_memoryManager.create(fileUIDBytes.size()));
         const auto read = f->read(readBuffer);
         EXPECT_TRUE(read.isOk());
-        const MemoryView::size_type bytesRead = read.unwrap();
+        const MutableMemoryView::size_type bytesRead = read.unwrap();
         EXPECT_EQ(fileUIDBytes.size(), bytesRead);
         EXPECT_EQ(false, readBuffer.hasRemaining());
         readBuffer.flip();

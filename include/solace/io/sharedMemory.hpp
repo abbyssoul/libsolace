@@ -43,7 +43,7 @@ public:
 
     using ISelectable::poll_id;
 
-    using size_type = MemoryView::size_type;
+    using size_type = MutableMemoryView::size_type;
 
 
     /** Desired protection of the mapping
@@ -273,7 +273,7 @@ protected:
      *
      * @param fd - Id of the opened file.
      */
-    SharedMemory(const poll_id fd) noexcept;
+    SharedMemory(poll_id fd) noexcept;
 
     /**
      * Create a shared memory object using file id
@@ -284,7 +284,7 @@ protected:
      * @param path Path to the shared memory object.
      * Note in this form the object will be unlinked automatically when the object goes out of scope.
      */
-    SharedMemory(const poll_id fd, const Path& path) noexcept;
+    SharedMemory(poll_id fd, const Path& path) noexcept;
 
     /**
      * Validate that file descriptor was opened and return it if it valid

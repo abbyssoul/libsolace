@@ -58,7 +58,7 @@ UUID::UUID(UUID const& rhs) noexcept {
 }
 
 
-UUID::UUID(ImmutableMemoryView view) {
+UUID::UUID(MemoryView view) {
     if (view.size() < size()) {
         raise<IllegalArgumentException>("bytes");
     }
@@ -128,12 +128,12 @@ bool Solace::operator < (UUID const& lhs, UUID const& rhs) noexcept {
 }
 
 
-ImmutableMemoryView UUID::view() const noexcept {
+MemoryView UUID::view() const noexcept {
     return wrapMemory(const_cast<byte*>(_bytes), size());
 }
 
 
-MemoryView UUID::view() noexcept {
+MutableMemoryView UUID::view() noexcept {
     return wrapMemory(const_cast<byte*>(_bytes), size());
 }
 
@@ -146,7 +146,7 @@ UUID::toString() const {
 
 
 StringView
-UUID::toString(MemoryView buffer) const {
+UUID::toString(MutableMemoryView buffer) const {
     WriteBuffer dest(buffer);
     Base16Encoder encoder(dest);
 
