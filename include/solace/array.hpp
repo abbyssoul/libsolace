@@ -97,7 +97,8 @@ public:
     }
 
     /** Construct an array from an memory buffer */
-    Array(MutableMemoryView&& memView) : _storage(memView.dataAs<T>(), memView.dataAs<T>() + memView.size() / sizeof(T)) {
+    Array(MutableMemoryView&& memView) :
+        _storage(memView.dataAs<T>(), memView.dataAs<T>() + memView.size() / sizeof(T)) {
         // FIXME(abbyssoul): current implementation copies data but should use mem location.
     }
 
