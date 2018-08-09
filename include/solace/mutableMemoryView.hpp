@@ -66,7 +66,8 @@ public:
     MutableMemoryView(MutableMemoryView const&) noexcept = default;
     MutableMemoryView& operator= (MutableMemoryView const&) noexcept = default;
 
-    MutableMemoryView(MutableMemoryView&& rhs) noexcept = default;
+    // TODO(abbyssoul): make it constexpr!
+    /*constexpr */MutableMemoryView(MutableMemoryView&& rhs) noexcept = default;
 
     MutableMemoryView& swap(MutableMemoryView& rhs) noexcept {
         MemoryView::swap(rhs);

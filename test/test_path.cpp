@@ -23,6 +23,20 @@
 #include <solace/path.hpp>			// Class being tested
 #include <solace/exception.hpp>     // Checked expcetions
 
+
+std::ostream& operator<< (std::ostream& ostr, const Solace::Path& v) {
+    ostr << "Path:" << v.getComponentsCount() << ":{";
+    for (auto const& c : v) {
+        auto const componentView = c.view();
+        ostr.write(componentView.data(), componentView.size());
+        ostr << " ";
+    }
+
+    ostr << "}";
+    return ostr;
+}
+
+
 #include "mockTypes.hpp"
 #include <gtest/gtest.h>
 #include <cstring>
@@ -323,14 +337,12 @@ TEST(TestPath, testIterable) {
 }
 
 TEST(TestPath, testForEach) {
-    int index = 0;
-    Array<int> counts(6);
-
-    Path({"e", "so", "long", "pat", "fx", "x"}).forEach([&index, &counts] (const String& component){
-        counts[index++] = component.length();
+    std::vector<int> counts;
+    Path({"e", "so", "long", "pat", "fx", "x"}).forEach([&counts] (const String& component){
+        counts.push_back(component.length());
     });
 
-    EXPECT_EQ(Array<int>({1, 2, 4, 3, 2, 1}), (counts));
+    EXPECT_EQ(std::vector<int>({1, 2, 4, 3, 2, 1}), counts);
 }
 
 

@@ -24,6 +24,7 @@
 #include "solace/parseUtils.hpp"
 #include "solace/path.hpp"
 
+#include "solace/output_utils.hpp"
 
 #include <iomanip>
 #include <iostream>

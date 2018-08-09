@@ -32,6 +32,9 @@
 #include "solace/error.hpp"
 
 
+#include <vector>  // FIXME(abbyssoul): move to Array<>
+
+
 namespace Solace {
 
 /** Hierarchical path class - the kind used by File system, but not exactly
@@ -59,8 +62,8 @@ namespace Solace {
 class Path {
 public:
 
-    using size_type = Array<String>::size_type;
-    using const_iterator = Array<String>::const_iterator;
+    using size_type = std::vector<String>::size_type;
+    using const_iterator = std::vector<String>::const_iterator;
 
 public:  // Static methods
 
@@ -108,12 +111,8 @@ public:  // Static methods
 
 public:  // Object construction
 
-    ~Path() noexcept /*override*/ = default;
-
 	/** Construct an empty path */
-    Path() noexcept(std::is_nothrow_default_constructible<Array<String>>::value) : _components() {
-        // No-op
-    }
+    Path() = default;
 
     /** Construct path to be a copy of the given one */
     Path(const Path& p) = default;
@@ -123,28 +122,22 @@ public:  // Object construction
         // No-op
     }
 
-    /**
-     * Construct the path object from a collection of String components
-     * @param array A collection of string components forming the path
-     */
-    Path(const Array<String>& array): _components(array) {
-        // No-op
-    }
+//    /**
+//     * Construct the path object from a collection of String components
+//     * @param array A collection of string components forming the path
+//     */
+//    Path(const Array<String>& array): _components(array) {
+//        // No-op
+//    }
 
-    /**
-     * Move-Construct the path object from a collection of String components
-     * @param array A collection of string components forming the path
-     */
-    Path(Array<String>&& array): _components(std::move(array)) {
-        // No-op
-    }
 
     /**
      * Construct the path object from a single string component
      *
      * @note The string is is parsed into component, please use Path::parse
      */
-    explicit Path(const String& str): _components({str}) {
+    explicit Path(String const& str) : Path(str.view())
+    {
         // No-op
     }
 
@@ -161,7 +154,6 @@ public:  // Object construction
     }
 
     Path(std::initializer_list<Path> components);
-
 
     Path(std::initializer_list<StringView> components);
 
@@ -385,17 +377,20 @@ public:  // Operation
      * @param rhv A path to compare this one to.
      * @return True if this path is equal to the give
      */
-    bool equals(const Path& rhv) const noexcept;
+    bool equals(Path const& rhv) const noexcept;
 
     /** @see Iterable::forEach */
     template<typename F>
     const Path& forEach(F&& f) const {
-        _components.forEach(f);
+        for (auto const& i : _components) {
+            f(i);
+        }
+
         return *this;
     }
 
     /** Get string representation of the path object using give delimiter */
-    String toString(const StringView& delim) const;
+    String toString(StringView delim) const;
 
     /** @see IFormattable::toString() */
     String toString() const {
@@ -403,8 +398,16 @@ public:  // Operation
     }
 
 private:
+    /**
+     * Move-Construct the path object from a collection of String components
+     * @param array A collection of string components forming the path
+     */
+    Path(std::vector<String>&& array): _components(std::move(array)) {
+        // No-op
+    }
 
-    Array<String> _components;
+
+    std::vector<String> _components{};
 };
 
 /** Convenience joint operator */
@@ -441,11 +444,6 @@ bool operator== (Path const& lhs, Path const& rhv) noexcept {
 
 inline void swap(Path& lhs, Path& rhs) noexcept {
     lhs.swap(rhs);
-}
-
-// FIXME: std dependence, used for Unit Testing only
-inline std::ostream& operator<< (std::ostream& ostr, Path const& v) {
-    return ostr << v.toString();
 }
 
 }  // namespace Solace

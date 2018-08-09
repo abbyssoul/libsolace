@@ -14,7 +14,7 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Various utilities for meta progamming.
+ * libSolace: Meta progamming utilities.
  *	@file		solace/utils.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
@@ -23,8 +23,10 @@
 #ifndef SOLACE_UTILS_HPP
 #define SOLACE_UTILS_HPP
 
+#include "solace/types.hpp"  // size_t
+
 #include <utility>  // FIXME(later): remove after removal of std::true_type/false_type
-#include <functional>
+
 
 namespace Solace {
 
@@ -72,15 +74,20 @@ struct op_valid_impl {
 
 };
 
-template<class X, class Y, class Op> using op_valid = typename op_valid_impl<X, Y, Op>::type;
+template <typename T> struct RemoveConst_ { typedef T Type; };
+template <typename T> struct RemoveConst_<const T> { typedef T Type; };
+template <typename T> using RemoveConst = typename RemoveConst_<T>::Type;
 
-template<class X, class Y> using has_equality = op_valid<X, Y, std::equal_to<>>;
-template<class X, class Y> using has_inequality = op_valid<X, Y, std::not_equal_to<>>;
-template<class X, class Y> using has_less_than = op_valid<X, Y, std::less<>>;
-template<class X, class Y> using has_less_equal = op_valid<X, Y, std::less_equal<>>;
-template<class X, class Y> using has_greater_than = op_valid<X, Y, std::greater<>>;
-template<class X, class Y> using has_greater_equal = op_valid<X, Y, std::greater_equal<>>;
-
+template <typename T> struct Decay_ { typedef T Type; };
+template <typename T> struct Decay_<T&> { typedef typename Decay_<T>::Type Type; };
+template <typename T> struct Decay_<T&&> { typedef typename Decay_<T>::Type Type; };
+template <typename T> struct Decay_<T[]> { typedef typename Decay_<T*>::Type Type; };
+template <typename T> struct Decay_<const T[]> { typedef typename Decay_<const T*>::Type Type; };
+template <typename T, size_t s> struct Decay_<T[s]> { typedef typename Decay_<T*>::Type Type; };
+template <typename T, size_t s> struct Decay_<const T[s]> { typedef typename Decay_<const T*>::Type Type; };
+template <typename T> struct Decay_<const T> { typedef typename Decay_<T>::Type Type; };
+template <typename T> struct Decay_<volatile T> { typedef typename Decay_<T>::Type Type; };
+template <typename T> using Decay = typename Decay_<T>::Type;
 
 /**
  * Replacement for std::move() and std::forward() in order to not pull
@@ -111,6 +118,27 @@ template <typename T, typename U>
 constexpr T narrow_cast(U&& u) noexcept {
     return static_cast<T>(std::forward<U>(u));
 }
+
+/**
+ * Returns true if T can be (possibly) copied using memcpy instead of using the copy constructor or
+ * assignment operator.
+ */
+template <typename T>
+constexpr bool canMemcpy() {
+    return std::is_trivially_copy_constructible<T>::value && std::is_trivially_copy_assignable<T>::value;
+}
+
+
+/* Unused meta code to check if class support certain operations
+ *
+template<class X, class Y, class Op> using op_valid = typename op_valid_impl<X, Y, Op>::type;
+template<class X, class Y> using has_equality = op_valid<X, Y, std::equal_to<>>;
+template<class X, class Y> using has_inequality = op_valid<X, Y, std::not_equal_to<>>;
+template<class X, class Y> using has_less_than = op_valid<X, Y, std::less<>>;
+template<class X, class Y> using has_less_equal = op_valid<X, Y, std::less_equal<>>;
+template<class X, class Y> using has_greater_than = op_valid<X, Y, std::greater<>>;
+template<class X, class Y> using has_greater_equal = op_valid<X, Y, std::greater_equal<>>;
+*/
 
 }  // End of namespace Solace
 #endif  // SOLACE_UTILS_HPP

@@ -23,6 +23,7 @@
 #include "solace/string.hpp"
 
 #include <cstring>
+#include <vector>
 
 
 using namespace Solace;
@@ -209,17 +210,19 @@ String String::replace(const String& what, const String& by) const {
     return String{ std::move(subject) };
 }
 
+/*
 Array<String> String::split(const String& expr) const {
     std::vector<String> result;
     auto const splits = view().split(expr.view());
     result.reserve(splits.size());
+
     for (auto& s : splits) {
         result.emplace_back(s);
     }
 
     return {result};
 }
-
+*/
 
 String String::substring(size_type from, size_type len) const {
     return String(_str.substr(from, len));
@@ -335,8 +338,9 @@ String String::join(StringView by, std::initializer_list<String> list) {
     size_type i = 0;
     for (auto& s : list) {
         buffer.append(s._str);
-        if (++i < list.size())
+        if (++i < list.size()) {
             buffer.append(by.data(), by.size());
+        }
     }
 
     return String(buffer);
@@ -344,10 +348,10 @@ String String::join(StringView by, std::initializer_list<String> list) {
 
 /** Return jointed string from the given collection */
 String
-String::join(StringView by, const Array<String>& list) {
+String::join(StringView by, ArrayView<const String> list) {
     std::string buffer;
     size_type total_size = 0;
-    for (auto& s : list) {
+    for (auto const& s : list) {
         total_size += s.size();
     }
 
@@ -357,7 +361,7 @@ String::join(StringView by, const Array<String>& list) {
     buffer.reserve(total_size);
 
     size_type i = 0;
-    for (auto& s : list) {
+    for (auto const& s : list) {
         buffer.append(s._str);
         if (++i < list.size()) {
             buffer.append(by.data(), by.size());

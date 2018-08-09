@@ -28,7 +28,33 @@
 #include "solace/memoryBuffer.hpp"
 
 
+
 namespace Solace {
+namespace _ {  // private
+struct PlacementNew {};
+}  // namespace _
+}  // namespace Solace
+
+inline void* operator new(size_t, Solace::_::PlacementNew, void* __p) noexcept {
+  return __p;
+}
+
+inline void operator delete(void*, Solace::_::PlacementNew, void* SOLACE_UNUSED(__p)) noexcept {}
+
+
+namespace Solace {
+
+template <typename T, typename... Params>
+inline void ctor(T& location, Params&&... params) {
+  new (_::PlacementNew(), &location) T(std::forward<Params>(params)...);
+}
+
+
+template <typename T>
+inline void dtor(T& location) {
+  location.~T();
+}
+
 
 /**
  * An interface for platform's virtual memory manager.

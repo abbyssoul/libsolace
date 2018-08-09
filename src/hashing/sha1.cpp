@@ -246,7 +246,7 @@ String Sha1::getAlgorithm() const {
 
 
 Sha1::size_type Sha1::getDigestLength() const {
-    return 20;
+    return 160;
 }
 
 

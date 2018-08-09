@@ -18,16 +18,13 @@
  *	@file		solace/arrayView.hpp
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_ARRAYREF_HPP
-#define SOLACE_ARRAYREF_HPP
+#ifndef SOLACE_ARRAYVIEW_HPP
+#define SOLACE_ARRAYVIEW_HPP
 
 #include "solace/utils.hpp"
 #include "solace/assert.hpp"
 #include "solace/mutableMemoryView.hpp"
 #include "solace/optional.hpp"
-
-#include <initializer_list>
-#include <algorithm>    // std::swap, std::find
 
 
 namespace Solace {
@@ -40,11 +37,13 @@ namespace Solace {
 template <typename T>
 class ArrayView {
 public:
+    using ViewType = typename std::conditional<std::is_const<T>::value, MemoryView, MutableMemoryView>::type;
+
     using value_type = T;
     using size_type = uint32;
 
     using Iterator = T *;
-    using const_iterator = const T *;
+    using const_iterator = T const *;
 
     using reference = T &;
     using const_reference = const T &;
@@ -61,33 +60,36 @@ public:
     constexpr ArrayView(decltype(nullptr)) noexcept
     {}
 
-    /** Construct an array from C-style array with the given size */
-    constexpr ArrayView(T* ptr, size_type arraySize) noexcept :
-        _memory(wrapMemory(ptr, arraySize))
+    constexpr ArrayView(ArrayView const& other) noexcept
+        : _memory(other._memory)
     {}
 
-    constexpr ArrayView(T* beginSeq, T* endSeq) noexcept :
-        _memory(wrapMemory(beginSeq, endSeq - beginSeq))
+    constexpr ArrayView(ArrayView&& other) noexcept
+        : _memory(std::move(other._memory))
+    {}
+
+    /** Construct an array from C-style array with the given size */
+    constexpr ArrayView(T* ptr, size_type arraySize)
+        : _memory{wrapMemory(ptr, sizeof(T) * arraySize)}
+    {}
+
+    constexpr ArrayView(T* beginSeq, T* endSeq) noexcept
+        : _memory{wrapMemory(beginSeq, sizeof(T) * (endSeq - beginSeq))}
     {}
 
     template <size_t size>
-    constexpr ArrayView(T (&carray)[size]) noexcept :
-        _memory(wrapMemory(carray))
+    constexpr ArrayView(T (&carray)[size]) noexcept
+        : _memory{wrapMemory(carray)}
     {}
 
-    constexpr ArrayView(const ArrayView& other) noexcept :
-        _memory(other._memory)
-    {}
-
-    constexpr ArrayView(MutableMemoryView&& memview) noexcept :
+    constexpr ArrayView(ViewType memview) noexcept :
         _memory(std::move(memview))
     {}
 
 public:
 
     ArrayView<T>& swap(ArrayView<T>& rhs) noexcept {
-        using std::swap;
-        swap(_memory, rhs._memory);
+        _memory.swap(rhs._memory);
 
         return (*this);
     }
@@ -113,8 +115,8 @@ public:
 
         auto selfIt = this->begin();
         auto otherIt = other.begin();
-        const auto selfEnd = this->end();
-        const auto otherEnd = other.end();
+        auto const selfEnd = this->end();
+        auto const otherEnd = other.end();
 
         for (; (selfIt != selfEnd) && (otherIt != otherEnd); ++otherIt, ++selfIt) {
             if ( !(*selfIt == *otherIt) ) {
@@ -150,7 +152,7 @@ public:
      * Check if this collection is empty.
      * @return True is this is an empty collection.
      */
-    bool empty() const noexcept {
+    constexpr bool empty() const noexcept {
         return _memory.empty();
     }
 
@@ -158,7 +160,7 @@ public:
      * Get the number of elements in this array
      * @return number of elements in this collection.
      */
-    size_type size() const noexcept {
+    constexpr size_type size() const noexcept {
         return _memory.size() / sizeof(T);
     }
 
@@ -166,37 +168,35 @@ public:
     const_reference operator[] (size_type index) const {
         index = assertIndexInRange(index, 0, size(), "ArrayView[] const");
 
-        return _memory.dataAs<T>()[index];
+        return _memory.template dataAs<T>()[index];
     }
 
 
     reference operator[] (size_type index) {
         index = assertIndexInRange(index, 0, size(), "ArrayView[]");
 
-        return _memory.dataAs<T>()[index];
+        return _memory.template dataAs<T>()[index];
     }
 
 
     Iterator begin() noexcept {
         return _memory.empty()
                 ? nullptr
-                : _memory.dataAs<T>();
+                : _memory.template dataAs<T>();
     }
 
     Iterator end() noexcept { return begin() + size(); }
-    reference front() noexcept { return *begin(); }
-    reference back() noexcept { return *(begin() + size() - 1); }
 
     const_iterator begin() const noexcept {
         return _memory.empty()
                 ? nullptr
-                : _memory.dataAs<T>();
+                : _memory.template dataAs<T>();
     }
 
     const_iterator end()     const noexcept { return (begin() + size()); }
-    const_reference front()  const noexcept { return *begin(); }
-    const_reference back()   const noexcept { return *(begin() + size() - 1); }
 
+
+    const_pointer data() const noexcept { return begin(); }
 
     ArrayView<const T> slice(size_type from, size_type to) const {
         from   = assertIndexInRange(from, 0,     size(), "ArrayView::slice() const");
@@ -216,16 +216,17 @@ public:
         return _memory;
     }
 
-    MutableMemoryView view() noexcept {
+    template<class Q = T>
+    typename std::enable_if<!std::is_const<Q>::value, MutableMemoryView>::type
+    view() noexcept {
         return _memory;
     }
 
-    // cppcheck-suppress unusedFunction
     bool contains(const_reference value) const noexcept {
+//        return (std::find(_storage.begin(), _storage.end(), value) != _storage.end());
         return indexOf(value).isSome();
     }
 
-    // cppcheck-suppress unusedFunction
     Optional<size_type> indexOf(const_reference value) const noexcept {
         const auto len = size();
         auto it = begin();
@@ -302,7 +303,7 @@ public:
     const ArrayView<T>& >
     forEach(F&& f) const {
         const auto thisSize = size();
-        const auto pData = _memory.dataAs<T>();
+        const auto pData = _memory.template dataAs<T>();
 
         for (size_type i = 0; i < thisSize; ++i) {
             f(i, pData[i]);
@@ -319,7 +320,7 @@ public:
     ArrayView<T>& >
     forEach(F&& f) {
         const auto thisSize = size();
-        const auto pData = _memory.dataAs<T>();
+        const auto pData = _memory.template dataAs<T>();
 
         for (size_type i = 0; i < thisSize; ++i) {
             f(i, pData[i]);
@@ -331,7 +332,7 @@ public:
 private:
 
     /// Memory where the array data is stored.
-    MutableMemoryView _memory;
+    ViewType _memory;
 };
 
 
@@ -349,6 +350,12 @@ constexpr ArrayView<T> arrayView(T* ptr, size_t size) {
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
+template <typename T>
+constexpr ArrayView<const T> arrayView(T const* ptr, size_t size) {
+  return ArrayView<const T>(ptr, size);
+}
+
+/** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T, size_t N>
 constexpr ArrayView<T> arrayView(T (&carray)[N]) {
   return ArrayView<T>(carray);
@@ -362,4 +369,4 @@ constexpr ArrayView<T> arrayView(T* begin, T* end) {
 }
 
 }  // End of namespace Solace
-#endif  // SOLACE_ARRAYREF_HPP
+#endif  // SOLACE_ARRAYVIEW_HPP

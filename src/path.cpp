@@ -79,7 +79,7 @@ std::vector<String> joinComponents(std::initializer_list<Path> paths) {
 
 
 bool Path::isAbsolute() const noexcept {
-    return (!empty() && _components.first().empty());
+    return (!empty() && _components.front().empty());
 }
 
 bool Path::isRelative() const noexcept {
@@ -157,18 +157,13 @@ Path::join(Path const& base, std::initializer_list<const char*> paths) {
 
 Result<Path, Error>
 Path::parse(StringView str, StringView delim) {
-    auto components = str.split(delim);
-    const auto nbOfComponents = components.size();
-
     std::vector<String> nonEmptyComponents;
-    nonEmptyComponents.reserve(nbOfComponents);
+    str.split(delim, [&](StringView c, StringView::size_type i, StringView::size_type count) {
+        if (i + 1 == count && c.empty())
+            return;
 
-    for (decltype(components)::size_type i = 0; i < components.size(); ++i) {
-        if (i + 1 == components.size() && components[i].empty())
-            continue;
-
-        nonEmptyComponents.emplace_back(std::move(components[i]));
-    }
+        nonEmptyComponents.emplace_back(c);
+    });
 
     return nonEmptyComponents.empty()
             ? Ok(Root)
@@ -197,7 +192,7 @@ Path::length(const StringView& delim) const noexcept {
     if (nbComponents == 0) {
         return 0;
     } else if (_components.size() == 1) {
-        const auto& one = _components.first();
+        const auto& one = _components.front();
         if (one.empty()) {  // Absolute
             return delimLen;
         } else {
@@ -294,7 +289,7 @@ bool Path::contains(const Path& path) const {
          ++firstMatch) {
 
         const auto& a = _components[firstMatch];
-        if (a.equals(path._components.first())) {
+        if (a.equals(path._components.front())) {
             bool allMatched = true;
             for (size_type i = 1; i < nbOtherComponents; ++i) {
                 const auto& b = _components[firstMatch + i];
@@ -336,10 +331,12 @@ Path Path::getParent() const {
         return *this;
     }
 
-    Array<String> basePath(_components.size() - 1);
+    auto const nbBaseComponents = _components.size() - 1;
+    std::vector<String> basePath;
+    basePath.reserve(nbBaseComponents);
     // TODO(abbyssoul): Should use array copy
-    for (size_type i = 0; i < basePath.size(); ++i) {
-        basePath[i] = _components[i];
+    for (size_type i = 0; i < nbBaseComponents; ++i) {
+        basePath.push_back(_components[i]);
     }
 
     return Path(std::move(basePath));
@@ -374,10 +371,10 @@ Path Path::subpath(size_type beginIndex, size_type endIndex) const {
     if (beginIndex > endIndex)
         raise<IndexOutOfRangeException>(beginIndex, 0, endIndex);
 
-    const auto newSize = endIndex - beginIndex;
-    Array<String> components(newSize);
-    for (size_type i = 0; i < newSize; ++i) {
-        components[i] = _components[beginIndex + i];
+    std::vector<String> components;
+    components.reserve(endIndex - beginIndex);
+    for (size_type i = beginIndex; i < endIndex; ++i) {
+        components.push_back(_components[i]);
     }
 
     return Path(std::move(components));
@@ -415,28 +412,28 @@ Path Path::join(std::initializer_list<StringView> rhs) const {
 
 
 
-bool Path::equals(const Path& rhv) const noexcept {
-    return (&rhv == this) || rhv._components.equals(_components);
+bool Path::equals(Path const& rhv) const noexcept {
+    return (&rhv == this) || rhv._components == _components;
 }
 
 
 const String& Path::first() const {
     return empty()
             ? String::Empty
-            : _components.first();
+            : _components.front();
 }
 
 
 const String& Path::last() const {
     return empty()
             ? String::Empty
-            : _components.last();
+            : _components.back();
 }
 
 
 String
-Path::toString(const StringView& delim) const {
+Path::toString(StringView delim) const {
     return (isAbsolute() && _components.size() == 1)
             ? delim
-            : String::join(delim, _components);
+            : String::join(delim, arrayView(_components.data(), _components.size()));
 }

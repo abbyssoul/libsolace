@@ -217,7 +217,15 @@ public:  // Basic collection operations:
 	/** Splits this string around matches of expr
 	 *
 	 */
-    Array<String> split(String const& expr) const;
+    template<typename Callable>
+    void split(StringView delim, Callable&& f) const {
+        view().split(delim, std::forward<Callable>(f));
+    }
+
+    template<typename Callable>
+    void split(char delim, Callable&& f) const {
+        view().split(delim, std::forward<Callable>(f));
+    }
 
 	/**
 	 * Returns a new string that is a substring of this string
@@ -362,7 +370,7 @@ public:
      *
      * @return The resulting string
      */
-    static String join(StringView by, const Array<String>& list);
+    static String join(StringView by, ArrayView<const String> list);
 
     /**
      * Return String representation of value.
@@ -535,11 +543,6 @@ inline void swap(String& lhs, String& rhs) noexcept {
     lhs.swap(rhs);
 }
 
-
-// FIXME: std dependence, used for Unit Testing only
-inline std::ostream& operator<< (std::ostream& ostr, String const& str) {
-    return ostr << str.c_str();
-}
 
 
 }  // namespace Solace

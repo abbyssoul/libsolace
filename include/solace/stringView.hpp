@@ -277,13 +277,56 @@ public:
      * @param delim A delimeter to split the string by.
      * @return A list of substrings.
      */
-    Array<StringView> split(StringView delim) const;
+    template<typename Callable>
+    std::enable_if_t<isCallable<Callable, StringView>::value, void>
+    split(StringView delim, Callable&& f) const {
+        auto const delimLength = delim.length();
+        size_type to = 0, from = 0;
+        for (; to < size() && delimLength + to <= size(); ++to) {
+            if (delim.equals(substring(to, delimLength))) {
+                f(substring(from, to - from));
+
+                to += delimLength - 1;
+                from = to + 1;
+            }
+        }
+
+        f(substring(from, size() - from));
+    }
+
+    template<typename Callable>
+    std::enable_if_t<isCallable<Callable, StringView, StringView::size_type, StringView::size_type>::value, void>
+    split(StringView delim, Callable&& f) const {
+        auto const delimLength = delim.length();
+        size_type delimCount = 0;
+        for (size_type i = 0; i < size() && i + delimLength <= size(); ++i) {  // count_if, but with custom stride
+            if (delim.equals(substring(i, delimLength))) {
+                delimCount += 1;
+                i += delimLength - 1;
+            }
+        }
+
+        size_type to = 0, from = 0;
+        for (size_type i = 0; to < size() && delimLength + to <= size(); ++to) {
+            if (delim.equals(substring(to, delimLength))) {
+                f(substring(from, to - from), i, delimCount + 1);
+                i += 1;
+
+                to += delimLength - 1;
+                from = to + 1;
+            }
+        }
+
+        f(substring(from, size() - from), delimCount, delimCount + 1);
+    }
+
+
 
     /** Splits the string around matches of expr
      * @param delim A delimeter to split the string by.
      * @return A list of substrings.
      */
-    Array<StringView> split(value_type delim) const;
+//    Array<StringView> split(value_type delim) const;
 
     /** Splits the string around matches of expr
      * @param delim A delimeter to split the string by.
@@ -291,12 +334,12 @@ public:
      */
     template<typename Callable>
     void split(value_type delim, Callable&& f) const {
-        size_type delimCount = 0;
-        for (const auto c : *this) {  // Count_if
-            if (c == delim) {
-                ++delimCount;
-            }
-        }
+//        size_type delimCount = 0;
+//        for (const auto c : *this) {  // Count_if
+//            if (c == delim) {
+//                ++delimCount;
+//            }
+//        }
 
         size_type to = 0, from = 0;
         for (; to < size(); ++to) {
@@ -390,11 +433,6 @@ bool operator!= (char const* rhv, StringView const& str) noexcept {
 inline
 bool operator!= (StringView const& str, char const* rhv) noexcept {
     return !str.equals(rhv);
-}
-
-
-inline std::ostream& operator<< (std::ostream& ostr, StringView const& str) {
-    return ostr.write(str.data(), str.size());
 }
 
 

@@ -15,7 +15,7 @@
 */
 /*******************************************************************************
  * libSolace
- *	@file		immutableMemoryView.cpp
+ *	@file		memoryView.cpp
  *	@author		$LastChangedBy: soultaker $
  *	@date		$LastChangedDate$
  *	@brief		Implementation of ImmutableMemoryView
@@ -25,11 +25,6 @@
 #include "solace/exception.hpp"
 
 #include "solace/base16.hpp"    //  For operator<<
-
-#include <cstring>  // memcpy
-#include <utility>
-
-#include <sys/mman.h>
 
 
 using namespace Solace;
@@ -94,20 +89,4 @@ MemoryView::slice(size_type from, size_type to) const {
 MemoryView
 MemoryView::viewImmutableShallow() const {
     return wrapMemory(dataAddress(), size());
-}
-
-
-std::ostream& Solace::operator<<(std::ostream& ostr, MemoryView const& view) {
-    if (view.size() > 0) {
-        // We use custom output printing each byte as \0 bytest and \n are not printable otherwise.
-        auto i = base16Encode_begin(view);
-        auto end = base16Encode_end(view);
-        for (; i != end; ++i) {
-            ostr << *i;
-        }
-    } else {
-        ostr << "<null>";
-    }
-
-    return ostr;
 }

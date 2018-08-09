@@ -27,6 +27,7 @@
 
 #include <type_traits>  // std::is_signed
 #include <climits>
+#include <limits>
 
 
 

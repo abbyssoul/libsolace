@@ -19,6 +19,7 @@
 */
 
 #include <solace/cli/parser.hpp>
+#include <solace/output_utils.hpp>
 #include <iostream>
 
 

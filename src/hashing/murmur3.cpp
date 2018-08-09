@@ -331,7 +331,7 @@ String Murmur3_32::getAlgorithm() const {
 
 Murmur3_32::size_type
 Murmur3_32::getDigestLength() const {
-    return 32 / 8;
+    return 32;
 }
 
 
@@ -369,7 +369,7 @@ String Murmur3_128::getAlgorithm() const {
 
 
 Murmur3_128::size_type Murmur3_128::getDigestLength() const {
-    return 128 / 8;
+    return 128;
 }
 
 

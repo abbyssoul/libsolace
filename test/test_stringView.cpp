@@ -290,15 +290,21 @@ TEST(TestStringView, testHashCode) {
 }
 
 TEST(TestStringView, testSplitByChar) {
-
-    // Splitting empty string gives you 1 item in a collection - empty string
-    EXPECT_EQ(static_cast<array_size_t>(1),
-                            StringView()
-                            .split('x')
-                            .size());
+    {
+        int acc = 0;
+        // Splitting empty string gives you 1 item in a collection - empty string
+        StringView().split('x', [&acc](StringView ) {
+            ++acc;
+        });
+        EXPECT_EQ(1, acc);
+    }
 
     {   // Normal split
-        auto result = StringView("boo:and:foo").split(':');
+        std::vector<StringView> result;
+
+        StringView("boo:and:foo").split(':', [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(3), result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
@@ -307,8 +313,11 @@ TEST(TestStringView, testSplitByChar) {
     }
 
     {   // Normal split 2
-        auto result = StringView("warning,performance,portability,")
-                .split(',');
+        std::vector<StringView> result;
+        StringView("warning,performance,portability,")
+                .split(',', [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(4), result.size());
         EXPECT_EQ(StringView("warning"), result[0]);
@@ -318,7 +327,10 @@ TEST(TestStringView, testSplitByChar) {
     }
 
     {   // Normal split with empty token in the middle
-        auto result = StringView("boo::foo").split(':');
+        std::vector<StringView> result;
+        StringView("boo::foo").split(':', [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(3), result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
@@ -327,7 +339,12 @@ TEST(TestStringView, testSplitByChar) {
     }
 
     {   // Normal split with empty token in the middle and in the end
-        auto result = StringView("boo::foo:").split(':');
+        std::vector<StringView> result;
+        result.reserve(4);
+
+        StringView("boo::foo:").split(':', [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(4), result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
@@ -337,13 +354,20 @@ TEST(TestStringView, testSplitByChar) {
     }
 
     {   // No splitting token in the string
-        auto result = StringView("boo").split(':');
+        std::vector<StringView> result;
+
+        StringView("boo").split(':', [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(1), result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
     }
     {   // Normal split with empty token in beggining
-        auto result = StringView(":boo").split(':');
+        std::vector<StringView> result;
+        StringView(":boo").split(':', [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(2), result.size());
         EXPECT_EQ(StringView(),      result[0]);
@@ -353,14 +377,21 @@ TEST(TestStringView, testSplitByChar) {
 
 
 TEST(TestStringView, testSplitByStringToken) {
-    // Splitting empty string gives you 1 item in a collection - empty string
-    EXPECT_EQ(static_cast<array_size_t>(1),
-                            StringView()
-                            .split("tok")
-                            .size());
+    {
+        int acc = 0;
+        // Splitting empty string gives you 1 item in a collection - empty string
+        StringView().split("tok", [&acc](StringView ) {
+            ++acc;
+        });
+        EXPECT_EQ(1, acc);
+    }
 
     {   // Narmal split
-        auto result = StringView("boo:!and:!foo").split(":!");
+        std::vector<StringView> result;
+
+        StringView("boo:!and:!foo").split(":!", [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(3), result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
@@ -368,7 +399,10 @@ TEST(TestStringView, testSplitByStringToken) {
         EXPECT_EQ(StringView("foo"), result[2]);
     }
     {   // Narmal split
-        auto result = StringView("boo:!and:!").split(":!");
+        std::vector<StringView> result;
+        StringView("boo:!and:!").split(":!", [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(3), result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
@@ -376,7 +410,10 @@ TEST(TestStringView, testSplitByStringToken) {
         EXPECT_EQ(StringView(), result[2]);
     }
     {   // Narmal split
-        auto result = StringView("boo:!:!foo:!").split(":!");
+        std::vector<StringView> result;
+        StringView("boo:!:!foo:!").split(":!", [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(4), result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
@@ -386,7 +423,10 @@ TEST(TestStringView, testSplitByStringToken) {
     }
 
     {   // No splitting token in the string
-        auto result = StringView("boo").split("other");
+        std::vector<StringView> result;
+        StringView("boo").split("other", [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(1), result.size());
         EXPECT_EQ(StringView("boo"), result[0]);

@@ -194,7 +194,12 @@ TEST(TestString, testSplit) {
     const String source("boo:and:foo");
 
     {   // Normal split
-        auto result = source.split(":");
+        std::vector<String> result;
+        result.reserve(3);
+
+        source.split(":", [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(3), result.size());
         EXPECT_EQ(dest0, result[0]);
@@ -203,28 +208,30 @@ TEST(TestString, testSplit) {
     }
 
     {   // No splitting token in the string
-        auto result = dest0.split(":");
+        std::vector<String> result;
+        dest0.split(':', [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(1), result.size());
         EXPECT_EQ(dest0, result[0]);
     }
 
     {   // No splitting token in the string
-        auto result = source.split("/");
+        std::vector<String> result;
+        source.split("/", [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(1), result.size());
         EXPECT_EQ(source, result[0]);
     }
 
-    {   // No splitting token in the string and wrong RegExp
-        auto result = source.split("1");
-
-        EXPECT_EQ(static_cast<array_size_t>(1), result.size());
-        EXPECT_EQ(source, result[0]);
-    }
-
-    {   // No splitting token in the string
-        auto result = String(":foo").split(":");
+    {   // Split with empty token
+        std::vector<String> result;
+        String(":foo").split(":", [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
 
         EXPECT_EQ(static_cast<array_size_t>(2), result.size());
         EXPECT_EQ(String::Empty, result[0]);

@@ -44,20 +44,19 @@ struct SerialPortInfo {
     /*! Hardware ID (e.g. VID:PID of USB serial devices) or "" (empty string) if not available. */
     String hardwareId;
 
-
-    /** Default Constructor for collection interop */
-    SerialPortInfo() = default;
-
-    SerialPortInfo(const Path& path, const String& desc, const String& hwId) :
-        file(path), description(desc), hardwareId(hwId)
+    SerialPortInfo(const Path& path, const String& desc, const String& hwId)
+        : file(path)
+        , description(desc)
+        , hardwareId(hwId)
     {
         // No-op
     }
+/*
 
-    /** Copy constructor */
+
+    SerialPortInfo() = default;
     SerialPortInfo(const SerialPortInfo& other) = default;
 
-    /** Move constructor */
     SerialPortInfo(SerialPortInfo&& other) = default;
 
     bool operator== (const SerialPortInfo& rhs) const {
@@ -77,6 +76,7 @@ struct SerialPortInfo {
     SerialPortInfo& operator= (SerialPortInfo&& rhs) noexcept {
         return swap(rhs);
     }
+    */
 };
 
 
@@ -92,7 +92,7 @@ public:
      * Enumerate serial ports currently available
      * @return A collection of serial port descriptors
      */
-    static Array<SerialPortInfo> enumeratePorts();
+    static std::vector<SerialPortInfo> enumeratePorts();
 
 public:
 

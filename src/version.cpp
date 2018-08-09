@@ -99,8 +99,9 @@ Version::parse(StringView str) {
             char* patchEnd;
             patchVersion = std::strtoul(split.data(), &patchEnd, 10);
 
-            if (patchEnd != str.end())
+            if (patchEnd != str.end()) {
                 afterPatch = StringView(patchEnd, str.end());
+            }
 
             ++splitIndex;
         }
@@ -117,10 +118,11 @@ Version::parse(StringView str) {
     if (!afterPatch.empty()) {
         splitIndex = 0;
         afterPatch.split('+', [&](StringView split) {
-            if (splitIndex == 0)
+            if (splitIndex == 0) {
                 preRelease = split.trim('-');
-            else if (splitIndex == 1)
+            } else if (splitIndex == 1) {
                 build = split;
+            }
 
             ++splitIndex;
         });
@@ -151,5 +153,5 @@ Version::parse(StringView str) {
         return Ok<Version>({majorVersion, minorVersion, patchVersion, preRelease, build});
     }*/
 
-    return Err(Error("Invalid format"));
+//    return Err(Error("Invalid format"));
 }

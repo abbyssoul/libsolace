@@ -26,6 +26,8 @@
 #include "selector_impl.hpp"
 
 
+#include <vector>
+#include <algorithm>  // remove_if
 #include <unistd.h>  // close()
 #include <fcntl.h>
 
@@ -61,9 +63,10 @@ public:
     EPollSelectorImpl& operator= (EPollSelectorImpl const&) = delete;
 
     // FIXME: evlist will actually leak if we throw here...
-    explicit EPollSelectorImpl(uint maxReportedEvents): _evlist(maxReportedEvents) {
-        _epfd = epoll_create(maxReportedEvents);
-
+    explicit EPollSelectorImpl(uint maxReportedEvents)
+        : _evlist(maxReportedEvents)
+        , _epfd{epoll_create(maxReportedEvents)}
+    {
         if (-1 == _epfd) {
             Solace::raise<IOException>(errno);
         }
@@ -178,7 +181,7 @@ public:
 
 private:
     std::vector<Selector::Event>    _selectables;
-    Solace::Array<epoll_event>      _evlist;
+    std::vector<epoll_event>        _evlist;
     int                             _epfd;
 };
 

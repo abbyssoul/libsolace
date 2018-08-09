@@ -27,6 +27,8 @@
 #include "solace/future.hpp"
 
 #include <atomic>
+#include <vector>
+#include <algorithm>
 
 
 namespace Solace { namespace details {
@@ -39,9 +41,9 @@ struct CollectContext {
         {}
     };
 
-    using Result = typename std::conditional<std::is_void<T>::value, void, Array<T>>::type;
+    using Result = typename std::conditional<std::is_void<T>::value, void, std::vector<T>>::type;
 
-    using InternalResult = typename std::conditional<std::is_void<T>::value, Nothing, Array<Optional<T>>>::type;
+    using InternalResult = typename std::conditional<std::is_void<T>::value, Nothing, std::vector<Optional<T>>>::type;
 
     explicit CollectContext(size_t n) : result(n)
     {}
@@ -136,7 +138,7 @@ inline
 Future<void> collect(std::vector<Future<void>>& futures) {
     auto ctx = std::make_shared<details::CollectContext<void>>();
 
-    for (typename Array<Future<void>>::size_type i = 0; i < futures.size(); ++i) {
+    for (typename std::vector<Future<void>>::size_type i = 0; i < futures.size(); ++i) {
         futures[i].then([ctx, i]() {
             ctx->setPartialResult(i);
         })

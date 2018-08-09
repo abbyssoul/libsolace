@@ -150,13 +150,13 @@ TEST(TestUUID, testParsing_and_ToString_are_consistent) {
 
 TEST(TestUUID, testContainerReq) {
     {
-        Array<UUID> uids(2);
+        std::vector<UUID> uids(2);
         EXPECT_EQ(UUID::StaticSize, uids[0].size());
         EXPECT_EQ(false, uids[0].isNull());
     }
 
     {
-        Array<UUID> uids{
+        std::vector<UUID> uids{
             UUID({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}),
             UUID({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}),
             UUID({0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}),

@@ -209,7 +209,7 @@ String MD5::getAlgorithm() const {
 
 
 MD5::size_type MD5::getDigestLength() const {
-    return 128 / 8;
+    return 128;
 }
 
 

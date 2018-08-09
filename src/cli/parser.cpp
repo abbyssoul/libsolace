@@ -23,6 +23,8 @@
 #include "solace/cli/utils.hpp"
 #include "solace/parseUtils.hpp"
 
+#include "solace/output_utils.hpp"
+
 #include <fmt/format.h>
 #include <fmt/ostream.h>
 
@@ -397,8 +399,8 @@ parseOption(StringView arg, char prefix, char valueSeparator) {
 
 
 Result<uint, Error>
-parseOptions(const Parser::Context& cntx,
-             const Array<Parser::Option>& options,
+parseOptions(Parser::Context const& cntx,
+             std::vector<Parser::Option> const& options,
              char prefix, char separator) {
     auto firstPositionalArgument = cntx.offset;
 
@@ -474,12 +476,12 @@ parseOptions(const Parser::Context& cntx,
 
 
 Result<uint, Error>
-parseArguments(const Parser::Context& cntx,
-               const Array<Parser::Argument>& arguments) {
+parseArguments(Parser::Context const& cntx,
+               std::vector<Parser::Argument> const& arguments) {
 
     bool const expectsTrailingArgument = arguments.empty()
             ? false
-            : arguments.last().isTrailing();
+            : arguments.back().isTrailing();
 
     auto const nbPositionalArguments = cntx.argc - cntx.offset;
 
@@ -529,7 +531,7 @@ parseArguments(const Parser::Context& cntx,
 
 
 Result<Parser::ParseResult, Error>
-parseCommand(const Parser::Command& cmd, const Parser::Context& cntx) {
+parseCommand(Parser::Command const& cmd, Parser::Context const& cntx) {
 
     auto optionsParsingResult = parseOptions(cntx,
                                              cmd.options(),
@@ -545,7 +547,7 @@ parseCommand(const Parser::Command& cmd, const Parser::Context& cntx) {
     if (positionalArgument < cntx.argc) {
 
         if (!cmd.commands().empty()) {
-            const StringView subcmdName{cntx.argv[positionalArgument]};
+            auto const subcmdName = StringView {cntx.argv[positionalArgument]};
             const auto cmdIt = cmd.commands().find(subcmdName);
             if (cmdIt == cmd.commands().end()) {
                 return fail("Command '{}' not supported", subcmdName);
@@ -577,7 +579,7 @@ parseCommand(const Parser::Command& cmd, const Parser::Context& cntx) {
     } else {
 
         return (cmd.arguments().empty() && cmd.commands().empty())
-                || (!cmd.arguments().empty() && cmd.arguments().last().isTrailing())
+                || (!cmd.arguments().empty() && cmd.arguments().back().isTrailing())
             ? Ok<Parser::ParseResult>(cmd.action())
             : fail("Not enough arguments");
     }

@@ -33,12 +33,32 @@
 #include "solace/memoryManager.hpp"  // TODO(abbyssoul): Allocate memory via memory manager
 
 
-// TODO(abbyssoul): Remove std dependencies!
-#include <vector>       // TODO(abbyssoul): Remove! No dynamic reallocation is needed!
-
-
-
 namespace Solace {
+
+/**
+ * Strategy to dispose of array content.
+ * @see MemoryViewDisposer
+ */
+class ArrayDisposer {
+public:
+    using size_type = uint32;
+
+    virtual ~ArrayDisposer() = default;
+
+    template<typename T>
+    void dispose(ArrayView<T>* view) const;
+
+protected:
+
+    virtual void disposeImpl(void* firstElement, size_t elementSize, size_type elementCount,
+                             void (*destroyElement)(void*)) const = 0;
+
+private:
+    template <typename T, bool hasTrivialDestructor = __has_trivial_destructor(T)>
+    struct Dispose_;
+};
+
+
 
 /** Fixed-size indexed collection of elements aka Array.
  * Array is a collection that has a fixed number of elements specified at the time of its creation.
@@ -50,141 +70,109 @@ namespace Solace {
 template<typename T>
 class Array {
 public:
-    typedef T                                   value_type;
-    typedef std::vector<T> Storage;
-    typedef uint32                              size_type;
+    using ViewType = ArrayView<T>;
+    using value_type = T;
+    using size_type = typename ViewType::size_type;
 
-    typedef typename Storage::iterator          Iterator;
-    typedef typename Storage::const_iterator    const_iterator;
+    using Iterator = typename ViewType::Iterator;
+    using const_iterator = typename ViewType::const_iterator;
 
-    typedef typename Storage::const_reference   const_reference;
-    typedef typename Storage::reference         reference;
+    using reference = typename ViewType::reference;
+    using const_reference = typename ViewType::const_reference;
 
-    typedef typename Storage::pointer           pointer_type;
-    typedef typename Storage::const_pointer     const_pointer;
+    using pointer = typename ViewType::pointer_type;
+    using const_pointer = typename ViewType::const_pointer;
 
 public:
 
-    /** Construct an empty array
-     * note: stl vector does not guaranty 'noexcept' even for an empty vector :'(
-     * */
-    Array(): _storage() {
-    }
+    inline ~Array() { dispose(); }
+
+    constexpr explicit Array(decltype(nullptr)) : _data(nullptr)
+    {}
+
+    /** Construct an empty array */
+    constexpr Array() noexcept = default;
 
     /** Construct a new array by moving content of a given array */
-    Array(Array<T>&& other) noexcept: _storage(std::move(other._storage)) {
-    }
-
-    /** Construct an array of a given fixed size */
-    explicit Array(size_type initialSize): _storage(initialSize) {
-        _storage.reserve(initialSize);
-    }
-
-    /** Construct a new array to be a copy of a given */
-    Array(const Array<T>& other): _storage(other._storage) {
-    }
-
-    /** Construct a new array from a C-style array */
-    Array(size_type len, const T* carray): _storage(carray, carray + len) {
+    constexpr Array(Array<T>&& rhs) noexcept
+        : _data(std::move(rhs._data))
+        , _disposer(std::exchange(rhs._disposer, nullptr))
+    {
     }
 
     /** */
-    Array(const Storage& list): _storage(list) {
+    constexpr Array(ArrayView<T> view, ArrayDisposer const& disposer) noexcept
+        : _data(std::move(view))
+        , _disposer(&disposer)
+    {
     }
-
-    /** */
-    Array(Storage&& list): _storage(std::move(list)) {
-    }
-
-    /** Construct an array from an memory buffer */
-    Array(MutableMemoryView&& memView) :
-        _storage(memView.dataAs<T>(), memView.dataAs<T>() + memView.size() / sizeof(T)) {
-        // FIXME(abbyssoul): current implementation copies data but should use mem location.
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-    // Next section is STD lib compatibility interface
-    //------------------------------------------------------------------------------------------------------------------
-
-    /** Construct an array from an initialized list */
-    Array(const std::initializer_list<T>& list): _storage(list) {
-    }
-
 
 public:
 
     Array<T>& swap(Array<T>& rhs) noexcept {
         using std::swap;
-        swap(_storage, rhs._storage);
+        swap(_data, rhs._data);
+        swap(_disposer, rhs._disposer);
 
         return (*this);
     }
 
-    Array<T>& operator= (const Array<T>& rhs) noexcept {
-        Array<T>(rhs).swap(*this);
+    inline Array& operator= (decltype(nullptr)) {
+      dispose();
 
-        return *this;
+      return *this;
     }
 
     Array<T>& operator= (Array<T>&& rhs) noexcept {
         return swap(rhs);
     }
 
-    Array<T>& operator= (std::initializer_list<T> rhs) noexcept {
-        _storage = rhs;
 
-        return *this;
-    }
-
-    bool equals(const Array<T>& other) const noexcept {
+    bool equals(Array<T> const& other) const noexcept {
         return ((&other == this) ||
-                (_storage == other._storage));
+                (_data == other._data));
     }
 
-    /**
-     * Overloaded operator for syntactic sugar. @see equals
-     * @param rhv The object to compare this instance to.
-     * @return True if this object is equal to the given
-     */
-    bool operator== (const Array<T>& rhv) const noexcept {
-        return equals(rhv);
-    }
+    bool equals(std::initializer_list<T> other) const noexcept {
+        if (size() != other.size())
+            return false;
 
-    /**
-     * Overloaded operator for syntactic sugar. @see equals
-     * @param rhv The object to compare this instance to.
-     * @return True if this object is NOT equal to the given.
-     */
-    bool operator!= (const Array<T>& rhv) const noexcept {
-        return !equals(rhv);
+        auto selfIt = this->begin();
+        auto otherIt = other.begin();
+        auto const selfEnd = this->end();
+        auto const otherEnd = other.end();
+
+        for (; (selfIt != selfEnd) && (otherIt != otherEnd); ++otherIt, ++selfIt) {
+            if ( !(*selfIt == *otherIt) ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
      * Check if this collection is empty.
      * @return True is this is an empty collection.
      */
-    bool empty() const noexcept {
-        return _storage.empty();
+    constexpr bool empty() const noexcept {
+        return _data.empty();
     }
 
     /**
      * Get the number of elements in this array
      * @return The size of this finite collection
      */
-    size_type size() const noexcept {
-        return _storage.size();
+    constexpr size_type size() const noexcept {
+        return _data.size();
     }
 
     const_reference operator[] (size_type index) const {
-        index = assertIndexInRange(index, 0, size());
-
-        return _storage[index];
+        return _data[index];
     }
 
     reference operator[] (size_type index) {
-        index = assertIndexInRange(index, 0, size());
-
-        return _storage[index];
+        return _data[index];
     }
 
     /**
@@ -192,11 +180,11 @@ public:
      * @return iterator to beginning of the collection
      */
     const_iterator begin() const noexcept {
-        return _storage.begin();
+        return _data.begin();
     }
 
     Iterator begin() noexcept {
-        return _storage.begin();
+        return _data.begin();
     }
 
     /**
@@ -204,40 +192,43 @@ public:
      * @return iterator to end of the collection
      */
     const_iterator end() const noexcept {
-        return _storage.end();
+        return _data.end();
     }
 
     Iterator end() noexcept {
-        return _storage.end();
+        return _data.end();
     }
 
-    const_reference first() const { return _storage.front(); }
+    Array<const T> slice(size_type from, size_type to) const {
+        return _data.slice(from, to);
+    }
 
-    const_reference last() const { return _storage.back(); }
+    Array<T> slice(size_type from, size_type to) {
+        return _data.slice(from, to);
+    }
 
-    // TODO(abbyssoul): Implement once we got read of stl::vector
-//    Array<T> slice(size_type from, size_type to) const {
-//        return { _storage };
-//    }
-
-    pointer_type data() noexcept {
-        return _storage.data();
+    pointer data() noexcept {
+        return _data.data();
     }
 
     const_pointer data() const noexcept {
-        return _storage.data();
+        return _data.data();
     }
 
-    MemoryView view() const noexcept {
-        return wrapMemory(_storage.data(), _storage.size() * sizeof(T));
+    ArrayView<const T> view() const noexcept {
+        return _data;
     }
 
-    MutableMemoryView view() noexcept {
-        return wrapMemory(_storage.data(), _storage.size() * sizeof(T));
+    ArrayView<T> view() noexcept {
+        return _data;
     }
 
-    bool contains(const_reference value) const {
-        return (std::find(_storage.begin(), _storage.end(), value) != _storage.end());
+    bool contains(const_reference value) const noexcept {
+        return _data.contains(value);
+    }
+
+    Optional<size_type> indexOf(const_reference value) const noexcept {
+        return _data.indexOf(value);
     }
 
     /*
@@ -252,9 +243,7 @@ public:
                 isCallable<F, T&>::value,
     Array<T>& >
     forEach(F&& f) {
-        for (auto& x : _storage) {
-            f(x);
-        }
+        _data.forEach(std::forward<F>(f));
 
         return *this;
     }
@@ -262,9 +251,7 @@ public:
     template<typename F>
     std::enable_if_t<isCallable<F, const T&>::value, const Array<T>& >
     forEach(F&& f) const {
-        for (auto& x : _storage) {
-            f(x);
-        }
+        _data.forEach(std::forward<F>(f));
 
         return *this;
     }
@@ -274,10 +261,7 @@ public:
             isCallable<F, size_type, const T&>::value,
     const Array<T>& >
     forEach(F&& f) const {
-        const auto thisSize = size();
-        for (size_type i = 0; i < thisSize; ++i) {
-            f(i, _storage[i]);
-        }
+        _data.forEach(std::forward<F>(f));
 
         return *this;
     }
@@ -289,15 +273,12 @@ public:
             isCallable<F, size_type, T&>::value,
     Array<T>& >
     forEach(F&& f) {
-        const auto thisSize = size();
-        for (size_type i = 0; i < thisSize; ++i) {
-            f(i, _storage[i]);
-        }
+        _data.forEach(std::forward<F>(f));
 
         return *this;
     }
 
-
+/*
     template<typename F,
              typename R = typename std::result_of<F(T)>::type>
     Array<R> map(F&& f) const {
@@ -325,10 +306,30 @@ public:
 
         return mappedStorage;
     }
+*/
+
+protected:
+
+    inline void dispose() {
+        // Make sure that if an exception is thrown,
+        // we are left with a null ptr, so we won't possibly dispose again.
+        auto viewCopy = _data;
+
+        if (_data != nullptr && _disposer != nullptr) {
+            _data = nullptr;
+            _disposer->dispose(&viewCopy);
+        }
+    }
+
+    template <typename U>
+    friend class Array;
+    template <typename U>
+    friend class ArrayBuilder;
 
 private:
 
-    Storage _storage;
+    ArrayView<T>                _data;
+    ArrayDisposer const*        _disposer {nullptr};
 };
 
 
@@ -336,6 +337,248 @@ template<typename T>
 void swap(Array<T>& lhs, Array<T>& rhs) noexcept {
     lhs.swap(rhs);
 }
+
+
+class HeapArrayDisposer final: public ArrayDisposer {
+public:
+    using size_type = uint32;
+
+    static const HeapArrayDisposer instance;
+
+    template<typename T>
+    static ArrayView<T> allocate(size_type count);
+
+    template<typename T>
+    static ArrayView<T> allocateUninitialized(size_type count);
+
+    // ArrayDisposer interface
+protected:
+
+    static void* allocateImpl(size_t elementSize, size_type elementCount, size_type capacity,
+                            void (*constructElement)(void*), void (*destroyElement)(void*));
+
+    // Allocates and constructs the array.  Both function pointers are null if the constructor is
+    // trivial, otherwise destroyElement is null if the constructor doesn't throw.
+    void disposeImpl(void* firstElement, size_t elementSize, size_type elementCount,
+                           void (*destroyElement)(void*)) const override;
+
+    template <typename T,   bool hasTrivialConstructor = __has_trivial_constructor(T),
+                            bool hasNothrowConstructor = __has_nothrow_constructor(T)>
+    struct Allocate_;
+};
+
+
+template <typename T>
+struct HeapArrayDisposer::Allocate_<T, true, true> {
+    static void construct(void* ptr) {
+        ctor(*reinterpret_cast<T*>(ptr));
+    }
+
+    static ArrayView<T> allocate(size_type elementCount, size_type capacity) {
+        return {reinterpret_cast<T*>(allocateImpl(sizeof(T), elementCount, capacity, &construct, nullptr)), capacity};
+    }
+};
+
+template <typename T>
+struct HeapArrayDisposer::Allocate_<T, false, true> {
+    static void construct(void* ptr) {
+        ctor(*reinterpret_cast<T*>(ptr));
+    }
+
+    static ArrayView<T> allocate(size_type elementCount, size_type capacity) {
+        return {reinterpret_cast<T*>(allocateImpl(sizeof(T), elementCount, capacity, &construct, nullptr)), capacity};
+    }
+};
+
+template <typename T>
+struct HeapArrayDisposer::Allocate_<T, false, false> {
+    static void construct(void* ptr) {
+        ctor(*reinterpret_cast<T*>(ptr));
+    }
+
+    static void destruct(void* ptr) {
+        dtor(*reinterpret_cast<T*>(ptr));
+    }
+
+    static ArrayView<T> allocate(size_type elementCount, size_type capacity) {
+        return {reinterpret_cast<T*>(allocateImpl(sizeof(T), elementCount, capacity, &construct, &destruct)), capacity};
+    }
+};
+
+
+template <typename T>
+ArrayView<T> HeapArrayDisposer::allocate(size_type count) {
+    return Allocate_<T>::allocate(count, count);
+}
+
+
+template <typename T>
+ArrayView<T> HeapArrayDisposer::allocateUninitialized(size_type count) {
+    return Allocate_<T>::allocate(0, count);
+}
+
+
+/** Construct an array of a given fixed size */
+template <typename T>
+Array<T> allocArray(size_t initialSize) {
+    return Array<T>{                                                // No except c-tor
+                    HeapArrayDisposer::allocate<T>(initialSize),    // May throw
+                    HeapArrayDisposer::instance                     // No except
+                };
+}
+
+
+
+template <typename Element, typename Iterator, bool move, bool = canMemcpy<Element>()>
+struct CopyConstructArray_;
+
+template <typename T, bool move>
+struct CopyConstructArray_<T, T*, move, true> {
+    static inline void apply(ArrayView<T> dest, ArrayView<const T> src) {
+        if (!src.empty()) {
+            dest.view().write(src.view());
+        }
+    }
+};
+
+template <typename T>
+struct CopyConstructArray_<T, const T*, false, true> {
+    static inline void apply(ArrayView<T> dest, ArrayView<const T> src) {
+        if (!src.empty()) {
+            dest.view().write(src.view());
+        }
+    }
+};
+
+template <typename T, typename Iterator, bool move>
+struct CopyConstructArray_<T, Iterator, move, true> {
+    // Since both the copy constructor and assignment operator are trivial, we know that assignment
+    // is equivalent to copy-constructing. So we can make this case somewhat easier for the
+    // compiler to optimize.
+    static inline T* apply(T* __restrict__ pos, Iterator start, Iterator end) {
+        while (start != end) {
+            *pos++ = *start++;
+        }
+
+        return pos;
+    }
+};
+
+
+template <typename T, typename Iterator>
+struct CopyConstructArray_<T, Iterator, false, false> {
+    struct ExceptionGuard {
+        T const* start;
+        T* pos;
+
+        ~ExceptionGuard() noexcept(false) {
+            while (pos > start) {
+                dtor(*--pos);
+            }
+        }
+
+        constexpr explicit ExceptionGuard(T* p) noexcept : start{p}, pos{p} {}
+        constexpr void release() noexcept { start = pos; }
+    };
+
+    static void apply(ArrayView<T> dest, ArrayView<const T> src) {
+        auto start = src.begin();
+        auto const end = src.end();
+
+        if (noexcept(T(*start))) {
+            auto pos = dest.begin();
+            while (start != end) {
+                ctor(*pos++, *start++);
+            }
+        } else {
+            // Crap.  This is complicated.
+            ExceptionGuard guard(dest.begin());
+            while (start != end) {
+                ctor(*guard.pos, *start++);
+                ++guard.pos;
+            }
+            guard.release();
+        }
+    }
+};
+
+static_assert(canMemcpy<char>(), "canMemcpy<>() is broken");
+static_assert(!canMemcpy<Array<char>>(), "canMemcpy<>() is broken");
+
+
+/** Construct a new array from a C-style array */
+template <typename T>
+Array<T> allocArray(T const* carray, size_t len) {
+    ArrayView<const T> src = arrayView(carray, len);                                  // No except
+    ArrayView<T> dest = HeapArrayDisposer::allocateUninitialized<T>(len);       // May throw
+
+    CopyConstructArray_<RemoveConst<T>, Decay<T*>, false>::apply(dest, src);    // May throw if copy-ctor throws
+
+    return {dest, HeapArrayDisposer::instance};                                 // No except
+}
+
+
+/** Create a copy of the given array */
+template <typename T>
+Array<T> allocArray(Array<T> const& other) {
+    return allocArray(other.data(), other.size());
+}
+
+/** Construct an array from an initialized list */
+template <typename T>
+Array<T> allocArray(std::initializer_list<T> list) {
+    return allocArray(list.begin(), list.size());
+}
+
+
+
+template <typename T>
+bool operator== (Array<T> const& lhv, decltype(nullptr)) noexcept {
+    return lhv.empty();
+}
+
+template <typename T>
+bool operator!= (Array<T> const& lhv, decltype(nullptr)) noexcept {
+    return !lhv.empty();
+}
+
+template <typename T>
+bool operator== (Array<T> const& lhv, Array<T> const& rhv) noexcept {
+    return lhv.equals(rhv);
+}
+
+template <typename T>
+bool operator!= (Array<T> const& lhv, Array<T> const& rhv) noexcept {
+    return !lhv.equals(rhv);
+}
+
+
+template <typename T>
+struct ArrayDisposer::Dispose_<T, true> {
+
+    static void dispose(ArrayView<T>* view, ArrayDisposer const& disposer) {
+        disposer.disposeImpl(const_cast<RemoveConst<T>*>(view->begin()),
+                         sizeof(T), view->size(), nullptr);
+    }
+};
+
+template <typename T>
+struct ArrayDisposer::Dispose_<T, false> {
+
+    static void destruct(void* ptr) {
+        dtor(*reinterpret_cast<T*>(ptr));
+    }
+
+    static void dispose(ArrayView<T>* view, ArrayDisposer const& disposer) {
+        disposer.disposeImpl(view->begin(), sizeof(T), view->size(), &destruct);
+    }
+};
+
+template <typename T>
+void ArrayDisposer::dispose(ArrayView<T>* view) const {
+  Dispose_<T>::dispose(view, *this);
+}
+
 
 }  // End of namespace Solace
 #endif  // SOLACE_ARRAY_HPP

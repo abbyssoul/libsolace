@@ -29,9 +29,6 @@
 #include "solace/assert.hpp"
 
 
-#include <ostream>
-#include <type_traits>  // std::aligned_storage
-
 // Note: with C++17 can use std::optional
 // #include <optional>
 
@@ -381,13 +378,4 @@ void swap(Optional<T>& lhs, Optional<T>& rhs) noexcept {
 
 
 }  // namespace Solace
-
-// TODO(abbyssoul): Should be in a separate file, if at all
-template <typename T>
-std::ostream& operator<< (std::ostream& ostr, const Solace::Optional<T>& anOptional) {
-    return (anOptional.isNone())
-            ? ostr.write("None", 4)
-            : ostr << anOptional.get();
-}
-
 #endif  // SOLACE_OPTIONAL_HPP

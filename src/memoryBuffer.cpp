@@ -24,13 +24,12 @@ using namespace Solace;
 
 
 
-MemoryViewDisposer::~MemoryViewDisposer() {
-    // No-op but needed in .cpp file to keep compiler virtual table happy.
-}
+// No-op but needed in .cpp file to keep compiler virtual table happy.
+MemoryViewDisposer::~MemoryViewDisposer() = default;
 
 
 MemoryBuffer::~MemoryBuffer() {
-    if (_disposer) {
+    if (_disposer != nullptr) {
         _disposer->dispose(&_data);
         _disposer = nullptr;
     }

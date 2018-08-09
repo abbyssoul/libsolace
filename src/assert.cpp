@@ -14,11 +14,8 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- *	@file		exception.cpp
- *	@author		$LastChangedBy: $
- *	@date		$LastChangedDate: $
- *	@brief		Implementation of exception types
- *	ID:			$Id: $
+ *	@file		assert.cpp
+ *	@brief		Implementation of assertion utils
  ******************************************************************************/
 #include "solace/assert.hpp"
 #include "solace/exception.hpp"
@@ -93,8 +90,9 @@ const void* Solace::assertNotNull(const void* ptr) {
 
 
 const void* Solace::assertNotNull(const void* ptr, const char* message) {
-    if (ptr == nullptr)
+    if (ptr == nullptr) {
         Solace::raise<Exception>(message);
+    }
 
     return ptr;
 }

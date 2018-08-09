@@ -64,9 +64,10 @@ public:
         _disposer(disposer)
     {}
 
-    MemoryBuffer(MemoryBuffer&& rhs) noexcept :
-        _data(std::move(rhs._data)),
-        _disposer(std::exchange(rhs._disposer, nullptr))
+    // TODO(abbyssoul): make it constexpr!
+    /*constexpr */MemoryBuffer(MemoryBuffer&& rhs) noexcept
+        : _data(std::move(rhs._data))
+        , _disposer(std::exchange(rhs._disposer, nullptr))
     {
     }
 
@@ -102,8 +103,8 @@ public:
 
 private:
 
-    MutableMemoryView                  _data;
-    MemoryViewDisposer const*   _disposer {nullptr};
+    MutableMemoryView               _data;
+    MemoryViewDisposer const*       _disposer {nullptr};
 };
 
 }  // End of namespace Solace

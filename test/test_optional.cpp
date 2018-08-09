@@ -23,6 +23,8 @@
 #include <solace/optional.hpp>			// Class being tested
 #include <solace/string.hpp>
 #include <solace/exception.hpp>
+#include <solace/output_utils.hpp>
+
 #include <cmath>
 
 #include <gtest/gtest.h>

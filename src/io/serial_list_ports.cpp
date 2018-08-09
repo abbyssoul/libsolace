@@ -38,9 +38,9 @@ const StringLiteral HW_ID_NA = "n/a";
 
 
 
-String readLine(const Path& file) {
-    const auto& pathString = file.toString();
-    std::ifstream ifs(pathString.to_str(), std::ifstream::in);
+String
+readLine(Path const& file) {
+    std::ifstream ifs(file.toString().to_str(), std::ifstream::in);
 
     std::string line;
     if (ifs) {
@@ -51,19 +51,22 @@ String readLine(const Path& file) {
 }
 
 
-String usb_sysfs_friendly_name(const Path& sys_usb_path) {
+String
+usb_sysfs_friendly_name(Path const& sys_usb_path) {
     const auto manufacturer = readLine(sys_usb_path.join("manufacturer"));
     const auto product = readLine(sys_usb_path.join("product"));
     const auto serial = readLine(sys_usb_path.join("serial"));
 
-    if (manufacturer.empty() && product.empty() && serial.empty())
+    if (manufacturer.empty() && product.empty() && serial.empty()) {
         return String::Empty;
+    }
 
     return String::join(" ", {manufacturer, product, serial});
 }
 
 
-String usb_sysfs_hw_string(const Path& sysfs_path) {
+String
+usb_sysfs_hw_string(Path const& sysfs_path) {
     const auto vid = readLine(sysfs_path.join("idVendor"));
     const auto pid = readLine(sysfs_path.join("idProduct"));
     const auto serial_number = readLine(sysfs_path.join("serial"));
@@ -76,7 +79,8 @@ String usb_sysfs_hw_string(const Path& sysfs_path) {
 }
 
 
-std::tuple<String, String> get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
+std::tuple<String, String>
+get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
     static const Path SYS_TTY_PATH = Path::Root.join({StringView{"sys"},
                                                       StringView{"class"},
                                                       StringView{"tty"}});
@@ -110,17 +114,19 @@ std::tuple<String, String> get_sysfs_info(IO::PlatformFilesystem const& fs, Path
         }
     }
 
-    if (friendly_name.empty())
+    if (friendly_name.empty()) {
         friendly_name = device_name;
+    }
 
-    if (hardware_id.empty())
+    if (hardware_id.empty()) {
         hardware_id = HW_ID_NA;
+    }
 
     return std::make_tuple(friendly_name, hardware_id);
 }
 
 
-Solace::Array<Solace::IO::SerialPortInfo>
+std::vector<IO::SerialPortInfo>
 Solace::IO::Serial::enumeratePorts() {
 
     auto fs = PlatformFilesystem();
@@ -143,5 +149,5 @@ Solace::IO::Serial::enumeratePorts() {
         results.emplace_back(device, friendly_name, hardware_id);
     }
 
-    return { results };
+    return results;
 }

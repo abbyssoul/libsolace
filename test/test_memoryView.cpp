@@ -75,11 +75,9 @@ TEST(TestMemoryView, testFill) {
 
 TEST(TestMemoryView, testWrapping) {
     void* nullB = nullptr;
-    EXPECT_NO_THROW(auto buffer = wrapMemory(nullB, 0));
-
-    {   // Can't wrap nullptr with non-zero size
-        EXPECT_THROW(auto b = wrapMemory(nullB, 321), IllegalArgumentException);
-    }
+    EXPECT_NO_THROW(wrapMemory(nullB, 0));
+     // Can't wrap nullptr with non-zero size
+    EXPECT_THROW(wrapMemory(nullB, 321), IllegalArgumentException);
 
     {   // Wrapping constructor
         byte example[] = {0, 1, 0, 3, 2, 1};  // size = 6

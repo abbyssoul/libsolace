@@ -23,8 +23,7 @@
 
 
 #include <memory>   // std::unique_ptr<>
-#include <cstring>  // memcpy (should review)
-#include <time.h>
+#include <ctime>
 #include <unistd.h>
 #include <sys/stat.h>
 #include <glob.h>
@@ -74,7 +73,8 @@ PlatformFilesystem::BufferedFile::write(const MemoryView& buffer) {
 }
 
 
-File::size_type PlatformFilesystem::BufferedFile::seek(size_type offset, File::Seek type) {
+File::size_type
+PlatformFilesystem::BufferedFile::seek(size_type offset, File::Seek type) {
     if (!_fp) {
         raise<NotOpen>();
     }
@@ -104,7 +104,8 @@ void PlatformFilesystem::BufferedFile::close() {
 }
 
 
-PlatformFilesystem::BufferedFile::size_type PlatformFilesystem::BufferedFile::tell() {
+PlatformFilesystem::BufferedFile::size_type
+PlatformFilesystem::BufferedFile::tell() {
     if (!_fp) {
         raise<NotOpen>();
     }
@@ -116,7 +117,8 @@ PlatformFilesystem::BufferedFile::size_type PlatformFilesystem::BufferedFile::te
 
 
 
-std::unique_ptr<File> PlatformFilesystem::create(const Path& path) {
+std::unique_ptr<File>
+PlatformFilesystem::create(const Path& path) {
     const auto& pathString = path.toString();
     auto fp = fopen(pathString.c_str(), "w+x");
 
@@ -128,7 +130,8 @@ std::unique_ptr<File> PlatformFilesystem::create(const Path& path) {
 }
 
 
-std::unique_ptr<File> PlatformFilesystem::open(const Path& path) {
+std::unique_ptr<File>
+PlatformFilesystem::open(const Path& path) {
     const auto& pathString = path.toString();
     auto fp = fopen(pathString.c_str(), "r+");
 
@@ -140,7 +143,8 @@ std::unique_ptr<File> PlatformFilesystem::open(const Path& path) {
 }
 
 
-bool PlatformFilesystem::unlink(const Path& path) {
+bool
+PlatformFilesystem::unlink(const Path& path) {
     const auto& pathString = path.toString();
     auto err = ::remove(pathString.c_str());
 
@@ -152,7 +156,8 @@ bool PlatformFilesystem::unlink(const Path& path) {
 }
 
 
-bool PlatformFilesystem::exists(const Path& path) const {
+bool
+PlatformFilesystem::exists(const Path& path) const {
     struct stat sb;
 
     const auto& pathString = path.toString();
@@ -160,7 +165,8 @@ bool PlatformFilesystem::exists(const Path& path) const {
 }
 
 
-bool PlatformFilesystem::isFile(const Path& path) const {
+bool
+PlatformFilesystem::isFile(const Path& path) const {
     const auto& pathString = path.toString();
 
     struct stat sb;
@@ -172,7 +178,8 @@ bool PlatformFilesystem::isFile(const Path& path) const {
 }
 
 
-bool PlatformFilesystem::isDirectory(const Path& path) const {
+bool
+PlatformFilesystem::isDirectory(const Path& path) const {
     const auto& pathString = path.toString();
 
     struct stat sb;
@@ -184,7 +191,8 @@ bool PlatformFilesystem::isDirectory(const Path& path) const {
 }
 
 
-time_t PlatformFilesystem::getTimestamp(const Path& path) const {
+time_t
+PlatformFilesystem::getTimestamp(const Path& path) const {
     const auto& pathString = path.toString();
 
     struct stat sb;
@@ -196,7 +204,8 @@ time_t PlatformFilesystem::getTimestamp(const Path& path) const {
 }
 
 
-PlatformFilesystem::size_type PlatformFilesystem::getFileSize(const Path& path) const {
+PlatformFilesystem::size_type
+PlatformFilesystem::getFileSize(const Path& path) const {
     struct stat sb;
 
     const auto& pathString = path.toString();
@@ -208,8 +217,9 @@ PlatformFilesystem::size_type PlatformFilesystem::getFileSize(const Path& path) 
 }
 
 
-Path PlatformFilesystem::realPath(const Path& path) const {
-    const auto& pathString = path.toString();
+Path
+PlatformFilesystem::realPath(const Path& path) const {
+    auto const pathString = path.toString();
     std::unique_ptr<char, decltype(std::free)*> real_path{realpath(pathString.c_str(), nullptr), std::free};
 
     return (real_path)
@@ -218,7 +228,8 @@ Path PlatformFilesystem::realPath(const Path& path) const {
 }
 
 
-std::unique_ptr<PlatformFilesystem::BufferedFile> PlatformFilesystem::createTemp() {
+std::unique_ptr<PlatformFilesystem::BufferedFile>
+PlatformFilesystem::createTemp() {
     auto fp = tmpfile();
 
     if (!fp) {
@@ -229,17 +240,19 @@ std::unique_ptr<PlatformFilesystem::BufferedFile> PlatformFilesystem::createTemp
 }
 
 
-Array<Path> PlatformFilesystem::glob(const String& pattern) const {
+std::vector<Path>
+PlatformFilesystem::glob(StringView pattern) const {
     std::vector<Path> pathsFound;
 
     glob_t globResults;
-    auto ret = ::glob(pattern.c_str(), 0, nullptr, &globResults);
+    auto const ret = ::glob(pattern.data(), 0, nullptr, &globResults);  // FIXME(abbyssoul): Unsafe usage of .data()
+    auto const globResultsGuard = std::unique_ptr<glob_t, decltype(globfree)*>{&globResults, globfree};
 
     if (ret == 0) {  // All good - transfer matches into an array
         pathsFound.reserve(globResults.gl_pathc);
 
         for (size_t i = 0; i < globResults.gl_pathc; ++i) {
-            pathsFound.push_back(Path::parse(globResults.gl_pathv[i]).unwrap());
+            pathsFound.emplace_back(Path::parse(globResults.gl_pathv[i]).unwrap());
         }
     } else {
         if (ret == GLOB_NOSPACE) {
@@ -253,24 +266,27 @@ Array<Path> PlatformFilesystem::glob(const String& pattern) const {
         }
     }
 
-    globfree(&globResults);
 
     return pathsFound;
 }
 
 
-Array<Path>
+std::vector<Path>
 PlatformFilesystem::glob(std::initializer_list<const char*> patterns) const {
     std::vector<Path> pathsFound;
 
-    if (patterns.size() == 0)
+    if (patterns.size() == 0) {
         return pathsFound;
+    }
 
     glob_t globResults;
     auto iter = patterns.begin();
 
-    ::glob(*iter, 0, nullptr, &globResults);
-    while (++iter != patterns.end()) {
+    ::glob(*iter, 0, nullptr, &globResults);         // FIXME(abbyssoul): Handle glob return values
+    auto const globResultsGuard = std::unique_ptr<glob_t, decltype(globfree)*>{&globResults, globfree};
+
+    for (++iter; iter != patterns.end(); ++iter) {
+        // FIXME(abbyssoul): Handle glob return values
         ::glob(*iter, GLOB_APPEND, nullptr, &globResults);
     }
 
@@ -279,17 +295,17 @@ PlatformFilesystem::glob(std::initializer_list<const char*> patterns) const {
         pathsFound.emplace_back(Path::parse(globResults.gl_pathv[i]).unwrap());
     }
 
-    globfree(&globResults);
 
     return pathsFound;
 }
 
 
-Path PlatformFilesystem::getExecPath() const {
+Path
+PlatformFilesystem::getExecPath() const {
+#ifdef SOLACE_PLATFORM_LINUX
     char execPath[1024];
-    const size_t buffSize = sizeof(execPath);
-
-    ssize_t bytesRead = readlink("/proc/self/exe", execPath, buffSize - 1);
+    size_t buffSize = sizeof(execPath);
+    ssize_t const bytesRead = readlink("/proc/self/exe", execPath, buffSize - 1);
     if (bytesRead < 0) {
         raise<IOException>(errno);
     } else {
@@ -297,14 +313,49 @@ Path PlatformFilesystem::getExecPath() const {
     }
 
     return Path::parse(execPath).unwrap();
+
+#elif SOLACE_PLATFORM_APPLE
+    char execPath[1024];
+    size_t buffSize = sizeof(execPath);
+    auto const success = (_NSGetExecutablePath(execPath, &buffSize) == 0);
+    execPath[buffSize - 1] = '\0';
+    if (!success) {
+        raise<Exception>("Failed to read executable path");
+    }
+
+    return Path::parse(execPath).unwrap();
+#elif SOLACE_PLATFORM_BSD
+    char exePath[2048];
+    size_t const len = sizeof(exePath);
+    int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
+    if (sysctl(mib, 4, exePath, &len, NULL, 0) != 0) {
+        exePath[0] = '\0';
+    }
+    return Path::parse(exePath).unwrap();
+
+//    char temp[1024];
+
+//    ::snprintf(temp, sizeof(temp),"/proc/%d/file", ::getpid());
+//    std::unique_ptr<char, decltype(std::free)*> real_path{realpath(temp, nullptr), std::free};
+
+//    if (!real_path) {
+//        raise<Exception>("Failed to read executable path");
+//    }
+
+//    return Path::parse(real_path.get()).unwrap();
+#else
+    #warning Implementation of PlatformFilesystem::getExecPath not avaliable
+    return Path::Root;
+#endif
 }
 
 
-Path PlatformFilesystem::getWorkingDirectory() const {
+Path
+PlatformFilesystem::getWorkingDirectory() const {
     char buf[1024];  // FIXME(abbyssoul): Shouldn't it be max_path or something?
 
     char* buffer = getcwd(buf, sizeof(buf));
-    if (!buffer) {
+    if (buffer == nullptr) {
         raise<IOException>(errno);
     }
 
@@ -312,7 +363,8 @@ Path PlatformFilesystem::getWorkingDirectory() const {
 }
 
 
-void PlatformFilesystem::setWorkingDirectory(const Path& path) {
+void
+PlatformFilesystem::setWorkingDirectory(const Path& path) {
     const auto& pathString = path.toString();
     if (0 != chdir(pathString.c_str())){
         raise<IOException>(errno);

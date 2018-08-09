@@ -36,6 +36,7 @@
 
 // Note unordered map has issues with class not being fully defined.
 #include <map>   // TODO(abbyssoul): Replace with fix-memory map
+#include <vector>   // TODO(abbyssoul): Replace with fix-memory map
 
 
 namespace Solace { namespace cli {
@@ -156,7 +157,7 @@ public:
             _callback(std::forward<F>(f))
         {}
 
-        Option(const Option& rhs) = default;
+        Option(Option const& rhs) = default;
 
         Option(Option&& rhs) noexcept = default;
 
@@ -184,14 +185,14 @@ public:
 
         Optional<Error> match(Optional<StringView> const& value, Context const& c) const;
 
-        const Array<StringLiteral>& names() const noexcept      { return _names; }
-        const StringLiteral& description() const noexcept       { return _description; }
+        const std::vector<StringLiteral>& names() const noexcept    { return _names; }
+        const StringLiteral& description() const noexcept           { return _description; }
 
-        OptionArgument getArgumentExpectations() const noexcept { return _expectsArgument; }
+        OptionArgument getArgumentExpectations() const noexcept     { return _expectsArgument; }
 
     private:
         //!< Long name of the option, Maybe empty if not specified.
-        Array<StringLiteral>                _names;
+        std::vector<StringLiteral>          _names;
 
         //!< Human-readable description of the option.
         StringLiteral                       _description;
@@ -344,7 +345,7 @@ public:
             return *this;
         }
 
-        const Array<Option>& options() const noexcept               { return _options; }
+        const std::vector<Option>& options() const noexcept               { return _options; }
         Command& options(std::initializer_list<Option> options) {
             _options = options;
             return *this;
@@ -357,7 +358,7 @@ public:
             return *this;
         }
 
-        const Array<Argument>& arguments() const noexcept           { return _arguments; }
+        const std::vector<Argument>& arguments() const noexcept           { return _arguments; }
         Command& arguments(std::initializer_list<Argument> arguments) {
             _arguments = arguments;
             return *this;
@@ -379,13 +380,13 @@ public:
         std::function<Result<void, Error>()>    _callback;
 
         /// Options / flags that the command accepts.
-        Array<Option>   _options;
+        std::vector<Option>   _options;
 
         /// Sub-commands
         CommandDict     _commands;
 
         /// Mandatory positional arguments
-        Array<Argument> _arguments;
+        std::vector<Argument> _arguments;
     };
 
 
@@ -534,7 +535,7 @@ public:
         return *this;
     }
 
-    const Array<Option>& options() const noexcept       { return _defaultAction.options(); }
+    const std::vector<Option>& options() const noexcept       { return _defaultAction.options(); }
     Parser& options(std::initializer_list<Option> options) {
         _defaultAction.options(options);
 
@@ -548,7 +549,7 @@ public:
         return *this;
     }
 
-    const Array<Argument>& arguments() const noexcept       { return _defaultAction.arguments(); }
+    const std::vector<Argument>& arguments() const noexcept       { return _defaultAction.arguments(); }
     Parser& arguments(std::initializer_list<Argument> arguments) {
         _defaultAction.arguments(arguments);
 

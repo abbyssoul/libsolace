@@ -199,7 +199,7 @@ String Sha256::getAlgorithm() const {
 
 
 Sha256::size_type Sha256::getDigestLength() const {
-    return 256 / 8;
+    return 256;
 }
 
 

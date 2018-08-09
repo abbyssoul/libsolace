@@ -238,6 +238,14 @@ TEST_F(TestArrayView, testEmpty) {
 }
 
 
+TEST_F(TestArrayView, testConstructionFromMemoryBuffer) {
+    byte buffer[32];  // 32 bytes is 8 u32.
+
+    EXPECT_EQ(32, arrayView(buffer).size());
+    EXPECT_EQ(8, arrayView(reinterpret_cast<uint32*>(buffer), sizeof (buffer) / sizeof (uint32)).size());
+}
+
+
 TEST_F(TestArrayView, testCopyConstruction) {
     int src[16];
     const ArrayView<int>::size_type srcSize = sizeof(src) / sizeof(int);
@@ -878,7 +886,7 @@ TEST_F(TestArrayView, testForEachIndexed) {
     const ArrayView<int> array{baseArray};
     bool allEq = true;
 
-    array.forEach([&allEq](ArrayView<int>::size_type i, int x) {
+    array.forEach([&allEq](ArrayView<int>::size_type i, uint x) {
         allEq &= (i + 1 == x);
     });
 

@@ -243,9 +243,5 @@ bool operator!= (MemoryView const& lhs, MemoryView const& rhs) noexcept {
 }
 
 
-
-std::ostream& operator<< (std::ostream& ostr, MemoryView const& str);
-
-
 }  // End of namespace Solace
 #endif  // SOLACE_MEMORYVIEW_HPP

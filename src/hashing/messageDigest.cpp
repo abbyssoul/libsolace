@@ -23,6 +23,7 @@
 #include "solace/base16.hpp"
 
 #include <sstream>      // std::stringstream, std::stringbuf
+#include <vector>
 
 
 using namespace Solace;
@@ -53,14 +54,20 @@ operator<< (std::ostream& ostr, MessageDigest const& a) {
 }
 
 
+MessageDigest::MessageDigest(MemoryView viewBytes)
+    : _storage(allocArray<byte>(viewBytes.dataAddress(), viewBytes.size()))
+{ }
+
+
 String
 MessageDigest::toString() const {
     std::vector<char> stringRepr;
     stringRepr.reserve(Base16Encoder::encodedSize(size()));
     ByteWriter dest(wrapMemory(stringRepr.data(), stringRepr.size()));
 
-    for (auto i = base16Encode_begin(_storage.view()),
-         end = base16Encode_end(_storage.view());
+    auto const dataView = _storage.view().view();
+    for (auto i = base16Encode_begin(dataView),
+         end = base16Encode_end(dataView);
          i != end; ++i) {
         dest.write((*i).view());
     }

@@ -23,6 +23,7 @@
 #include <solace/future.hpp>  // Class being tested
 #include <solace/exception.hpp>
 #include <solace/array.hpp>
+#include <solace/output_utils.hpp>
 
 #include <gtest/gtest.h>
 
@@ -1045,17 +1046,18 @@ TEST(TestFuture, testCollectIntgralWhenAllSuccess) {
     const int bias = -338;
     const uint testGroupSize = 16;
 
-    Array<Promise<int>> promises(testGroupSize);
     std::vector<Future<int>> futures;
     futures.reserve(testGroupSize);
-    promises.forEach([&futures](Promise<int>& promise) {
-        futures.push_back(promise.getFuture());
-    });
 
-    Future<Array<int>> futureArray = collect(futures);
+    std::vector<Promise<int>> promises(testGroupSize);
+    for (auto& promise : promises) {
+        futures.push_back(promise.getFuture());
+    }
+
+    Future<std::vector<int>> futureArray = collect(futures);
 
     bool futureArrayReady = false;
-    futureArray.then([&futureArrayReady](Array<int>&& values) {
+    futureArray.then([&futureArrayReady](std::vector<int>&& values) {
         for (Array<int>::size_type index = 0; index < values.size(); ++index) {
             if (values[index] != (bias + static_cast<int>(index))) {
                 return;
@@ -1067,9 +1069,11 @@ TEST(TestFuture, testCollectIntgralWhenAllSuccess) {
 
     EXPECT_TRUE(!futureArrayReady);
 
-    promises.forEach([](int index, Promise<int>& promise) {
+    int index = 0;
+    for (auto& promise : promises) {
         promise.setValue(bias + index);
-    });
+        ++index;
+    }
 
     EXPECT_TRUE(futureArrayReady);
 }
@@ -1077,12 +1081,12 @@ TEST(TestFuture, testCollectIntgralWhenAllSuccess) {
 TEST(TestFuture, testCollectVoidWhenAllSuccess) {
     const uint testGroupSize = 8;
 
-    Array<Promise<void>> promises(testGroupSize);
+    std::vector<Promise<void>> promises(testGroupSize);
     std::vector<Future<void>> futures;
     futures.reserve(testGroupSize);
-    promises.forEach([&futures](Promise<void>& promise) {
+    for (auto& promise : promises) {
         futures.push_back(promise.getFuture());
-    });
+    }
 
     Future<void> futureArray = collect(futures);
 
@@ -1093,9 +1097,9 @@ TEST(TestFuture, testCollectVoidWhenAllSuccess) {
 
     EXPECT_TRUE(!futureArrayReady);
 
-    promises.forEach([](Promise<void>& promise) {
+    for (auto& promise : promises) {
         promise.setValue();
-    });
+    }
 
     EXPECT_TRUE(futureArrayReady);
 }
@@ -1106,19 +1110,18 @@ TEST(TestFuture, testCollectIntegralWhenOneFailure) {
     const uint testGroupSize = 16;
     const int failEach = 12;
 
-    Array<Promise<int>> promises(testGroupSize);
+    std::vector<Promise<int>> promises(testGroupSize);
     std::vector<Future<int>> futures;
     futures.reserve(testGroupSize);
-    promises.forEach([&futures](Promise<int>& promise) {
+    for (auto& promise : promises) {
         futures.push_back(promise.getFuture());
-    });
+    }
 
-    Future<Array<int>> futureArray = collect(futures);
+    Future<std::vector<int>> futureArray = collect(futures);
 
     bool futureArrayReady = false;
     bool futureArrayErrored = false;
-    futureArray
-    .then([&futureArrayReady](Array<int>&& values) {
+    futureArray.then([&futureArrayReady](std::vector<int>&& values) {
         for (Array<int>::size_type index = 0; index < values.size(); ++index) {
             if (values[index] != (bias + static_cast<int>(index))) {
                 return;
@@ -1134,14 +1137,16 @@ TEST(TestFuture, testCollectIntegralWhenOneFailure) {
     EXPECT_TRUE(!futureArrayReady);
     EXPECT_TRUE(!futureArrayErrored);
 
-
-    promises.forEach([](int index, Promise<int>& promise) {
+    int index = 0;
+    for (auto& promise : promises) {
         if ((index % failEach) == 0) {
             promise.setError(Error("failed", 321));
         } else {
             promise.setValue(bias + index);
         }
-    });
+
+        ++index;
+    }
 
     EXPECT_TRUE(!futureArrayReady);
     EXPECT_TRUE(futureArrayErrored);
@@ -1152,12 +1157,12 @@ TEST(TestFuture, testCollectVoidWhenOneFailure) {
     const uint testGroupSize = 16;
     const uint failEach = 12;
 
-    Array<Promise<void>> promises(testGroupSize);
+    std::vector<Promise<void>> promises(testGroupSize);
     std::vector<Future<void>> futures;
     futures.reserve(testGroupSize);
-    promises.forEach([&futures](Promise<void>& promise) {
+    for (auto& promise : promises) {
         futures.push_back(promise.getFuture());
-    });
+    }
 
     Future<void> futureArray = collect(futures);
 
@@ -1175,13 +1180,16 @@ TEST(TestFuture, testCollectVoidWhenOneFailure) {
     EXPECT_TRUE(!futureArrayReady);
     EXPECT_TRUE(!futureArrayErrored);
 
-    promises.forEach([failEach](auto index, Promise<void>& promise) {
+    int index = 0;
+    for (auto& promise : promises) {
         if ((index % failEach) == 0) {
             promise.setError(Error("failed", 321));
         } else {
             promise.setValue();
         }
-    });
+
+      ++index;
+    }
 
     EXPECT_TRUE(!futureArrayReady);
     EXPECT_TRUE(futureArrayErrored);

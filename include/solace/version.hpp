@@ -169,11 +169,5 @@ bool operator== (Version const& lhs, Version const& rhv) noexcept {
 }
 
 
-// FIXME: std dependence, used for Unit Testing only
-inline std::ostream& operator<< (std::ostream& ostr, Version const& v) {
-    return ostr << v.toString();
-}
-
-
 }  // namespace Solace
 #endif  // SOLACE_VERSION_HPP

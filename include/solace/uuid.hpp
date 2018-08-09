@@ -206,11 +206,6 @@ inline void swap(UUID& lhs, UUID& rhs) noexcept {
     lhs.swap(rhs);
 }
 
-// FIXME: std dependence, used for Unit Testing only
-inline std::ostream& operator<< (std::ostream& ostr, UUID const& v) {
-    return ostr << v.toString();
-}
-
 
 }  // namespace Solace
 #endif  // SOLACE_UUID_HPP

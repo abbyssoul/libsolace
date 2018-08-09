@@ -12,6 +12,7 @@ set(SOURCE_FILES
         byteReader.cpp
         byteWriter.cpp
 
+        array.cpp
         base16.cpp
 #        base32.cpp
         base64.cpp

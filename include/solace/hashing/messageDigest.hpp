@@ -48,21 +48,12 @@ public:
 
 public:
 
-    MessageDigest(MessageDigest const& rhs) = default;
-
     MessageDigest(MessageDigest&& rhs) = default;
-
-    MessageDigest(MemoryView const& viewBytes) : _storage(viewBytes.size(), viewBytes.dataAddress())
-    { }
-
-    MessageDigest(Storage const& bytes) : _storage(bytes)
-    { }
 
     MessageDigest(Storage&& bytes) : _storage(std::move(bytes))
     { }
 
-    MessageDigest(std::initializer_list<byte> bytes) : _storage(bytes)
-    { }
+    MessageDigest(MemoryView viewBytes);
 
     MessageDigest& swap(MessageDigest& rhs) noexcept {
         using std::swap;
@@ -71,11 +62,11 @@ public:
         return (*this);
     }
 
-    MessageDigest& operator= (MessageDigest const& rhs) noexcept {
-        MessageDigest(rhs).swap(*this);
+//    MessageDigest& operator= (MessageDigest const& rhs) noexcept {
+//        MessageDigest(rhs).swap(*this);
 
-        return *this;
-    }
+//        return *this;
+//    }
 
     MessageDigest& operator= (MessageDigest&& rhs) noexcept {
         return swap(rhs);
@@ -86,7 +77,7 @@ public:
      * @return Size of the digest in bits.
      */
     size_type getDigestLength() const {
-        return size() / 8;
+        return size() * 8;
     }
 
     /**
@@ -119,21 +110,19 @@ public:
         return _storage.end();
     }
 
-
-    const_reference first() const { return _storage.first(); }
-    const_reference last() const { return _storage.last(); }
-
     const_pointer data() const noexcept {
         return _storage.data();
     }
 
     MemoryView view() const noexcept {
-        return _storage.view();
+        return _storage.view().view();
     }
 
     String toString() const;
 
-    friend bool operator== (const MessageDigest& lhs, const MessageDigest& rhs);
+    friend bool operator== (MessageDigest const& lhs, MessageDigest const& rhs);
+    friend bool operator== (MessageDigest const& lhs, std::initializer_list<byte> rhs);
+    friend bool operator== (std::initializer_list<byte> lhs, MessageDigest const& rhs);
 
 private:
 
@@ -148,14 +137,18 @@ void swap(MessageDigest& lhs, MessageDigest& rhs) noexcept {
 }
 
 inline
-bool operator== (const MessageDigest& lhs, const MessageDigest& rhs) {
+bool operator== (MessageDigest const& lhs, MessageDigest const& rhs) {
     return (lhs._storage == rhs._storage);
 }
 
+inline
+bool operator== (MessageDigest const& lhs, std::initializer_list<byte> rhs) {
+    return lhs._storage.equals(rhs);
+}
 
-// FIXME: std dependence, used for Unit Testing only
-inline std::ostream& operator<< (std::ostream& ostr, MessageDigest const& v) {
-    return ostr << v.toString();
+inline
+bool operator== (std::initializer_list<byte> lhs, MessageDigest const& rhs) {
+    return rhs._storage.equals(lhs);
 }
 
 

@@ -34,12 +34,14 @@ StringView::StringView(const char* data) :
 
 bool
 StringView::equals(StringView str) const noexcept {
-    if (size() != str.size())
+    if (size() != str.size()) {
         return false;
+    }
 
     for (size_type i = 0; i < size(); ++i) {
-        if (_data[i] != str._data[i])
+        if (_data[i] != str._data[i]) {
             return false;
+        }
     }
 
     return true;
@@ -198,7 +200,7 @@ StringView::hashCode() const noexcept {
     return result;
 }
 
-
+/*
 Array<StringView>
 StringView::split(value_type delim) const {
 
@@ -254,3 +256,4 @@ StringView::split(StringView delim) const {
 
     return result;
 }
+*/
