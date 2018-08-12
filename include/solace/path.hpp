@@ -79,25 +79,6 @@ public:  // Static methods
     static const Path Root;
 
     /**
-     * Join paths objects into a single path
-     */
-    static Path join(const Path& lhs, const Path& rhs) {
-        return lhs.join(rhs);
-    }
-
-    static Path join(const Path& lhs, StringView rhs) {
-        return lhs.join(rhs);
-    }
-
-    static Path join(Path const& base, std::initializer_list<Path> paths);
-
-    static Path join(Path const& base, std::initializer_list<String> paths);
-
-    static Path join(Path const& base, std::initializer_list<StringView> paths);
-
-    static Path join(Path const& base, std::initializer_list<const char*> paths);
-
-    /**
      * Parse a path object from a string.
      *
      * @param str A string to parse
@@ -114,50 +95,10 @@ public:  // Object construction
 	/** Construct an empty path */
     Path() = default;
 
-    /** Construct path to be a copy of the given one */
-    Path(const Path& p) = default;
-
     /** Construct an object by moving content from a given */
     Path(Path&& p) noexcept: _components(std::move(p._components)) {
         // No-op
     }
-
-//    /**
-//     * Construct the path object from a collection of String components
-//     * @param array A collection of string components forming the path
-//     */
-//    Path(const Array<String>& array): _components(array) {
-//        // No-op
-//    }
-
-
-    /**
-     * Construct the path object from a single string component
-     *
-     * @note The string is is parsed into component, please use Path::parse
-     */
-    explicit Path(String const& str) : Path(str.view())
-    {
-        // No-op
-    }
-
-    explicit Path(StringView str): _components({str}) {
-        // No-op
-    }
-
-    explicit Path(char const* str): Path(StringView{str}) {
-        // No-op
-    }
-
-    Path(std::initializer_list<String> components): _components(components) {
-        // No-op
-    }
-
-    Path(std::initializer_list<Path> components);
-
-    Path(std::initializer_list<StringView> components);
-
-    Path(std::initializer_list<const char*> components);
 
 public:  // Operation
 
@@ -193,6 +134,13 @@ public:  // Operation
     }
 
 
+    /** Tests this path for equality with the given object.
+     * @param rhv A path to compare this one to.
+     * @return True if this path is equal to the give
+     */
+    bool equals(Path const& rhv) const noexcept;
+
+
     /**
      * Test if the path is absolute.
      *
@@ -215,7 +163,7 @@ public:  // Operation
      * @note: To get the number of components, please @see getComponentsCount
      * @return Size of the string representation of the path in characters.
      */
-    String::size_type length(const StringView& delim = Delimiter) const noexcept;
+    String::size_type length(StringView delim = Delimiter) const noexcept;
 
     //--------------------------------------------------------------------------
 	// --- Relational collection operations
@@ -316,68 +264,12 @@ public:  // Operation
         return _components.end();
     }
 
-    /**
-     * Returns first component of this path
-     * @return first component of this path
-     *
-     * TODO: Should be Option<String> as components collection can be empty
-     */
-    const String& first() const;
-
-    /**
-     * Returns last component of this path
-     * @return last component of this path
-     *
-     * TODO: Should be Option<String> as components collection can be empty
-     */
-    const String& last() const;
-
     /** Returns sub path of this path
      * Splice of this path object
      * @return Sub path of this path
      */
     Path subpath(size_type beginIndex, size_type endIndex) const;
 
-    /**
-     * Concatenate this path with a give one
-     */
-	Path join(const Path& rhs) const;
-
-
-    /**
-     * Append a component to this path
-     * @return A new path with appended component
-     */
-    Path join(String const& rhs) const {
-        return join(rhs.view());
-    }
-
-    /**
-     * Append a component to this path
-     * @return A new path with appended component
-     */
-    Path join(StringView rhs) const;
-
-    /**
-     * Append a component to this path
-     * @return A new path with appended component
-     */
-    Path join(const char* rhs) const {
-        return join(StringView{rhs});
-    }
-
-    /**
-     * Construtct a new path object with *this* as base.
-     * @return A new path with appended component.
-     */
-    Path join(std::initializer_list<StringView> rhs) const;
-
-
-    /** Tests this path for equality with the given object.
-     * @param rhv A path to compare this one to.
-     * @return True if this path is equal to the give
-     */
-    bool equals(Path const& rhv) const noexcept;
 
     /** @see Iterable::forEach */
     template<typename F>
@@ -397,8 +289,10 @@ public:  // Operation
         return toString(Delimiter);
     }
 
-private:
-    /**
+protected:
+    friend Path allocPath(std::vector<String>&& array);
+
+    /** FIXME(abbyssoul): Only temporary here. to be removed
      * Move-Construct the path object from a collection of String components
      * @param array A collection of string components forming the path
      */
@@ -407,29 +301,16 @@ private:
     }
 
 
+private:
+
     std::vector<String> _components{};
 };
 
-/** Convenience joint operator */
-inline Path operator / (const Path& lhs, const Path& rhs) {
-    return lhs.join(rhs);
-}
 
-/** Convenience joint operator */
-inline Path operator / (const Path& lhs, const String& rhs) {
-    return lhs.join(rhs.view());
+inline
+bool operator== (Path const& lhs, Path const& rhv) noexcept {
+    return lhs.equals(rhv);
 }
-
-/** Convenience joint operator */
-inline Path operator / (const Path& lhs, StringView rhs) {
-    return lhs.join(rhs);
-}
-
-/** Convenience joint operator */
-inline Path operator / (const Path& lhs, const char* rhs) {
-    return lhs.join(StringView{rhs});
-}
-
 
 inline
 bool operator!= (Path const& lhs, Path const& rhv) noexcept {
@@ -437,14 +318,52 @@ bool operator!= (Path const& lhs, Path const& rhv) noexcept {
 }
 
 inline
-bool operator== (Path const& lhs, Path const& rhv) noexcept {
-    return lhs.equals(rhv);
-}
-
-
-inline void swap(Path& lhs, Path& rhs) noexcept {
+void swap(Path& lhs, Path& rhs) noexcept {
     lhs.swap(rhs);
 }
+
+/**
+ * Construct the path object from a single string component
+ *
+ * @note The string is is parsed into component, please use Path::parse
+ */
+Path allocPath(StringView str);
+
+inline
+Path allocPath(String const& str) {
+    return allocPath(str.view());
+}
+
+inline
+Path allocPath(char const* str) {
+    return allocPath(StringView{str});
+}
+
+inline
+Path allocPath(std::vector<String>&& array) {
+    return {std::move(array)};
+}
+
+/**
+ * Join paths objects into a single path
+ */
+Path allocPath(Path const& base, Path const& rhs);
+Path allocPath(Path const& base, std::initializer_list<Path> paths);
+Path allocPath(std::initializer_list<Path> components);
+
+Path allocPath(Path const& base, StringView rhs);
+Path allocPath(Path const& base, std::initializer_list<StringView> paths);
+Path allocPath(std::initializer_list<StringView> components);
+
+inline
+Path allocPath(Path const& base, String const& rhs) { return allocPath(base, rhs.view()); }
+Path allocPath(Path const& base, std::initializer_list<String> paths);
+Path allocPath(std::initializer_list<String> components);
+
+inline
+Path allocPath(Path const& base, char const* rhs) { return allocPath(base, StringView(rhs)); }
+Path allocPath(Path const& base, std::initializer_list<const char*> paths);
+Path allocPath(std::initializer_list<const char*> components);
 
 }  // namespace Solace
 #endif  // SOLACE_PATH_HPP

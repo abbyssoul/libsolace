@@ -15,16 +15,17 @@
 */
 /*******************************************************************************
  * libSolace: A base class for message digest algorithms
- *	@file		solace/hashing/messageDigest.hpp
+ *	@file		solace/hashing/hashingAlgorithm.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_HASHING_DIGESTALGORITHM_HPP
-#define SOLACE_HASHING_DIGESTALGORITHM_HPP
+#ifndef SOLACE_HASHING_HASINGALGORITHM_HPP
+#define SOLACE_HASHING_HASINGALGORITHM_HPP
 
 #include "solace/hashing/messageDigest.hpp"
 #include "solace/byteReader.hpp"
+
 
 namespace Solace {
 namespace hashing {
@@ -83,4 +84,4 @@ public:
 
 }  // End of namespace hashing
 }  // End of namespace Solace
-#endif  // SOLACE_HASHING_DIGESTALGORITHM_HPP
+#endif  // SOLACE_HASHING_HASINGALGORITHM_HPP

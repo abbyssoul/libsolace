@@ -15,7 +15,7 @@
 */
 /*******************************************************************************
  * libSolace: Serial Port object
- *	@file		solace/io/selectable.hpp
+ *	@file		solace/io/serial.hpp
  *	@author		$LastChangedBy$
  *	@date		Created on 26/04/16
  *	ID:			$Id$
@@ -44,39 +44,13 @@ struct SerialPortInfo {
     /*! Hardware ID (e.g. VID:PID of USB serial devices) or "" (empty string) if not available. */
     String hardwareId;
 
-    SerialPortInfo(const Path& path, const String& desc, const String& hwId)
-        : file(path)
+    SerialPortInfo(Path&& path, const String& desc, const String& hwId)
+        : file(std::move(path))
         , description(desc)
         , hardwareId(hwId)
     {
         // No-op
     }
-/*
-
-
-    SerialPortInfo() = default;
-    SerialPortInfo(const SerialPortInfo& other) = default;
-
-    SerialPortInfo(SerialPortInfo&& other) = default;
-
-    bool operator== (const SerialPortInfo& rhs) const {
-        return (file == rhs.file &&
-                description == rhs.description &&
-                hardwareId == hardwareId);
-    }
-
-    SerialPortInfo& swap(SerialPortInfo& rhs) {
-        file.swap(rhs.file);
-        description.swap(rhs.description);
-        hardwareId.swap(rhs.hardwareId);
-
-        return *this;
-    }
-
-    SerialPortInfo& operator= (SerialPortInfo&& rhs) noexcept {
-        return swap(rhs);
-    }
-    */
 };
 
 

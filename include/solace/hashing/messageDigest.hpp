@@ -24,6 +24,7 @@
 #define SOLACE_HASHING_MESSAGEDIGEST_HPP
 
 #include "solace/types.hpp"
+#include "solace/array.hpp"
 #include "solace/string.hpp"
 
 
@@ -61,12 +62,6 @@ public:
 
         return (*this);
     }
-
-//    MessageDigest& operator= (MessageDigest const& rhs) noexcept {
-//        MessageDigest(rhs).swap(*this);
-
-//        return *this;
-//    }
 
     MessageDigest& operator= (MessageDigest&& rhs) noexcept {
         return swap(rhs);

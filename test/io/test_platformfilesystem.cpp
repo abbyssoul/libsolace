@@ -171,8 +171,8 @@ TEST_F(TestPlatformFs, testCreationAndRemoval) {
 TEST_F(TestPlatformFs, testGetExecPath) {
     auto fs = PlatformFilesystem();
 
-    auto pathToThisTest = fs.getExecPath();
-    EXPECT_EQ(String("test_solace"), pathToThisTest.last());
+    auto const pathToThisTest = fs.getExecPath();
+    EXPECT_EQ(StringLiteral("test_solace"), pathToThisTest.getBasename());
 }
 
 TEST_F(TestPlatformFs, testThereIsADirectory) {

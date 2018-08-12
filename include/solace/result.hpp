@@ -432,19 +432,27 @@ public:
         return !_engaged;
     }
 
-    const V& unwrap() const {
+    V const& unwrap() const& {
         if (isError())
             raiseInvalidStateError();
 
         return _value;
     }
 
-    V& unwrap() {
+    V& unwrap() & {
         if (isError())
             raiseInvalidStateError();
 
         return _value;
     }
+
+    V&& unwrap() && {
+        if (isError())
+            raiseInvalidStateError();
+
+        return std::move(_value);
+    }
+
 
     V&& moveResult() {
         if (isError())

@@ -116,9 +116,9 @@ SharedMemory::SharedMemory(poll_id fd) noexcept :
 }
 
 
-SharedMemory::SharedMemory(poll_id fd, const Path& path) noexcept :
+SharedMemory::SharedMemory(poll_id fd, Path&& path) noexcept :
     _fd(fd),
-    _linkedPath(path)
+    _linkedPath(std::move(path))
 {
 
 }
@@ -205,7 +205,7 @@ SharedMemory::mapMem(int fd, size_type memSize, SharedMemory::Access mapping, in
 
 
 SharedMemory
-SharedMemory::create(const Path& pathname, size_type memSize, File::AccessMode mode, int permissionsMode) {
+SharedMemory::create(Path&& pathname, size_type memSize, File::AccessMode mode, int permissionsMode) {
 
     if (memSize == 0) {
         raise<IOException>("Invalid size");
@@ -241,7 +241,7 @@ SharedMemory::create(const Path& pathname, size_type memSize, File::AccessMode m
         raise<IOException>(errno, "ftruncate");
     }
 
-    return { fd, pathname };
+    return { fd, std::move(pathname) };
 }
 
 

@@ -53,9 +53,9 @@ readLine(Path const& file) {
 
 String
 usb_sysfs_friendly_name(Path const& sys_usb_path) {
-    const auto manufacturer = readLine(sys_usb_path.join("manufacturer"));
-    const auto product = readLine(sys_usb_path.join("product"));
-    const auto serial = readLine(sys_usb_path.join("serial"));
+    const auto manufacturer = readLine(allocPath(sys_usb_path, "manufacturer"));
+    const auto product = readLine(allocPath(sys_usb_path, "product"));
+    const auto serial = readLine(allocPath(sys_usb_path, "serial"));
 
     if (manufacturer.empty() && product.empty() && serial.empty()) {
         return String::Empty;
@@ -67,9 +67,9 @@ usb_sysfs_friendly_name(Path const& sys_usb_path) {
 
 String
 usb_sysfs_hw_string(Path const& sysfs_path) {
-    const auto vid = readLine(sysfs_path.join("idVendor"));
-    const auto pid = readLine(sysfs_path.join("idProduct"));
-    const auto serial_number = readLine(sysfs_path.join("serial"));
+    const auto vid = readLine(allocPath(sysfs_path, "idVendor"));
+    const auto pid = readLine(allocPath(sysfs_path, "idProduct"));
+    const auto serial_number = readLine(allocPath(sysfs_path, "serial"));
 
     return String{"USB VID:PID="}
             .concat(String::join(":", {vid, pid}))
@@ -81,15 +81,15 @@ usb_sysfs_hw_string(Path const& sysfs_path) {
 
 std::tuple<String, String>
 get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
-    static const Path SYS_TTY_PATH = Path::Root.join({StringView{"sys"},
+    static const Path SYS_TTY_PATH = allocPath(Path::Root, {StringView{"sys"},
                                                       StringView{"class"},
                                                       StringView{"tty"}});
 
     String friendly_name;
     String hardware_id;
 
-    const auto device_name = devicePath.getBasename();
-    const auto sys_device_path = SYS_TTY_PATH.join(device_name).join("device");
+    auto const device_name = devicePath.getBasename();
+    auto const sys_device_path = allocPath(SYS_TTY_PATH, {device_name, StringView{"device"}});
 
     if (device_name.startsWith("ttyUSB")) {
         const auto deviceSysPath = fs.realPath(sys_device_path).getParent().getParent();
@@ -107,7 +107,7 @@ get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
         }
     } else {
         // Try to read ID string of PCI device
-        const auto sys_id_path = sys_device_path.join("id");
+        const auto sys_id_path = allocPath(sys_device_path, "id");
 
         if (fs.exists(sys_id_path)) {
             hardware_id = readLine(sys_id_path);
@@ -130,7 +130,7 @@ std::vector<IO::SerialPortInfo>
 Solace::IO::Serial::enumeratePorts() {
 
     auto fs = PlatformFilesystem();
-    const auto devices_found = fs.glob({"/dev/ttyACM*",
+    auto devices_found = fs.glob({"/dev/ttyACM*",
                                         "/dev/ttyS*",
                                         "/dev/ttyUSB*",
                                         "/dev/tty.*",
@@ -141,12 +141,12 @@ Solace::IO::Serial::enumeratePorts() {
     std::vector<Solace::IO::SerialPortInfo> results;
     results.reserve(devices_found.size());
 
-    for (const auto& device : devices_found) {
+    for (auto&& device : devices_found) {
         String friendly_name;
         String hardware_id;
         std::tie(friendly_name, hardware_id) = get_sysfs_info(fs, device);
 
-        results.emplace_back(device, friendly_name, hardware_id);
+        results.emplace_back(std::move(device), friendly_name, hardware_id);
     }
 
     return results;

@@ -28,6 +28,10 @@
 #include <sys/stat.h>
 #include <glob.h>
 
+#ifdef SOLACE_PLATFORM_BSD
+#include <sys/sysctl.h>
+#endif
+
 
 using namespace Solace;
 using namespace Solace::IO;
@@ -224,7 +228,7 @@ PlatformFilesystem::realPath(const Path& path) const {
 
     return (real_path)
             ? Path::parse(real_path.get()).unwrap()
-            : Path::Root;
+            : allocPath(String::Empty);
 }
 
 
@@ -314,7 +318,7 @@ PlatformFilesystem::getExecPath() const {
 
     return Path::parse(execPath).unwrap();
 
-#elif SOLACE_PLATFORM_APPLE
+#elif defined(SOLACE_PLATFORM_APPLE)
     char execPath[1024];
     size_t buffSize = sizeof(execPath);
     auto const success = (_NSGetExecutablePath(execPath, &buffSize) == 0);
@@ -324,9 +328,9 @@ PlatformFilesystem::getExecPath() const {
     }
 
     return Path::parse(execPath).unwrap();
-#elif SOLACE_PLATFORM_BSD
+#elif defined(SOLACE_PLATFORM_BSD)
     char exePath[2048];
-    size_t const len = sizeof(exePath);
+    size_t len = sizeof(exePath);
     int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PATHNAME, -1};
     if (sysctl(mib, 4, exePath, &len, NULL, 0) != 0) {
         exePath[0] = '\0';

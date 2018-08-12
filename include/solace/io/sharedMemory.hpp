@@ -100,7 +100,7 @@ public:
      * @return A newly create shared memory segment.
      * FIXME(abbyssoul): should return Result<SharedMemory, IOError>
      */
-    static SharedMemory create(const Path& pathname, size_type size,
+    static SharedMemory create(Path&& pathname, size_type size,
                                File::AccessMode mode = File::AccessMode::ReadWrite,
                                int permissionsMode = (File::Mode::IRUSR | File::Mode::IWUSR));
 
@@ -284,7 +284,7 @@ protected:
      * @param path Path to the shared memory object.
      * Note in this form the object will be unlinked automatically when the object goes out of scope.
      */
-    SharedMemory(poll_id fd, const Path& path) noexcept;
+    SharedMemory(poll_id fd, Path&& path) noexcept;
 
     /**
      * Validate that file descriptor was opened and return it if it valid

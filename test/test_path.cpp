@@ -24,7 +24,7 @@
 #include <solace/exception.hpp>     // Checked expcetions
 
 
-std::ostream& operator<< (std::ostream& ostr, const Solace::Path& v) {
+std::ostream& operator<< (std::ostream& ostr, Solace::Path const& v) {
     ostr << "Path:" << v.getComponentsCount() << ":{";
     for (auto const& c : v) {
         auto const componentView = c.view();
@@ -53,45 +53,40 @@ TEST(TestPath, testRootAbsolute) {
 }
 
 TEST(TestPath, testEmpty) {
-    Path emptyPath;
-    EXPECT_TRUE(emptyPath.empty());
-
-    Path notEmptyPath("file");
-    EXPECT_TRUE(!notEmptyPath.empty());
-
-    Path notEmptyPath2({"some", "path", "to", "file"});
-    EXPECT_TRUE(!notEmptyPath.empty());
+    EXPECT_TRUE(Path().empty());
+    EXPECT_TRUE(!allocPath("file").empty());
+    EXPECT_TRUE(!allocPath({"some", "path", "to", "file"}).empty());
 }
+
 
 TEST(TestPath, testLength) {
     EXPECT_EQ(static_cast<String::size_type>(0), Path().length());
-
-    EXPECT_EQ(static_cast<String::size_type>(4), Path("file").length());
+    EXPECT_EQ(static_cast<String::size_type>(4), allocPath("file").length());
 
     // Special case of a root path
-    EXPECT_EQ(static_cast<String::size_type>(1), Path({""}).length());
-    EXPECT_EQ(static_cast<String::size_type>(5), Path({""}).length("[]lll"));
+    EXPECT_EQ(static_cast<String::size_type>(1), allocPath({""}).length());
+    EXPECT_EQ(static_cast<String::size_type>(5), allocPath({""}).length("[]lll"));
 
     EXPECT_EQ(static_cast<String::size_type>(std::strlen("some/path/to/file")),
-                            Path({"some", "path", "to", "file"}).length());
+                            allocPath({"some", "path", "to", "file"}).length());
 
     EXPECT_EQ(static_cast<String::size_type>(std::strlen("/file")),
-                            Path({"", "file"}).length());
+                            allocPath({"", "file"}).length());
 
     EXPECT_EQ(static_cast<String::size_type>(std::strlen("/some/path/to/file")),
-                            Path({"", "some", "path", "to", "file"}).length());
+                            allocPath({"", "some", "path", "to", "file"}).length());
 
     EXPECT_EQ(static_cast<String::size_type>(std::strlen("[-:]some[-:]path[-:]to[-:]file")),
-                            Path({"", "some", "path", "to", "file"}).length("[-:]"));
+                            allocPath({"", "some", "path", "to", "file"}).length("[-:]"));
 }
 
 /**
     * Test implementation and contract of IComparable
     */
 TEST(TestPath, testComparable) {
-    const Path p1({"1", "2", "3", "4", "file"});
-    const Path p2({"1", "2", "3", "4", "file"});
-    const Path p_different({"something", "2", "3", "file"});
+    auto const p1 = allocPath({"1", "2", "3", "4", "file"});
+    auto const p2 = allocPath({"1", "2", "3", "4", "file"});
+    auto const p_different = allocPath({"something", "2", "3", "file"});
 
     EXPECT_TRUE(p1.equals(p2));
     EXPECT_TRUE(p2.equals(p1));
@@ -107,89 +102,90 @@ TEST(TestPath, testComparable) {
     EXPECT_EQ(false, p_different.equals(p2));
 
     // Verify compareTo
-    EXPECT_LT(Path("aa").compareTo(Path("ab")), 0);
-    EXPECT_LT(Path({"a", "a"}).compareTo({"a", "b"}), 0);
-    EXPECT_LT(Path({"a", "a"}).compareTo({"a", "c"}), 0);
-    EXPECT_LT(Path({"a", "b", "c"}).compareTo({"a", "b", "c", "d"}), 0);
-    EXPECT_LT(Path({"a", "b", "c"}).compareTo({"a", "b", "c", "d", "e"}), 0);
-    EXPECT_LT(Path({"a", "a", "c"}).compareTo({"a", "c", "c", "d", "e"}), 0);
+    EXPECT_LT(allocPath("aa").compareTo(allocPath("ab")), 0);
+    EXPECT_LT(allocPath({"a", "a"}).compareTo(allocPath({"a", "b"})), 0);
+    EXPECT_LT(allocPath({"a", "a"}).compareTo(allocPath({"a", "c"})), 0);
+    EXPECT_LT(allocPath({"a", "b", "c"}).compareTo(allocPath({"a", "b", "c", "d"})), 0);
+    EXPECT_LT(allocPath({"a", "b", "c"}).compareTo(allocPath({"a", "b", "c", "d", "e"})), 0);
+    EXPECT_LT(allocPath({"a", "a", "c"}).compareTo(allocPath({"a", "c", "c", "d", "e"})), 0);
 
-    EXPECT_GT(Path("ab").compareTo(Path("aa")), 0);
-    EXPECT_GT(Path({"a", "b"}).compareTo({"a", "a"}), 0);
-    EXPECT_GT(Path({"a", "c"}).compareTo({"a", "a"}), 0);
-    EXPECT_GT(Path({"a", "b", "c", "d"}).compareTo({"a", "b", "c"}), 0);
-    EXPECT_GT(Path({"a", "b", "c", "d", "e"}).compareTo({"a", "b", "c"}), 0);
-    EXPECT_GT(Path({"a", "c", "c", "d", "e"}).compareTo({"a", "a", "c"}), 0);
+    EXPECT_GT(allocPath("ab").compareTo(allocPath("aa")), 0);
+    EXPECT_GT(allocPath({"a", "b"}).compareTo(allocPath({"a", "a"})), 0);
+    EXPECT_GT(allocPath({"a", "c"}).compareTo(allocPath({"a", "a"})), 0);
+    EXPECT_GT(allocPath({"a", "b", "c", "d"}).compareTo(allocPath({"a", "b", "c"})), 0);
+    EXPECT_GT(allocPath({"a", "b", "c", "d", "e"}).compareTo(allocPath({"a", "b", "c"})), 0);
+    EXPECT_GT(allocPath({"a", "c", "c", "d", "e"}).compareTo(allocPath({"a", "a", "c"})), 0);
 }
+
 
 TEST(TestPath, testStartsWith) {
     {
-        const Path p({"some", "path", "to", "a", "file"});
+        auto const p = allocPath({"some", "path", "to", "a", "file"});
         EXPECT_TRUE(p.startsWith(p));
         EXPECT_TRUE(p.startsWith("som"));
         EXPECT_TRUE(p.startsWith("some"));
 
-        EXPECT_EQ(true, p.startsWith(Path{"some", "pa"}));
-        EXPECT_EQ(true, p.startsWith(Path{"some", "path"}));
-        EXPECT_EQ(true, p.startsWith(Path{"some", "path", "t"}));
+        EXPECT_EQ(true, p.startsWith(allocPath({"some", "pa"})));
+        EXPECT_EQ(true, p.startsWith(allocPath({"some", "path"})));
+        EXPECT_EQ(true, p.startsWith(allocPath({"some", "path", "t"})));
 
-        EXPECT_EQ(false, p.startsWith(Path{"so", "pa"}));
-        EXPECT_EQ(false, p.startsWith(Path{"some", "pa", "to"}));
+        EXPECT_EQ(false, p.startsWith(allocPath({"so", "pa"})));
+        EXPECT_EQ(false, p.startsWith(allocPath({"some", "pa", "to"})));
     }
 
     {
-        const Path p1({"1", "2", "3", "4", "file"});
-        const Path p2({"1", "2", "3"});
-        const Path p3({"2", "3", "4"});
+        auto const p1 = allocPath({"1", "2", "3", "4", "file"});
+        auto const p2 = allocPath({"1", "2", "3"});
+        auto const p3 = allocPath({"2", "3", "4"});
 
         EXPECT_TRUE(p1.startsWith(p1));
-        EXPECT_TRUE(p1.startsWith(Path("1")));
+        EXPECT_TRUE(p1.startsWith(allocPath("1")));
         EXPECT_TRUE(p1.startsWith(p2));
 
         EXPECT_EQ(false, p1.startsWith(p3));
         EXPECT_EQ(false, p2.startsWith(p3));
         EXPECT_EQ(false, p3.startsWith(p1));
-        EXPECT_EQ(false, p3.startsWith(Path({"2", "3", "4", ""})));
+        EXPECT_EQ(false, p3.startsWith(allocPath({"2", "3", "4", ""})));
     }
 }
 
 
 TEST(TestPath, testEndsWith) {
     {
-        const Path p({"some", "path", "to", "awesome", "file.awe"});
+        auto const p = allocPath({"some", "path", "to", "awesome", "file.awe"});
         EXPECT_TRUE(p.endsWith(p));
         EXPECT_TRUE(p.endsWith("awe"));
         EXPECT_TRUE(p.endsWith("file.awe"));
 
-        EXPECT_EQ(true, p.endsWith(Path{"some", "file.awe"}));
-        EXPECT_EQ(true, p.endsWith(Path{"awesome", "file.awe"}));
-        EXPECT_EQ(true, p.endsWith(Path{"to", "awesome", "file.awe"}));
+        EXPECT_EQ(true, p.endsWith(allocPath({"some", "file.awe"})));
+        EXPECT_EQ(true, p.endsWith(allocPath({"awesome", "file.awe"})));
+        EXPECT_EQ(true, p.endsWith(allocPath({"to", "awesome", "file.awe"})));
 
-        EXPECT_EQ(false, p.endsWith({"to", "awe", "file.awe"}));
-        EXPECT_EQ(false, p.endsWith({"to", "some", "file.awe"}));
+        EXPECT_EQ(false, p.endsWith(allocPath({"to", "awe", "file.awe"})));
+        EXPECT_EQ(false, p.endsWith(allocPath({"to", "some", "file.awe"})));
     }
 
     {
-        const Path p1({"1", "2", "3", "4", "file"});
-        const Path p2({"3", "4", "file"});
-        const Path p3({"2", "3", "4"});
+        auto const p1 = allocPath({"1", "2", "3", "4", "file"});
+        auto const p2 = allocPath({"3", "4", "file"});
+        auto const p3 = allocPath({"2", "3", "4"});
 
         EXPECT_TRUE(p1.endsWith(p1));
-        EXPECT_TRUE(p1.endsWith(Path("file")));
+        EXPECT_TRUE(p1.endsWith(allocPath("file")));
         EXPECT_TRUE(p1.endsWith(p2));
 
         EXPECT_EQ(false, p1.endsWith(p3));
         EXPECT_EQ(false, p2.endsWith(p3));
         EXPECT_EQ(false, p3.endsWith(p1));
-        EXPECT_EQ(false, p3.endsWith(Path{"", "1", "2", "3", "4"}));
+        EXPECT_EQ(false, p3.endsWith(allocPath({"", "1", "2", "3", "4"})));
     }
 }
 
 
 TEST(TestPath, testContains) {
-    const Path p1({"1", "2", "3", "4", "file"});
-    const Path p2({"2", "3", "4"});
-    const Path p3({"4", "3", "file"});
+    auto const p1 = allocPath({"1", "2", "3", "4", "file"});
+    auto const p2 = allocPath({"2", "3", "4"});
+    auto const p3 = allocPath({"4", "3", "file"});
 
     EXPECT_TRUE(p1.contains(p1));
     EXPECT_TRUE(p1.contains("file"));
@@ -202,28 +198,29 @@ TEST(TestPath, testContains) {
     // Shorter path can not contain a longer one!
     EXPECT_EQ(false, p2.contains(p1));
 
-    EXPECT_EQ(false, p1.contains(Path({"1", "2", "5"})));
+    EXPECT_EQ(false, p1.contains(allocPath({"1", "2", "5"})));
 }
 
 TEST(TestPath, testGetParent) {
     {
-        const Path root("");
-        EXPECT_EQ(root, root.getParent());
+        EXPECT_EQ(allocPath({"1", "2", "3", "4"}),
+                  allocPath({"1", "2", "3", "4", "file"}).getParent());
 
-        const Path p3("file");
-
-        EXPECT_EQ(Path({"1", "2", "3", "4"}), Path({"1", "2", "3", "4", "file"}).getParent());
+        auto const p3 = allocPath("file");
         EXPECT_EQ(p3, p3.getParent());
-        EXPECT_EQ(root, Path({"", "file"}).getParent());
+
+        auto const root = allocPath("");
+        EXPECT_EQ(root, root.getParent());
+        EXPECT_EQ(root, allocPath({"", "file"}).getParent());
     }
     {
-        Path root;
+        Path root{};
         EXPECT_TRUE(root.empty());
 
-        Path p = root.getParent();
+        Path const p = root.getParent();
         EXPECT_TRUE(p.empty());
 
-        auto somePath = Path{"abc"};
+        auto somePath = allocPath("abc");
         root = std::move(somePath);
         EXPECT_TRUE(somePath.empty());
         EXPECT_TRUE(!root.empty());
@@ -232,24 +229,24 @@ TEST(TestPath, testGetParent) {
 
 
 TEST(TestPath, testBasename) {
-    EXPECT_EQ(StringView(), Path().getBasename());
-    EXPECT_EQ(Path::Delimiter, Path({""}).getBasename());
-    EXPECT_EQ(StringView("file"), Path("file").getBasename());
-    EXPECT_EQ(StringView("file"), Path({"file"}).getBasename());
-    EXPECT_EQ(StringView("file"), Path({"", "file"}).getBasename());
+    EXPECT_EQ(StringView(), Path{}.getBasename());
+    EXPECT_EQ(Path::Delimiter, allocPath("").getBasename());
+    EXPECT_EQ(StringView("file"), allocPath("file").getBasename());
+    EXPECT_EQ(StringView("file"), allocPath({"file"}).getBasename());
+    EXPECT_EQ(StringView("file"), allocPath({"", "file"}).getBasename());
 
-    EXPECT_EQ(StringView("."), Path({"."}).getBasename());
-    EXPECT_EQ(StringView(".."), Path({".."}).getBasename());
-    EXPECT_EQ(StringView("."), Path({"", "."}).getBasename());
-    EXPECT_EQ(StringView(".."), Path({"", ".."}).getBasename());
+    EXPECT_EQ(StringView("."), allocPath(".").getBasename());
+    EXPECT_EQ(StringView(".."), allocPath("..").getBasename());
+    EXPECT_EQ(StringView("."), allocPath({"", "."}).getBasename());
+    EXPECT_EQ(StringView(".."), allocPath({"", ".."}).getBasename());
 
-    EXPECT_EQ(StringView("etc"), Path({"", "etc"}).getBasename());
-    EXPECT_EQ(StringView(""), Path({"", "etc", ""}).getBasename());
-    EXPECT_EQ(StringView("file"), Path({"", "etc", "file"}).getBasename());
-    EXPECT_EQ(StringView(".."), Path({"", "etc", ".."}).getBasename());
-    EXPECT_EQ(StringView("."), Path({"etc", "..", "."}).getBasename());
+    EXPECT_EQ(StringView("etc"), allocPath({"", "etc"}).getBasename());
+    EXPECT_EQ(StringView(""), allocPath({"", "etc", ""}).getBasename());
+    EXPECT_EQ(StringView("file"), allocPath({"", "etc", "file"}).getBasename());
+    EXPECT_EQ(StringView(".."), allocPath({"", "etc", ".."}).getBasename());
+    EXPECT_EQ(StringView("."), allocPath({"etc", "..", "."}).getBasename());
 
-    EXPECT_EQ(StringView("file"), Path({"1", "2", "3", "4", "file"}).getBasename());
+    EXPECT_EQ(StringView("file"), allocPath({"1", "2", "3", "4", "file"}).getBasename());
 }
 
 
@@ -268,7 +265,7 @@ TEST(TestPath, testUnixBasename) {
 
 TEST(TestPath, testComponents) {
     const String components[] = {"1", "2", "3", "4", "file"};
-    const Path p({components[0], components[1], components[2], components[3], components[4]});
+    auto const p = allocPath({components[0], components[1], components[2], components[3], components[4]});
 
     EXPECT_EQ(static_cast<Path::size_type>(5), p.getComponentsCount());
     for (Path::size_type i = 0; i < p.getComponentsCount(); ++i) {
@@ -276,58 +273,43 @@ TEST(TestPath, testComponents) {
     }
 }
 
-TEST(TestPath, testFirst) {
-    EXPECT_EQ(String::Empty, Path().first());
-    EXPECT_EQ(String::Empty, Path({""}).first());
-
-    EXPECT_EQ(String("file"), Path({"file"}).first());
-    EXPECT_EQ(String("etc"), Path({"etc", "file"}).first());
-    EXPECT_EQ(String(""), Path({"", "etc", "file"}).first());
-}
-
-TEST(TestPath, testLast) {
-    EXPECT_EQ(String::Empty, Path().last());
-    EXPECT_EQ(String::Empty, Path({""}).last());
-
-    EXPECT_EQ(String("file"), Path({"file"}).last());
-    EXPECT_EQ(String("file"), Path({"etc", "file"}).last());
-    EXPECT_EQ(String("file"), Path({"", "etc", "file"}).last());
-}
 
 TEST(TestPath, testSubpath) {
-    EXPECT_EQ(Path({"1", "2", "3"}), Path({"1", "2", "3", "4", "file"}).subpath(0, 3));
-    EXPECT_EQ(Path({"3", "4", "file"}), Path({"1", "2", "3", "4", "file"}).subpath(2, 5));
-    EXPECT_EQ(Path({"2", "3"}), Path({"1", "2", "3", "4", "file"}).subpath(1, 3));
+    EXPECT_EQ(allocPath({"1", "2", "3"}), allocPath({"1", "2", "3", "4", "file"}).subpath(0, 3));
+    EXPECT_EQ(allocPath({"3", "4", "file"}), allocPath({"1", "2", "3", "4", "file"}).subpath(2, 5));
+    EXPECT_EQ(allocPath({"2", "3"}), allocPath({"1", "2", "3", "4", "file"}).subpath(1, 3));
 
     // Error modes:
 
     // End index outside of path lenght
-    EXPECT_THROW(Path({"1", "2", "3", "4", "file"}).subpath(1, 23), IndexOutOfRangeException);
+    EXPECT_THROW(allocPath({"1", "2", "3", "4", "file"}).subpath(1, 23), IndexOutOfRangeException);
     // Start index oustide of path lenght
-    EXPECT_THROW(Path({"1", "2", "3", "4", "file"}).subpath(17, 18), IndexOutOfRangeException);
+    EXPECT_THROW(allocPath({"1", "2", "3", "4", "file"}).subpath(17, 18), IndexOutOfRangeException);
     // Start greater then end index
-    EXPECT_THROW(Path({"1", "2", "3", "4", "file"}).subpath(3, 1), IndexOutOfRangeException);
+    EXPECT_THROW(allocPath({"1", "2", "3", "4", "file"}).subpath(3, 1), IndexOutOfRangeException);
 }
 
 
 TEST(TestPath, testJoin) {
-    EXPECT_EQ(Path({"etc", "file"}), Path("etc").join(Path("file")));
-    EXPECT_EQ(Path({"etc", "file"}), Path("etc").join("file"));
+    EXPECT_EQ(allocPath({"etc", "file"}),
+              allocPath(allocPath("etc"), allocPath("file")));
+    EXPECT_EQ(allocPath({"etc", "file"}),
+              allocPath(allocPath("etc"), StringView("file")));
+    EXPECT_EQ(allocPath({"etc", "file"}),
+              allocPath(allocPath("etc"), String("file")));
+    EXPECT_EQ(allocPath({"etc", "file"}),
+              allocPath(allocPath("etc"), "file"));
 
-    EXPECT_EQ(Path({"etc", "file"}), Path("etc") / Path("file"));
-    EXPECT_EQ(Path({"etc", "file"}), Path("etc") / "file");
-
-    EXPECT_EQ(Path({"etc", "file"}), Path::join(Path("etc"), Path("file")));
-    EXPECT_EQ(Path({"etc", "file"}), Path::join(Path("etc"), "file"));
-
-    EXPECT_EQ(Path({"etc", "some", "long", "path"}),
-                            Path({"etc", "some", "long", "path"}));
-    EXPECT_EQ(Path({"etc", "some", "long", "path"}),
-                            Path({"etc", "some"}) / Path("long") / Path("path"));
+    EXPECT_EQ(allocPath({"etc", "some", "long", "path"}),
+              allocPath({allocPath("etc"), allocPath("some"), allocPath("long"), allocPath("path")}));
+    EXPECT_EQ(allocPath({"etc", "some", "long", "path"}),
+              allocPath({StringView("etc"), StringView("some"), StringView("long"), StringView("path")}));
+    EXPECT_EQ(allocPath({"etc", "some", "long", "path"}),
+              allocPath({String("etc"), String("some"), String("long"), String("path")}));
 }
 
 TEST(TestPath, testIterable) {
-    const Path p({"e", "so", "lon", "path", "foilx"});
+    auto const p = allocPath({"e", "so", "lon", "path", "foilx"});
 
     String::size_type i = 0;
     for (auto& v : p) {
@@ -338,7 +320,7 @@ TEST(TestPath, testIterable) {
 
 TEST(TestPath, testForEach) {
     std::vector<int> counts;
-    Path({"e", "so", "long", "pat", "fx", "x"}).forEach([&counts] (const String& component){
+    allocPath({"e", "so", "long", "pat", "fx", "x"}).forEach([&counts] (const String& component){
         counts.push_back(component.length());
     });
 
@@ -347,54 +329,52 @@ TEST(TestPath, testForEach) {
 
 
 TEST(TestPath, testIsAbsolute) {
-    EXPECT_TRUE(!Path("etc").isAbsolute());
-    EXPECT_TRUE(!Path({"etc", "2", "file"}).isAbsolute());
-    EXPECT_TRUE(Path({"", "etc", "dir", "file"}).isAbsolute());
-    EXPECT_TRUE(Path({"", "2", "f", ""}).isAbsolute());
+    EXPECT_FALSE(allocPath("etc").isAbsolute());
+    EXPECT_FALSE(allocPath({"etc", "2", "file"}).isAbsolute());
+    EXPECT_TRUE(allocPath({"", "etc", "dir", "file"}).isAbsolute());
+    EXPECT_TRUE(allocPath({"", "2", "f", ""}).isAbsolute());
 }
 
 
 TEST(TestPath, testIsRelative) {
-    EXPECT_TRUE(Path("etc").isRelative());
-    EXPECT_TRUE(Path({"1", "2", "f"}).isRelative());
-    EXPECT_TRUE(!Path({"", "1", "2", "f"}).isRelative());
-    EXPECT_TRUE(Path({"1", "2", "f", ""}).isRelative());
+    EXPECT_TRUE(allocPath("etc").isRelative());
+    EXPECT_TRUE(allocPath({"1", "2", "f"}).isRelative());
+    EXPECT_TRUE(allocPath({"1", "2", "f", ""}).isRelative());
+    EXPECT_FALSE(allocPath({"", "1", "2", "f"}).isRelative());
 }
 
 
 TEST(TestPath, testNormalize) {
 
-    EXPECT_EQ(Path({"1", "2", "f"}),
-                            Path({"1", ".", "2", "f"}).normalize());
+    EXPECT_EQ(allocPath({"1", "2", "f"}),
+              allocPath({"1", ".", "2", "f"}).normalize());
 
-    EXPECT_EQ(Path({"1", "f"}),
-                            Path({"1", "2", "..", "f"}).normalize());
+    EXPECT_EQ(allocPath({"1", "f"}),
+              allocPath({"1", "2", "..", "f"}).normalize());
 
-    EXPECT_EQ(Path({"1", "3"}),
-                            Path({".", "1", "2", "..", "3", ".", "f", ".."}).normalize());
+    EXPECT_EQ(allocPath({"1", "3"}),
+              allocPath({".", "1", "2", "..", "3", ".", "f", ".."}).normalize());
 }
 
 /**
     * Test implementation and contract of IFormattable
     */
 TEST(TestPath, testToString) {
-    EXPECT_EQ(String("/"), Path("").toString());
-    EXPECT_EQ(String("[:]"), Path("").toString("[:]"));
-    EXPECT_EQ(String("filename"), Path("filename").toString());
-    EXPECT_EQ(String("filename"), Path("filename").toString("[:]"));
+    EXPECT_EQ(StringLiteral("/"), allocPath("").toString());
+    EXPECT_EQ(StringLiteral("[:]"), allocPath("").toString("[:]"));
+    EXPECT_EQ(StringLiteral("filename"), allocPath("filename").toString());
+    EXPECT_EQ(StringLiteral("filename"), allocPath("filename").toString("[:]"));
 
     {
-        const Path p({"3", "2", "1"});
-        EXPECT_EQ(String("3/2/1"), p.toString());
-
-        EXPECT_EQ(String("3|:2|:1"), p.toString("|:"));
+        auto const p = allocPath({"3", "2", "1"});
+        EXPECT_EQ(StringLiteral("3/2/1"),   p.toString());
+        EXPECT_EQ(StringLiteral("3|:2|:1"), p.toString("|:"));
     }
 
     {
-        const Path p({"", "etc", "something", "1"});
-        EXPECT_EQ(String("/etc/something/1"), p.toString());
-
-        EXPECT_EQ(String("|:etc|:something|:1"), p.toString("|:"));
+        auto const p = allocPath({"", "etc", "something", "1"});
+        EXPECT_EQ(StringLiteral("/etc/something/1"), p.toString());
+        EXPECT_EQ(StringLiteral("|:etc|:something|:1"), p.toString("|:"));
     }
 }
 
@@ -404,12 +384,12 @@ TEST(TestPath, testToString) {
     */
 TEST(TestPath, testParsing) {
     {
-        EXPECT_EQ(Path("some-long_path"),
-                                Path::parse("some-long_path").unwrap());
+        EXPECT_EQ(allocPath("some-long_path"),
+                  Path::parse("some-long_path").unwrap());
     }
     {
-        EXPECT_EQ(Path({"", "etc"}),
-                                Path::parse("/etc").unwrap());
+        EXPECT_EQ(allocPath({"", "etc"}),
+                  Path::parse("/etc").unwrap());
     }
     {
         EXPECT_EQ(Path::Root, Path::parse("").unwrap());
@@ -417,36 +397,36 @@ TEST(TestPath, testParsing) {
         EXPECT_EQ(Path::Root, Path::parse(Path::Delimiter).unwrap());
     }
     {
-        EXPECT_EQ(Path({"some", "file", "path.321"}),
-                                Path::parse("some/file/path.321").unwrap());
+        EXPECT_EQ(allocPath({"some", "file", "path.321"}),
+                  Path::parse("some/file/path.321").unwrap());
     }
     {
-        EXPECT_EQ(Path({"some", "file", "path.321"}),
-                                Path::parse("some/file/path.321/").unwrap());
+        EXPECT_EQ(allocPath({"some", "file", "path.321"}),
+                  Path::parse("some/file/path.321/").unwrap());
     }
     {
-        EXPECT_EQ(Path({"some", "file", "", "path.321"}),
-                                Path::parse("some/file//path.321/").unwrap());
+        EXPECT_EQ(allocPath({"some", "file", "", "path.321"}),
+                  Path::parse("some/file//path.321/").unwrap());
     }
     {
-        EXPECT_EQ(Path({"", "!)", "$@#&@#", "some", "file", "path"}),
-                                Path::parse("/!)/$@#&@#/some/file/path").unwrap());
+        EXPECT_EQ(allocPath({"", "!)", "$@#&@#", "some", "file", "path"}),
+                  Path::parse("/!)/$@#&@#/some/file/path").unwrap());
     }
     {
-        EXPECT_EQ(Path({"some", "file", "path"}),
-                                Path::parse("some.file.path", ".").unwrap());
+        EXPECT_EQ(allocPath({"some", "file", "path"}),
+                  Path::parse("some.file.path", ".").unwrap());
     }
     {
-        EXPECT_EQ(Path({"some", "file", "", "path"}),
-                                Path::parse("some.file..path", ".").unwrap());
+        EXPECT_EQ(allocPath({"some", "file", "", "path"}),
+                  Path::parse("some.file..path", ".").unwrap());
     }
     {
-        EXPECT_EQ(Path({"", "some", "file", "path"}),
-                                Path::parse("{?some{?file{?path{?", "{?").unwrap());
+        EXPECT_EQ(allocPath({"", "some", "file", "path"}),
+                  Path::parse("{?some{?file{?path{?", "{?").unwrap());
     }
     {
-        EXPECT_EQ(Path({"", "some", "", "file", "path"}),
-                                Path::parse("{?some{?{?file{?path{?", "{?").unwrap());
+        EXPECT_EQ(allocPath({"", "some", "", "file", "path"}),
+                  Path::parse("{?some{?{?file{?path{?", "{?").unwrap());
     }
 }
 

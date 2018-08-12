@@ -94,7 +94,7 @@ public:
         return (*this);
     }
 
-    ArrayView& operator= (const ArrayView& rhs) noexcept {
+    ArrayView& operator= (ArrayView const& rhs) noexcept {
         ArrayView(rhs).swap(*this);
 
         return *this;
@@ -104,7 +104,7 @@ public:
         return swap(rhs);
     }
 
-    bool equals(const ArrayView& other) const noexcept {
+    bool equals(ArrayView const& other) const noexcept {
         if (size() != other.size()) {
             return false;
         }
@@ -223,7 +223,6 @@ public:
     }
 
     bool contains(const_reference value) const noexcept {
-//        return (std::find(_storage.begin(), _storage.end(), value) != _storage.end());
         return indexOf(value).isSome();
     }
 
@@ -239,11 +238,11 @@ public:
         return none;
     }
 
-    ArrayView<const T> asConst() const noexcept {
+    constexpr ArrayView<const T> asConst() const noexcept {
       return ArrayView<const T>(_memory);
     }
 
-    operator ArrayView<const T>() const noexcept {
+    constexpr operator ArrayView<const T>() const noexcept {
       return asConst();
     }
 
