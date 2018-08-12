@@ -82,7 +82,7 @@ public:
 
     // Prevent ExceptionSafeArrayUtil's destructor from destroying the constructed elements.
     // Call this after you've successfully finished constructing.
-    constexpr void release() noexcept { _constructedElementCount = 0; }
+    void release() noexcept { _constructedElementCount = 0; }
 
 private:
 
@@ -99,7 +99,7 @@ struct AutoDeleter {
 
     inline ~AutoDeleter() { operator delete(ptr); }
     constexpr AutoDeleter(void* pos) noexcept: ptr(pos) {}
-    constexpr void* release() noexcept { void* result = ptr; ptr = nullptr; return result; }
+    void* release() noexcept { void* result = ptr; ptr = nullptr; return result; }
 };
 
 
