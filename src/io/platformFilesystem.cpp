@@ -30,6 +30,8 @@
 
 #ifdef SOLACE_PLATFORM_BSD
 #include <sys/sysctl.h>
+#elif defined(SOLACE_PLATFORM_APPLE)
+#include <mach-o/dyld.h>       /* _NSGetExecutablePath */
 #endif
 
 
@@ -320,7 +322,7 @@ PlatformFilesystem::getExecPath() const {
 
 #elif defined(SOLACE_PLATFORM_APPLE)
     char execPath[1024];
-    size_t buffSize = sizeof(execPath);
+    uint buffSize = sizeof(execPath);
     auto const success = (_NSGetExecutablePath(execPath, &buffSize) == 0);
     execPath[buffSize - 1] = '\0';
     if (!success) {
