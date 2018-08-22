@@ -32,6 +32,8 @@
 #include "solace/mutableMemoryView.hpp"
 #include "solace/memoryManager.hpp"  // TODO(abbyssoul): Allocate memory via memory manager
 
+#include "solace/traits/callable.hpp"
+
 
 namespace Solace {
 

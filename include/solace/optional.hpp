@@ -25,7 +25,7 @@
 #define SOLACE_OPTIONAL_HPP
 
 #include "solace/types.hpp"
-#include "solace/utils.hpp"     // type-traits: isCallable<>
+#include "solace/traits/callable.hpp"     // type-traits: isCallable<>
 #include "solace/assert.hpp"
 
 

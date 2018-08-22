@@ -21,10 +21,11 @@
 #ifndef SOLACE_ARRAYVIEW_HPP
 #define SOLACE_ARRAYVIEW_HPP
 
-#include "solace/utils.hpp"
 #include "solace/assert.hpp"
 #include "solace/mutableMemoryView.hpp"
 #include "solace/optional.hpp"
+
+#include "solace/traits/callable.hpp"  // isCallable
 
 
 namespace Solace {
