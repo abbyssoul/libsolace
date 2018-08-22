@@ -116,6 +116,19 @@ public:
     }
 };
 
+TEST_F(TestResult, testErrfactoryProducesErrorFromCopy) {
+    SimpleType value;
+    Result<int, SimpleType> r = Err(value);
+    EXPECT_TRUE(r.isError());
+}
+
+TEST_F(TestResult, testErrfactoryProducesErrorFromMovedValue) {
+    SimpleType value;
+    Result<int, SimpleType> r = Err(std::move(value));
+    EXPECT_TRUE(r.isError());
+}
+
+
 TEST_F(TestResult, testFailure) {
     {
         Result<void, Error> r = fail(std::string("Bad errors 432 about to happen"));
@@ -418,7 +431,7 @@ TEST_F(TestResult, testThenChaining) {
     // Good chain
     Result<int, SimpleType> goodResult = Ok<int>(42);
 
-    auto alsoGood = goodResult.then([](int r) { return Ok<int>(r / 2); });
+    auto const alsoGood = goodResult.then([](int r) { return Ok<int>(r / 2); });
     EXPECT_TRUE(alsoGood.isOk());
     EXPECT_EQ(42/2, alsoGood.unwrap());
 

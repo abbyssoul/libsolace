@@ -6,8 +6,12 @@ Another nice introduction to what kind of problems Promise/Future solve can be f
 
 The implementation is similar in spirit to [futures](https://github.com/facebook/folly/blob/master/folly/futures/README.md)
 provided by Facebooks's [folly library](https://github.com/facebook/folly) with one huge difference:
-libsolace Future are not associated with any thread. That is creation of a Promise/Future does not guaranty that it will be computed in any other thread or indeed at all. It is responsibility of the Promise owner to perform a computation using any async mechanism or thread and call promise.setValue() or promise.setError() to inform a holder of the associated Future that the value is available. As a result there is no Future.wait() method. It is possible
+following the pormise to not consume any reources unexpectedly - libsolace Futures are not associated with any thread.
+That is creation of a Promise/Future does not guaranty that it will be computed in any other thread or indeed at all.
+It is responsibility of the Promise owner to perform a computation using any async mechanism or thread and call promise.setValue() or promise.setError() to inform a holder of the associated Future that the value is available. As a result there is no Future.wait() method. It is possible
 (and often beneficial) to use Promise/Future in a single threaded async application.
+
+It is recommended to watch this video about using asyncronious programming to achieve best possible scalability in multi-CPU computition: https://www.youtube.com/watch?v=js-e8xAMd1s
 Here is an typical example of using Promise/Future with [ASIO](http://www.boost.org/doc/libs/master/doc/html/boost_asio.html):
 
 ```C++
