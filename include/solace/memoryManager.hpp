@@ -79,32 +79,43 @@ public:
      */
     virtual ~MemoryManager() = default;
 
+    MemoryManager(const MemoryManager&) = delete;
+    MemoryManager& operator= (MemoryManager const& rhs) = delete;
+
     /** Construct a new memory manager with the given capacity
      *
      * @param allowedCapacity The memory capacity this manager allowed to allocate.
      */
     explicit MemoryManager(size_type allowedCapacity);
 
-    MemoryManager(const MemoryManager&) = delete;
+    MemoryManager(MemoryManager&&) noexcept = default;
+    MemoryManager& operator= (MemoryManager&& rhs) noexcept {
+        return swap(rhs);
+    }
 
     MemoryManager& swap(MemoryManager& rhs) noexcept;
-    MemoryManager& operator= (MemoryManager&& rhs) noexcept;
 
     /**
      * Check if this memory manager has no allocated memory.
      * @return True if no memory is allocated by this manager.
      */
-    bool empty() const noexcept;
+    constexpr bool empty() const noexcept {
+        return (_size == 0);
+    }
 
     /** Get amount of memory in bytes allocated by the memory manager.
      * @return Total amount of memory allocated by this manager.
      */
-    size_type size() const noexcept;
+    constexpr size_type size() const noexcept {
+        return _size;
+    }
 
     /**
      * @return Total amount of memory manager is allowed to allocate.
      */
-    size_type capacity() const noexcept;
+    constexpr size_type capacity() const noexcept {
+        return _capacity;
+    }
 
     /** Get size of a memory page in bytes.
      * @return Size of the system's memory page in bytes.
@@ -158,14 +169,13 @@ protected:
      */
     class HeapMemoryDisposer : public MemoryViewDisposer {
     public:
-        HeapMemoryDisposer(MemoryManager* self) : _self(self)
+        HeapMemoryDisposer(MemoryManager& self) : _self(&self)
         {}
 
         void dispose(MemoryView* view) const override;
 
     private:
         MemoryManager* _self;
-
     };
 
     friend class HeapMemoryDisposer;
@@ -191,6 +201,12 @@ private:
 inline void swap(MemoryManager& lhs, MemoryManager& rhs) noexcept {
     lhs.swap(rhs);
 }
+
+/**
+ * Return global system memory manager.
+ * @return Heap memory manager
+ */
+MemoryManager& getSystemHeapMemoryManager();
 
 }  // End of namespace Solace
 #endif  // SOLACE_MEMORYMANAGER_HPP

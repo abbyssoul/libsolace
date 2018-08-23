@@ -97,7 +97,8 @@ public:
     }
 
     /**
-     * @return The size of this finite collection
+     * Get the size of the memory buffer in bytes.
+     * @return The size of the memory buffer in bytes.
      */
     size_type size() const noexcept { return _data.size(); }
 

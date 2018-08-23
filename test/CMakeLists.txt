@@ -8,11 +8,14 @@ set(TEST_SOURCE_FILES
         ci/teamcity_messages.cpp
         ci/teamcity_gtest.cpp
 
-        test_array.cpp
-        test_arrayView.cpp
         test_memoryView.cpp
         test_memoryManager.cpp
         test_memoryBuffer.cpp
+
+        test_array.cpp
+        test_arrayView.cpp
+        test_vector.cpp
+        test_dictionary.cpp
         test_base16.cpp
         test_base64.cpp
         test_byteReader.cpp

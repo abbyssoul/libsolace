@@ -14,12 +14,9 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Fixed size array template
+ * libSolace
+ *  @brief		Fixed size array container
  *	@file		solace/array.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	@brief		Fixed size array type
- *	ID:			$Id$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_ARRAY_HPP
@@ -73,6 +70,7 @@ template<typename T>
 class Array {
 public:
     using ViewType = ArrayView<T>;
+
     using value_type = T;
     using size_type = typename ViewType::size_type;
 
@@ -136,8 +134,9 @@ public:
     }
 
     bool equals(std::initializer_list<T> other) const noexcept {
-        if (size() != other.size())
+        if (size() != other.size()) {
             return false;
+        }
 
         auto selfIt = this->begin();
         auto otherIt = other.begin();

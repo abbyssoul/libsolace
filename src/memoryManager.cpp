@@ -37,7 +37,7 @@ MemoryManager::MemoryManager(size_type allowedCapacity) :
     _capacity(allowedCapacity),
     _size(0),
     _isLocked(false),
-    _disposer(this)
+    _disposer(*this)
 {
 
     const auto totalAvaliableMemory = getPageSize() * getNbPages();
@@ -55,25 +55,6 @@ MemoryManager& MemoryManager::swap(MemoryManager& rhs) noexcept {
     swap(_isLocked, rhs._isLocked);
 
     return (*this);
-}
-
-
-MemoryManager& MemoryManager::operator= (MemoryManager&& rhs) noexcept {
-    return swap(rhs);
-}
-
-
-bool MemoryManager::empty() const noexcept {
-    return (_size == 0);
-}
-
-
-MemoryManager::size_type MemoryManager::size() const noexcept {
-    return _size;
-}
-
-MemoryManager::size_type MemoryManager::capacity() const noexcept {
-    return _capacity;
 }
 
 
@@ -152,3 +133,11 @@ void MemoryManager::unlock() {
     _isLocked = false;
 }
 
+
+MemoryManager&
+Solace::getSystemHeapMemoryManager() {
+    // FIXME(abbyssoul): Get actual ammount of memory here
+    static MemoryManager globalMemoryManager{16*1024*1024};
+
+    return globalMemoryManager;
+}
