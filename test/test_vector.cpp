@@ -25,6 +25,7 @@
 
 using namespace Solace;
 
+
 TEST(TestVector, testEmptyIntegralVectorIsEmpty) {
     Vector<uint32> v;
 
@@ -155,3 +156,44 @@ TEST(TestVector, movingWhenCopyConstructorThrowsIsSafe) {
     EXPECT_EQ(0, v.capacity());
     EXPECT_EQ(0, SometimesConstructable::InstanceCount);
 }
+
+
+TEST(TestVector, constructionFromInitializerList) {
+    ASSERT_EQ(0, SimpleType::InstanceCount);
+    {
+        auto v = makeVector<SimpleType>({
+                                            {3, 2, 1},
+                                            {2, 1, 0},
+                                            {1, 0, -1}
+                                        });
+        EXPECT_FALSE(v.empty());
+        EXPECT_EQ(3, v.capacity());
+        EXPECT_EQ(3, v.size());
+        EXPECT_EQ(3, SimpleType::InstanceCount);
+    }
+
+    // Important to make sure all the instances has been correctly destructed after scope exit
+    EXPECT_EQ(0, SimpleType::InstanceCount);
+}
+
+TEST(TestVector, copy) {
+    ASSERT_EQ(0, SimpleType::InstanceCount);
+    {
+        auto const origin = makeVector<SimpleType>({
+                                            {3, 2, 1},
+                                            {2, 1, 0},
+                                            {1, 0, -1}
+                                        });
+        EXPECT_EQ(3, SimpleType::InstanceCount);
+
+        auto v = makeVector(origin);  // Make a copy
+        EXPECT_FALSE(v.empty());
+        EXPECT_EQ(3, v.capacity());
+        EXPECT_EQ(3, v.size());
+        EXPECT_EQ(6, SimpleType::InstanceCount);
+    }
+
+    // Important to make sure all the instances has been correctly destructed after scope exit
+    EXPECT_EQ(0, SimpleType::InstanceCount);
+}
+

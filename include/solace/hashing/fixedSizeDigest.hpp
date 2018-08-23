@@ -55,4 +55,4 @@ private:
 
 }  // End of namespace hashing
 }  // End of namespace Solace
-#endif // SOLACE_HASHING_FIXEDSIZEDIGEST_HPP
+#endif  // SOLACE_HASHING_FIXEDSIZEDIGEST_HPP

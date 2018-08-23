@@ -54,6 +54,8 @@ public:
 
 public:
 
+    ~ArrayView() noexcept = default;
+
     /** Construct an empty array */
     constexpr ArrayView() noexcept = default;
 
@@ -343,30 +345,43 @@ void swap(ArrayView<T>& lhs, ArrayView<T>& rhs) noexcept {
     lhs.swap(rhs);
 }
 
+
+/** ArrayView factory */
+template <typename T>
+constexpr ArrayView<T const> arrayView(MemoryView memView) noexcept {
+  return ArrayView<T const>(memView);
+}
+
+template <typename T>
+constexpr ArrayView<T> arrayView(MutableMemoryView memView) noexcept {
+  return ArrayView<T>(memView);
+}
+
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-constexpr ArrayView<T> arrayView(T* ptr, size_t size) {
+constexpr ArrayView<T> arrayView(T* ptr, size_t size) noexcept {
   return ArrayView<T>(ptr, size);
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-constexpr ArrayView<const T> arrayView(T const* ptr, size_t size) {
+constexpr ArrayView<const T> arrayView(T const* ptr, size_t size) noexcept {
   return ArrayView<const T>(ptr, size);
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T, size_t N>
-constexpr ArrayView<T> arrayView(T (&carray)[N]) {
+constexpr ArrayView<T> arrayView(T (&carray)[N]) noexcept {
   return ArrayView<T>(carray);
 }
 
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-constexpr ArrayView<T> arrayView(T* begin, T* end) {
+constexpr ArrayView<T> arrayView(T* begin, T* end) noexcept {
   return ArrayView<T>(begin, end);
 }
+
 
 }  // End of namespace Solace
 #endif  // SOLACE_ARRAYVIEW_HPP

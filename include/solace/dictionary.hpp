@@ -23,18 +23,10 @@
 #define SOLACE_DICTIONARY_HPP
 
 #include "solace/vector.hpp"
-
-#include "solace/assert.hpp"
-#include "solace/arrayView.hpp"
-#include "solace/mutableMemoryView.hpp"
-#include "solace/memoryManager.hpp"  // TODO(abbyssoul): Allocate memory via memory manager
-
-#include "solace/traits/callable.hpp"
+#include "solace/hashing/fixedSizeDigest.hpp"
 
 
 namespace Solace {
-
-//FixedSizeDigest
 
 /**
  * Dictionary is a fixed size unordered hash-map.
@@ -45,7 +37,7 @@ class Dictionary {
 public:
 
     using size_type = typename Vector<T>::size_type;
-    using HashType = uint32; //std::result_of<hash(std::declval<T>)>::type;
+    using HashType = uint32;  // std::result_of<hash(std::declval<T>)>::type;
 
 public:
 

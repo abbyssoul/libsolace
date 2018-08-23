@@ -30,6 +30,7 @@
 #include "solace/memoryManager.hpp"  // TODO(abbyssoul): Allocate memory via memory manager
 
 #include "solace/traits/callable.hpp"
+#include "solace/details/array_utils.hpp"
 
 
 namespace Solace {
@@ -82,8 +83,9 @@ public:
 
 
     /** */
-    constexpr Vector(MemoryBuffer&& buffer) noexcept
+    constexpr Vector(MemoryBuffer&& buffer, size_type count) noexcept
         : _buffer(std::move(buffer))
+        , _position(count)
     {
     }
 
@@ -159,9 +161,6 @@ public:
     }
 
     ArrayView<const T> slice(size_type from, size_type to) const {
-//        auto const start = assertIndexInRange(from, 0, _position);
-//        auto const iend = assertIndexInRange(to, from, _position);
-
         return view()
                 .slice(from, to);
     }
@@ -172,11 +171,11 @@ public:
     }
 
     pointer data() noexcept {
-        return _buffer.view().dataAddress();
+        return _buffer.view().template dataAs<T>();
     }
 
     const_pointer data() const noexcept {
-        return _buffer.view().dataAddress();
+        return _buffer.view().template dataAs<T>();
     }
 
     ArrayView<const T> view() const noexcept {
@@ -211,17 +210,8 @@ protected:
     inline void dispose() {
         auto v = view();
         for (auto i : v) {
-            i.~T();
+            dtor(i);
         }
-
-        // Make sure that if an exception is thrown,
-        // we are left with a null ptr, so we won't possibly dispose again.
-//        auto viewCopy = _data;
-
-//        if (_data != nullptr && _disposer != nullptr) {
-//            _data = nullptr;
-//            _disposer->dispose(&viewCopy);
-//        }
     }
 
     template <typename U>
@@ -237,12 +227,43 @@ private:
 
 
 /**
- * Factory function
+ * Vector factory function.
+ * @return A newly constructed empty vector of the required capacity.
  */
 template<typename T>
 Vector<T> makeVector(typename Vector<T>::size_type size) {
-    return { getSystemHeapMemoryManager().create(size*sizeof(T)) };
+    return { getSystemHeapMemoryManager().create(size*sizeof(T)), 0 };
 }
+
+/** Construct a new vector from a C-style array */
+template <typename T>
+Vector<T> makeVector(T const* carray, typename Vector<T>::size_type len) {
+    auto buffer = getSystemHeapMemoryManager().create(len*sizeof(T));           // May throw
+
+    ArrayView<const T> src = arrayView(carray, len);                            // No except
+    ArrayView<T> dest = arrayView<T>(buffer.view());                            // No except
+
+    CopyConstructArray_<RemoveConst<T>, Decay<T*>, false>::apply(dest, src);    // May throw if copy-ctor throws
+
+    return { std::move(buffer), len };                                 // No except
+}
+
+
+/** Create a copy of the given vector */
+template <typename T>
+Vector<T> makeVector(Vector<T> const& other) {
+    return makeVector(other.data(), other.size());
+}
+
+/**
+ * Vector factory function.
+ * @return A newly constructed vector with given items.
+ */
+template <typename T>
+Vector<T> makeVector(std::initializer_list<T> list) {
+    return makeVector(list.begin(), list.size());
+}
+
 
 }  // End of namespace Solace
 #endif  // SOLACE_VECTOR_HPP
