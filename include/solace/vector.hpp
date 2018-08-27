@@ -179,7 +179,7 @@ public:
     }
 
     ArrayView<const T> view() const noexcept {
-        return ArrayView<const T>(_buffer.view(), _position);
+        return {_buffer.view().slice(0, _position * sizeof(value_type))};
     }
 
     ArrayView<T> view() noexcept {
@@ -201,6 +201,16 @@ public:
         _buffer.view()
                 .slice(_position * sizeof(value_type), (_position + 1) * sizeof(value_type))
                 . template construct<value_type>(std::forward<Args>(args)...);
+
+        _position += 1;
+    }
+
+    void puch_back(T const& value)  {
+        assertIndexInRange(_position, 0, capacity());
+
+        _buffer.view()
+                .slice(_position * sizeof(value_type), (_position + 1) * sizeof(value_type))
+                . template construct<value_type>(value);
 
         _position += 1;
     }

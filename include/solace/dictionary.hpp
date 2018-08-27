@@ -22,8 +22,10 @@
 #ifndef SOLACE_DICTIONARY_HPP
 #define SOLACE_DICTIONARY_HPP
 
+
 #include "solace/vector.hpp"
 #include "solace/hashing/fixedSizeDigest.hpp"
+#include "solace/utils.hpp"
 
 
 namespace Solace {
@@ -32,25 +34,59 @@ namespace Solace {
  * Dictionary is a fixed size unordered hash-map.
  *
  */
-template<class T>
+template<typename T,
+         typename Key/* = std::result_of<hash(std::declval<T>())>::type*/>
 class Dictionary {
 public:
 
+    using value_type = T;
+    using key_type = Key;
+
     using size_type = typename Vector<T>::size_type;
-    using HashType = uint32;  // std::result_of<hash(std::declval<T>)>::type;
+
+    struct Entry {
+        key_type    key;
+        value_type  value;
+    };
 
 public:
 
+    Dictionary() = default;
+
+    Dictionary(Vector<key_type>&& lookup, Vector<T>&& values)
+        : _lookup(std::move(lookup))
+        , _values(std::move(values))
+    {}
+
     constexpr bool empty() const noexcept { return _values.empty(); }
     constexpr size_type size() const noexcept { return _values.size(); }
+    constexpr size_type capacity() const noexcept { return _values.capacity(); }
 
     Vector<T>& values() noexcept { return _values; }
     Vector<T> const& values() const noexcept { return _values; }
 
-    void put(HashType key, T const& value);
-    void put(HashType key, T&& value);
+    bool contains(key_type const& key) const noexcept {
+        return _lookup.contains(key);
+    }
 
-    Optional<T> find(HashType key) const noexcept {
+    void put(key_type key, T const& value) {
+        _values.push_back(value);
+        _lookup.puch_back(key);
+    }
+
+    void put(key_type key, T&& value) {
+        _values.emplace_back(std::move(value));
+        _lookup.emplace_back(std::move(key));
+    }
+
+    template<typename... Args>
+    void put(key_type key, Args&&...args) {
+        _values.emplace_back(std::forward<Args>(args)...);
+        _lookup.emplace_back(std::move(key));
+    }
+
+
+    Optional<T> find(key_type const& key) const noexcept {
         size_type i = 0;
         for (auto const& keyHash : _lookup) {
             if (keyHash == key) {
@@ -63,20 +99,37 @@ public:
         return none;
     }
 
+
 private:
-    Vector<HashType>    _lookup;
-    Vector<T>           _values;
+    Vector<key_type>        _lookup;
+    Vector<value_type>      _values;
 };
 
 
 /**
  * Dictionary factory function
  */
-template<typename T>
-Dictionary<T> makeDictionary(typename Dictionary<T>::size_type size);
+template<typename T, typename K>
+Dictionary<T, K> makeDictionary(typename Dictionary<T, K>::size_type size) {
+    using DictT = Dictionary<T, K>;
 
-template<typename T>
-Dictionary<T> makeDictionary(std::initializer_list<typename Dictionary<T>::Entry> entries);
+    return {    makeVector<typename DictT::key_type>(size),
+                makeVector<typename DictT::value_type>(size)};
+}
+
+template<typename T, typename K>
+Dictionary<T,K> makeDictionary(std::initializer_list<typename Dictionary<T, K>::Entry> entries) {
+//    using DictT = Dictionary<T, K>;
+
+    auto result = makeDictionary<T,K>(entries.size());
+
+    for (auto& i : entries) {
+        result.put(std::move(i.key), std::move(i.value));
+    }
+
+    return result;
+}
+
 
 }  // End of namespace Solace
 #endif  // SOLACE_DICTIONARY_HPP

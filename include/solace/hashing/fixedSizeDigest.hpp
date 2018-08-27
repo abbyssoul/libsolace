@@ -53,6 +53,10 @@ private:
     byte  _data[Size];
 };
 
+
+FixedSizeDigest<8>
+hash(uint32);
+
 }  // End of namespace hashing
 }  // End of namespace Solace
 #endif  // SOLACE_HASHING_FIXEDSIZEDIGEST_HPP

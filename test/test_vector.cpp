@@ -65,6 +65,12 @@ TEST(TestVector, factoryVectorWithCapacityCreatesNoObjects) {
     EXPECT_EQ(0, SimpleType::InstanceCount);
 }
 
+
+TEST(TestVector, emptyVectorEmplaceFails) {
+    EXPECT_ANY_THROW(Vector<int32>().emplace_back(212));
+}
+
+
 TEST(TestVector, emplaceBack) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
@@ -83,10 +89,6 @@ TEST(TestVector, emplaceBack) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
 }
 
-
-TEST(TestVector, emptyVectorEmplaceFails) {
-    EXPECT_ANY_THROW(Vector<int32>().emplace_back(212));
-}
 
 TEST(TestVector, emplaceOverflowThrows) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
@@ -196,4 +198,70 @@ TEST(TestVector, copy) {
     // Important to make sure all the instances has been correctly destructed after scope exit
     EXPECT_EQ(0, SimpleType::InstanceCount);
 }
+
+TEST(TestVector, interatingOverEmptyVector) {
+    EXPECT_EQ(0, SimpleType::InstanceCount);
+
+    Vector<SimpleType> v;
+
+    int acc = 0;
+    int counter = 0;
+    for (auto& i : v) {
+        acc += i.x;
+        counter += 1;
+    }
+
+    EXPECT_EQ(0, acc);
+    EXPECT_EQ(0, counter);
+}
+
+
+
+TEST(TestVector, interationNoMutation) {
+    ASSERT_EQ(0, SimpleType::InstanceCount);
+    {
+        auto const v = makeVector<SimpleType>({
+                                            {3, 2, 1},
+                                            {2, 1, 0},
+                                            {1, 0, -1}
+                                        });
+        int counter = 3;
+        for (auto const& i : v) {
+            EXPECT_EQ(counter - 0, i.x);
+            EXPECT_EQ(counter - 1, i.y);
+            EXPECT_EQ(counter - 2, i.z);
+            counter -= 1;
+        }
+    }
+
+    // Important to make sure all the instances has been correctly destructed after scope exit
+    EXPECT_EQ(0, SimpleType::InstanceCount);
+}
+
+TEST(TestVector, interationMutation) {
+    ASSERT_EQ(0, SimpleType::InstanceCount);
+    {
+        auto v = makeVector<SimpleType>({
+                                            {3, 2, 1},
+                                            {2, 1, 0},
+                                            {1, 0, -1}
+                                        });
+        for (auto& i : v) {
+            i.z = i.x + i.y;
+        }
+
+        int counter = 5;
+        for (auto const& i : v) {
+            EXPECT_EQ(counter, i.z);
+            counter -= 2;
+        }
+    }
+
+    // Important to make sure all the instances has been correctly destructed after scope exit
+    EXPECT_EQ(0, SimpleType::InstanceCount);
+}
+
+
+
+
 
