@@ -66,7 +66,7 @@ public:
      * Enumerate serial ports currently available
      * @return A collection of serial port descriptors
      */
-    static std::vector<SerialPortInfo> enumeratePorts();
+    static Array<SerialPortInfo> enumeratePorts();
 
 public:
 

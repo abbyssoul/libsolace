@@ -702,6 +702,27 @@ TEST_F(TestArray, testDeallocationWhenElementConstructorThrows) {
 }
 
 
+TEST_F(TestArray, testSet) {
+    auto array = allocArray<int>({1, 2, 3, 4, 5, 6});
+
+    int acc = 6;
+
+    auto f = [&acc]() { return acc--; };
+    array.set(0, f)
+            .set(4, f)
+            .set(5, f);
+
+    EXPECT_EQ(3, acc);
+    EXPECT_EQ(6, array[0]);
+    EXPECT_EQ(5, array[4]);
+    EXPECT_EQ(4, array[5]);
+}
+
+TEST_F(TestArray, settingOutOfBoundsThrows) {
+    auto array = allocArray<int>(5);
+
+    EXPECT_ANY_THROW(array.set(16, []() { return 321; }));
+}
 
 const Array<int>::size_type TestArray::ZERO = 0;
 const Array<int>::size_type TestArray::TEST_SIZE_0 = 7;

@@ -246,17 +246,15 @@ PlatformFilesystem::createTemp() {
 }
 
 
-std::vector<Path>
+Array<Path>
 PlatformFilesystem::glob(StringView pattern) const {
-    std::vector<Path> pathsFound;
-
     glob_t globResults;
     auto const ret = ::glob(pattern.data(), 0, nullptr, &globResults);  // FIXME(abbyssoul): Unsafe usage of .data()
     auto const globResultsGuard = std::unique_ptr<glob_t, decltype(globfree)*>{&globResults, globfree};
 
+    Vector<Path> pathsFound;
     if (ret == 0) {  // All good - transfer matches into an array
-        pathsFound.reserve(globResults.gl_pathc);
-
+        pathsFound = makeVector<Path>(globResults.gl_pathc);
         for (size_t i = 0; i < globResults.gl_pathc; ++i) {
             pathsFound.emplace_back(Path::parse(globResults.gl_pathv[i]).unwrap());
         }
@@ -273,16 +271,14 @@ PlatformFilesystem::glob(StringView pattern) const {
     }
 
 
-    return pathsFound;
+    return pathsFound.toArray();
 }
 
 
-std::vector<Path>
+Array<Path>
 PlatformFilesystem::glob(std::initializer_list<const char*> patterns) const {
-    std::vector<Path> pathsFound;
-
     if (patterns.size() == 0) {
-        return pathsFound;
+        return {};
     }
 
     glob_t globResults;
@@ -296,13 +292,13 @@ PlatformFilesystem::glob(std::initializer_list<const char*> patterns) const {
         ::glob(*iter, GLOB_APPEND, nullptr, &globResults);
     }
 
-    pathsFound.reserve(globResults.gl_pathc);
+    auto pathsFound = makeVector<Path>(globResults.gl_pathc);
     for (size_t i = 0; i < globResults.gl_pathc; ++i) {
         pathsFound.emplace_back(Path::parse(globResults.gl_pathv[i]).unwrap());
     }
 
 
-    return pathsFound;
+    return pathsFound.toArray();
 }
 
 

@@ -186,7 +186,7 @@ struct SometimesConstructable {
     SometimesConstructable(): SometimesConstructable(3)
     {}
 
-    explicit SometimesConstructable(int value): someValue(value) {
+    SometimesConstructable(int value): someValue(value) {
         if (BlowUpEveryInstance && ((InstanceCount + 1) % BlowUpEveryInstance) == 0) {
             throw Solace::Exception("Blowing up on purpose");
         }

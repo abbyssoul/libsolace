@@ -374,7 +374,7 @@ TEST(TestMemoryView, testPlacementConstruct) {
         EXPECT_EQ(-2, simpleInstance->y);
         EXPECT_EQ(1, SimpleType::InstanceCount);
 
-        buffer.destruct(simpleInstance);
+        buffer.destruct<SimpleType>();
         EXPECT_EQ(0, SimpleType::InstanceCount);
     }
 }

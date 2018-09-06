@@ -29,14 +29,15 @@
 #include "solace/result.hpp"
 #include "solace/error.hpp"
 #include "solace/array.hpp"
+#include "solace/vector.hpp"
 #include "solace/version.hpp"
 
 // TODO(abbyssoul): consider moving away from std::function #include "solace/delegate.hpp"
 #include "solace/utils.hpp"
 
 // Note unordered map has issues with class not being fully defined.
-#include <map>   // TODO(abbyssoul): Replace with fix-memory map
-#include <vector>   // TODO(abbyssoul): Replace with fix-memory map
+#include <map>      // TODO(abbyssoul): Replace with fix-memory map
+#include <vector>   // TODO(abbyssoul): Replace with fix-memory vector
 
 
 namespace Solace { namespace cli {
@@ -268,8 +269,6 @@ public:
         std::function<Optional<Error> (StringView, Context const&)>    _callback;
     };
 
-
-//    class Command;
 
     /**
      * Command for CLI
@@ -542,7 +541,7 @@ public:
         return *this;
     }
 
-    const Command::CommandDict& commands() const noexcept        { return _defaultAction.commands(); }
+    Command::CommandDict const& commands() const noexcept        { return _defaultAction.commands(); }
     Parser& commands(std::initializer_list<Command::CommandDict::value_type> commands) {
         _defaultAction.commands(commands);
 
@@ -556,12 +555,13 @@ public:
         return *this;
     }
 
-    Command& defaultAction() noexcept { return _defaultAction; }
-    const Command& defaultAction() const noexcept { return _defaultAction; }
+    Command&        defaultAction() noexcept        { return _defaultAction; }
+    Command const&  defaultAction() const noexcept  { return _defaultAction; }
 
     template<typename F>
-    const Command& defaultAction(F&& f) {
+    Command const& defaultAction(F&& f) {
         _defaultAction.action(std::forward<F>(f));
+
         return _defaultAction;
     }
 

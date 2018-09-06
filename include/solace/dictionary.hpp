@@ -22,9 +22,7 @@
 #ifndef SOLACE_DICTIONARY_HPP
 #define SOLACE_DICTIONARY_HPP
 
-
 #include "solace/vector.hpp"
-#include "solace/hashing/fixedSizeDigest.hpp"
 #include "solace/utils.hpp"
 
 
@@ -64,6 +62,9 @@ public:
 
     Vector<T>& values() noexcept { return _values; }
     Vector<T> const& values() const noexcept { return _values; }
+
+    Vector<Key>& keys() noexcept { return _lookup; }
+    Vector<Key> const& keys() const noexcept { return _lookup; }
 
     bool contains(key_type const& key) const noexcept {
         return _lookup.contains(key);
@@ -118,10 +119,8 @@ Dictionary<T, K> makeDictionary(typename Dictionary<T, K>::size_type size) {
 }
 
 template<typename T, typename K>
-Dictionary<T,K> makeDictionary(std::initializer_list<typename Dictionary<T, K>::Entry> entries) {
-//    using DictT = Dictionary<T, K>;
-
-    auto result = makeDictionary<T,K>(entries.size());
+Dictionary<T, K> makeDictionary(std::initializer_list<typename Dictionary<T, K>::Entry> entries) {
+    auto result = makeDictionary<T, K>(entries.size());
 
     for (auto& i : entries) {
         result.put(std::move(i.key), std::move(i.value));

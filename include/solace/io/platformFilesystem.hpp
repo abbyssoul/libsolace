@@ -186,14 +186,14 @@ public:
      * @param patter A string pattern for filenames to match
      * @return An array of filenames matching pattern
      */
-    std::vector<Path> glob(StringView pattern) const;
+    Array<Path> glob(StringView pattern) const;
 
     /** Find pathnames matching a pattern
      *
      * @param patter A string pattern for filenames to match
      * @return An array of filenames matching pattern
      */
-    std::vector<Path> glob(std::initializer_list<const char*> patterns) const;
+    Array<Path> glob(std::initializer_list<const char*> patterns) const;
 
     /**
      * Get the path to the current executable

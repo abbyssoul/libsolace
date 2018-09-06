@@ -346,6 +346,15 @@ TEST(TestPath, testIsRelative) {
 
 TEST(TestPath, testNormalize) {
 
+    EXPECT_EQ(Path::Root,
+              allocPath("").normalize());
+
+    EXPECT_EQ(allocPath("file"),
+              allocPath("file").normalize());
+
+    EXPECT_EQ(allocPath(".."),
+              allocPath("..").normalize());
+
     EXPECT_EQ(allocPath({"1", "2", "f"}),
               allocPath({"1", ".", "2", "f"}).normalize());
 
@@ -354,6 +363,9 @@ TEST(TestPath, testNormalize) {
 
     EXPECT_EQ(allocPath({"1", "3"}),
               allocPath({".", "1", "2", "..", "3", ".", "f", ".."}).normalize());
+
+    EXPECT_EQ(allocPath({"..", "2", "fixt"}),
+              allocPath({"..", "2", "fixt"}).normalize());
 }
 
 /**

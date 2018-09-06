@@ -28,6 +28,22 @@
 
 namespace Solace {
 
+template<typename T>
+struct ExceptionGuard {
+    T const* start;
+    T* pos;
+
+    inline ~ExceptionGuard() noexcept(false) {
+        while (pos > start) {
+            dtor(*--pos);
+        }
+    }
+
+    constexpr explicit ExceptionGuard(T* p) noexcept : start{p}, pos{p} {}
+    constexpr void release() noexcept { start = pos; }
+};
+
+
 template <typename Element, typename Iterator, bool move, bool = canMemcpy<Element>()>
 struct CopyConstructArray_;
 
@@ -66,34 +82,42 @@ struct CopyConstructArray_<T, Iterator, move, true> {
 
 template <typename T, typename Iterator>
 struct CopyConstructArray_<T, Iterator, false, false> {
-    struct ExceptionGuard {
-        T const* start;
-        T* pos;
-
-        ~ExceptionGuard() noexcept(false) {
-            while (pos > start) {
-                dtor(*--pos);
-            }
-        }
-
-        constexpr explicit ExceptionGuard(T* p) noexcept : start{p}, pos{p} {}
-        constexpr void release() noexcept { start = pos; }
-    };
-
     static void apply(ArrayView<T> dest, ArrayView<const T> src) {
         auto start = src.begin();
         auto const end = src.end();
 
-        if (noexcept(T(*start))) {
+        if (std::is_nothrow_copy_constructible<T>::value) {
+//        if (noexcept(T(*start))) {
             auto pos = dest.begin();
             while (start != end) {
                 ctor(*pos++, *start++);
             }
         } else {
-            // Crap.  This is complicated.
-            ExceptionGuard guard(dest.begin());
+            ExceptionGuard<T> guard(dest.begin());
             while (start != end) {
                 ctor(*guard.pos, *start++);
+                ++guard.pos;
+            }
+            guard.release();
+        }
+    }
+};
+
+template <typename T, typename Iterator>
+struct CopyConstructArray_<T, Iterator, true, false> {
+    static void apply(ArrayView<T> dest, ArrayView<T> src) {
+        auto start = src.begin();
+        auto const end = src.end();
+
+        if (std::is_nothrow_move_constructible<T>::value) {
+            auto pos = dest.begin();
+            while (start != end) {
+                ctor(*pos++, std::move(*start++));
+            }
+        } else {
+            ExceptionGuard<T> guard(dest.begin());
+            while (start != end) {
+                ctor(*guard.pos, std::move(*start++));
                 ++guard.pos;
             }
             guard.release();

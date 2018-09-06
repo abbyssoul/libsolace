@@ -225,6 +225,15 @@ public:
         return _memory;
     }
 
+    template<typename F, class Q = T>
+    typename std::enable_if<!std::is_const<Q>::value, void>::type
+    set(size_type index, F&& f) {
+        index = assertIndexInRange(index, 0, size(), "ArrayView.set()");
+
+        _memory.template dataAs<T>()[index] = f();
+    }
+
+
     bool contains(const_reference value) const noexcept {
         return indexOf(value).isSome();
     }
@@ -353,9 +362,20 @@ constexpr ArrayView<T const> arrayView(MemoryView memView) noexcept {
 }
 
 template <typename T>
+constexpr ArrayView<T const> arrayView(MemoryView memView, typename ArrayView<T const>::size_type len) noexcept {
+  return ArrayView<T const>(memView.slice(0, len * sizeof(T)));
+}
+
+template <typename T>
 constexpr ArrayView<T> arrayView(MutableMemoryView memView) noexcept {
   return ArrayView<T>(memView);
 }
+
+template <typename T>
+constexpr ArrayView<T> arrayView(MutableMemoryView memView, typename ArrayView<T>::size_type len) noexcept {
+  return ArrayView<T>(memView.slice(0, len * sizeof(T)));
+}
+
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>

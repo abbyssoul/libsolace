@@ -21,37 +21,12 @@
 #include "solace/hashing/messageDigest.hpp"
 
 #include "solace/base16.hpp"
-
-#include <sstream>      // std::stringstream, std::stringbuf
-#include <vector>
+#include "solace/vector.hpp"
 
 
 using namespace Solace;
 using namespace Solace::hashing;
 
-
-void nibbleData(char* buffer, const byte* data, size_t len);
-
-
-std::ostream&
-operator<< (std::ostream& ostr, MessageDigest const& a) {
-    ostr << '[';
-
-    char buffer[3];
-    ByteWriter dest(wrapMemory(buffer));
-    Base16Encoder encoder(dest);
-
-    for (MessageDigest::size_type end = a.size(), i = 0; i < end; ++i) {
-        encoder.encode(wrapMemory(&a[i], 1));
-
-        ostr << "0x";
-        ostr.write(buffer, 2);
-        dest.rewind();
-    }
-    ostr << ']';
-
-    return ostr;
-}
 
 
 MessageDigest::MessageDigest(MemoryView viewBytes)
@@ -61,9 +36,8 @@ MessageDigest::MessageDigest(MemoryView viewBytes)
 
 String
 MessageDigest::toString() const {
-    std::vector<char> stringRepr;
-    stringRepr.reserve(Base16Encoder::encodedSize(size()));
-    ByteWriter dest(wrapMemory(stringRepr.data(), stringRepr.size()));
+    auto stringBuffer = makeVector<char>(Base16Encoder::encodedSize(size()));
+    ByteWriter dest(wrapMemory(stringBuffer.data(), stringBuffer.size()));
 
     auto const dataView = _storage.view().view();
     for (auto i = base16Encode_begin(dataView),
@@ -72,5 +46,5 @@ MessageDigest::toString() const {
         dest.write((*i).view());
     }
 
-    return String{stringRepr.data(), static_cast<String::size_type>(stringRepr.size())};
+    return String{stringBuffer.data(), static_cast<String::size_type>(stringBuffer.size())};
 }

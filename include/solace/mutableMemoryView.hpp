@@ -189,8 +189,8 @@ public:
     }
 
     template<typename T>
-    void destruct(T* t) {
-        t->~T();
+    void destruct() {
+        dataAs<T>()->~T();
     }
 };
 

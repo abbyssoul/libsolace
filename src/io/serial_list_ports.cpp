@@ -126,7 +126,7 @@ get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
 }
 
 
-std::vector<IO::SerialPortInfo>
+Array<IO::SerialPortInfo>
 Solace::IO::Serial::enumeratePorts() {
 
     auto fs = PlatformFilesystem();
@@ -138,9 +138,7 @@ Solace::IO::Serial::enumeratePorts() {
                                         });
 
     // NOTE: The vector is used here even thou the size is know already because we don't want to initialize structs yet
-    std::vector<Solace::IO::SerialPortInfo> results;
-    results.reserve(devices_found.size());
-
+    auto results = makeVector<Solace::IO::SerialPortInfo>(devices_found.size());
     for (auto&& device : devices_found) {
         String friendly_name;
         String hardware_id;
@@ -149,5 +147,5 @@ Solace::IO::Serial::enumeratePorts() {
         results.emplace_back(std::move(device), friendly_name, hardware_id);
     }
 
-    return results;
+    return results.toArray();
 }

@@ -262,6 +262,129 @@ TEST(TestVector, interationMutation) {
 }
 
 
+TEST(TestVector, popBack) {
+    ASSERT_EQ(0, SimpleType::InstanceCount);
+    {
+        auto v = makeVector<SimpleType>(10);
+        v.emplace_back(3, 2, 1);
+        v.emplace_back(2, 1, 0);
+        v.emplace_back(1, 0, -1);
+        v.emplace_back(2, 1, 0);
+        v.emplace_back(3, 2, 1);
+
+        EXPECT_EQ(10, v.capacity());
+        EXPECT_FALSE(v.empty());
+        EXPECT_EQ(5, v.size());
+        EXPECT_EQ(5, SimpleType::InstanceCount);
+
+        EXPECT_NO_THROW(v.pop_back());
+        EXPECT_EQ(4, v.size());
+        EXPECT_EQ(4, SimpleType::InstanceCount);
+        EXPECT_EQ(SimpleType(2, 1, 0), v[3]);
+
+        EXPECT_NO_THROW(v.pop_back());
+        EXPECT_EQ(3, v.size());
+        EXPECT_EQ(3, SimpleType::InstanceCount);
+        EXPECT_EQ(SimpleType(1, 0, -1), v[2]);
+    }
+
+    // Important to make sure all the instances has been correctly destructed after scope exit
+    ASSERT_EQ(0, SimpleType::InstanceCount);
+}
 
 
 
+TEST(TestVector, moveOnlyTypes) {
+    ASSERT_EQ(0, MoveOnlyType::InstanceCount);
+    {
+        auto v = makeVector<MoveOnlyType>(10);
+        EXPECT_EQ(10, v.capacity());
+        EXPECT_TRUE(v.empty());
+        EXPECT_EQ(0, v.size());
+        EXPECT_EQ(0, MoveOnlyType::InstanceCount);
+
+        v.emplace_back(3);
+        v.emplace_back(2);
+        v.emplace_back(1);
+        v.emplace_back(0);
+        v.emplace_back(-1);
+
+        EXPECT_EQ(10, v.capacity());
+        EXPECT_FALSE(v.empty());
+        EXPECT_EQ(5, v.size());
+        EXPECT_EQ(5, MoveOnlyType::InstanceCount);
+
+        int counter = 3;
+        for (auto& a : v) {
+            EXPECT_EQ(counter, a.x_);
+            counter -= 1;
+        }
+
+        EXPECT_NO_THROW(v.pop_back());
+        EXPECT_EQ(4, v.size());
+        EXPECT_EQ(4, MoveOnlyType::InstanceCount);
+        EXPECT_EQ(0, v[3].x_);
+
+        EXPECT_NO_THROW(v.pop_back());
+        EXPECT_EQ(3, v.size());
+        EXPECT_EQ(3, MoveOnlyType::InstanceCount);
+        EXPECT_EQ(1, v[2].x_);
+    }
+
+    // Important to make sure all the instances has been correctly destructed after scope exit
+    ASSERT_EQ(0, MoveOnlyType::InstanceCount);
+}
+
+TEST(TestVector, toArray_MoveOnlyType) {
+    ASSERT_EQ(0, MoveOnlyType::InstanceCount);
+    {
+        auto v = makeVector<MoveOnlyType>(4);
+        v.emplace_back(7);
+        v.emplace_back(5);
+        v.emplace_back(3);
+        v.emplace_back(1);
+        EXPECT_EQ(4, v.capacity());
+        EXPECT_FALSE(v.empty());
+        EXPECT_EQ(4, v.size());
+        EXPECT_EQ(4, MoveOnlyType::InstanceCount);
+
+        Array<MoveOnlyType> array = v.toArray();
+        EXPECT_FALSE(array.empty());
+        EXPECT_EQ(4, array.size());
+        EXPECT_EQ(4, MoveOnlyType::InstanceCount);
+
+        // vector 'v' has been moved from - thus should be 'empty'
+        EXPECT_TRUE(v.empty());
+        EXPECT_EQ(0, v.capacity());
+        EXPECT_EQ(0, v.size());
+    }
+
+    // Important to make sure all the instances has been correctly destructed after scope exit
+    ASSERT_EQ(0, MoveOnlyType::InstanceCount);
+}
+
+TEST(TestVector, toArray) {
+    ASSERT_EQ(0, SometimesConstructable::InstanceCount);
+    SometimesConstructable::BlowUpEveryInstance = 5;
+    {
+        auto v = makeVector<SometimesConstructable>({7, 5, 3, 1});
+        EXPECT_EQ(4, v.capacity());
+        EXPECT_FALSE(v.empty());
+        EXPECT_EQ(4, v.size());
+        EXPECT_EQ(4, SometimesConstructable::InstanceCount);
+
+        Array<SometimesConstructable> array = v.toArray();
+        EXPECT_FALSE(array.empty());
+        EXPECT_EQ(4, array.size());
+        EXPECT_EQ(4, SometimesConstructable::InstanceCount);
+
+
+        // vector 'v' has been moved from - thus should be 'empty'
+        EXPECT_TRUE(v.empty());
+        EXPECT_EQ(0, v.capacity());
+        EXPECT_EQ(0, v.size());
+    }
+
+    // Important to make sure all the instances has been correctly destructed after scope exit
+    ASSERT_EQ(0, SometimesConstructable::InstanceCount);
+}

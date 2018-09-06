@@ -29,12 +29,7 @@
 
 using namespace Solace;
 
-
-const HeapArrayDisposer HeapArrayDisposer::instance = HeapArrayDisposer();
-
-
-
-
+/*
 // Utility class that assists in constructing or destroying elements of an array, where the
 // constructor or destructor could throw exceptions.  In case of an exception,
 // ExceptionSafeArrayUtil's destructor will call destructors on all elements that have been
@@ -45,7 +40,9 @@ class ExceptionSafeArrayUtil {
 public:
 
     inline ~ExceptionSafeArrayUtil() noexcept(false) {
-        if (_constructedElementCount > 0) destroyAll();
+        if (_constructedElementCount > 0) {
+            destroyAll();
+        }
     }
 
     inline ExceptionSafeArrayUtil(void* ptr, size_t elementSize, size_t constructedElementCount,
@@ -93,7 +90,6 @@ private:
 };
 
 
-
 struct AutoDeleter {
     void* ptr;
 
@@ -101,7 +97,6 @@ struct AutoDeleter {
     constexpr AutoDeleter(void* pos) noexcept: ptr(pos) {}
     void* release() noexcept { void* result = ptr; ptr = nullptr; return result; }
 };
-
 
 
 void*
@@ -129,8 +124,9 @@ HeapArrayDisposer::allocateImpl(size_t elementSize, size_type elementCount, size
 
     return result.release();
 }
+*/
 
-
+/*
 void
 HeapArrayDisposer::disposeImpl(void* firstElement, size_t elementSize, size_type elementCount,
     void (*destroyElement)(void*)) const {
@@ -142,3 +138,4 @@ HeapArrayDisposer::disposeImpl(void* firstElement, size_t elementSize, size_type
         guard.destroyAll();
     }
 }
+*/

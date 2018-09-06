@@ -71,7 +71,7 @@ TEST(TestDictionary, addIntoEmptyCollectionFails) {
     EXPECT_ANY_THROW(integral.put(212, 8288));
 
     Dictionary<SimpleType, int32> custom;
-    EXPECT_ANY_THROW(custom.put(212, {1,2,3}));
+    EXPECT_ANY_THROW(custom.put(212, {1, 2, 3}));
 }
 
 
@@ -151,8 +151,8 @@ TEST(TestDictionary, forEachValue) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
         auto v = makeDictionary<SimpleType, int32>({
-                                                {0,  {1, 2, 3}},
-                                                {12, {2, 3, 4}},
+                                                {-1,  {1, 2, 3}},
+                                                {13, {2, 3, 4}},
                                                 {17, {3, 4, 5}}
                                             });
 
@@ -165,6 +165,13 @@ TEST(TestDictionary, forEachValue) {
         }
 
         EXPECT_EQ(12, acc);
+
+        acc = 0;
+        for (auto const& i : v.keys()) {
+            acc += i;
+        }
+
+        EXPECT_EQ(29, acc);
     }
 
     ASSERT_EQ(0, SimpleType::InstanceCount);

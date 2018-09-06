@@ -26,6 +26,7 @@
 
 #include "solace/assert.hpp"
 #include "solace/arrayView.hpp"
+#include "solace/array.hpp"
 #include "solace/mutableMemoryView.hpp"
 #include "solace/memoryManager.hpp"  // TODO(abbyssoul): Allocate memory via memory manager
 
@@ -35,6 +36,10 @@
 
 namespace Solace {
 
+/** Fixed size vector.
+ * A collection of up-to N elements. Very similar to std::vector with the
+ * key difference that all the memory is allocated upfront and never re-allocated.
+ */
 template<typename T>
 class Vector {
 public:
@@ -178,12 +183,12 @@ public:
         return _buffer.view().template dataAs<T>();
     }
 
-    ArrayView<const T> view() const noexcept {
-        return {_buffer.view().slice(0, _position * sizeof(value_type))};
+    ArrayView<T const> view() const noexcept {
+        return arrayView<T const>(_buffer.view(), _position);
     }
 
     ArrayView<T> view() noexcept {
-        return {_buffer.view().slice(0, _position * sizeof(value_type))};
+        return arrayView<T>(_buffer.view(), _position);
     }
 
     bool contains(const_reference value) const noexcept {
@@ -205,7 +210,7 @@ public:
         _position += 1;
     }
 
-    void puch_back(T const& value)  {
+    void push_back(T const& value)  {
         assertIndexInRange(_position, 0, capacity());
 
         _buffer.view()
@@ -215,11 +220,41 @@ public:
         _position += 1;
     }
 
+    const_reference operator[] (size_type index) const {
+        return view()[index];
+    }
+
+
+    /** Removes the last element of the container.
+     * Last element is destroyed and containter size decremented by one.
+     * @note This method modifies container size thus invalidating iterators.
+     * @note No exception is thrown if element doesn't throw on destruction.
+     */
+    void pop_back() noexcept(std::is_nothrow_destructible<T>::value) {
+        if (_position < 1) {
+            return;
+        }
+
+        _position -= 1;
+        _buffer.view()
+                .slice(_position * sizeof(value_type), (_position+1) * sizeof(value_type))
+                . template destruct<value_type>();
+    }
+
+
+    /**
+     * Transfer content of this vector into an array
+     * @return An array owning the content.
+     */
+    Array<T> toArray() {
+        return {std::move(_buffer), std::exchange(_position, 0)};
+    }
+
 protected:
 
     inline void dispose() {
         auto v = view();
-        for (auto i : v) {
+        for (auto& i : v) {
             dtor(i);
         }
     }
@@ -233,6 +268,46 @@ private:
     MemoryBuffer                _buffer;
     size_type                   _position{0};
 };
+
+
+template<typename T>
+bool operator== (Vector<T> const& v, decltype(nullptr)) noexcept { return v.empty(); }
+template<typename T>
+bool operator!= (Vector<T> const& v, decltype(nullptr)) noexcept { return !v.empty(); }
+template<typename T>
+bool operator== (decltype(nullptr), Vector<T> const& v) noexcept { return v.empty(); }
+template<typename T>
+bool operator!= (decltype(nullptr), Vector<T> const& v) noexcept { return !v.empty(); }
+
+template<typename T>
+bool operator== (Vector<T> const& v, Vector<T> const& other) noexcept { return v.equals(other); }
+template<typename T, typename V>
+bool operator== (Vector<T> const& v, Vector<V> const& other) noexcept { return v.equals(other); }
+template<typename T>
+bool operator!= (Vector<T> const& v, Vector<T> const& other) noexcept { return !v.equals(other); }
+template<typename T, typename V>
+bool operator!= (Vector<T> const& v, Vector<V> const& other) noexcept { return !v.equals(other); }
+
+
+template<typename T>
+bool operator== (Vector<T> const& v, ArrayView<T> const& other) noexcept { return v.view().equals(other); }
+template<typename T>
+bool operator== (ArrayView<T> const& other, Vector<T> const& v) noexcept { return v.view().equals(other); }
+
+template<typename T>
+bool operator!= (Vector<T> const& v, ArrayView<T> const& other) noexcept { return !v.view().equals(other); }
+template<typename T>
+bool operator!= (ArrayView<T> const& other, Vector<T> const& v) noexcept { return !v.view().equals(other); }
+
+template <typename T, typename U>
+bool operator== (Vector<T> const& v, const ArrayView<U>& other) noexcept {
+    return v.view().equals(other);
+}
+
+template <typename T, typename U>
+bool operator!= (Vector<T> const& v, const ArrayView<U>& other) noexcept {
+    return !v.view().equals(other);
+}
 
 
 
@@ -271,7 +346,25 @@ Vector<T> makeVector(Vector<T> const& other) {
  */
 template <typename T>
 Vector<T> makeVector(std::initializer_list<T> list) {
-    return makeVector(list.begin(), list.size());
+    // FIXME: Should be checked cast
+    auto const vectorSize = narrow_cast<typename Vector<T>::size_type>(list.size());
+
+    auto buffer = getSystemHeapMemoryManager().create(vectorSize * sizeof(T));  // May throw
+    if (std::is_nothrow_copy_constructible<T>::value) {
+        auto pos = buffer.view().template dataAs<T>();
+        for (T const& i : list) {
+            ctor(*pos++, i);
+        }
+    } else {
+        ExceptionGuard<T> guard(buffer.view().template dataAs<T>());
+        for (T const& i : list) {
+            ctor(*guard.pos, i);
+            ++guard.pos;
+        }
+        guard.release();
+    }
+
+    return {std::move(buffer), vectorSize};                                 // No except
 }
 
 

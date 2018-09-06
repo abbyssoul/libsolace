@@ -25,14 +25,11 @@
 #ifndef SOLACE_PATH_HPP
 #define SOLACE_PATH_HPP
 
-
 #include "solace/string.hpp"
 #include "solace/array.hpp"
 #include "solace/result.hpp"
 #include "solace/error.hpp"
-
-
-#include <vector>  // FIXME(abbyssoul): move to Array<>
+#include "solace/vector.hpp"
 
 
 namespace Solace {
@@ -62,8 +59,8 @@ namespace Solace {
 class Path {
 public:
 
-    using size_type = std::vector<String>::size_type;
-    using const_iterator = std::vector<String>::const_iterator;
+    using size_type = Vector<String>::size_type;
+    using const_iterator = Vector<String>::const_iterator;
 
 public:  // Static methods
 
@@ -228,6 +225,12 @@ public:  // Operation
     }
 
     /** Returns a path that is this path with redundant name elements eliminated.
+     * Self reference (usually '.') and parent reference (usually '..') are
+     * considered redundunt elements and in most cases can be removed.
+     *
+     * @note The mothod does not consult file system and operates on the string only.
+     * As such it can result in files that don't exist.
+     *
      * @return path that is this path with redundant name elements eliminated.
      */
     Path normalize() const;
@@ -290,20 +293,20 @@ public:  // Operation
     }
 
 protected:
-    friend Path allocPath(std::vector<String>&& array);
+    friend Path allocPath(Vector<String>&& array);
 
     /** FIXME(abbyssoul): Only temporary here. to be removed
      * Move-Construct the path object from a collection of String components
      * @param array A collection of string components forming the path
      */
-    Path(std::vector<String>&& array): _components(std::move(array)) {
+    Path(Vector<String>&& array): _components(std::move(array)) {
         // No-op
     }
 
 
 private:
 
-    std::vector<String> _components{};
+    Vector<String>  _components{};
 };
 
 
@@ -340,7 +343,7 @@ Path allocPath(char const* str) {
 }
 
 inline
-Path allocPath(std::vector<String>&& array) {
+Path allocPath(Vector<String>&& array) {
     return {std::move(array)};
 }
 

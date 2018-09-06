@@ -85,8 +85,8 @@ public:
         return *this;
     }
 
-    MutableMemoryView&         view() noexcept         { return _data; }
-    MutableMemoryView const&   view() const noexcept   { return _data; }
+    MemoryView          view() const noexcept   { return _data; }
+    MutableMemoryView   view() noexcept         { return _data; }
 
     bool empty() const noexcept {
         return _data.empty();

@@ -39,7 +39,7 @@ const Path Path::Root = allocPath(StringLiteral{""});
 
 
 template<typename T>
-void joinComponents(std::vector<String>& base, std::initializer_list<T> paths) {
+void joinComponents(Vector<String>& base, std::initializer_list<T> paths) {
     for (auto& component : paths) {
         base.emplace_back(std::move(component));
     }
@@ -47,9 +47,8 @@ void joinComponents(std::vector<String>& base, std::initializer_list<T> paths) {
 
 
 template<typename T>
-std::vector<String> joinComponents(std::initializer_list<T> paths) {
-    std::vector<String> components;
-    components.reserve(paths.size());
+Vector<String> joinComponents(std::initializer_list<T> paths) {
+    auto components = makeVector<String>(paths.size());
 
     joinComponents(components, paths);
 
@@ -58,16 +57,14 @@ std::vector<String> joinComponents(std::initializer_list<T> paths) {
 
 
 template<>
-std::vector<String> joinComponents(std::initializer_list<Path> paths) {
+Vector<String> joinComponents(std::initializer_list<Path> paths) {
     size_t numberOfComponents = 0;
     // Count number of components
     for (const auto& p : paths) {
         numberOfComponents += p.getComponentsCount();
     }
 
-    std::vector<String> components;
-    components.reserve(numberOfComponents);
-
+    auto components = makeVector<String>(numberOfComponents);
     for (auto& path : paths) {
         for (auto& component : path) {
             components.emplace_back(std::move(component));
@@ -80,16 +77,13 @@ std::vector<String> joinComponents(std::initializer_list<Path> paths) {
 
 
 Path Solace::allocPath(StringView str) {
-    std::vector<String> components{str};
-
-    return allocPath(std::move(components));
+    return allocPath(makeVector<String>({str}));
 }
 
 
 
 Path Solace::allocPath(Path const& base, Path const& rhs) {
-    std::vector<String> components;
-    components.reserve(base.getComponentsCount() + rhs.getComponentsCount());
+    auto components = makeVector<String>(base.getComponentsCount() + rhs.getComponentsCount());
 
     for (auto const& c : base) {
         components.emplace_back(c);
@@ -109,8 +103,7 @@ Path Solace::allocPath(Path const& base, std::initializer_list<Path> paths) {
     }
 
     // Now we can pr-eallocate storage for components
-    std::vector<String> components;
-    components.reserve(numberOfComponents);
+    auto components = makeVector<String>(numberOfComponents);
 
     for (auto& path : paths) {
         for (auto& component : path) {
@@ -129,8 +122,7 @@ Path Solace::allocPath(std::initializer_list<Path> paths) {
 
 
 Path Solace::allocPath(Path const& base, StringView rhs) {
-    std::vector<String> components;
-    components.reserve(base.getComponentsCount() + 1);
+    auto components = makeVector<String>(base.getComponentsCount() + 1);
 
     for (auto const& c : base) {
         components.emplace_back(c);
@@ -143,11 +135,10 @@ Path Solace::allocPath(Path const& base, StringView rhs) {
 
 
 Path Solace::allocPath(Path const& base, std::initializer_list<StringView> paths) {
-    std::vector<String> components;
-    components.reserve(base.getComponentsCount() + paths.size());
+    auto components = makeVector<String>(base.getComponentsCount() + paths.size());
 
     for (auto const& component : base) {
-        components.push_back(component);
+        components.emplace_back(component);
     }
 
     joinComponents(components, paths);
@@ -163,11 +154,10 @@ Path Solace::allocPath(std::initializer_list<StringView> paths) {
 
 
 Path Solace::allocPath(Path const& base, std::initializer_list<String> paths) {
-    std::vector<String> components;
-    components.reserve(base.getComponentsCount() + paths.size());
+    auto components = makeVector<String>(base.getComponentsCount() + paths.size());
 
     for (auto const& component : base) {
-        components.push_back(component);
+        components.emplace_back(component);
     }
 
     joinComponents(components, paths);
@@ -176,16 +166,15 @@ Path Solace::allocPath(Path const& base, std::initializer_list<String> paths) {
 }
 
 Path Solace::allocPath(std::initializer_list<String> paths) {
-    return allocPath(std::vector<String>{paths});
+    return allocPath(makeVector<String>(paths));
 }
 
 
 Path Solace::allocPath(Path const& base, std::initializer_list<const char*> paths) {
-    std::vector<String> components;
-    components.reserve(base.getComponentsCount() + paths.size());
+    auto components = makeVector<String>(base.getComponentsCount() + paths.size());
 
     for (auto& component : base) {
-        components.push_back(component);
+        components.emplace_back(component);
     }
 
     joinComponents(components, paths);
@@ -201,16 +190,21 @@ Path Solace::allocPath(std::initializer_list<const char*> paths) {
 
 Result<Path, Error>
 Path::parse(StringView str, StringView delim) {
-    std::vector<String> nonEmptyComponents;
+    Vector<String> nonEmptyComponents;
     str.split(delim, [&](StringView c, StringView::size_type i, StringView::size_type count) {
-        if (i + 1 == count && c.empty())
+        if (nonEmptyComponents.capacity() == 0 && count != 0) {
+            nonEmptyComponents = makeVector<String>(count);
+        }
+
+        if (i + 1 == count && c.empty()) {
             return;
+        }
 
         nonEmptyComponents.emplace_back(c);
     });
 
     if (nonEmptyComponents.empty()) {
-        nonEmptyComponents.push_back(String::Empty);
+        nonEmptyComponents.emplace_back(String::Empty);
     }
 
     return Ok(Path(std::move(nonEmptyComponents)));
@@ -219,26 +213,24 @@ Path::parse(StringView str, StringView delim) {
 
 String::size_type
 Path::length(StringView delim) const noexcept {
-    const auto delimLen = delim.length();
+    auto const delimLen = delim.length();
 
-    const auto nbComponents = _components.size();
+    auto const nbComponents = _components.size();
     if (nbComponents == 0) {
         return 0;
-    } else if (_components.size() == 1) {
-        const auto& one = _components.front();
-        if (one.empty()) {  // Absolute
-            return delimLen;
-        } else {
-            return one.length();
-        }
+    } else if (nbComponents == 1) {
+        const auto& one = _components[0];
+        return  (one.empty())
+                ? delimLen          // Root - single empty item
+                : one.length();
     }
 
     String::size_type len = 0;
-    for (const auto& s : _components) {
+    for (auto const& s : _components) {  // Accomulate:
         len += (delimLen + s.length());
     }
 
-    return len - delimLen;
+    return (len - delimLen);
 }
 
 
@@ -285,14 +277,17 @@ bool Path::startsWith(const Path& other) const {
 }
 
 bool Path::endsWith(const Path& other) const {
-    if (empty())
+    if (empty()) {
         return other.empty();
+    }
 
-    if (other.empty())
+    if (other.empty()) {
         return empty();
+    }
 
-    if (other.length() > length())
+    if (other.length() > length()) {
         return false;
+    }
 
     const auto thisEnd = _components.size();
     const auto nbComponents = other.getComponentsCount();
@@ -322,7 +317,7 @@ bool Path::contains(const Path& path) const {
          ++firstMatch) {
 
         const auto& a = _components[firstMatch];
-        if (a.equals(path._components.front())) {
+        if (a.equals(path._components[0])) {
             bool allMatched = true;
             for (size_type i = 1; i < nbOtherComponents; ++i) {
                 const auto& b = _components[firstMatch + i];
@@ -342,44 +337,49 @@ bool Path::contains(const Path& path) const {
 }
 
 
-
-bool Path::isAbsolute() const noexcept {
-    return (!empty() && _components.front().empty());
+bool
+Path::isAbsolute() const noexcept {
+    return (!empty() && _components[0].empty());
 }
 
-bool Path::isRelative() const noexcept {
+
+bool
+Path::isRelative() const noexcept {
     return !isAbsolute();
 }
 
-Path Path::normalize() const {
-    // FIXME(abbyssoul): Dynamic memory re-allocation!!!
-    std::vector<String> components;
 
-    for (const auto& c : _components) {
-        if (c.equals(SelfRef)) {
+Path
+Path::normalize() const {
+    // FIXME(abbyssoul): Dynamic memory re-allocation!!!
+    auto components = makeVector<String>(_components.size());   // Assumption: we don't make path any longer
+
+    for (auto const& c : _components) {
+        if (c.equals(SelfRef)) {            // Skip '.' entries
             continue;
-        } else if (c.equals(ParentRef)) {
+        } else if (c.equals(ParentRef) && components.size() > 0) {   // Skip '..' entries
             components.pop_back();
         } else {
-            components.push_back(c);
+            components.emplace_back(c);
         }
     }
 
     return Path(std::move(components));
 }
 
-Path Path::getParent() const {
-    const auto nbComponents = _components.size();
+
+Path
+Path::getParent() const {
+    auto const nbComponents = _components.size();
     if (nbComponents < 2) {
-        return {std::vector<String>(_components)};
+        return {makeVector<String>(_components)};  // Copy components vector
     }
 
-    auto const nbBaseComponents = _components.size() - 1;
-    std::vector<String> basePath;
-    basePath.reserve(nbBaseComponents);
+    auto const nbBaseComponents = nbComponents - 1;
+    auto basePath = makeVector<String>(nbBaseComponents);
     // TODO(abbyssoul): Should use array copy
     for (size_type i = 0; i < nbBaseComponents; ++i) {
-        basePath.push_back(_components[i]);
+        basePath.emplace_back(_components[i]);
     }
 
     return Path(std::move(basePath));
@@ -388,11 +388,12 @@ Path Path::getParent() const {
 
 StringView
 Path::getBasename() const {
-    return (isAbsolute() && _components.size() == 1)
+    auto const nbComponents = _components.size();
+    return (nbComponents == 1 && _components[0].empty())
             ? Delimiter
-            : (empty()
+            : (nbComponents == 0
                ? String::Empty
-               : _components.back()).view();
+               : _components[nbComponents - 1]).view();
 }
 
 
@@ -401,38 +402,41 @@ Path::getComponentsCount() const noexcept {
     return _components.size();
 }
 
-const Solace::String&
+Solace::String const&
 Path::getComponent(size_type index) const {
     return _components[index];
 }
 
 
-Path Path::subpath(size_type beginIndex, size_type endIndex) const {
-
+Path
+Path::subpath(size_type beginIndex, size_type endIndex) const {
     const auto nbComponent = _components.size();
-    if (beginIndex > nbComponent)
+    if (beginIndex > nbComponent) {
         raise<IndexOutOfRangeException>(beginIndex, 0, nbComponent);
+    }
 
-    if (endIndex > nbComponent)
+    if (endIndex > nbComponent) {
         raise<IndexOutOfRangeException>(endIndex, 0, nbComponent);
+    }
 
-    if (beginIndex > endIndex)
+    if (beginIndex > endIndex) {
         raise<IndexOutOfRangeException>(beginIndex, 0, endIndex);
+    }
 
-    std::vector<String> components;
-    components.reserve(endIndex - beginIndex);
+    auto components = makeVector<String>(endIndex - beginIndex);
     for (size_type i = beginIndex; i < endIndex; ++i) {
-        components.push_back(_components[i]);
+        components.emplace_back(_components[i]);
     }
 
     return Path(std::move(components));
 }
 
 
-
-bool Path::equals(Path const& rhv) const noexcept {
+bool
+Path::equals(Path const& rhv) const noexcept {
     return (&rhv == this) || rhv._components == _components;
 }
+
 
 String
 Path::toString(StringView delim) const {

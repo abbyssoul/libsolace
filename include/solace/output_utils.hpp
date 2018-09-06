@@ -60,10 +60,25 @@ inline std::ostream& operator<< (std::ostream& ostr, Solace::String const& str) 
     return ostr << str.c_str();
 }
 
-// FIXME: std dependence, used for Unit Testing only
-inline std::ostream& operator<< (std::ostream& ostr, Solace::hashing::MessageDigest const& v) {
-    return ostr << v.toString();
+
+inline std::ostream&
+operator<< (std::ostream& ostr, Solace::hashing::MessageDigest const& a) {
+    ostr << '[';
+
+    auto const dataView = a.view();
+    for (auto i = base16Encode_begin(dataView),
+         end = base16Encode_end(dataView);
+         i != end; ++i) {
+        auto const encodedView = (*i).view();
+        ostr << "0x";
+        ostr.write(encodedView.dataAs<char>(), encodedView.size());
+    }
+
+    ostr << ']';
+
+    return ostr;
 }
+
 
 // FIXME: std dependence, used for Unit Testing only
 inline std::ostream& operator<< (std::ostream& ostr, Solace::Path const& v) {
