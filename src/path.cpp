@@ -31,7 +31,7 @@ const StringView SelfRef(".");
 const StringView ParentRef("..");
 
 
-const Path Path::Root = allocPath(StringLiteral{""});
+const Path Path::Root = makePath(StringLiteral{""});
 
 
 
@@ -76,13 +76,13 @@ Vector<String> joinComponents(std::initializer_list<Path> paths) {
 
 
 
-Path Solace::allocPath(StringView str) {
-    return allocPath(makeArray<String>({str}));
+Path Solace::makePath(StringView str) {
+    return makePath(makeArray<String>({str}));
 }
 
 
 
-Path Solace::allocPath(Path const& base, Path const& rhs) {
+Path Solace::makePath(Path const& base, Path const& rhs) {
     auto components = makeVector<String>(base.getComponentsCount() + rhs.getComponentsCount());
 
     for (auto const& c : base) {
@@ -92,10 +92,10 @@ Path Solace::allocPath(Path const& base, Path const& rhs) {
         components.emplace_back(c);
     }
 
-    return allocPath(std::move(components));
+    return makePath(std::move(components));
 }
 
-Path Solace::allocPath(Path const& base, std::initializer_list<Path> paths) {
+Path Solace::makePath(Path const& base, std::initializer_list<Path> paths) {
     Path::size_type numberOfComponents = base.getComponentsCount();
     // Count number of components
     for (const auto& p : paths) {
@@ -111,17 +111,17 @@ Path Solace::allocPath(Path const& base, std::initializer_list<Path> paths) {
         }
     }
 
-    return allocPath(std::move(components));
+    return makePath(std::move(components));
 }
 
 
-Path Solace::allocPath(std::initializer_list<Path> paths) {
-    return allocPath(joinComponents(paths));
+Path Solace::makePath(std::initializer_list<Path> paths) {
+    return makePath(joinComponents(paths));
 }
 
 
 
-Path Solace::allocPath(Path const& base, StringView rhs) {
+Path Solace::makePath(Path const& base, StringView rhs) {
     auto components = makeVector<String>(base.getComponentsCount() + 1);
 
     for (auto const& c : base) {
@@ -130,11 +130,11 @@ Path Solace::allocPath(Path const& base, StringView rhs) {
 
     components.emplace_back(rhs);
 
-    return allocPath(std::move(components));
+    return makePath(std::move(components));
 }
 
 
-Path Solace::allocPath(Path const& base, std::initializer_list<StringView> paths) {
+Path Solace::makePath(Path const& base, std::initializer_list<StringView> paths) {
     auto components = makeVector<String>(base.getComponentsCount() + paths.size());
 
     for (auto const& component : base) {
@@ -144,16 +144,16 @@ Path Solace::allocPath(Path const& base, std::initializer_list<StringView> paths
     joinComponents(components, paths);
 
 
-    return allocPath(std::move(components));
+    return makePath(std::move(components));
 }
 
 
-Path Solace::allocPath(std::initializer_list<StringView> paths) {
-    return allocPath(joinComponents(paths));
+Path Solace::makePath(std::initializer_list<StringView> paths) {
+    return makePath(joinComponents(paths));
 }
 
 
-Path Solace::allocPath(Path const& base, std::initializer_list<String> paths) {
+Path Solace::makePath(Path const& base, std::initializer_list<String> paths) {
     auto components = makeVector<String>(base.getComponentsCount() + paths.size());
 
     for (auto const& component : base) {
@@ -162,15 +162,15 @@ Path Solace::allocPath(Path const& base, std::initializer_list<String> paths) {
 
     joinComponents(components, paths);
 
-    return allocPath(std::move(components));
+    return makePath(std::move(components));
 }
 
-Path Solace::allocPath(std::initializer_list<String> paths) {
-    return allocPath(makeVector<String>(paths));
+Path Solace::makePath(std::initializer_list<String> paths) {
+    return makePath(makeVector<String>(paths));
 }
 
 
-Path Solace::allocPath(Path const& base, std::initializer_list<const char*> paths) {
+Path Solace::makePath(Path const& base, std::initializer_list<const char*> paths) {
     auto components = makeVector<String>(base.getComponentsCount() + paths.size());
 
     for (auto& component : base) {
@@ -179,12 +179,12 @@ Path Solace::allocPath(Path const& base, std::initializer_list<const char*> path
 
     joinComponents(components, paths);
 
-    return allocPath(std::move(components));
+    return makePath(std::move(components));
 }
 
 
-Path Solace::allocPath(std::initializer_list<const char*> paths) {
-    return allocPath(joinComponents(paths));
+Path Solace::makePath(std::initializer_list<const char*> paths) {
+    return makePath(joinComponents(paths));
 }
 
 

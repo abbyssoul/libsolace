@@ -42,16 +42,16 @@ using namespace Solace::IO;
 
 
 TEST(TestSharedMemory, testCreate_InvalidFilename) {
-    EXPECT_THROW(auto mem = SharedMemory::create(allocPath(Path::Root, {"somewhere", "XXX"}), 128), IOException);
+    EXPECT_THROW(auto mem = SharedMemory::create(makePath(Path::Root, {"somewhere", "XXX"}), 128), IOException);
 }
 
 TEST(TestSharedMemory, testCreate_InvalidSize) {
-    EXPECT_THROW(auto mem = SharedMemory::create(allocPath(Path::Root, "validname"), 0), IOException);
+    EXPECT_THROW(auto mem = SharedMemory::create(makePath(Path::Root, "validname"), 0), IOException);
 }
 
 TEST(TestSharedMemory, testOpen_NonExisting) {
     const auto uuid = UUID::random();
-    const auto name = allocPath(Path::Root, uuid.toString());
+    const auto name = makePath(Path::Root, uuid.toString());
     EXPECT_THROW(auto mem = SharedMemory::open(name), IOException);
 }
 
@@ -59,12 +59,12 @@ TEST(TestSharedMemory, testOpen_Exclusive) {
     auto const uuid = UUID::random();
 
     // Create exclusive memory
-    auto const mem1 = SharedMemory::create(allocPath(Path::Root, uuid.toString()),
+    auto const mem1 = SharedMemory::create(makePath(Path::Root, uuid.toString()),
                                      128, File::AccessMode::ReadWrite,
                                         File::Flags::Exlusive);
 
     // Pretend someone else wants to open it too.
-    auto const name = allocPath(Path::Root, uuid.toString());
+    auto const name = makePath(Path::Root, uuid.toString());
     EXPECT_THROW(auto mem = SharedMemory::open(name), IOException);
 }
 
@@ -85,7 +85,7 @@ void writeMessageAndExit(uint64 memSize, MemoryBuffer& view) {
 TEST(TestSharedMemory, testCreateAndMap) {
     const SharedMemory::size_type memSize = 24;
 
-    auto mem = SharedMemory::create(allocPath(Path::Root, "somename"), memSize);
+    auto mem = SharedMemory::create(makePath(Path::Root, "somename"), memSize);
     EXPECT_TRUE(mem);
 
     auto view = mem.map(SharedMemory::Access::Shared);

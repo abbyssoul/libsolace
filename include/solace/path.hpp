@@ -293,7 +293,7 @@ public:  // Operation
     }
 
 protected:
-    friend Path allocPath(Array<String>&& array);
+    friend Path makePath(Array<String>&& array);
 
     /** FIXME(abbyssoul): Only temporary here. to be removed
      * Move-Construct the path object from a collection of String components
@@ -330,49 +330,49 @@ void swap(Path& lhs, Path& rhs) noexcept {
  *
  * @note The string is is parsed into component, please use Path::parse
  */
-Path allocPath(StringView str);
+Path makePath(StringView str);
 
 inline
-Path allocPath(String const& str) {
-    return allocPath(str.view());
+Path makePath(String const& str) {
+    return makePath(str.view());
 }
 
 inline
-Path allocPath(char const* str) {
-    return allocPath(StringView{str});
+Path makePath(char const* str) {
+    return makePath(StringView{str});
 }
 
 inline
-Path allocPath(Array<String>&& array) {
+Path makePath(Array<String>&& array) {
     return {std::move(array)};
 }
 
 inline
-Path allocPath(Vector<String>&& vec) {
-    return allocPath(vec.toArray());
+Path makePath(Vector<String>&& vec) {
+    return makePath(vec.toArray());
 }
 
 
 /**
  * Join paths objects into a single path
  */
-Path allocPath(Path const& base, Path const& rhs);
-Path allocPath(Path const& base, std::initializer_list<Path> paths);
-Path allocPath(std::initializer_list<Path> components);
+Path makePath(Path const& base, Path const& rhs);
+Path makePath(Path const& base, std::initializer_list<Path> paths);
+Path makePath(std::initializer_list<Path> components);
 
-Path allocPath(Path const& base, StringView rhs);
-Path allocPath(Path const& base, std::initializer_list<StringView> paths);
-Path allocPath(std::initializer_list<StringView> components);
-
-inline
-Path allocPath(Path const& base, String const& rhs) { return allocPath(base, rhs.view()); }
-Path allocPath(Path const& base, std::initializer_list<String> paths);
-Path allocPath(std::initializer_list<String> components);
+Path makePath(Path const& base, StringView rhs);
+Path makePath(Path const& base, std::initializer_list<StringView> paths);
+Path makePath(std::initializer_list<StringView> components);
 
 inline
-Path allocPath(Path const& base, char const* rhs) { return allocPath(base, StringView(rhs)); }
-Path allocPath(Path const& base, std::initializer_list<const char*> paths);
-Path allocPath(std::initializer_list<const char*> components);
+Path makePath(Path const& base, String const& rhs) { return makePath(base, rhs.view()); }
+Path makePath(Path const& base, std::initializer_list<String> paths);
+Path makePath(std::initializer_list<String> components);
+
+inline
+Path makePath(Path const& base, char const* rhs) { return makePath(base, StringView(rhs)); }
+Path makePath(Path const& base, std::initializer_list<const char*> paths);
+Path makePath(std::initializer_list<const char*> components);
 
 }  // namespace Solace
 #endif  // SOLACE_PATH_HPP

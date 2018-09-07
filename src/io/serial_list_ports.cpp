@@ -53,9 +53,9 @@ readLine(Path const& file) {
 
 String
 usb_sysfs_friendly_name(Path const& sys_usb_path) {
-    const auto manufacturer = readLine(allocPath(sys_usb_path, "manufacturer"));
-    const auto product = readLine(allocPath(sys_usb_path, "product"));
-    const auto serial = readLine(allocPath(sys_usb_path, "serial"));
+    const auto manufacturer = readLine(makePath(sys_usb_path, "manufacturer"));
+    const auto product = readLine(makePath(sys_usb_path, "product"));
+    const auto serial = readLine(makePath(sys_usb_path, "serial"));
 
     if (manufacturer.empty() && product.empty() && serial.empty()) {
         return String::Empty;
@@ -67,9 +67,9 @@ usb_sysfs_friendly_name(Path const& sys_usb_path) {
 
 String
 usb_sysfs_hw_string(Path const& sysfs_path) {
-    const auto vid = readLine(allocPath(sysfs_path, "idVendor"));
-    const auto pid = readLine(allocPath(sysfs_path, "idProduct"));
-    const auto serial_number = readLine(allocPath(sysfs_path, "serial"));
+    const auto vid = readLine(makePath(sysfs_path, "idVendor"));
+    const auto pid = readLine(makePath(sysfs_path, "idProduct"));
+    const auto serial_number = readLine(makePath(sysfs_path, "serial"));
 
     return String{"USB VID:PID="}
             .concat(String::join(":", {vid, pid}))
@@ -81,7 +81,7 @@ usb_sysfs_hw_string(Path const& sysfs_path) {
 
 std::tuple<String, String>
 get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
-    static const Path SYS_TTY_PATH = allocPath(Path::Root, {StringView{"sys"},
+    static const Path SYS_TTY_PATH = makePath(Path::Root, {StringView{"sys"},
                                                       StringView{"class"},
                                                       StringView{"tty"}});
 
@@ -89,7 +89,7 @@ get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
     String hardware_id;
 
     auto const device_name = devicePath.getBasename();
-    auto const sys_device_path = allocPath(SYS_TTY_PATH, {device_name, StringView{"device"}});
+    auto const sys_device_path = makePath(SYS_TTY_PATH, {device_name, StringView{"device"}});
 
     if (device_name.startsWith("ttyUSB")) {
         const auto deviceSysPath = fs.realPath(sys_device_path).getParent().getParent();
@@ -107,7 +107,7 @@ get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
         }
     } else {
         // Try to read ID string of PCI device
-        const auto sys_id_path = allocPath(sys_device_path, "id");
+        const auto sys_id_path = makePath(sys_device_path, "id");
 
         if (fs.exists(sys_id_path)) {
             hardware_id = readLine(sys_id_path);

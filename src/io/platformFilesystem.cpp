@@ -230,7 +230,7 @@ PlatformFilesystem::realPath(const Path& path) const {
 
     return (real_path)
             ? Path::parse(real_path.get()).unwrap()
-            : allocPath(String::Empty);
+            : makePath(String::Empty);
 }
 
 
