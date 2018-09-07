@@ -77,7 +77,7 @@ Vector<String> joinComponents(std::initializer_list<Path> paths) {
 
 
 Path Solace::allocPath(StringView str) {
-    return allocPath(makeVector<String>({str}));
+    return allocPath(makeArray<String>({str}));
 }
 
 
@@ -207,7 +207,7 @@ Path::parse(StringView str, StringView delim) {
         nonEmptyComponents.emplace_back(String::Empty);
     }
 
-    return Ok(Path(std::move(nonEmptyComponents)));
+    return Ok(Path(nonEmptyComponents.toArray()));
 }
 
 
@@ -364,7 +364,7 @@ Path::normalize() const {
         }
     }
 
-    return Path(std::move(components));
+    return Path(components.toArray());
 }
 
 
@@ -372,7 +372,7 @@ Path
 Path::getParent() const {
     auto const nbComponents = _components.size();
     if (nbComponents < 2) {
-        return {makeVector<String>(_components)};  // Copy components vector
+        return {makeArray<String>(_components)};  // Copy components vector
     }
 
     auto const nbBaseComponents = nbComponents - 1;
@@ -382,7 +382,7 @@ Path::getParent() const {
         basePath.emplace_back(_components[i]);
     }
 
-    return Path(std::move(basePath));
+    return Path(basePath.toArray());
 }
 
 
@@ -428,7 +428,7 @@ Path::subpath(size_type beginIndex, size_type endIndex) const {
         components.emplace_back(_components[i]);
     }
 
-    return Path(std::move(components));
+    return {components.toArray()};
 }
 
 

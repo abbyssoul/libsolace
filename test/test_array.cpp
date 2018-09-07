@@ -128,9 +128,9 @@ public:
         Array<SimpleType> simpletons;
 
         Composite(int x, std::initializer_list<NonPodStruct> nons, std::initializer_list<SimpleType> simps) :
-            nonPods{allocArray(nons)},
+            nonPods{makeArray(nons)},
             uselessPadding(x),
-            simpletons{allocArray(simps)}
+            simpletons{makeArray(simps)}
         {}
     };
 };
@@ -174,7 +174,7 @@ TEST_F(TestArray, testMove) {
     Array<int> a1;
     EXPECT_TRUE(a1.empty());
 
-    auto a2 = allocArray<int>(20);
+    auto a2 = makeArray<int>(20);
     EXPECT_TRUE(!a2.empty());
     for (Array<int>::size_type i = 0; i < a2.size(); ++i) {
         a2[i] = static_cast<int>(2*i) - 1;
@@ -196,7 +196,7 @@ TEST_F(TestArray, testBasics) {
         EXPECT_EQ(0U, i);
     }
 
-    auto array = allocArray<uint>(TEST_SIZE_0);
+    auto array = makeArray<uint>(TEST_SIZE_0);
 
     EXPECT_TRUE(!array.empty());
     EXPECT_EQ(TEST_SIZE_0, array.size());
@@ -221,7 +221,7 @@ TEST_F(TestArray, testBasics) {
 }
 
 TEST_F(TestArray, testString) {
-    auto array = allocArray<std::string>(TEST_SIZE_0);
+    auto array = makeArray<std::string>(TEST_SIZE_0);
 
     EXPECT_TRUE(!array.empty());
     EXPECT_EQ(TEST_SIZE_0, array.size());
@@ -248,7 +248,7 @@ TEST_F(TestArray, testString) {
 TEST_F(TestArray, testNonPods) {
     EXPECT_EQ(0, NonPodStruct::TotalCount);
     {
-        auto array = allocArray<NonPodStruct>(TEST_SIZE_1);
+        auto array = makeArray<NonPodStruct>(TEST_SIZE_1);
 
         EXPECT_EQ(TEST_SIZE_1, array.size());
         EXPECT_EQ(static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount), array.size());
@@ -280,7 +280,7 @@ TEST_F(TestArray, testNonPods) {
 TEST_F(TestArray, testInitializerList) {
     {
         const int native_array[] = {0, 1, 2, 3};
-        auto const array = allocArray<int>({0, 1, 2, 3});
+        auto const array = makeArray<int>({0, 1, 2, 3});
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -291,7 +291,7 @@ TEST_F(TestArray, testInitializerList) {
 
     {
         const String native_array[] = {"Abc", "", "dfe", "_xyz3"};
-        auto const array = allocArray<String>({"Abc", "", "dfe", "_xyz3"});
+        auto const array = makeArray<String>({"Abc", "", "dfe", "_xyz3"});
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -311,7 +311,7 @@ TEST_F(TestArray, testInitializerList) {
         EXPECT_EQ(nativeArrayLength(native_array),
                                 static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount));
 
-        auto const array = allocArray<NonPodStruct> ({
+        auto const array = makeArray<NonPodStruct> ({
                 NonPodStruct(0, "yyyz"),
                 NonPodStruct(),
                 NonPodStruct(-321, "yyx"),
@@ -335,7 +335,7 @@ TEST_F(TestArray, testFromNativeConvertion) {
 
     {
         const int native_array[] = {0, 1, 2, 3};
-        auto const array = allocArray<int>(native_array, nativeArrayLength(native_array));
+        auto const array = makeArray<int>(native_array, nativeArrayLength(native_array));
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -346,7 +346,7 @@ TEST_F(TestArray, testFromNativeConvertion) {
 
     {
         const std::string native_array[] = {"Abc", "", "dfe", "_xyz3"};
-        auto const array = allocArray<std::string>(native_array, nativeArrayLength(native_array));
+        auto const array = makeArray<std::string>(native_array, nativeArrayLength(native_array));
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -362,7 +362,7 @@ TEST_F(TestArray, testFromNativeConvertion) {
                 NonPodStruct(-321, "yyx"),
                 NonPodStruct(990, "x^hhf")
         };
-        auto const array = allocArray<NonPodStruct>(native_array, nativeArrayLength(native_array));
+        auto const array = makeArray<NonPodStruct>(native_array, nativeArrayLength(native_array));
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -375,7 +375,7 @@ TEST_F(TestArray, testFromNativeConvertion) {
 
 template <typename T>
 Array<T> moveArray(std::initializer_list<T> list) {
-    auto array = allocArray<T>(list);
+    auto array = makeArray<T>(list);
 
     return array;
 }
@@ -440,7 +440,7 @@ TEST_F(TestArray, testMoveAssignment) {
 
 TEST_F(TestArray, testEquals) {
     {
-        auto const array = allocArray<int>({1, 2, 3});
+        auto const array = makeArray<int>({1, 2, 3});
 
         const int equal_native_array[] = {1, 2, 3};
         const auto equal_native_array_length = nativeArrayLength(equal_native_array);
@@ -451,9 +451,9 @@ TEST_F(TestArray, testEquals) {
         const int nequal_native_array_1[] = {3, 2, 1};
         const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
-        auto const array_eq = allocArray<int>(equal_native_array, equal_native_array_length);
-        auto const array_neq_0 = allocArray<int>(nequal_native_array_0, nequal_native_array_0_length);
-        auto const array_neq_1 = allocArray<int>(nequal_native_array_1, nequal_native_array_1_length);
+        auto const array_eq = makeArray<int>(equal_native_array, equal_native_array_length);
+        auto const array_neq_0 = makeArray<int>(nequal_native_array_0, nequal_native_array_0_length);
+        auto const array_neq_1 = makeArray<int>(nequal_native_array_1, nequal_native_array_1_length);
 
         EXPECT_EQ(equal_native_array_length, array.size());
         EXPECT_TRUE(nequal_native_array_0_length != array.size());
@@ -478,7 +478,7 @@ TEST_F(TestArray, testEquals) {
     }
 
     {
-        auto const array = allocArray<String>({"tasrd", "", "hhha", "asd"});
+        auto const array = makeArray<String>({"tasrd", "", "hhha", "asd"});
 
         const String equal_native_array[] = {"tasrd", "", "hhha", "asd"};
         const auto equal_native_array_length = nativeArrayLength(equal_native_array);
@@ -489,9 +489,9 @@ TEST_F(TestArray, testEquals) {
         const String nequal_native_array_1[] = {"tasrd", "", "hhha", "basd"};
         const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
-        auto const array_eq = allocArray<String>(equal_native_array, equal_native_array_length);
-        auto const array_neq_0 = allocArray<String>(nequal_native_array_0, nequal_native_array_0_length);
-        auto const array_neq_1 = allocArray<String>(nequal_native_array_1, nequal_native_array_1_length);
+        auto const array_eq = makeArray<String>(equal_native_array, equal_native_array_length);
+        auto const array_neq_0 = makeArray<String>(nequal_native_array_0, nequal_native_array_0_length);
+        auto const array_neq_1 = makeArray<String>(nequal_native_array_1, nequal_native_array_1_length);
 
         EXPECT_EQ(equal_native_array_length, array.size());
         EXPECT_TRUE(nequal_native_array_0_length != array.size());
@@ -516,7 +516,7 @@ TEST_F(TestArray, testEquals) {
     }
 
     {
-        auto const array = allocArray<NonPodStruct>({
+        auto const array = makeArray<NonPodStruct>({
                 NonPodStruct(0, "yyyz"),
                 NonPodStruct(),
                 NonPodStruct(-321, "yyx"),
@@ -548,9 +548,9 @@ TEST_F(TestArray, testEquals) {
 
         const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
-        auto const array_eq = allocArray<NonPodStruct>(equal_native_array, equal_native_array_length);
-        auto const array_neq_0 = allocArray<NonPodStruct>(nequal_native_array_0, nequal_native_array_0_length);
-        auto const array_neq_1 = allocArray<NonPodStruct>(nequal_native_array_1, nequal_native_array_1_length);
+        auto const array_eq = makeArray<NonPodStruct>(equal_native_array, equal_native_array_length);
+        auto const array_neq_0 = makeArray<NonPodStruct>(nequal_native_array_0, nequal_native_array_0_length);
+        auto const array_neq_1 = makeArray<NonPodStruct>(nequal_native_array_1, nequal_native_array_1_length);
 
         EXPECT_EQ(equal_native_array_length, array.size());
         EXPECT_TRUE(nequal_native_array_0_length != array.size());
@@ -616,7 +616,7 @@ TEST_F(TestArray, testFill) {
 */
 
 TEST_F(TestArray, testForEach_byValue) {
-    auto const array = allocArray<int>({1, 2, 3, 4, 5, 6});
+    auto const array = makeArray<int>({1, 2, 3, 4, 5, 6});
 
     int acc = 0;
     array.forEach([&acc](int x) {
@@ -628,7 +628,7 @@ TEST_F(TestArray, testForEach_byValue) {
 }
 
 TEST_F(TestArray, testForEach_byConstRef) {
-    auto const array = allocArray<std::string>({"Hello", " ", "world", "!"});
+    auto const array = makeArray<std::string>({"Hello", " ", "world", "!"});
 
     std::string acc;
     array.forEach([&acc](const std::string& x) {
@@ -639,7 +639,7 @@ TEST_F(TestArray, testForEach_byConstRef) {
 }
 
 TEST_F(TestArray, testForEach_byValueConversion) {
-    auto const array = allocArray<int>({1, 2, 3, 4, 5, 6});
+    auto const array = makeArray<int>({1, 2, 3, 4, 5, 6});
 
     double acc = 0;
     array.forEach([&acc](double x) {
@@ -650,7 +650,7 @@ TEST_F(TestArray, testForEach_byValueConversion) {
 }
 
 TEST_F(TestArray, testForEachIndexed) {
-    auto const array = allocArray<int>({1, 2, 3, 4, 5, 6});
+    auto const array = makeArray<int>({1, 2, 3, 4, 5, 6});
     bool allEq = true;
 
     array.forEach([&allEq](Array<int>::size_type i, Array<int>::size_type x) {
@@ -696,14 +696,14 @@ TEST_F(TestArray, testMap) {
 TEST_F(TestArray, testDeallocationWhenElementConstructorThrows) {
     SometimesConstructable::BlowUpEveryInstance = 9;
 
-    EXPECT_ANY_THROW(allocArray<SometimesConstructable>(10));
+    EXPECT_ANY_THROW(makeArray<SometimesConstructable>(10));
 
     EXPECT_EQ(0, SometimesConstructable::InstanceCount);
 }
 
 
 TEST_F(TestArray, testSet) {
-    auto array = allocArray<int>({1, 2, 3, 4, 5, 6});
+    auto array = makeArray<int>({1, 2, 3, 4, 5, 6});
 
     int acc = 6;
 
@@ -719,7 +719,7 @@ TEST_F(TestArray, testSet) {
 }
 
 TEST_F(TestArray, settingOutOfBoundsThrows) {
-    auto array = allocArray<int>(5);
+    auto array = makeArray<int>(5);
 
     EXPECT_ANY_THROW(array.set(16, []() { return 321; }));
 }

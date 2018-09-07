@@ -322,7 +322,7 @@ void swap(Array<T>& lhs, Array<T>& rhs) noexcept {
 
 /** Construct an array of a given fixed size */
 template <typename T>
-Array<T> allocArray(size_t initialSize) {
+Array<T> makeArray(size_t initialSize) {
     auto const arraySize = narrow_cast<typename Array<T>::size_type>(initialSize);
     auto buffer = getSystemHeapMemoryManager().create(arraySize*sizeof(T));           // May throw
 
@@ -346,7 +346,7 @@ Array<T> allocArray(size_t initialSize) {
 
 /** Construct a new array from a C-style array */
 template <typename T>
-Array<T> allocArray(T const* carray, typename Array<T>::size_type initialSize) {
+Array<T> makeArray(T const* carray, typename Array<T>::size_type initialSize) {
     // FIXME: Should be checked cast
     auto const arraySize = narrow_cast<typename Array<T>::size_type>(initialSize);
     auto buffer = getSystemHeapMemoryManager().create(arraySize*sizeof(T));           // May throw
@@ -362,14 +362,14 @@ Array<T> allocArray(T const* carray, typename Array<T>::size_type initialSize) {
 
 /** Create a copy of the given array */
 template <typename T>
-Array<T> allocArray(Array<T> const& other) {
-    return allocArray(other.data(), other.size());
+Array<T> makeArray(Array<T> const& other) {
+    return makeArray(other.data(), other.size());
 }
 
 /** Construct an array from an initialized list */
 template <typename T>
-Array<T> allocArray(std::initializer_list<T> list) {
-    return allocArray(list.begin(), list.size());
+Array<T> makeArray(std::initializer_list<T> list) {
+    return makeArray(list.begin(), list.size());
 }
 
 

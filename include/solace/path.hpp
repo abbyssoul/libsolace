@@ -59,8 +59,8 @@ namespace Solace {
 class Path {
 public:
 
-    using size_type = Vector<String>::size_type;
-    using const_iterator = Vector<String>::const_iterator;
+    using size_type = Array<String>::size_type;
+    using const_iterator = Array<String>::const_iterator;
 
 public:  // Static methods
 
@@ -293,20 +293,20 @@ public:  // Operation
     }
 
 protected:
-    friend Path allocPath(Vector<String>&& array);
+    friend Path allocPath(Array<String>&& array);
 
     /** FIXME(abbyssoul): Only temporary here. to be removed
      * Move-Construct the path object from a collection of String components
      * @param array A collection of string components forming the path
      */
-    Path(Vector<String>&& array): _components(std::move(array)) {
+    Path(Array<String>&& array): _components(std::move(array)) {
         // No-op
     }
 
 
 private:
 
-    Vector<String>  _components{};
+    Array<String>  _components{};
 };
 
 
@@ -343,9 +343,15 @@ Path allocPath(char const* str) {
 }
 
 inline
-Path allocPath(Vector<String>&& array) {
+Path allocPath(Array<String>&& array) {
     return {std::move(array)};
 }
+
+inline
+Path allocPath(Vector<String>&& vec) {
+    return allocPath(vec.toArray());
+}
+
 
 /**
  * Join paths objects into a single path

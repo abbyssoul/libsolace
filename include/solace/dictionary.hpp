@@ -60,10 +60,7 @@ public:
     constexpr size_type size() const noexcept { return _values.size(); }
     constexpr size_type capacity() const noexcept { return _values.capacity(); }
 
-    Vector<T>& values() noexcept { return _values; }
     Vector<T> const& values() const noexcept { return _values; }
-
-    Vector<Key>& keys() noexcept { return _lookup; }
     Vector<Key> const& keys() const noexcept { return _lookup; }
 
     bool contains(key_type const& key) const noexcept {
