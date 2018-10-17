@@ -123,7 +123,7 @@ Result<void, Error>
 base64decode(ByteWriter& dest, MemoryView const& src, byte const* decodingTable) {
     byte const* bufin = src.dataAddress();
     if (!bufin || src.size() == 0) {
-        return Err(Error("Base64Decoding error: No data"));
+        return Err(makeError(SystemErrors::NODATA, "base64decode"));
     }
 
     while (decodingTable[*(bufin++)] <= 63)
@@ -176,18 +176,21 @@ Base64Encoder::encodedSize(size_type len) {
 
 Base64Decoder::size_type
 Base64Decoder::decodedSize(MemoryView const& data) {
-    if (data.empty())
+    if (data.empty()) {
         return 0;
+    }
 
-    if (data.size() % 4)
+    if (data.size() % 4) {
         return 0;  // FIXME: Probably throw!
+    }
 
     size_type nprbytes = 0;
     for (const auto& b : data) {
-        if (pr2six[b] <= 63)
+        if (pr2six[b] <= 63) {
             ++nprbytes;
-        else
+        } else {
             break;
+        }
     }
 
     return (nprbytes * 3 / 4);

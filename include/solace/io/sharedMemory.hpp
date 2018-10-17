@@ -178,7 +178,7 @@ public:
      * Move construct this file object
      * @param other A file object to move from
      */
-    SharedMemory(SharedMemory&& other);
+    SharedMemory(SharedMemory&& other) noexcept;
 
 
     /**

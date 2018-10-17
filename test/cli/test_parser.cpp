@@ -1085,7 +1085,7 @@ TEST_F(TestCommandlineParser, commandExecutionFails) {
                             [&]() -> Result<void, Error> {
                                 commandExecuted[1] = true;
 
-                                return Err(Error("As designed"));
+                                return Err(Error{kSystemCatergory, 0, "commandExecutionFails"});
                             }}}
                         })
             .parse(countArgc(argv), argv);

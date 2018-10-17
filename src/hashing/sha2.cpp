@@ -25,7 +25,8 @@
 using namespace Solace;
 using namespace Solace::hashing;
 
-static const String SHA_256_NAME = "SHA256";
+static const StringLiteral SHA_256_NAME = "SHA256";
+
 
 static const byte sha256_padding[64] = {
  0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -72,7 +73,7 @@ static const uint32 K[64] = {
 
 #define R(t)                                    \
 (                                               \
-    W[t] = S1(W[t -  2]) + W[t -  7] +          \
+    W[t] = S1(W[t - 2]) + W[t - 7] +            \
            S0(W[t - 15]) + W[t - 16]            \
 )
 
@@ -193,7 +194,7 @@ Sha256::Sha256() {
 }
 
 
-String Sha256::getAlgorithm() const {
+StringView Sha256::getAlgorithm() const {
     return SHA_256_NAME;
 }
 

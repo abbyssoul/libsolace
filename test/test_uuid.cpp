@@ -25,7 +25,7 @@
 #include <solace/exception.hpp>
 
 #include <gtest/gtest.h>
-#include <fmt/format.h>
+
 
 using namespace Solace;
 
@@ -115,12 +115,12 @@ TEST(TestUUID, testIterable) {
 }
 
 TEST(TestUUID, testFormattable) {
-    EXPECT_EQ(String("123e4567-e89b-12d3-a456-426655440000"),
+    EXPECT_EQ(StringView("123e4567-e89b-12d3-a456-426655440000"),
                             UUID({0x12, 0x3e, 0x45, 0x67, 0xe8, 0x9b, 0x12, 0xd3,
                                 0xa4, 0x56, 0x42, 0x66, 0x55, 0x44, 0x0, 0x0})
                             .toString());
 
-    EXPECT_EQ(String("00000000-0000-0000-0000-000000000000"),
+    EXPECT_EQ(StringView("00000000-0000-0000-0000-000000000000"),
                             UUID({0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0})
                             .toString());
 

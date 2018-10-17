@@ -36,7 +36,7 @@ TEST(TestVersion, testComparable) {
 	const Version v1(1, 2, 3);
 	const Version v2(1, 2, 3);
 	const Version v_different(3, 2, 3);
-	const Version v2_same_same(1, 2, 3, String::Empty, "build.1321");
+	const Version v2_same_same(1, 2, 3, "", "build.1321");
 
 	EXPECT_TRUE(v1.equals(v2));
 	EXPECT_TRUE(v2.equals(v1));
@@ -165,43 +165,28 @@ TEST(TestVersion, testSpecs_ignoringMeta) {
 	* Test implementation and contract of IFormattable
 	*/
 TEST(TestVersion, testToString) {
-	{
-		const Version v(3, 2, 1);
-		EXPECT_EQ(String("3.2.1"), v.toString());
-	}
+	EXPECT_EQ(StringLiteral("3.2.1"), Version(3, 2, 1).toString());
 
-	{
-		const Version v(2, 0, 5, "alpha1");
-		EXPECT_EQ(String("2.0.5-alpha1"), v.toString());
-	}
+	EXPECT_EQ(StringLiteral("2.0.5-alpha1"),
+			  Version(2, 0, 5, "alpha1").toString());
 
-	{
-		const Version v(41, 7, 5, "alpha1.something-awesome.31");
-		EXPECT_EQ(String("41.7.5-alpha1.something-awesome.31"), v.toString());
-	}
+	EXPECT_EQ(StringLiteral("41.7.5-alpha1.something-awesome.31"),
+			  Version(41, 7, 5, "alpha1.something-awesome.31").toString());
 
-	{
-		const Version v(33, 1, 8, String::Empty, "20130313144700");
-		EXPECT_EQ(String("33.1.8+20130313144700"), v.toString());
-	}
-	{
-		const Version v(6, 12, 77, String::Empty, "the.best.version-1");
-		EXPECT_EQ(String("6.12.77+the.best.version-1"), v.toString());
-	}
+	EXPECT_EQ(StringLiteral("33.1.8+20130313144700"),
+			  Version(33, 1, 8, String::Empty, "20130313144700").toString());
 
-	{
-		const Version v(1, 13, 7, String::Empty, "the.best.version");
-		EXPECT_EQ(String("1.13.7+the.best.version"), v.toString());
-	}
+	EXPECT_EQ(StringLiteral("6.12.77+the.best.version-1"),
+			  Version(6, 12, 77, String::Empty, "the.best.version-1").toString());
 
-	{
-		const Version v(1, 4, 99, "beta", "exp.sha.5114f85");
-		EXPECT_EQ(String("1.4.99-beta+exp.sha.5114f85"), v.toString());
-	}
-	{
-		const Version v(1, 4, 99, "alpha.beta.rc-1", "exp.sha.5114f85");
-		EXPECT_EQ(String("1.4.99-alpha.beta.rc-1+exp.sha.5114f85"), v.toString());
-	}
+	EXPECT_EQ(StringLiteral("1.13.7+the.best.version"),
+			  Version(1, 13, 7, String::Empty, "the.best.version").toString());
+
+	EXPECT_EQ(StringLiteral("1.4.99-beta+exp.sha.5114f85"),
+			  Version(1, 4, 99, "beta", "exp.sha.5114f85").toString());
+
+	EXPECT_EQ(StringLiteral("1.4.99-alpha.beta.rc-1+exp.sha.5114f85"),
+			  Version(1, 4, 99, "alpha.beta.rc-1", "exp.sha.5114f85").toString());
 }
 
 /**
@@ -260,15 +245,15 @@ TEST(TestVersion, testParsing) {
 	*/
 TEST(TestVersion, testParsing_and_ToString_are_consistent) {
 	{
-		const String src("0.4.9");
-		auto parseResult = Version::parse(src.view());
+		auto const src = StringLiteral("0.4.9");
+		auto parseResult = Version::parse(src);
 		EXPECT_TRUE(parseResult.isOk());
 		EXPECT_EQ(src, parseResult.unwrap().toString());
 	}
 
 	{
-		const String src("1.4.99-beta+exp.sha.5114f85");
-		auto parseResult = Version::parse(src.view());
+		auto const src = StringLiteral("1.4.99-beta+exp.sha.5114f85");
+		auto parseResult = Version::parse(src);
 		EXPECT_TRUE(parseResult.isOk());
 		EXPECT_EQ(src, parseResult.unwrap().toString());
 	}

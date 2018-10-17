@@ -28,7 +28,7 @@
 
 using namespace Solace;
 
-using array_size_t = Array<String>::size_type;
+using array_size_t = ArrayView<String>::size_type;
 const char* kSomeConstString = "Some static string";
 
 
@@ -36,7 +36,7 @@ TEST(TestString, testConstruction_null) {
     {   // NullPointer smoke test
         const char* nullCString = nullptr;
 
-        EXPECT_THROW(String nullString(nullCString), Exception);
+        EXPECT_NO_THROW(makeString(nullCString));
     }
 
 
@@ -53,7 +53,7 @@ TEST(TestString, testConstruction_null) {
     EXPECT_EQ(nullString, nullString.concat(nullCString));
 
     {
-        const String v("Some random string");
+        String const v("Some random string");
 
         EXPECT_TRUE(!v.equals(String::Null));
         EXPECT_TRUE(!v.equals(nullCString));
@@ -68,25 +68,30 @@ TEST(TestString, testConstruction_null) {
 }
 
 /**
-    * Test construction calls
-    */
-TEST(TestString, testConstruction) {
+* Test construction calls
+*/
+TEST(TestString, testDefaultConstruction) {
     EXPECT_TRUE(String{}.equals(String::Empty));
     EXPECT_TRUE(String{}.empty());
+}
 
+TEST(TestString, testCStrConstruction) {
     const char* source = "some cstr source";
-    const String cstrFromTo(source + 5, 4);
+    auto const  cstrFromTo = makeString(source + 5, 4);
     EXPECT_TRUE(cstrFromTo.equals("cstr"));
+}
 
 
-    String cstr(kSomeConstString);
+TEST(TestString, testMoveConstruction) {
+    auto cstr = makeString(kSomeConstString);
     EXPECT_TRUE(cstr.equals(kSomeConstString));
 
-    const String moved = std::move(cstr);
+    String const moved = std::move(cstr);
+    EXPECT_TRUE(cstr.empty());
     EXPECT_FALSE(cstr.equals(kSomeConstString));
     EXPECT_TRUE(moved.equals(kSomeConstString));
 
-    const String strCopy(moved);
+    auto const  strCopy = makeString(moved);
     EXPECT_TRUE(strCopy.equals(kSomeConstString));
     EXPECT_TRUE(moved.equals(kSomeConstString));
 }
@@ -94,18 +99,19 @@ TEST(TestString, testConstruction) {
 /**
     * Tests assignment
     */
-TEST(TestString, testAssignment) {
+TEST(TestString, testMoveAssignment) {
     String str1;
     String substr;
     EXPECT_TRUE(str1.empty());
+
     {
-        const String str2("some string");
-        str1 = str2;
-        substr = str2.substring(5, 3);
+        String str2 = makeString("some string");
+        str1 = std::move(str2);
+        substr = makeString(str1.substring(5, 8));
     }
 
-    EXPECT_EQ(String("some string"), str1);
-    EXPECT_EQ(String("str"), substr);
+    EXPECT_EQ(StringLiteral("some string"), str1);
+    EXPECT_EQ(StringLiteral("str"), substr);
 }
 
 /**
@@ -116,10 +122,10 @@ TEST(TestString, testEquality) {
     static const char* source2 = "some other test string";
     static const char* source3 = "some test string";
 
-    const String str1 = source1;
-    const String str2 = source2;
-    const String str3 = source3;
-    const String str4 = str3;
+    auto const str1 = makeString(source1);
+    auto const str2 = makeString(source2);
+    auto const str3 = makeString(source3);
+    auto const str4 = makeString(str3);
 
     // Test if It is reflexive
     EXPECT_TRUE(String::Empty.equals(String::Empty));
@@ -157,8 +163,8 @@ TEST(TestString, testEquality) {
 }
 
 TEST(TestString, testContains) {
-    const String source("Hello, world!  ");
-    const String world("world");
+    String const source = makeString("Hello, world!  ");
+    String const world = makeString("world");
 
     EXPECT_TRUE(source.contains(world));
     EXPECT_TRUE(source.contains('!'));
@@ -166,39 +172,38 @@ TEST(TestString, testContains) {
 }
 
 TEST(TestString, testLength) {
-    const String source("");
-    const String world("world");
+    String const source = makeString("");
+    String const world = makeString("world");
     // FIXME: Add utf9 example
 
-    EXPECT_EQ(static_cast<String::size_type>(0), source.length());
-    EXPECT_EQ(static_cast<String::size_type>(5), world.length());
+    EXPECT_EQ(0, source.length());
+    EXPECT_EQ(5, world.length());
 }
+
 
 TEST(TestString, testReplace) {
-    const String source("attraction{holder}");
-    const String dest0("aXXracXion{holder}");
-    const String dest1("aWORDraction{holder}");
-    const String dest2("attractionVALUE");
-    const String value("VALUE");
+    String const source = makeString("attraction{holder}");
+    String const value = makeString("VALUE");
 
-    EXPECT_EQ(source, source.replace(value, "{holder}"));
-    EXPECT_EQ(dest0, source.replace('t', 'X'));
-    EXPECT_EQ(dest1, source.replace("tt", "WORD"));
-    EXPECT_EQ(dest2, source.replace("{holder}", value));
+    EXPECT_EQ(source,                                   makeStringReplace(source, value, "{holder}"));
+    EXPECT_EQ(StringLiteral("aXXracXion{holder}"),      makeStringReplace(source, 't', 'X'));
+    EXPECT_EQ(StringLiteral("aWORDraction{holder}"),    makeStringReplace(source, "tt", "WORD"));
+    EXPECT_EQ(StringLiteral("attractionVALUE"),         makeStringReplace(source, "{holder}", value));
 }
 
+
 TEST(TestString, testSplit) {
-    const String dest0("boo");
-    const String dest1("and");
-    const String dest2("foo");
-    const String source("boo:and:foo");
+    String const dest0 = makeString("boo");
+    String const dest1 = makeString("and");
+    String const dest2 = makeString("foo");
+    String const source = makeString("boo:and:foo");
 
     {   // Normal split
         std::vector<String> result;
         result.reserve(3);
 
         source.split(":", [&result](StringView bit) {
-            result.emplace_back(bit);
+            result.emplace_back(makeString(bit));
         });
 
         EXPECT_EQ(static_cast<array_size_t>(3), result.size());
@@ -210,7 +215,7 @@ TEST(TestString, testSplit) {
     {   // No splitting token in the string
         std::vector<String> result;
         dest0.split(':', [&result](StringView bit) {
-            result.emplace_back(bit);
+            result.emplace_back(makeString(bit));
         });
 
         EXPECT_EQ(static_cast<array_size_t>(1), result.size());
@@ -220,7 +225,7 @@ TEST(TestString, testSplit) {
     {   // No splitting token in the string
         std::vector<String> result;
         source.split("/", [&result](StringView bit) {
-            result.emplace_back(bit);
+            result.emplace_back(makeString(bit));
         });
 
         EXPECT_EQ(static_cast<array_size_t>(1), result.size());
@@ -229,8 +234,8 @@ TEST(TestString, testSplit) {
 
     {   // Split with empty token
         std::vector<String> result;
-        String(":foo").split(":", [&result](StringView bit) {
-            result.emplace_back(bit);
+        makeString(":foo").split(":", [&result](StringView bit) {
+            result.emplace_back(makeString(bit));
         });
 
         EXPECT_EQ(static_cast<array_size_t>(2), result.size());
@@ -240,8 +245,8 @@ TEST(TestString, testSplit) {
 }
 
 TEST(TestString, testIndexOf) {
-    const String source("Hello, World! Good bye, World ");
-    const String world("World");
+    String const source = makeString("Hello, World! Good bye, World ");
+    String const world = makeString("World");
 
     // Happy case:
     EXPECT_EQ(static_cast<String::size_type>(7), source.indexOf(world).get());
@@ -249,7 +254,7 @@ TEST(TestString, testIndexOf) {
     EXPECT_EQ(static_cast<String::size_type>(24), source.indexOf(world, 12).get());
     EXPECT_EQ(static_cast<String::size_type>(19), source.indexOf("bye", 3).get());
 
-    // Fail case:
+    // Fail cases:
     EXPECT_TRUE(source.indexOf("awesome").isNone());
     EXPECT_TRUE(source.indexOf("World", source.length() - 3).isNone());
     EXPECT_TRUE(source.indexOf("World", source.length() + 3).isNone());
@@ -268,8 +273,8 @@ TEST(TestString, testIndexOf) {
 }
 
 TEST(TestString, testLastIndexOf) {
-    const String source("Hello, World! Good bye, World - and again!");
-    const String world("World");
+    String const source = makeString("Hello, World! Good bye, World - and again!");
+    String const world = makeString("World");
 
     EXPECT_EQ(static_cast<String::size_type>(24), source.lastIndexOf(world).get());
     EXPECT_EQ(static_cast<String::size_type>(41), source.lastIndexOf('!').get());
@@ -288,32 +293,45 @@ TEST(TestString, testLastIndexOf) {
 }
 
 TEST(TestString, testConcat) {
-    const String hello("Hello");
-    const String space(", ");
-    const String world("world!");
-    const String target("Hello, world!");
+    String const hello = makeString("Hello");
+    String const space = makeString(", ");
+    String const world = makeString("world!");
+    String const target = makeString("Hello, world!");
 
-    EXPECT_EQ(hello, String::Empty.concat(hello));
-    EXPECT_EQ(hello, hello.concat(String::Empty));
+    EXPECT_EQ(hello, makeString(String::Empty, hello));
+    EXPECT_EQ(hello, makeString(hello, String::Empty));
 
-    EXPECT_EQ(target, hello.concat(space.concat(world)));
-    EXPECT_EQ(target, hello.concat(", world!"));
+    EXPECT_EQ(target, makeString(hello, space, world));
+    EXPECT_EQ(target, makeString(hello, StringLiteral(", world!")));
 }
 
 /**
     * @see String::substring
     */
 TEST(TestString, testSubstring) {
-    const String source("Hello, World! Good bye, World - and again!");
-    const String world("World");
-    const String bye("bye");
-    const String and_again("and again!");
+    String const source = makeString("Hello, World! Good bye, World - and again!");
+    String const world = makeString("World");
+    String const bye = makeString("bye");
+    String const and_again = makeString("and again!");
 
-    EXPECT_EQ(world, source.substring(7, 5));
-    EXPECT_EQ(bye, source.substring(source.indexOf(bye).get(), bye.length()));
+    // Identity
+    EXPECT_EQ(world, world.substring(0));
+
+    // From = To == Empty string
+    EXPECT_TRUE(world.substring(1, 1).empty());
+    EXPECT_TRUE(world.substring(3, 3).empty());
+
+    EXPECT_EQ(world, source.substring(7, 12));
     EXPECT_EQ(and_again, source.substring(source.indexOf(and_again).get()));
-    EXPECT_EQ(String("Good bye, World - and again!"),
+
+    auto const byeIndex = source.indexOf(bye).get();
+    EXPECT_EQ(bye, source.substring(byeIndex, byeIndex + bye.length()));
+
+    // Saturation
+    EXPECT_EQ(StringLiteral("Good bye, World - and again!"),
                             source.substring(source.indexOf("Good").get(), 1042));
+    EXPECT_TRUE(source.substring(1042).empty());
+    EXPECT_TRUE(source.substring(1042, 2048).empty());
 }
 
 /**
@@ -326,40 +344,40 @@ TEST(TestString, testTrim) {
     EXPECT_TRUE(testString.trim().empty());
 
     // Total trim
-    EXPECT_TRUE(String("   ").trim().empty());
+    EXPECT_TRUE(makeString("   ").trim().empty());
 
     // Trim identity
     {
-        const String trimmed("Hello, world!");
-        const String toTrim("Hello, world!");
-        testString = toTrim.trim();
+        const StringLiteral trimmed("Hello, world!");
+        String const toTrim = makeString("Hello, world!");
+        testString = makeString(toTrim.trim());
         EXPECT_TRUE(testString == toTrim);
         EXPECT_EQ(trimmed, testString);
     }
 
     // Trim start
     {
-        const String trimmed("Hello, world!");
-        const String toTrim(" Hello, world!");
-        testString = toTrim.trim();
+        const StringLiteral trimmed("Hello, world!");
+        String const toTrim = makeString(" Hello, world!");
+        testString = makeString(toTrim.trim());
         EXPECT_TRUE(testString != toTrim);
         EXPECT_EQ(trimmed, testString);
     }
 
     // Trim both
     {
-        const String trimmed("Hello, world!");
-        const String toTrim("  Hello, world!  ");
-        testString = toTrim.trim();
+        const StringLiteral trimmed("Hello, world!");
+        String const toTrim = makeString("  Hello, world!  ");
+        testString = makeString(toTrim.trim());
         EXPECT_TRUE(testString != toTrim);
         EXPECT_EQ(trimmed, testString);
     }
 
     // Trim End
     {
-        const String trimmed("Hello, world !");
-        const String toTrim("Hello, world !  ");
-        testString = toTrim.trim();
+        const StringLiteral trimmed("Hello, world !");
+        String const toTrim = makeString("Hello, world !  ");
+        testString = makeString(toTrim.trim());
         EXPECT_TRUE(testString != toTrim);
         EXPECT_EQ(trimmed, testString);
     }
@@ -367,12 +385,11 @@ TEST(TestString, testTrim) {
 
 /**
     * Test string's toLowerCase
-    */
 TEST(TestString, testToLowerCase) {
     // Lower case -> lower case
     {
-        const String lowerCaseSource("hello there");
-        const String lowerCase_toLower = lowerCaseSource.toLowerCase();
+        String const lowerCaseSource("hello there");
+        String const lowerCase_toLower = lowerCaseSource.toLowerCase();
 
         // Identity:
         EXPECT_EQ(lowerCaseSource, lowerCase_toLower);
@@ -380,8 +397,8 @@ TEST(TestString, testToLowerCase) {
 
     // Mixed case -> lower case
     {
-        const String mixedCaseSource("Hello Out There!");
-        const String mixedCaseSource_toLower = mixedCaseSource.toLowerCase();
+        String const mixedCaseSource("Hello Out There!");
+        String const mixedCaseSource_toLower = mixedCaseSource.toLowerCase();
 
         EXPECT_TRUE(mixedCaseSource != mixedCaseSource_toLower);
         EXPECT_TRUE(mixedCaseSource_toLower.equals("hello out there!"));
@@ -389,22 +406,22 @@ TEST(TestString, testToLowerCase) {
 
     // Upper case -> lower case
     {
-        const String upperCaseSource("THERE@OUT*HELLO*&^%");
-        const String upperCaseSource_toLower = upperCaseSource.toLowerCase();
+        String const upperCaseSource("THERE@OUT*HELLO*&^%");
+        String const upperCaseSource_toLower = upperCaseSource.toLowerCase();
 
         EXPECT_TRUE(upperCaseSource != upperCaseSource_toLower);
         EXPECT_TRUE(upperCaseSource_toLower.equals("there@out*hello*&^%"));
     }
 }
+*/
 
 /**
     * Test string's toUpperCase
-    */
 TEST(TestString, testToUpperCase) {
     // Lower case -> upper case
     {
-        const String lowerCaseSource("hello@there-out*&%!1");
-        const String lowerCase_toUpper = lowerCaseSource.toUpperCase();
+        String const lowerCaseSource("hello@there-out*&%!1");
+        String const lowerCase_toUpper = lowerCaseSource.toUpperCase();
 
         EXPECT_TRUE(lowerCaseSource != lowerCase_toUpper);
         EXPECT_EQ(String("HELLO@THERE-OUT*&%!1"), lowerCase_toUpper);
@@ -412,8 +429,8 @@ TEST(TestString, testToUpperCase) {
 
     // Mixed case -> lower case
     {
-        const String mixedCaseSource("Hello @ Out^&There!");
-        const String mixedCaseSource_toUpper = mixedCaseSource.toUpperCase();
+        String const mixedCaseSource("Hello @ Out^&There!");
+        String const mixedCaseSource_toUpper = mixedCaseSource.toUpperCase();
 
         EXPECT_TRUE(mixedCaseSource != mixedCaseSource_toUpper);
         EXPECT_EQ(String("HELLO @ OUT^&THERE!"), mixedCaseSource_toUpper);
@@ -421,45 +438,49 @@ TEST(TestString, testToUpperCase) {
 
     // Upper case -> lower case
     {
-        const String upperCaseSource("THERE@OUT*HELLO*&^%");
-        const String upperCaseSource_toUpper = upperCaseSource.toUpperCase();
+        String const upperCaseSource("THERE@OUT*HELLO*&^%");
+        String const upperCaseSource_toUpper = upperCaseSource.toUpperCase();
 
         // Identity
         EXPECT_EQ(upperCaseSource, upperCaseSource_toUpper);
     }
 }
+*/
+
 
 /**
     * Test string's 'startsWith'
     */
 TEST(TestString, testStartsWith) {
-    const String source("Hello, world out there!");
-    const String hello("Hello");
-    const String there("there!");
-    const String overlong("Hello, world out there! And here!");
+    String const source = makeString("Hello, world out there!");
+    String const hello = makeString("Hello");
+    String const there = makeString("there!");
+    String const overlong = makeString("Hello, world out there! And here!");
 
-    EXPECT_TRUE(!String::Empty.startsWith('H'));
-    EXPECT_TRUE(!String::Empty.startsWith("Something"));
-    EXPECT_TRUE(!source.startsWith(String::Empty));
+    EXPECT_FALSE(String::Empty.startsWith('H'));
+    EXPECT_FALSE(String::Empty.startsWith("Something"));
+    EXPECT_TRUE(source.startsWith(String::Empty));
+
     EXPECT_TRUE(source.startsWith('H'));
     EXPECT_TRUE(source.startsWith(hello));
-    EXPECT_TRUE(!source.startsWith(there));
-    EXPECT_TRUE(!source.startsWith(overlong));
-    EXPECT_TRUE(!source.startsWith("Some very long statement that can't possibly feet"));
+
+    EXPECT_FALSE(source.startsWith(there));
+    EXPECT_FALSE(source.startsWith(overlong));
+    EXPECT_FALSE(source.startsWith("Some very long statement that can't possibly feet"));
 }
 
 /**
     * Test string's 'endsWith'
     */
 TEST(TestString, testEndsWith) {
-    const String source("Hello, world out there !");
-    const String hello("Hello");
-    const String there("there !");
-    const String overlong("Hello, world out there ! And here!");
+    String const source = makeString("Hello, world out there !");
+    String const hello = makeString("Hello");
+    String const there = makeString("there !");
+    String const overlong = makeString("Hello, world out there ! And here!");
 
     EXPECT_TRUE(!String::Empty.endsWith('x'));
     EXPECT_TRUE(!String::Empty.endsWith("Something"));
-    EXPECT_TRUE(!source.endsWith(String::Empty));
+    EXPECT_TRUE(source.endsWith(String::Empty));
     EXPECT_TRUE(source.endsWith('!'));
     EXPECT_TRUE(source.endsWith(source));
     EXPECT_TRUE(!source.endsWith(hello));
@@ -472,8 +493,8 @@ TEST(TestString, testEndsWith) {
     * Test string's 'hashCode' method.
     */
 TEST(TestString, testHashCode) {
-    const String testString1 = "Hello otu there";
-    const String testString2 = "Hello out there";
+    String const testString1 = makeString("Hello otu there");
+    String const testString2 = makeString("Hello out there");
 
     EXPECT_NE(testString1.hashCode(), 0);
     EXPECT_NE(testString2.hashCode(), 0);
@@ -486,7 +507,7 @@ TEST(TestString, testHashCode) {
     */
 /*
 void testFormat() {
-    const String hello = "Hello";
+    String const hello = "Hello";
 
     // Format
     // Tests Identity:
@@ -528,31 +549,14 @@ void testFormat() {
 */
 
 TEST(TestString, testToString) {
-    const String ident(kSomeConstString);
+    String const ident = makeString(kSomeConstString);
 
     EXPECT_EQ(ident,  ident.toString());
 }
 
-TEST(TestString, test_cstr) {
-    {   // Empty sting is empty
-        const char* bait = "";
-        const String str("");
-
-        EXPECT_TRUE(str.empty());
-
-        EXPECT_EQ(0, strcmp(bait, str.c_str()));
-    }
-    {   // Non-empty sting is non-empty
-        const String str(kSomeConstString);
-
-        EXPECT_TRUE(!str.empty());
-
-        EXPECT_EQ(0, strcmp(kSomeConstString, str.c_str()));
-    }
-}
 
 TEST(TestString, test_iterable_forEach) {
-//        const String ident(kSomeConstString);
+//        String const ident(kSomeConstString);
 
 //        int summ = 0;
 //        for (auto c : ident.view()) {

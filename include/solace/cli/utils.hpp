@@ -58,7 +58,7 @@ namespace Solace { namespace cli {
 class VersionPrinter {
 public:
 
-    VersionPrinter(StringView canonicalAppName, const Version& version) :
+    VersionPrinter(StringView canonicalAppName, Version const& version) :
         _canonicalAppName(std::move(canonicalAppName)),
         _version(version)
     {
@@ -68,7 +68,7 @@ public:
 
 private:
     StringView const    _canonicalAppName;
-    Version const       _version;
+    Version const&      _version;
 };
 
 

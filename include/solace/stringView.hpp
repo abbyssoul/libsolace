@@ -14,8 +14,8 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: String literal
- *	@file		solace/stringLiteral.hpp
+ * libSolace: String view
+ *	@file		solace/stringView.hpp
  *	@brief		Static Immutable Unicode String Literal
  ******************************************************************************/
 #pragma once
@@ -23,10 +23,7 @@
 #define SOLACE_STRINGLITERAL_HPP
 
 #include "solace/char.hpp"
-#include "solace/array.hpp"
 #include "solace/optional.hpp"
-
-#include <ostream>
 
 
 namespace Solace {
@@ -53,7 +50,7 @@ public:
     constexpr StringView() noexcept = default;
 
     //!< Copy-construct a string.
-    constexpr StringView(StringView const& other) noexcept = default;
+//    constexpr StringView(StringView const& other) noexcept = default;
 
     /**
      *  Constructs a view of the first count characters of the character array starting with the element pointed by s.
@@ -63,15 +60,14 @@ public:
      * @param s A pointer to a character array or a C string to initialize the view with.
      * @param count Number of characters to include in the view.
      */
-    constexpr StringView(char const* s, size_type count) noexcept :
-           _size(count),
-           _data(s)
+    StringView(char const* s, size_type count) /*noexcept*/
+        : _size{count}
+        , _data{(s == nullptr)
+                 ? (assertTrue(count == 0), s)
+                 : assertNotNull(s)
+                }
     {}
 
-    constexpr StringView(char const* s, char const* e) noexcept :
-           _size(e - s),
-           _data(s)
-    {}
 
     // NOTE: This blows if a StringView is constructed over a fixed size c-array buffer
 //    template<size_t N>
@@ -99,16 +95,6 @@ public:
         return *this;
     }
 
-    StringView& operator= (StringView&& rhs) noexcept {
-        return swap(rhs);
-    }
-
-    StringView& operator= (StringView const& rhs) noexcept {
-        StringView(rhs).swap(*this);
-
-        return *this;
-    }
-
     constexpr bool empty() const noexcept {
         return (_size == 0);
     }
@@ -128,6 +114,13 @@ public:
     //!< True if values are equal
     bool equals(StringView x) const noexcept;
 
+
+    int compareTo(StringView x) const noexcept;
+
+    int compareTo(const char* x) const noexcept {
+        return compareTo(StringView{x});
+    }
+
     /**
      * Tests if the string starts with the specified prefix.
      *
@@ -135,8 +128,9 @@ public:
      * @return True if the string indeed starts with the given prefix, false otherwise.
      */
     constexpr bool startsWith(char prefix) const noexcept {
-        return ((_data == nullptr && prefix == 0) ||
-                (_data[0] == prefix));
+        return (_data == nullptr)
+                ? (prefix == 0)
+                : (_data[0] == prefix);
     }
 
     /**
@@ -154,8 +148,9 @@ public:
      * @return True if this string indeed ends with the given suffix, false otherwise.
      */
     constexpr bool endsWith(char suffix) const noexcept {
-        return ((_data == nullptr && suffix == 0) ||
-                (_data[size() - 1] == suffix));
+        return (_data == nullptr)
+                ? (suffix == 0)
+                : (_data[size() - 1] == suffix);
     }
 
     /**
@@ -172,7 +167,7 @@ public:
      *
      * @return Optional index of the first occurrence of the given substring.
      */
-    Optional<size_type> indexOf(StringView const& str, size_type fromIndex = 0) const;
+    Optional<size_type> indexOf(StringView str, size_type fromIndex = 0) const;
 
     /** Index of the first occurrence of the given character.
      *
@@ -192,7 +187,7 @@ public:
      *
      * @return Optional index of the last occurrence of the given substring.
      */
-    Optional<size_type> lastIndexOf(StringView const& str, size_type fromIndex = 0) const;
+    Optional<size_type> lastIndexOf(StringView str, size_type fromIndex = 0) const;
 
     /** Index of the last occurrence of the given character.
      *
@@ -225,10 +220,10 @@ public:
      * starting from 'from' of the given length.
      *
      *  @param from [in] Index of first character of the substring.
-     *  @param len [in] Length of the substring.
+     *  @param to [in] End index.
      *  @return Substring of this string starting from the given index.
      */
-    StringView substring(size_type from, size_type len) const;
+    StringView substring(size_type from, size_type to) const;
 
     /**
      * Returns a new string that is a substring of this string
@@ -242,12 +237,23 @@ public:
     /**
      * Returns a sub-string with leading and trailing whitespace omitted.
      */
-    StringView trim() const;
+    StringView trim() const noexcept;
 
     /**
      * Returns a sub-string with leading and trailing occurance of the given character skipped.
      */
-    StringView trim(value_type delim) const;
+    StringView trim(value_type delim) const noexcept;
+
+    /**
+     * Get character at the index.
+     * @param index Index of the character in the sequence.
+     * @return Character at the index.
+     */
+    value_type charAt(size_type index) const {
+        index = assertIndexInRange(index, 0, _size);
+
+        return _data[index];
+    }
 
     /** Array index operator. Obtain a copy of the character at the given
 	 * offset in the string.
@@ -275,41 +281,65 @@ public:
 
     /** Splits the string around matches of expr
      * @param delim A delimeter to split the string by.
-     * @return A list of substrings.
+     * @return A total number of splits.
      */
     template<typename Callable>
-    std::enable_if_t<isCallable<Callable, StringView>::value, void>
+    std::enable_if_t<isCallable<Callable, StringView>::value, size_type>
     split(StringView delim, Callable&& f) const {
-        auto const delimLength = delim.length();
-        size_type to = 0, from = 0;
-        for (; to < size() && delimLength + to <= size(); ++to) {
-            if (delim.equals(substring(to, delimLength))) {
-                f(substring(from, to - from));
+        auto const delimLength = delim.size();
+        auto const thisSize = size();
 
-                to += delimLength - 1;
+        if (thisSize < delimLength) {
+            f(*this);
+
+            return 1;
+        }
+
+        if (delimLength == 0) {
+            for (size_type to = 0; to < thisSize; ++to) {
+                f(substring(to, to + 1));
+            }
+
+            return thisSize;
+        }
+
+        size_type const toInc = (delimLength == 0) ? 0 : delimLength - 1;
+        size_type from = 0, count = 1;
+
+//        auto const delimStartChar = delim._data[0];
+        for (size_type to = 0; to + delimLength <= thisSize; ++to) {
+            if (delim.equals(substring(to, to + toInc + 1))) {
+                count += 1;
+                f(substring(from, to));
+
+                to += toInc;
                 from = to + 1;
             }
         }
 
-        f(substring(from, size() - from));
+        f(substring(from));
+
+        return count;
     }
 
     template<typename Callable>
-    std::enable_if_t<isCallable<Callable, StringView, StringView::size_type, StringView::size_type>::value, void>
+    std::enable_if_t<isCallable<Callable, StringView, StringView::size_type, StringView::size_type>::value, size_type>
     split(StringView delim, Callable&& f) const {
-        auto const delimLength = delim.length();
+        auto const delimLength = delim.size();
+        auto const thisSize = size();
         size_type delimCount = 0;
-        for (size_type i = 0; i < size() && i + delimLength <= size(); ++i) {  // count_if, but with custom stride
-            if (delim.equals(substring(i, delimLength))) {
+
+        for (size_type i = 0; i < thisSize && i + delimLength <= thisSize; ++i) {  // count_if, but with custom stride
+            if (delim.equals(substring(i, i + delimLength))) {
                 delimCount += 1;
                 i += delimLength - 1;
             }
         }
 
         size_type to = 0, from = 0;
-        for (size_type i = 0; to < size() && delimLength + to <= size(); ++to) {
-            if (delim.equals(substring(to, delimLength))) {
-                f(substring(from, to - from), i, delimCount + 1);
+        for (size_type i = 0; to < thisSize && to + delimLength <= thisSize; ++to) {
+            if (delim.equals(substring(to, to + delimLength))) {
+                f(substring(from, to), i, delimCount + 1);
                 i += 1;
 
                 to += delimLength - 1;
@@ -317,39 +347,31 @@ public:
             }
         }
 
-        f(substring(from, size() - from), delimCount, delimCount + 1);
+        f(substring(from), delimCount, delimCount + 1);
+
+        return delimCount + 1;
     }
-
-
-
-    /** Splits the string around matches of expr
-     * @param delim A delimeter to split the string by.
-     * @return A list of substrings.
-     */
-//    Array<StringView> split(value_type delim) const;
 
     /** Splits the string around matches of expr
      * @param delim A delimeter to split the string by.
      * @return A list of substrings.
      */
     template<typename Callable>
-    void split(value_type delim, Callable&& f) const {
-//        size_type delimCount = 0;
-//        for (const auto c : *this) {  // Count_if
-//            if (c == delim) {
-//                ++delimCount;
-//            }
-//        }
+    size_type split(value_type delim, Callable&& f) const {
+        auto const thisSize = size();
+        size_type from = 0, count = 1;
 
-        size_type to = 0, from = 0;
-        for (; to < size(); ++to) {
+        for (size_type to = 0; to < thisSize; ++to) {
             if (_data[to] == delim) {
-                f(substring(from, to - from));
+                f(substring(from, to));
+                count += 1;
                 from = to + 1;
             }
         }
 
-        f(substring(from, size() - from));
+        f(substring(from));
+
+        return count;
     }
 
 
@@ -371,10 +393,34 @@ public:
         return wrapMemory(_data, _size);
     }
 
+protected:
+
+    constexpr StringView(size_type count, char const* s) noexcept
+        : _size{count}
+        , _data{s}
+    {}
+
 private:
     size_type   _size = 0;
     char const* _data = nullptr;
 };
+
+
+static_assert(sizeof(StringView) <= 2*sizeof(void*),
+              "StringView must be no more then 2 pointers in size");
+
+static_assert(std::is_trivially_destructible<StringView>::value,
+              "StringView is not trivially copyable");
+static_assert(std::is_trivially_copyable<StringView>::value,
+              "StringView is not trivially copyable");
+static_assert(std::is_trivially_copy_constructible<StringView>::value,
+              "StringView is not trivially copyable");
+static_assert(std::is_trivially_copy_assignable<StringView>::value,
+              "StringView is not trivially copyable");
+static_assert(std::is_trivially_move_constructible<StringView>::value,
+              "StringView is not trivially copyable");
+static_assert(std::is_trivially_move_assignable<StringView>::value,
+              "StringView is not trivially copyable");
 
 
 /** Immutable Unicode String Literal
@@ -386,9 +432,11 @@ struct StringLiteral: public StringView {
 
     using StringView::value_type;
 
+    constexpr StringLiteral() noexcept = default;
+
     template<size_t N>
     constexpr StringLiteral(char const (&str)[N]) :
-            StringView(&str[0], N -1)
+            StringView(N -1, &str[0])
     {
     }
 };
@@ -436,10 +484,32 @@ bool operator!= (StringView const& str, char const* rhv) noexcept {
 }
 
 
+inline
+bool operator< (StringView const& lhs, StringView const& rhs) {
+    return lhs.compareTo(rhs) < 0;
+}
+
+
+inline
+bool operator<= (StringView const& lhs, StringView const& rhs) {
+	return lhs.compareTo(rhs) <= 0;
+}
+
+inline
+bool operator> (StringView const& lhs, StringView const& rhs) {
+	return lhs.compareTo(rhs) > 0;
+}
+
+inline
+bool operator>= (StringView const& lhs, StringView const& rhs) {
+	return lhs.compareTo(rhs) >= 0;
+}
+
+
 }  // namespace Solace
 
+/*
 namespace std {
-
 template <>
 struct hash<Solace::StringView> {
     size_t operator() (Solace::StringView const& k) const noexcept {
@@ -448,5 +518,6 @@ struct hash<Solace::StringView> {
 };
 
 }  // namespace std
+*/
 
 #endif  // SOLACE_STRINGLITERAL_HPP

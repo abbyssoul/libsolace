@@ -58,7 +58,7 @@ public:
 
     virtual StringView getMessage() const noexcept;
 
-    //! std - compatible message:
+    //! STD compatible message:
     const char* what() const noexcept override;
 
     //! Get message description of the exception.

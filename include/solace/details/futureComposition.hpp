@@ -59,7 +59,7 @@ struct CollectContext {
 
             p.setValue(std::move(finalResult));
         } else {
-            p.setError(Error("Computation failed"));
+            p.setError(makeError(AsyncError::AsyncError, "CollectContext"));
         }
     }
 
@@ -92,7 +92,7 @@ struct CollectContext<void> {
         if (!threw.exchange(true)) {
             p.setValue();
         } else {
-            p.setError(Error("Computation failed"));
+            p.setError(makeError(AsyncError::AsyncError, "CollectContext"));
         }
     }
 

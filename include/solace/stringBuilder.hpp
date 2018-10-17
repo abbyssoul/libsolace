@@ -139,7 +139,7 @@ public:
 //            return append(Format(fmt).formatArg(std::forward<T>(value), args...));
 //        }
 
-    String substring(size_type from, size_type to) const;
+	StringView substring(size_type from, size_type to) const;
 	StringBuilder& clear();
 	StringBuilder& erase(size_type position, size_type count = 1);
 	StringBuilder& operator= (const String& str);
@@ -161,7 +161,7 @@ public:
     StringView view() const noexcept;
 
     /** Get resulting string */
-    String toString() const;
+    StringView toString() const;
 
 private:
 

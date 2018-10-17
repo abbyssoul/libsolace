@@ -44,10 +44,10 @@ struct SerialPortInfo {
     /*! Hardware ID (e.g. VID:PID of USB serial devices) or "" (empty string) if not available. */
     String hardwareId;
 
-    SerialPortInfo(Path&& path, const String& desc, const String& hwId)
+    SerialPortInfo(Path&& path, String&& desc, String&& hwId)
         : file(std::move(path))
-        , description(desc)
-        , hardwareId(hwId)
+        , description(std::move(desc))
+        , hardwareId(std::move(hwId))
     {
         // No-op
     }

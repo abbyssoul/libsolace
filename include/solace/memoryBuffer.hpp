@@ -52,7 +52,20 @@ public:
     ~MemoryBuffer();
 
     /** Construct an empty memory buffer */
-    MemoryBuffer() noexcept = default;
+    constexpr MemoryBuffer() noexcept = default;
+
+    constexpr MemoryBuffer(MemoryBuffer&& rhs) noexcept
+        : _data(std::move(rhs._data))
+        , _disposer(exchange(rhs._disposer, nullptr))
+    {
+    }
+
+    MemoryBuffer& operator= (MemoryBuffer&& rhs) {
+        return swap(rhs);
+    }
+
+    MemoryBuffer(MemoryBuffer const& rhs) = delete;
+    MemoryBuffer& operator= (MemoryBuffer const& rhs) = delete;
 
     /**
      * Construct a memory buffer from a memory view with a given disposer.
@@ -64,20 +77,6 @@ public:
         _disposer(disposer)
     {}
 
-    // TODO(abbyssoul): make it constexpr!
-    /*constexpr */MemoryBuffer(MemoryBuffer&& rhs) noexcept
-        : _data(std::move(rhs._data))
-        , _disposer(std::exchange(rhs._disposer, nullptr))
-    {
-    }
-
-    MemoryBuffer& operator= (MemoryBuffer&& rhs) {
-        return swap(rhs);
-    }
-
-    MemoryBuffer(MemoryBuffer const& rhs) = delete;
-    MemoryBuffer& operator= (MemoryBuffer const& rhs) = delete;
-
     MemoryBuffer& swap(MemoryBuffer& rhs) noexcept {
         _data.swap(rhs._data);
         std::swap(_disposer, rhs._disposer);
@@ -85,10 +84,10 @@ public:
         return *this;
     }
 
-    MemoryView          view() const noexcept   { return _data; }
-    MutableMemoryView   view() noexcept         { return _data; }
+    constexpr MemoryView          view() const noexcept   { return _data; }
+    constexpr MutableMemoryView   view() noexcept         { return _data; }
 
-    bool empty() const noexcept {
+    constexpr bool empty() const noexcept {
         return _data.empty();
     }
 

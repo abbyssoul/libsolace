@@ -50,7 +50,17 @@ public:
 public:
 
     /** Construct an empty memory view */
-    MutableMemoryView() noexcept = default;
+    constexpr MutableMemoryView() noexcept = default;
+
+    MutableMemoryView(MutableMemoryView const&) noexcept = default;
+    MutableMemoryView& operator= (MutableMemoryView const&) noexcept = default;
+
+    constexpr MutableMemoryView(MutableMemoryView&& rhs) noexcept = default;
+
+    MutableMemoryView& operator= (MutableMemoryView&& rhs) noexcept {
+        return swap(rhs);
+    }
+
 
     /**
      * Construct a memory view from a row pointer and the size
@@ -63,29 +73,18 @@ public:
         MemoryView(data, dataSize)
     {}
 
-    MutableMemoryView(MutableMemoryView const&) noexcept = default;
-    MutableMemoryView& operator= (MutableMemoryView const&) noexcept = default;
-
-    // TODO(abbyssoul): make it constexpr!
-    /*constexpr */MutableMemoryView(MutableMemoryView&& rhs) noexcept = default;
-
-    MutableMemoryView& swap(MutableMemoryView& rhs) noexcept {
-        MemoryView::swap(rhs);
-
-        return (*this);
-    }
-
-
-    MutableMemoryView& operator= (MutableMemoryView&& rhs) noexcept {
-        return swap(rhs);
-    }
-
     using MemoryView::equals;
 
     bool equals(MutableMemoryView const& other) const noexcept {
         return MemoryView::equals(other);
     }
 
+
+    MutableMemoryView& swap(MutableMemoryView& rhs) noexcept {
+        MemoryView::swap(rhs);
+
+        return (*this);
+    }
 
     /**
      * Return iterator to beginning of the collection

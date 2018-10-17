@@ -45,16 +45,11 @@ public:
     {
     }
 
-    void setUp()  {
-	}
-
-    void tearDown()  {
-	}
 };
 
+
 TEST_F(TestStringBuilder, testNullString) {
-    EXPECT_THROW(const StringBuilder nullString(_memoryManager.create(5), nullptr),
-                            Exception);
+    EXPECT_NO_THROW(StringBuilder(_memoryManager.create(5), nullptr));
 }
 
 /**
@@ -108,7 +103,7 @@ TEST_F(TestStringBuilder, testToString) {
     const auto str = ident.toString();
 
     EXPECT_EQ(str, ident.toString());
-    EXPECT_EQ(String(someConstString), str);
+    EXPECT_EQ(StringView(someConstString), str);
 }
 
 const char* TestStringBuilder::someConstString = "Some static string";

@@ -25,7 +25,8 @@
 using namespace Solace;
 using namespace Solace::hashing;
 
-static const String SHA_1_NAME = "SHA1";
+static const StringLiteral SHA_1_NAME = "SHA1";
+
 
 static const byte sha1_padding[64] = {
  0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -60,7 +61,7 @@ void sha1_process(Sha1::State& ctx, const byte data[64]) {
 
 #define R(t)                                            \
 (                                                       \
-    temp = W[(t -  3) & 0x0F] ^ W[(t - 8) & 0x0F] ^ \
+    temp = W[(t - 3) & 0x0F] ^ W[(t - 8) & 0x0F] ^ \
            W[(t - 14) & 0x0F] ^ W[ t      & 0x0F],  \
     (W[t & 0x0F] = S(temp, 1))                      \
 )
@@ -240,7 +241,7 @@ Sha1::Sha1() {
 }
 
 
-String Sha1::getAlgorithm() const {
+StringView Sha1::getAlgorithm() const {
     return SHA_1_NAME;
 }
 

@@ -26,64 +26,58 @@
 #define SOLACE_ERROR_HPP_
 
 #include "solace/types.hpp"
+#include "solace/atom.hpp"
 #include "solace/stringView.hpp"
+#include "solace/errorDomain.hpp"
 
 
-/* TODO(abbyssoul): Add interop SUPPORT for std::error
-#include <system_error>
-*/
 
 namespace Solace {
 
+
+
+/**
+ * Error type
+ */
 class Error {
 public:
 
-    ~Error() = default;
-
-    Error(const char* message, int code = -1) noexcept :
-        _code(code),
-        _message(message)
+    //! Construct error with a message
+    Error(AtomValue errorDomain, int code, StringLiteral tag) noexcept
+        : _domain(errorDomain)
+        , _code(code)
+        , _tag(std::move(tag))
     {}
 
     //! Construct error with a message
-    Error(StringView message, int code = -1) noexcept :
-        _code(code),
-        _message(message.data(), message.size())
+    Error(AtomValue errorDomain, int code) noexcept
+        : _domain(errorDomain)
+        , _code(code)
     {}
-
-    //! Construct error with a message
-    explicit Error(std::string&& message, int code = -1) noexcept
-        : _code(code)
-        , _message(std::move(message))
-    {}
-
-    Error(const Error& other) = default;
-
-    Error(Error&& other) noexcept = default;
 
 
     int value() const noexcept {
         return _code;
     }
 
-    bool operator== (const Error& rhs) const noexcept {
-        return value() == rhs.value();
+    StringView tag() const noexcept {
+        return _tag;
     }
 
-    Error& operator= (const Error& rhs) noexcept {
-        Error(rhs).swap(*this);
-
-        return *this;
+    AtomValue domain() const noexcept {
+        return _domain;
     }
 
-    Error& operator= (Error&& rhs) noexcept {
-        return swap(rhs);
+    bool operator== (Error const& rhs) const noexcept {
+        return ((_domain == rhs._domain) &&
+                (_code == rhs._code));
     }
 
     Error& swap(Error& rhs) noexcept {
         using std::swap;
+        swap(_tag, rhs._tag);
         swap(_code, rhs._code);
-        swap(_message, rhs._message);
+        swap(_domain, rhs._domain);
 
         return (*this);
     }
@@ -92,25 +86,58 @@ public:
         return (value() != 0);
     }
 
-
     //! Get message description of the exception.
     StringView toString() const;
 
 private:
 
+    AtomValue       _domain;
     int             _code;
-    std::string     _message;		//!< Message of the exception.
+    StringLiteral   _tag;		//!< Tag for the error.
 };
+
 
 inline void swap(Error& lhs, Error& rhs) noexcept {
     lhs.swap(rhs);
 }
 
 
-Error make_error(char const* msg);
-Error make_errno();
 
 
+
+inline
+Error makeError(BasicError errCode, StringLiteral tag) {
+    return Error{kSystemCatergory, static_cast<int>(errCode), tag};
+}
+
+inline
+Error makeError(GenericError errCode, StringLiteral tag) {
+    return Error{kSystemCatergory, static_cast<int>(errCode), tag};
+}
+
+inline
+Error makeError(AsyncError errCode, StringLiteral tag) {
+    return Error{kSystemCatergory, static_cast<int>(errCode), tag};
+}
+
+inline
+Error makeError(SystemErrors errCode, StringLiteral tag) {
+    return Error{kSystemCatergory, static_cast<int>(errCode), tag};
+}
+
+
+
+Error makeErrno(int errCode, StringLiteral tag);
+Error makeErrno(int errCode);
+Error makeErrno(StringLiteral tag);
+Error makeErrno();
+
+
+static_assert(sizeof(Error) <= 4*sizeof(void*),
+              "Error must be no more then 2 pointers in size");
+
+static_assert(std::is_trivially_copyable<Error>::value,
+              "Error is not trivially copyable");
 
 }  // End of namespace Solace
 #endif  // SOLACE_ERROR_HPP_

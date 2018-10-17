@@ -33,7 +33,7 @@ using namespace Solace;
 
 MutableMemoryView::reference
 MutableMemoryView::operator[] (size_type index) {
-    return *const_cast<value_type*>(dataAddress(index));
+    return *dataAddress(index);
 }
 
 
@@ -63,42 +63,50 @@ MutableMemoryView::fill(byte value, size_type from, size_type to) {
         raise<IndexOutOfRangeException>("to", to, from, size());
     }
 
-    memset(const_cast<value_type*>(dataAddress(from)), value, to - from);
+    memset(dataAddress(from), value, to - from);
 
     return (*this);
 }
 
 
-void MutableMemoryView::write(const MemoryView& source, size_type offset) {
-    const auto thisSize = size();
+void
+MutableMemoryView::write(const MemoryView& source, size_type offset) {
+    auto const thisSize = size();
+    auto const srcSize = source.size();
 
     if (offset > thisSize) {  // Make sure that offset is within [0, size())
         raise<IndexOutOfRangeException>("offset", offset, 0, thisSize);
     }
 
-    if (source.size() > thisSize - offset) {  // Make sure that source is writing no more then there is room.
-        raise<OverflowException>("source", source.size(), 0, thisSize - offset);
+    if (srcSize > thisSize - offset) {  // Make sure that source is writing no more then there is room.
+        raise<OverflowException>("source", srcSize, 0, thisSize - offset);
     }
 
-    memmove(const_cast<value_type*>(dataAddress(offset)), source.dataAddress(), source.size());
+    if (srcSize > 0) {
+        memmove(dataAddress(offset), source.dataAddress(), srcSize);
+//        memmove(const_cast<value_type*>(dataAddress(offset)), source.dataAddress(), srcSize);
+    }
 
     // TODO(abbyssoul): return Result<>;
 }
 
 
-void MutableMemoryView::read(MutableMemoryView& dest) {
-    const auto thisSize = size();
+void
+MutableMemoryView::read(MutableMemoryView& dest) {
+    auto const thisSize = size();
+    auto const destSize = dest.size();
 
-    if (thisSize < dest.size()) {
-        raise<OverflowException>("dest", thisSize, 0, dest.size());
+    if (thisSize < destSize) {
+        raise<OverflowException>("dest", thisSize, 0, destSize);
     }
 
-    memmove(const_cast<value_type*>(dest.dataAddress()), dataAddress(), dest.size());
+    memmove(dest.dataAddress(), dataAddress(), destSize);
     // TODO(abbyssoul): return Result<>;
 }
 
 
-void MutableMemoryView::read(MutableMemoryView& dest, size_type bytesToRead, size_type offset) {
+void
+MutableMemoryView::read(MutableMemoryView& dest, size_type bytesToRead, size_type offset) {
     const auto thisSize = size();
 
     if (thisSize < offset) {  // Make sure that offset is within [0, size())
@@ -113,14 +121,14 @@ void MutableMemoryView::read(MutableMemoryView& dest, size_type bytesToRead, siz
         raise<OverflowException>("dest.size()", dest.size(), 0, bytesToRead);
     }
 
-    memmove(const_cast<value_type*>(dest.dataAddress()), dataAddress(offset), bytesToRead);
+    memmove(dest.dataAddress(), dataAddress(offset), bytesToRead);
 
     // TODO(abbyssoul): return Result<>;
 }
 
 
 MutableMemoryView& MutableMemoryView::fill(byte value) {
-    memset(const_cast<value_type*>(dataAddress()), value, size());
+    memset(dataAddress(), value, size());
 
     return (*this);
 }
@@ -162,5 +170,5 @@ MutableMemoryView::slice(size_type from, size_type to) {
     }
 
 
-    return wrapMemory(const_cast<value_type*>(dataAddress(from)), to - from);
+    return wrapMemory(dataAddress(from), to - from);
 }

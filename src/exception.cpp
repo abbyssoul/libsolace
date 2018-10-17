@@ -23,7 +23,8 @@
 #include "solace/exception.hpp"
 #include "solace/string.hpp"
 
-#include <fmt/format.h>
+#include <cstring>
+
 
 using namespace Solace;
 
@@ -33,17 +34,27 @@ static constexpr StringLiteral IOExceptionType{"IOException"};
 
 
 std::string formatErrono(int errorCode) {
-    auto const errorDescription = StringView{strerror(errorCode)};
-    const auto s = String::join(":", {IOExceptionType, String::valueOf(errorCode), errorDescription});
+    std::string msg{IOExceptionType.data(), IOExceptionType.size()};
 
-    return s.to_str();
+    msg.append("[");
+    msg.append(std::to_string(errorCode));
+    msg.append("]: ");
+    msg.append(strerror(errorCode));
+
+    return msg;
 }
 
-std::string formatErrono(int errorCode, const std::string& msg) {
-    auto const errorDescription = StringView{strerror(errorCode)};
-    const auto s = String::join(":", {IOExceptionType, String::valueOf(errorCode), String{msg}, errorDescription});
+std::string formatErrono(int errorCode, std::string const& msgex) {
+    std::string msg{IOExceptionType.data(), IOExceptionType.size()};
 
-    return s.to_str();
+    msg.append("[");
+    msg.append(std::to_string(errorCode));
+    msg.append("]: ");
+    msg.append(msgex);
+    msg.append(" - ");
+    msg.append(strerror(errorCode));
+
+    return msg;
 }
 
 
@@ -90,9 +101,16 @@ IllegalArgumentException::IllegalArgumentException() noexcept:
 
 }
 
+std::string formatIlligalArgName(const char* argName) {
+    std::string msg{"Illegal argument '"};
+    msg.append(argName);
+    msg.append("'");
+
+    return msg;
+}
 
 IllegalArgumentException::IllegalArgumentException(const char* argumentName) noexcept:
-    Exception(fmt::format("Illegal argument '{}'", argumentName))
+    Exception(formatIlligalArgName(argumentName))
 {
     // Nothing to do here
 }
@@ -112,9 +130,31 @@ IndexOutOfRangeException::IndexOutOfRangeException() noexcept:
 }
 
 
+std::string formatIndexOutOfRangeError(const char* messagePrefix, const char* indexName,
+                                       size_t index, size_t minValue, size_t maxValue) {
+    std::string msg{messagePrefix};
+
+    if (indexName) {
+        msg.append(" '");
+        msg.append(indexName);
+        msg.append("'=");
+    } else {
+        msg.append(": ");
+    }
+
+    msg.append(std::to_string(index));
+    msg.append(" is out of range [");
+    msg.append(std::to_string(minValue));
+    msg.append(", ");
+    msg.append(std::to_string(maxValue));
+    msg.append(")");
+
+    return msg;
+}
+
 
 IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue) noexcept :
-    Exception(fmt::format("Value '{}' is out of range [{}, {})", index, minValue, maxValue))
+    Exception(formatIndexOutOfRangeError("Error", nullptr, index, minValue, maxValue))
 {
     // No-op
 }
@@ -122,7 +162,7 @@ IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue
 
 IndexOutOfRangeException::IndexOutOfRangeException(const char* indexName,
                                                    size_t index, size_t minValue, size_t maxValue) noexcept :
-    Exception(fmt::format("Index '{}'={} is out of range [{}, {})", indexName, index, minValue, maxValue))
+    Exception(formatIndexOutOfRangeError("Index", indexName, index, minValue, maxValue))
 {
     // No-op
 }
@@ -130,24 +170,47 @@ IndexOutOfRangeException::IndexOutOfRangeException(const char* indexName,
 
 IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue,
                                                    const char* messagePrefix) noexcept :
-    Exception(fmt::format("{}: index {} is out of range [{}, {})", messagePrefix, index, minValue, maxValue))
+    Exception(formatIndexOutOfRangeError(messagePrefix, nullptr, index, minValue, maxValue))
 {
     // No-op
 }
 
 
 
+std::string formatOverflowError(const char* indexName,
+                                size_t index, size_t minValue, size_t maxValue) {
+    std::string msg{"Value"};
+
+    if (indexName) {
+        msg.append(" '");
+        msg.append(indexName);
+        msg.append("'=");
+    } else {
+        msg.append(" ");
+    }
+
+    msg.append(std::to_string(index));
+    msg.append(" overflows range [");
+    msg.append(std::to_string(minValue));
+    msg.append(", ");
+    msg.append(std::to_string(maxValue));
+    msg.append(")");
+
+    return msg;
+
+}
+
+
 OverflowException::OverflowException(const char* indexName,
                                      size_t index, size_t minValue, size_t maxValue) noexcept :
-    Exception(fmt::format("Value '{}'={} overflows range [{}, {})",
-                          indexName, index, minValue, maxValue))
+    Exception(formatOverflowError(indexName, index, minValue, maxValue))
 {
     // Nothing else to do here
 }
 
 
 OverflowException::OverflowException(size_t index, size_t minValue, size_t maxValue) noexcept :
-    Exception(fmt::format("Value {} overflows range [{}, {})", index, minValue, maxValue))
+    Exception(formatOverflowError(nullptr, index, minValue, maxValue))
 {
 }
 
@@ -160,7 +223,7 @@ NoSuchElementException::NoSuchElementException() noexcept:
 
 
 NoSuchElementException::NoSuchElementException(const char* elementName) noexcept:
-    Exception(fmt::format("No such element: '{}'", elementName))
+    Exception(std::string("No such element: " + std::string(elementName)))
 {
     // Nothing else to do here
 }

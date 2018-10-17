@@ -1,5 +1,5 @@
 /*
-*  Copyright 2018 Ivan Ryabov
+*  Copyright 2016 Ivan Ryabov
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -14,23 +14,16 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace
- *	@file		memoryBuffer.cpp
- *	@brief		Implementation of the MemoryBuffer type
+ *	@file		errorDomain.cpp
+ *	@brief		Implementation of Error domain
  ******************************************************************************/
-#include "solace/memoryBuffer.hpp"
+#include "solace/errorDomain.hpp"
+
 
 using namespace Solace;
 
 
-
-// No-op but needed in .cpp file to keep compiler virtual table happy.
-MemoryViewDisposer::~MemoryViewDisposer() = default;
-
-
-MemoryBuffer::~MemoryBuffer() {
-    auto const disposer = exchange(_disposer, nullptr);
-    if (disposer != nullptr) {
-        disposer->dispose(&_data);
-    }
+ErrorDomain*
+Solace::getErrorDomain(AtomValue categoryId) {
+    return nullptr;
 }

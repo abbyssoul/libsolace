@@ -42,7 +42,7 @@ using namespace Solace::IO;
 
 
 TEST(TestSharedMemory, testCreate_InvalidFilename) {
-    EXPECT_THROW(auto mem = SharedMemory::create(makePath(Path::Root, {"somewhere", "XXX"}), 128), IOException);
+    EXPECT_THROW(auto mem = SharedMemory::create(makePath(Path::Root, "somewhere", "XXX"), 128), IOException);
 }
 
 TEST(TestSharedMemory, testCreate_InvalidSize) {

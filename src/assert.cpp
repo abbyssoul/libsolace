@@ -23,6 +23,7 @@
 
 using namespace Solace;
 
+
 uint16
 Solace::assertIndexInRange(uint16 index, uint16 from, uint16 to) {
     if (index >= to || index < from) {
@@ -84,15 +85,6 @@ void Solace::raiseInvalidStateError(const char* message) {
 }
 
 
-const void* Solace::assertNotNull(const void* ptr) {
-    return assertNotNull(ptr, "Assertion violation: Null pointer value passed.");
-}
-
-
-const void* Solace::assertNotNull(const void* ptr, const char* message) {
-    if (ptr == nullptr) {
-        Solace::raise<Exception>(message);
-    }
-
-    return ptr;
+void Solace::assertFail(const char* tag) {
+    Solace::raise<Exception>(tag);
 }

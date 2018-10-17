@@ -29,9 +29,7 @@ using namespace Solace::hashing;
 
 
 TEST(TestHashingSHA1, testAlgorithmName) {
-    Sha1 hash;
-
-    EXPECT_EQ(String("SHA1"), hash.getAlgorithm());
+    EXPECT_EQ(StringLiteral("SHA1"), Sha1{}.getAlgorithm());
 }
 
 TEST(TestHashingSHA1, hashEmptyMessage) {

@@ -37,7 +37,7 @@ class TestOptional : public testing::Test  {
 public:
 
     Optional<String> moveOptionalString(String&& value) {
-        return Optional<String>(value);
+        return Optional<String>(std::move(value));
     }
 
     SimpleType moveSimpleType(int x, int y, int z) {
@@ -238,29 +238,23 @@ TEST_F(TestOptional, testSwap) {
 }
 
 TEST_F(TestOptional, testMoveAssignemnt) {
-    String test("hello");
 
     Optional<String> v1;
     EXPECT_TRUE(v1.isNone());
 
-    v1 = moveOptionalString(std::move(test));
+    v1 = moveOptionalString(makeString("hello"));
     EXPECT_TRUE(v1.isSome());
-    EXPECT_EQ(String("hello"), v1.get());
+    EXPECT_EQ(StringLiteral("hello"), v1.get());
 
-    String test2("something different");
-    v1 = std::move(test2);
 
+    v1 = makeString("something different");
     EXPECT_TRUE(v1.isSome());
-    EXPECT_EQ(String("something different"), v1.get());
+    EXPECT_EQ(StringLiteral("something different"), v1.get());
 }
 
 TEST_F(TestOptional, testEquals) {
-
-    String test("hello");
-    const Optional<String> v1(moveOptionalString(std::move(test)));
-
-    String alsoHello("hello");
-    const Optional<String> v3(moveOptionalString(std::move(alsoHello)));
+    const Optional<String> v1(moveOptionalString(makeString("hello")));
+    const Optional<String> v3(moveOptionalString(makeString("hello")));
 
     EXPECT_EQ(v1, v3);
 }
@@ -294,12 +288,12 @@ TEST_F(TestOptional, testEmpty) {
 }
 
 TEST_F(TestOptional, testString) {
-    auto const v1 = Optional<String>("hello");
+    auto const v1 = Optional<String>(makeString("hello-xyz"));
 
     EXPECT_TRUE(v1.isSome());
     EXPECT_TRUE(!v1.isNone());
 
-    EXPECT_EQ(String("hello"), v1.get());
+    EXPECT_EQ(StringLiteral("hello-xyz"), v1.get());
 }
 
 TEST_F(TestOptional, testGetRaises) {

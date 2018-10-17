@@ -35,61 +35,70 @@ using namespace Solace;
 
 
 const StringLiteral HW_ID_NA = "n/a";
+const std::string Empty {""};
 
 
+StringView viewString(std::string const& str) {
+    return StringView(str.data(), str.size());
+}
 
-String
+
+auto
 readLine(Path const& file) {
-    std::ifstream ifs(file.toString().to_str(), std::ifstream::in);
+    auto const filePathStr = file.toString();
+    auto line = std::string{filePathStr.view().data(), filePathStr.view().size()};
+    auto ifs = std::ifstream{line, std::ifstream::in};
 
-    std::string line;
     if (ifs) {
         getline(ifs, line);
+
+        return line;
     }
 
-    return String{ std::move(line) };
+    return Empty;
 }
 
 
 String
 usb_sysfs_friendly_name(Path const& sys_usb_path) {
-    const auto manufacturer = readLine(makePath(sys_usb_path, "manufacturer"));
-    const auto product = readLine(makePath(sys_usb_path, "product"));
-    const auto serial = readLine(makePath(sys_usb_path, "serial"));
+    auto const manufacturer = readLine(makePath(sys_usb_path, StringLiteral{"manufacturer"}));
+    auto const product = readLine(makePath(sys_usb_path, StringLiteral{"product"}));
+    auto const serial = readLine(makePath(sys_usb_path, StringLiteral{"serial"}));
 
     if (manufacturer.empty() && product.empty() && serial.empty()) {
-        return String::Empty;
+        return makeString(String::Empty);
     }
 
-    return String::join(" ", {manufacturer, product, serial});
+    return makeStringJoin(" ", viewString(manufacturer), viewString(product), viewString(serial));
 }
 
 
 String
 usb_sysfs_hw_string(Path const& sysfs_path) {
-    const auto vid = readLine(makePath(sysfs_path, "idVendor"));
-    const auto pid = readLine(makePath(sysfs_path, "idProduct"));
-    const auto serial_number = readLine(makePath(sysfs_path, "serial"));
+    auto const vid = readLine(makePath(sysfs_path, StringLiteral{"idVendor"}));
+    auto const pid = readLine(makePath(sysfs_path, StringLiteral{"idProduct"}));
+    auto const serial_number = readLine(makePath(sysfs_path, StringLiteral{"serial"}));
 
-    return String{"USB VID:PID="}
-            .concat(String::join(":", {vid, pid}))
-            .concat(serial_number.empty()
-                    ? serial_number
-                    : String(" SNR=").concat(serial_number));
+    return makeString(
+                StringLiteral{"USB VID:PID="},
+                viewString(vid), StringLiteral(":"),  viewString(pid),
+                serial_number.empty() ? StringLiteral() : StringLiteral(" SNR="),
+                viewString(serial_number));
 }
 
 
 std::tuple<String, String>
 get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
-    static const Path SYS_TTY_PATH = makePath(Path::Root, {StringView{"sys"},
-                                                      StringView{"class"},
-                                                      StringView{"tty"}});
+    static const Path SYS_TTY_PATH = makePath(Path::Root,
+                                                     StringLiteral{"sys"},
+                                                     StringLiteral{"class"},
+                                                     StringLiteral{"tty"});
 
     String friendly_name;
     String hardware_id;
 
-    auto const device_name = devicePath.getBasename();
-    auto const sys_device_path = makePath(SYS_TTY_PATH, {device_name, StringView{"device"}});
+    auto device_name = devicePath.getBasename();
+    auto sys_device_path = makePath(SYS_TTY_PATH, device_name, StringLiteral{"device"});
 
     if (device_name.startsWith("ttyUSB")) {
         const auto deviceSysPath = fs.realPath(sys_device_path).getParent().getParent();
@@ -110,19 +119,20 @@ get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
         const auto sys_id_path = makePath(sys_device_path, "id");
 
         if (fs.exists(sys_id_path)) {
-            hardware_id = readLine(sys_id_path);
+            auto const hwIdLine = readLine(sys_id_path);
+            hardware_id = makeString(viewString(hwIdLine));
         }
     }
 
     if (friendly_name.empty()) {
-        friendly_name = device_name;
+        friendly_name = makeString(device_name);
     }
 
     if (hardware_id.empty()) {
-        hardware_id = HW_ID_NA;
+        hardware_id = makeString(HW_ID_NA);
     }
 
-    return std::make_tuple(friendly_name, hardware_id);
+    return std::make_tuple(std::move(friendly_name), std::move(hardware_id));
 }
 
 
@@ -130,12 +140,12 @@ Array<IO::SerialPortInfo>
 Solace::IO::Serial::enumeratePorts() {
 
     auto fs = PlatformFilesystem();
-    auto devices_found = fs.glob({"/dev/ttyACM*",
-                                        "/dev/ttyS*",
-                                        "/dev/ttyUSB*",
-                                        "/dev/tty.*",
-                                        "/dev/cu.*"
-                                        });
+    auto devices_found = fs.glob({  "/dev/ttyACM*",
+                                    "/dev/ttyS*",
+                                    "/dev/ttyUSB*",
+                                    "/dev/tty.*",
+                                    "/dev/cu.*"
+                                    });
 
     // NOTE: The vector is used here even thou the size is know already because we don't want to initialize structs yet
     auto results = makeVector<Solace::IO::SerialPortInfo>(devices_found.size());
@@ -144,7 +154,7 @@ Solace::IO::Serial::enumeratePorts() {
         String hardware_id;
         std::tie(friendly_name, hardware_id) = get_sysfs_info(fs, device);
 
-        results.emplace_back(std::move(device), friendly_name, hardware_id);
+        results.emplace_back(std::move(device), std::move(friendly_name), std::move(hardware_id));
     }
 
     return results.toArray();

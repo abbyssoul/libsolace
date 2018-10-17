@@ -113,14 +113,14 @@ Result<void, Error>
 Env::set(StringView name, StringView value, bool replace) {
     return (setenv(name.data(), value.empty() ? "" : value.data(), replace) == 0)
             ? none
-            : Result<void, Error>{make_errno()};
+            : Result<void, Error>{makeErrno("setenv")};
 }
 
 
 Result<void, Error> Env::unset(StringView name) {
     return (unsetenv(name.empty() ? "" : name.data()) == 0)
             ? none
-            : Result<void, Error>{make_errno()};
+            : Result<void, Error>{makeErrno("unsetenv")};
 }
 
 
@@ -128,7 +128,7 @@ Result<void, Error> Env::unset(StringView name) {
 Result<void, Error> Env::clear() {
     return (clearenv())
         ? none
-        : Result<void, Error>{make_error("clearenv has failed")};
+        : Result<void, Error>{makeErrno("clearenv")};
 }
 
 

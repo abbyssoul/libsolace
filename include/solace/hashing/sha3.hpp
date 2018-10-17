@@ -14,7 +14,7 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Secure Hash Algorithm 3 - a subset of the cryptographic primitive family Keccak
+ * libSolace: Secure Hash Algorithm 3, a subset of the cryptographic primitive family Keccak
  *	@file		solace/hashing/sha3.hpp
  *	@author		$LastChangedBy$
  *	@date		$LastChangedDate$
@@ -56,7 +56,7 @@ public:
      * Get a string name of the hashing algorithm.
      * @return A string name of the hashing algorithm.
      */
-    String getAlgorithm() const override;
+    StringView getAlgorithm() const override;
 
     /**
      * Get a length of the digest in bytes.

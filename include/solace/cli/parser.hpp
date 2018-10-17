@@ -75,10 +75,12 @@ namespace Solace { namespace cli {
     \endcode
 
 
- * Note: Command line parsing is meant to be performed at the start of an application.
- * In that case memory allocation limits / strategy can be configured via options.
- * That is why it is desirable that parser don't allocate any memory during parsing.
- * To support that - parser work with StringView and StringLiteral types that don't take ownership of the string buffer.
+ * Note that command line parsing is meant to be performed once at the start of an application.
+ * Keeping in mind that memory allocation limits and allocation strategy is yet to be configured,
+ * it is desirable that parser don't allocate any memory for parsing.
+ *
+ * To support that, a parser implementation is using StringView and StringLiteral types,
+ * that don't require ownership/allocation of a string buffer.
  */
 class Parser {
 public:

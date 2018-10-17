@@ -20,9 +20,7 @@
  ******************************************************************************/
 #include "solace/byteReader.hpp"
 
-
-#include <cstring>  // memcpy
-
+#include <cstring>  // memmove
 
 using namespace Solace;
 
@@ -30,7 +28,7 @@ using namespace Solace;
 Result<void, Error>
 ByteReader::limit(size_type newLimit) {
     if (capacity() < newLimit) {
-        return Err<Error>(StringView("OverflowError: limit(): new limit is greater then capacity."));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::limit()"));
     }
 
     _limit = newLimit;
@@ -42,7 +40,7 @@ ByteReader::limit(size_type newLimit) {
 Result<void, Error>
 ByteReader::position(size_type newPosition) {
     if (limit() < newPosition) {
-        return Err<Error>(StringView("OverflowError: position(): value pass the buffer end."));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::position()"));
     }
 
     _position = newPosition;
@@ -54,7 +52,7 @@ ByteReader::position(size_type newPosition) {
 Result<void, Error>
 ByteReader::advance(size_type increment) {
     if (remaining() < increment) {
-        return Err<Error>(StringView("OverflowError: advance(): move pass the buffer end."));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::advance()"));
     }
 
     _position += increment;
@@ -66,7 +64,7 @@ ByteReader::advance(size_type increment) {
 Result<byte, Error>
 ByteReader::get() {
     if (remaining() < 1) {
-        return Err<Error>(StringView("OverflowError: get(): no data remained in the buffer"));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::get()"));
     }
 
     return Ok(_storage.view()[_position++]);
@@ -75,7 +73,7 @@ ByteReader::get() {
 Result<byte, Error>
 ByteReader::get(size_type pos) const {
     if (limit() <= pos) {
-        return Err<Error>(StringView("OverflowError: get(pos): offset outside of the buffer"));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::get(position)"));
     }
 
     return Ok(_storage.view()[pos]);
@@ -85,7 +83,7 @@ ByteReader::get(size_type pos) const {
 Result<void, Error>
 ByteReader::read(MutableMemoryView& dest, size_type bytesToRead) {
     if (dest.size() < bytesToRead) {
-        return Err<Error>(StringView("OverflowError: read(dest, size): destination buffer is too small"));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
     }
 
     return read(dest.dataAddress(), bytesToRead);
@@ -95,7 +93,7 @@ ByteReader::read(MutableMemoryView& dest, size_type bytesToRead) {
 Result<void, Error>
 ByteReader::read(void* dest, size_type bytesToRead) {
     if (remaining() < bytesToRead) {
-        return Err<Error>(StringView("UnderflowError: read(dest, size): not enough data in the buffer"));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
     }
 
     const void* srcAddr = _storage.view().dataAddress(_position);
@@ -109,11 +107,11 @@ ByteReader::read(void* dest, size_type bytesToRead) {
 Result<void, Error>
 ByteReader::read(size_type offset, MutableMemoryView& dest, size_type bytesToRead) const {
     if (dest.size() < bytesToRead) {
-        return Err<Error>(StringView("OverflowError: read(dest, size): destination buffer is too small"));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
     }
 
     if (limit() < (offset + bytesToRead)) {
-        return Err<Error>(StringView("Overflow Error: byte to read"));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
     }
 
     const void* srcAddr = _storage.view().dataAddress(offset);

@@ -47,7 +47,7 @@ public:
      * Get a string name of the hashing algorithm.
      * @return A string name of the hashing algorithm.
      */
-    virtual String getAlgorithm() const = 0;
+    virtual StringView getAlgorithm() const = 0;
 
     /**
      * Get a length of the digest in bytes.

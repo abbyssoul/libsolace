@@ -26,6 +26,7 @@
 #include "solace/utils.hpp"
 #include "solace/arrayView.hpp"
 
+
 namespace Solace {
 
 template<typename T>
@@ -42,6 +43,25 @@ struct ExceptionGuard {
     constexpr explicit ExceptionGuard(T* p) noexcept : start{p}, pos{p} {}
     constexpr void release() noexcept { start = pos; }
 };
+
+
+
+template <typename T>
+void initArray(MemoryView bufferView, typename ArrayView<T>::size_type arraySize) {
+    if (std::is_nothrow_default_constructible<T>::value) {
+        auto pos = bufferView.template dataAs<T>();
+        for (size_t i = 0; i < arraySize; ++i) {
+            ctor(*pos++);
+        }
+    } else {
+        ExceptionGuard<T> guard(bufferView.template dataAs<T>());
+        for (size_t i = 0; i < arraySize; ++i) {
+            ctor(*guard.pos);
+            ++guard.pos;  // Important to be on a different line, in case of exception.
+        }
+        guard.release();
+    }
+}
 
 
 template <typename Element, typename Iterator, bool move, bool = canMemcpy<Element>()>

@@ -53,11 +53,11 @@ public:
     using value_type = uint64;
 
 	//!< The major version, to be incremented on incompatible changes.
-	value_type 			majorNumber;
+	value_type 			majorNumber{};
 	//!< The minor version, to be incremented when functionality is added in a backwards-compatible manner.
-	value_type 			minorNumber;
+	value_type 			minorNumber{};
 	//!< The patch version, to be incremented when backwards-compatible bug fixes are made.
-	value_type			patchNumber;
+	value_type			patchNumber{};
 	//!< The pre-release version identifier, if one exists.
 	String				preRelease;
 	//!< The build metadata, ignored when determining version precedence.
@@ -72,12 +72,16 @@ public:
     static Result<Version, Error>
     parse(StringView value);
 
+    static Result<Version, Error>
+    parse(String const& value) {
+        return parse(value.view());
+    }
+
 
 public:
 
 	/** Empty version constructor */
-    Version() :	majorNumber(0), minorNumber(0),	patchNumber(0), preRelease(), build()
-	{}
+	constexpr Version() noexcept = default;
 
 	/** Construct the version object by specifying only numeric components */
     Version(value_type aMajor, value_type aMinor, value_type aPatch) :
@@ -87,23 +91,39 @@ public:
 
     /** Construct the version object by specifying all components */
     // cppcheck-suppress passedByValue
-    Version(value_type aMajor, value_type aMinor, value_type aPath, String aPre):
-            majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPath),
+    Version(value_type aMajor, value_type aMinor, value_type aPatch, StringView aPre)
+        : majorNumber(aMajor)
+        , minorNumber(aMinor)
+        , patchNumber(aPatch)
+        , preRelease(makeString(aPre))
+        , build()
+    {}
+
+    Version(value_type aMajor, value_type aMinor, value_type aPatch, String aPre):
+            majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
             preRelease(std::move(aPre)), build()
     {}
 
 	/** Construct the version object by specifying all components */
     // cppcheck-suppress passedByValue
-    Version(value_type aMajor, value_type aMinor, value_type aPath, String aPre, String aBuild) :
-				majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPath),
+    Version(value_type aMajor, value_type aMinor, value_type aPatch, String aPre, String aBuild) :
+                majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
                 preRelease(std::move(aPre)), build(std::move(aBuild))
 	{}
 
-	/** Copy-constructor */
-    Version(Version const& v) = default;
+    /** Construct the version object by specifying all components */
+    // cppcheck-suppress passedByValue
+    Version(value_type aMajor, value_type aMinor, value_type aPatch, StringView aPre, StringView aBuild) :
+                majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
+                preRelease(makeString(aPre)), build(makeString(aBuild))
+    {}
 
-	/** Move-constructor */
-    Version(Version&& v) = default;
+    /** Construct the version object by specifying all components */
+    // cppcheck-suppress passedByValue
+    Version(value_type aMajor, value_type aMinor, value_type aPatch, String const& aPre, StringView aBuild) :
+                majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
+                preRelease(makeString(aPre)), build(makeString(aBuild))
+    {}
 
 public:
 
@@ -132,18 +152,10 @@ public:
         return (*this);
     }
 
-    Version& operator= (Version const& rhs) noexcept {
-        Version(rhs).swap(*this);
-
-        return *this;
-    }
-
-    Version& operator= (Version&& rhs) noexcept {
-        return swap(rhs);
-    }
 
     //!< @see IFormattable
     String toString() const;
+
 };
 
 
@@ -154,7 +166,8 @@ public:
 Version getBuildVersion();
 
 
-inline void swap(Version& lhs, Version& rhs) noexcept {
+inline
+void swap(Version& lhs, Version& rhs) noexcept {
     lhs.swap(rhs);
 }
 

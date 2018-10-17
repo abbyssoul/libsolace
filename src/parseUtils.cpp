@@ -34,13 +34,9 @@
 using namespace Solace;
 
 
-auto conversionError(const char* fmt, StringView value) {
-    std::stringstream ss;
-    ss << fmt;
-    ss.write(value.data(), value.size());
-
-    auto res = ss.str();
-    return Err<Error>(StringView(res.c_str(), res.size()));
+auto conversionError(const char*, StringView) {
+    // TODO: Fix error message
+    return Err<Error>(makeError(GenericError::RANGE, "Value Conversion"));
 }
 
 

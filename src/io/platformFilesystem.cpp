@@ -39,6 +39,15 @@ using namespace Solace;
 using namespace Solace::IO;
 
 
+std::string pathString(Path const& path) {
+    auto const pathString = path.toString();
+    auto const pathView = pathString.view();
+
+    return std::string{pathView.data(), pathView.size()};
+}
+
+
+
 
 PlatformFilesystem::BufferedFile::BufferedFile(FILE* fp) : File(fileno(fp)),
     _fp(fp)
@@ -124,9 +133,8 @@ PlatformFilesystem::BufferedFile::tell() {
 
 
 std::unique_ptr<File>
-PlatformFilesystem::create(const Path& path) {
-    const auto& pathString = path.toString();
-    auto fp = fopen(pathString.c_str(), "w+x");
+PlatformFilesystem::create(Path const& path) {
+    auto fp = fopen(pathString(path).c_str(), "w+x");
 
     if (!fp) {
         raise<IOException>(errno);
@@ -137,9 +145,8 @@ PlatformFilesystem::create(const Path& path) {
 
 
 std::unique_ptr<File>
-PlatformFilesystem::open(const Path& path) {
-    const auto& pathString = path.toString();
-    auto fp = fopen(pathString.c_str(), "r+");
+PlatformFilesystem::open(Path const& path) {
+    auto fp = fopen(pathString(path).c_str(), "r+");
 
     if (!fp) {
         raise<IOException>(errno);
@@ -150,9 +157,8 @@ PlatformFilesystem::open(const Path& path) {
 
 
 bool
-PlatformFilesystem::unlink(const Path& path) {
-    const auto& pathString = path.toString();
-    auto err = ::remove(pathString.c_str());
+PlatformFilesystem::unlink(Path const& path) {
+    auto err = ::remove(pathString(path).c_str());
 
     if (err) {
         raise<IOException>(errno);
@@ -163,20 +169,17 @@ PlatformFilesystem::unlink(const Path& path) {
 
 
 bool
-PlatformFilesystem::exists(const Path& path) const {
+PlatformFilesystem::exists(Path const& path) const {
     struct stat sb;
 
-    const auto& pathString = path.toString();
-    return (stat(pathString.c_str(), &sb ) == 0);
+    return (stat(pathString(path).c_str(), &sb ) == 0);
 }
 
 
 bool
-PlatformFilesystem::isFile(const Path& path) const {
-    const auto& pathString = path.toString();
-
+PlatformFilesystem::isFile(Path const& path) const {
     struct stat sb;
-    if (stat(pathString.c_str(), &sb )) {
+    if (stat(pathString(path).c_str(), &sb )) {
         raise<IOException>(errno);
     }
 
@@ -185,11 +188,9 @@ PlatformFilesystem::isFile(const Path& path) const {
 
 
 bool
-PlatformFilesystem::isDirectory(const Path& path) const {
-    const auto& pathString = path.toString();
-
+PlatformFilesystem::isDirectory(Path const& path) const {
     struct stat sb;
-    if (stat(pathString.c_str(), &sb )) {
+    if (stat(pathString(path).c_str(), &sb )) {
         raise<IOException>(errno);
     }
 
@@ -198,11 +199,9 @@ PlatformFilesystem::isDirectory(const Path& path) const {
 
 
 time_t
-PlatformFilesystem::getTimestamp(const Path& path) const {
-    const auto& pathString = path.toString();
-
+PlatformFilesystem::getTimestamp(Path const& path) const {
     struct stat sb;
-    if (stat(pathString.c_str(), &sb )) {
+    if (stat(pathString(path).c_str(), &sb )) {
         raise<IOException>(errno);
     }
 
@@ -211,11 +210,10 @@ PlatformFilesystem::getTimestamp(const Path& path) const {
 
 
 PlatformFilesystem::size_type
-PlatformFilesystem::getFileSize(const Path& path) const {
+PlatformFilesystem::getFileSize(Path const& path) const {
     struct stat sb;
 
-    const auto& pathString = path.toString();
-    if (stat(pathString.c_str(), &sb )) {
+    if (stat(pathString(path).c_str(), &sb )) {
         raise<IOException>(errno);
     }
 
@@ -224,9 +222,8 @@ PlatformFilesystem::getFileSize(const Path& path) const {
 
 
 Path
-PlatformFilesystem::realPath(const Path& path) const {
-    auto const pathString = path.toString();
-    std::unique_ptr<char, decltype(std::free)*> real_path{realpath(pathString.c_str(), nullptr), std::free};
+PlatformFilesystem::realPath(Path const& path) const {
+    std::unique_ptr<char, decltype(std::free)*> real_path{realpath(pathString(path).c_str(), nullptr), std::free};
 
     return (real_path)
             ? Path::parse(real_path.get()).unwrap()
@@ -366,9 +363,8 @@ PlatformFilesystem::getWorkingDirectory() const {
 
 
 void
-PlatformFilesystem::setWorkingDirectory(const Path& path) {
-    const auto& pathString = path.toString();
-    if (0 != chdir(pathString.c_str())){
+PlatformFilesystem::setWorkingDirectory(Path const& path) {
+    if (0 != chdir(pathString(path).c_str())) {
         raise<IOException>(errno);
     }
 }

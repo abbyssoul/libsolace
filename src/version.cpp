@@ -36,8 +36,8 @@ using namespace Solace;
 
 
 static const StringLiteral ComponentSeparator{"."};
-static const String PreSeparator(StringLiteral{"-"});
-static const String BuildSeparator(StringLiteral{"+"});
+static const StringLiteral PreSeparator("-");
+static const StringLiteral BuildSeparator("+");
 
 
 Version Solace::getBuildVersion() {
@@ -53,30 +53,37 @@ bool Version::operator > (const Version& rhv) const {
     } else if (majorNumber < rhv.majorNumber) {
         return false;
     } else {
-        if (minorNumber > rhv.minorNumber) return true;
-        else if (minorNumber < rhv.minorNumber) return false;
-        else
+        if (minorNumber > rhv.minorNumber) {
+            return true;
+        } else if (minorNumber < rhv.minorNumber) {
+            return false;
+        } else {
             return patchNumber > rhv.patchNumber;
+        }
     }
 }
 
 
 String Version::toString() const {
     // FIXME(abbyssoul): Using format is an overkill in this case - a simple String concat should do!
-    auto s1 = String::join(ComponentSeparator, {
-                               String::valueOf(majorNumber),
-                               String::valueOf(minorNumber),
-                               String::valueOf(patchNumber)});
+    auto const majorString = std::to_string(majorNumber);
+    auto const minorString = std::to_string(minorNumber);
+    auto const patchString = std::to_string(patchNumber);
+
+    auto s1 = makeStringJoin(ComponentSeparator,
+                               StringView(majorString.data(), majorString.size()),
+                               StringView(minorString.data(), minorString.size()),
+                               StringView(patchString.data(), patchString.size()));
 
     auto s2 = (preRelease.empty())
-              ? String::Empty
-              : PreSeparator.concat(preRelease);
+              ? makeString("")
+              : makeString(PreSeparator, preRelease);
 
     auto s3 = build.empty()
-        ? String::Empty
-        : BuildSeparator.concat(build);
+        ? makeString("")
+        : makeString(BuildSeparator, build);
 
-    return String::join("", {s1, s2, s3});
+    return makeString(s1, s2, s3);
 }
 
 
@@ -100,7 +107,9 @@ Version::parse(StringView str) {
             patchVersion = std::strtoul(split.data(), &patchEnd, 10);
 
             if (patchEnd != str.end()) {
-                afterPatch = StringView(patchEnd, str.end());
+                ptrdiff_t dist = str.end() - patchEnd;
+                afterPatch = StringView(patchEnd,
+                                        narrow_cast<StringView::size_type>(dist));
             }
 
             ++splitIndex;
@@ -108,7 +117,7 @@ Version::parse(StringView str) {
     });
 
     if (splitIndex < 3) {
-        return Err(Error("Invalid format"));
+        return Err(makeError(BasicError::InvalidInput, "Version::parse()"));
     }
 
 
@@ -119,16 +128,16 @@ Version::parse(StringView str) {
         splitIndex = 0;
         afterPatch.split('+', [&](StringView split) {
             if (splitIndex == 0) {
-                preRelease = split.trim('-');
+                preRelease = makeString(split.trim('-'));
             } else if (splitIndex == 1) {
-                build = split;
+                build = makeString(split);
             }
 
             ++splitIndex;
         });
 
         if (splitIndex > 2) {
-            return Err(Error("Invalid format"));
+            return Err(makeError(BasicError::InvalidInput, "Version::parse()"));
         }
     }
 

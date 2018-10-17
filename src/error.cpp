@@ -23,23 +23,40 @@
 #include "solace/error.hpp"
 
 #include <cstring>
+#include <cerrno>
 
 using namespace Solace;
 
 
-StringView Error::toString() const {
-    // FIXME(abbyssoul): This is just a shitty engineering
-    return StringView{_message.c_str(), static_cast<StringView::size_type>(_message.size())};
+const AtomValue Solace::kDefaultCatergory = atom("default");
+const AtomValue Solace::kSystemCatergory = atom("posix");
+
+
+Error
+Solace::makeErrno(int errCode, StringLiteral tag) {
+    return Error{kSystemCatergory, errCode, std::move(tag)};
+}
+
+Error
+Solace::makeErrno(int errCode) {
+    return Error{kSystemCatergory, errCode};
 }
 
 
-Error Solace::make_error(char const* msg) {
-    return Error{msg};
+Error
+Solace::makeErrno(StringLiteral tag) {
+    return makeErrno(errno, std::move(tag));
+}
+
+Error
+Solace::makeErrno() {
+    return makeErrno(errno);
 }
 
 
-Error Solace::make_errno() {
-
-    // FIXME(abbyssoul): strerror can fail so we should set errno=0 before the call and check it after.
-    return Error{strerror(errno)};
+StringView
+Error::toString() const {
+    auto const domain = getErrorDomain(_domain);
+    return domain->getMessage(_code);
 }
+

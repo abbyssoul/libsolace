@@ -42,18 +42,72 @@ void raiseInvalidStateError();
  */
 void raiseInvalidStateError(const char* message);
 
+
+
+/**
+ * An action taken when assertion have failed.
+ * On system that support it - throws an exception or aborts exectution.
+ * @param tag A tag to identify the assertion that has failed.
+ */
+//[[noreturn]]
+void assertFail(const char* tag);
+
+inline void assertTrue(bool condition, const char* tag)  {
+    if (!condition) {
+        assertFail(tag);
+    }
+}
+
+
+/**
+ * Check that condition is true.
+ * @param condition Condition to check.
+ */
+inline void assertTrue(bool condition) {
+    assertTrue(condition, "Assertion failed");
+}
+
+
+
+
+/**
+ * Check that a pointer is NULL, throw an exception if it is not.
+ * @param ptr A pointer to check.
+ * @param message A message content of an excetpion thrown in case of assertion failure.
+ */
+inline const void* assertNull(const void* ptr, const char* message) {
+    assertTrue(ptr == nullptr, message);
+
+    return ptr;
+}
+
+/**
+ * Check that a pointer is not NULL, throw an exception if it is.
+ * @param ptr A pointer to check.
+ * @param message A message content of an excetpion thrown in case of assertion failure.
+ */
+inline const void* assertNotNull(const void* ptr, const char* message) {
+    assertTrue(ptr != nullptr, message);
+
+    return ptr;
+}
+
+
+/**
+ * Check that a pointer is NULL, throw an exception if it is not.
+ * @param ptr A pointer to check for being nullptr.
+ */
+inline const void* assertNull(const void* ptr) {
+    return assertNull(ptr, "Assertion violation: Null pointer value passed.");
+}
+
 /**
  * Check that a pointer is not NULL, throw an exception if it is.
  * @param ptr A pointer to check.
  */
-const void* assertNotNull(const void* ptr);
-
-/**
- * Check that a pointer is not NULL, throw an exception if it is.
- * @param prt A pointer to check.
- * @param message A message content of an excetpion thrown in case of assertion failure.
- */
-const void* assertNotNull(const void* prt, const char* message);
+inline const void* assertNotNull(const void* ptr)  {
+    return assertNotNull(ptr, "Assertion violation: Null pointer value passed.");
+}
 
 
 template<typename T>
@@ -62,6 +116,14 @@ T* assertNotNull(T* value) {
 
     return value;
 }
+
+template<typename T>
+T* assertNull(T* value) {
+    assertNull(static_cast<const void*>(value));
+
+    return value;
+}
+
 
 /**
  * Assert that the give index is within the give range. Throw if it is not.

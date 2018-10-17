@@ -85,7 +85,7 @@ charToBin(byte c) {
     auto const value = kHexToBin[c];
 
     if (value < 0) {
-        return Err(Error("Failed to decode base16 string: value is not in base16 alphabet"));
+        return Err(makeError(SystemErrors::ILSEQ, "charToBin"));
     }
 
     return Ok(static_cast<byte>(value));
@@ -111,8 +111,9 @@ Base16Encoder::encode(MemoryView const& src) {
 
     for (auto value : src) {
         auto res = dest.write(wrapMemory(kBase16Alphabet_l[value], 2));
-        if (!res)
+        if (!res) {
             return Err(res.moveError());
+        }
     }
 
     return Ok();
@@ -135,8 +136,9 @@ Base16Decoder::encodedSize(MemoryView const& data) const {
 
 Result<void, Error>
 Base16Decoder::encode(MemoryView const& src) {
-    if (src.size() % 2 != 0)
-        return Err(Error("Input data size must be even"));
+    if (src.size() % 2 != 0) {
+        return Err(makeError(GenericError::DOM, "encode(): Input data size must be even"));
+    }
 
     auto& dest = *getDestBuffer();
 
@@ -170,10 +172,12 @@ decode16(MemoryView::const_iterator i, MemoryView::const_iterator j) {
     auto high = charToBin(*i);
     auto low =  charToBin(*j);
 
-    if (!high)
+    if (!high) {
         return Err(high.moveError());
-    if (!low)
+    }
+    if (!low) {
         return Err(low.moveError());
+    }
 
     return Ok(static_cast<byte>(high.unwrap() << 4) + static_cast<byte>(low.unwrap()));
 }

@@ -117,7 +117,7 @@ public:
      *
      * @param name Name of the variable to set value of.
      * @param value Value of the variable to set to.
-     * @param replace If true and variable already set - the value will be replace. If false old value is preserved.
+     * @param replace If true and variable already set, the value will be replaced. If false old value is preserved.
      */
     Result<void, Error> set(StringView name, StringView value, bool replace = true);
 

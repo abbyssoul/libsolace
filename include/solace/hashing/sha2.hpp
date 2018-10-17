@@ -56,7 +56,7 @@ public:
      * Get a string name of the hashing algorithm.
      * @return A string name of the hashing algorithm.
      */
-    String getAlgorithm() const override;
+    StringView getAlgorithm() const override;
 
     /**
      * Get a length of the digest in bytes.

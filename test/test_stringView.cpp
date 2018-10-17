@@ -21,6 +21,7 @@
  ******************************************************************************/
 #include <solace/stringView.hpp>  // Class being tested
 #include <solace/exception.hpp>
+#include <solace/arrayView.hpp>
 
 #include <gtest/gtest.h>
 
@@ -28,14 +29,18 @@
 
 using namespace Solace;
 
-using array_size_t = Array<StringView>::size_type;
+using array_size_t = ArrayView<StringView>::size_type;
 
 
 
 TEST(TestStringView, testConstructionFromNull) {
     const char* nullCString = nullptr;
 
-    EXPECT_THROW(StringView nullString(nullCString), Exception);
+    auto const s1 = StringView(nullCString, 0);
+    EXPECT_TRUE(s1.empty());
+
+    EXPECT_NO_THROW(StringView{nullCString});
+    EXPECT_THROW(StringView nullString(nullCString, 16), Exception);
 }
 
 TEST(TestStringView, testConstructEmptyString) {
@@ -90,9 +95,9 @@ TEST(TestStringView, testAssignment) {
 
 
 /**
-    * @see StringView::equals
-    * @see StringView::operator==
-    */
+* @see StringView::equals
+* @see StringView::operator==
+*/
 TEST(TestStringView, testEquality) {
     StringView value1("hello");
     StringView value2("Completely different value");
@@ -119,6 +124,18 @@ TEST(TestStringView, testEquality) {
 }
 
 /**
+* @see StringView::compareTo
+* @see StringView::operator<
+*/
+TEST(TestStringView, testCompareTo) {
+    EXPECT_TRUE(StringView{"aab"} > StringLiteral{"aaa"});
+    EXPECT_TRUE(StringView{"aabc"} > StringLiteral{"aab"});
+
+    EXPECT_TRUE(StringView{"baa"} < StringLiteral{"bbc"});
+    EXPECT_TRUE(StringView{"bcd"} < StringLiteral{"bcd0x"});
+}
+
+/**
     * @see StringView::length
     */
 TEST(TestStringView, testLength) {
@@ -134,9 +151,14 @@ TEST(TestStringView, testLength) {
     * @see StringView::startsWith
     */
 TEST(TestStringView, testStartsWith) {
-    EXPECT_TRUE(StringView().startsWith('\0'));
+    EXPECT_TRUE(StringView{}.startsWith('\0'));
+    EXPECT_FALSE(StringView{}.startsWith('t'));
     EXPECT_TRUE(!StringView("Hello world").startsWith('\0'));
     EXPECT_TRUE(StringView("Hello world").startsWith('H'));
+
+    EXPECT_TRUE(StringView{}.startsWith(StringView{}));
+    EXPECT_TRUE(StringView{"Hello"}.startsWith(""));
+    EXPECT_FALSE(StringView{}.startsWith("Hello"));
     EXPECT_TRUE(StringView("Hello world").startsWith("Hello"));
     EXPECT_TRUE(!StringView("Hello world").startsWith("world"));
     EXPECT_TRUE(!StringView("Some")
@@ -147,8 +169,12 @@ TEST(TestStringView, testStartsWith) {
     * @see StringView::endsWith
     */
 TEST(TestStringView, testEndsWith) {
+    EXPECT_TRUE(StringView{}.endsWith('\0'));
     EXPECT_TRUE(!StringView("Hello world!").endsWith('\0'));
     EXPECT_TRUE(StringView("Hello world!").endsWith('!'));
+
+    EXPECT_TRUE(StringView{}.endsWith(StringView{}));
+    EXPECT_TRUE(StringView{"Hello"}.endsWith(""));
     EXPECT_TRUE(StringView("Hello world!").endsWith("world!"));
     EXPECT_TRUE(!StringView("Hello world").endsWith("hello"));
     EXPECT_TRUE(!StringView("Hello world")
@@ -156,38 +182,34 @@ TEST(TestStringView, testEndsWith) {
 }
 
 /**
-    * @see StringView::substring
-    */
+* @see StringView::substring
+*/
 TEST(TestStringView, testSubstring) {
     const StringView source("Hello, world! Good bye, World - and again!");
     const StringView bye("bye");
     const StringView andAgain("and again!");
 
-    EXPECT_EQ(StringView(),
-                            StringView().substring(0));
+    // Identity
+    EXPECT_EQ(StringView(), StringView().substring(0));
+    EXPECT_EQ(source, source.substring(0));
+    EXPECT_EQ(andAgain, source.substring(source.indexOf(andAgain).get()));
 
-    EXPECT_EQ(StringView("world"),
-                            source.substring(7, 5));
+    EXPECT_EQ(StringView("world"), source.substring(7, 12));
 
-    EXPECT_EQ(bye,
-                            source.substring(source.indexOf(bye).get(), bye.length()));
 
-    EXPECT_EQ(andAgain,
-                            source.substring(source.indexOf(andAgain).get()));
+    auto const byeIndex = source.indexOf(bye).get();
+    EXPECT_EQ(bye, source.substring(byeIndex, byeIndex + bye.length()));
 
-    EXPECT_THROW(StringView("hi").substring(13),
-                            Exception);
-
-    EXPECT_THROW(StringView("hi").substring(0, 8),
-                            Exception);
-
-    EXPECT_THROW(StringView("hi").substring(2, 1),
-                            Exception);
+    // Saturation
+    EXPECT_TRUE(StringView("hi").substring(13).empty());
+    EXPECT_EQ(StringView("hi"), StringView("hi").substring(0, 8));
+    EXPECT_TRUE(StringView("hi").substring(2, 1).empty());
 }
 
+
 /**
-    * @see StringView::trim
-    */
+* @see StringView::trim
+*/
 TEST(TestStringView, testTrim) {
     EXPECT_TRUE(StringView().trim().empty());
 
@@ -236,10 +258,8 @@ TEST(TestStringView, testIndexOf) {
     EXPECT_TRUE(StringView("hi").indexOf("hi, long string").isNone());
 
     // Fail case:
-    EXPECT_THROW(StringView("hi").indexOf('i', 5),
-                            Exception);
-    EXPECT_THROW(StringView("hi").indexOf("hi", 5),
-                            Exception);
+    EXPECT_TRUE(StringView("hi").indexOf('i', 5).isNone());
+    EXPECT_TRUE(StringView("hi").indexOf("hi", 5).isNone());
 }
 
 /**
@@ -263,10 +283,8 @@ TEST(TestStringView, testLastIndexOf) {
     EXPECT_TRUE(StringView("hi, i,").lastIndexOf("i, long string").isNone());
 
     // Fail case:
-    EXPECT_THROW(StringView("hi").lastIndexOf('i', 5),
-                            Exception);
-    EXPECT_THROW(StringView("hi").lastIndexOf("hi", 5),
-                            Exception);
+    EXPECT_TRUE(StringView("hi").lastIndexOf('i', 5).isNone());
+    EXPECT_TRUE(StringView("hi").lastIndexOf("hi", 5).isNone());
 }
 
 /**
@@ -306,7 +324,7 @@ TEST(TestStringView, testSplitByChar) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(static_cast<array_size_t>(3), result.size());
+        EXPECT_EQ(3, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
         EXPECT_EQ(StringView("and"), result[1]);
         EXPECT_EQ(StringView("foo"), result[2]);
@@ -332,7 +350,7 @@ TEST(TestStringView, testSplitByChar) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(static_cast<array_size_t>(3), result.size());
+        EXPECT_EQ(3, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
         EXPECT_EQ(StringView(),      result[1]);
         EXPECT_EQ(StringView("foo"), result[2]);
@@ -393,7 +411,7 @@ TEST(TestStringView, testSplitByStringToken) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(static_cast<array_size_t>(3), result.size());
+        EXPECT_EQ(3, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
         EXPECT_EQ(StringView("and"), result[1]);
         EXPECT_EQ(StringView("foo"), result[2]);
@@ -404,7 +422,7 @@ TEST(TestStringView, testSplitByStringToken) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(static_cast<array_size_t>(3), result.size());
+        EXPECT_EQ(3, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
         EXPECT_EQ(StringView("and"), result[1]);
         EXPECT_EQ(StringView(), result[2]);
@@ -421,6 +439,17 @@ TEST(TestStringView, testSplitByStringToken) {
         EXPECT_EQ(StringView("foo"), result[2]);
         EXPECT_EQ(StringView(),      result[3]);
     }
+    {   // Narmal split
+        std::vector<StringView> result;
+        StringView(":x!boofoo:x!").split(":x!", [&result](StringView bit) {
+            result.emplace_back(bit);
+        });
+
+        EXPECT_EQ(3, result.size());
+        EXPECT_EQ(StringView(),         result[0]);
+        EXPECT_EQ(StringView("boofoo"), result[1]);
+        EXPECT_EQ(StringView(),         result[2]);
+    }
 
     {   // No splitting token in the string
         std::vector<StringView> result;
@@ -428,7 +457,21 @@ TEST(TestStringView, testSplitByStringToken) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(static_cast<array_size_t>(1), result.size());
+        EXPECT_EQ(1, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
+    }
+}
+
+
+TEST(TestStringView, splittingByEmptyToken) {
+    {
+        int acc = 0;
+
+        auto const src = StringView{"this is some arbiterry string"};
+        src.split("", [&acc](StringView segment) {
+            acc += segment.size();
+        });
+
+        EXPECT_EQ(src.size(), acc);
     }
 }

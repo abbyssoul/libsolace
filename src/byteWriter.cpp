@@ -30,7 +30,7 @@ using namespace Solace;
 Result<void, Error>
 ByteWriter::limit(size_type newLimit) {
     if (capacity() < newLimit) {
-        return Err(Error("OverflowError: limit(): new limit is greater then capacity."));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::limit()"));
     }
 
     _limit = newLimit;
@@ -42,7 +42,7 @@ ByteWriter::limit(size_type newLimit) {
 Result<void, Error>
 ByteWriter::position(size_type newPosition) {
     if (limit() < newPosition) {
-        return Err(Error("OverflowError: position(): value pass the buffer end."));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::position()"));
     }
 
     _position = newPosition;
@@ -54,7 +54,7 @@ ByteWriter::position(size_type newPosition) {
 Result<void, Error>
 ByteWriter::advance(size_type increment) {
     if (remaining() < increment) {
-        return Err(Error("OverflowError: advance(): move pass the buffer end."));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::advance()"));
     }
 
     _position += increment;
@@ -66,7 +66,7 @@ ByteWriter::advance(size_type increment) {
 Result<void, Error>
 ByteWriter::write(const MemoryView& data, size_type bytesToWrite) {
     if (data.size() < bytesToWrite) {
-        return Err(Error("OverflowError: write(dest, size): destination buffer is too small"));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::write()"));
     }
 
     return write(data.dataAddress(), bytesToWrite);
@@ -80,7 +80,7 @@ ByteWriter::write(void const* data, size_type count) {
     }
 
     if (remaining() < count) {
-        return Err(Error("OverflowError: write(dest, size): destination buffer is too small"));
+        return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::write()"));
     }
 
     auto const pos = position();

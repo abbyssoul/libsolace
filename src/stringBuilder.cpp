@@ -64,12 +64,9 @@ StringBuilder::view() const noexcept {
 }
 
 
-String
+StringView
 StringBuilder::toString() const {
-    if (_buffer.position() == 0)
-        return String::Empty;
-
-    const auto written = _buffer.viewWritten();
+    auto const written = _buffer.viewWritten();
     return StringView{written.dataAs<char>(), static_cast<size_type>(written.size())};
 }
 
@@ -83,14 +80,12 @@ StringBuilder::length() const noexcept {
 }
 
 
-String
+StringView
 StringBuilder::substring(size_type from, size_type to) const {
-    // TODO(abbyssoul): Check for index out of range
+    auto const data = _buffer.viewWritten();
+    auto const subSlice = data.slice(from, to);
 
-    auto data = _buffer.viewWritten();
-    return String(std::string(
-            reinterpret_cast<const char*>(data.dataAddress() + from),
-            to - from));
+    return StringView(subSlice.dataAs<char>(), subSlice.size());
 }
 
 

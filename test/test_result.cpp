@@ -111,8 +111,8 @@ public:
     }
 
     Result<void, Error>
-    fail(std::string&& message) {
-        return Err(Error{std::move(message), 1});
+    fail(StringLiteral message) {
+        return Err(makeError(BasicError::InvalidInput, message));
     }
 };
 
@@ -131,7 +131,7 @@ TEST_F(TestResult, testErrfactoryProducesErrorFromMovedValue) {
 
 TEST_F(TestResult, testFailure) {
     {
-        Result<void, Error> r = fail(std::string("Bad errors 432 about to happen"));
+        Result<void, Error> r = fail("Bad errors 432 about to happen");
 
         EXPECT_TRUE(!r.isOk());
         EXPECT_TRUE(r.isError());
@@ -139,7 +139,7 @@ TEST_F(TestResult, testFailure) {
 
     bool value = false;
     {
-        Result<void, Error> other = fail(std::string("Maybe no errors 9922 here"));
+        Result<void, Error> other = fail("Maybe no errors 9922 here");
         other.orElse([&value](Error&&){
             value = true;
         });
@@ -203,7 +203,7 @@ TEST_F(TestResult, testConstructionIntegrals) {
 TEST_F(TestResult, testConstruction) {
     {  // Unit result
         {
-            const auto& v = []() -> Result<Unit, int> {
+            auto const v = []() -> Result<Unit, int> {
                 return Ok(Unit());
             } ();
 
@@ -211,7 +211,7 @@ TEST_F(TestResult, testConstruction) {
         }
 
         {
-            const auto& v = []() -> Result<Unit, int> {
+            auto const v = []() -> Result<Unit, int> {
                 return Err(-1);
             } ();
 
@@ -504,9 +504,12 @@ TEST_F(TestResult, testThenComposition_cv) {
 TEST_F(TestResult, testMapError) {
     Result<int, PimitiveType> res = Err<PimitiveType>(112);
 
-    EXPECT_TRUE(Err<String>("Error is 112") == res.mapError([](const PimitiveType& x){
-        return String("Error is ").concat(String::valueOf(x.x));
-    }) );
+    EXPECT_TRUE(Err<StringLiteral>("Error is 112") == res.mapError([](PimitiveType const& x) {
+                return (x.x == 112)
+                    ? StringLiteral{"Error is 112"}
+                    : StringLiteral{"Error is unknown"};
+                })
+            );
 }
 
 TEST_F(TestResult, testMoveOnlyObjects) {

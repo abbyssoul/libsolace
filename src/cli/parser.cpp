@@ -47,10 +47,24 @@ const char Parser::DefaultValueSeparator = '=';
 
 
 
+const AtomValue kParserErrorCatergory = atom("cli-parse");
+
+enum class ParserError : int {
+    InvalidInput = 1,
+    OptionParsing,
+};
+
+
+Error makeParserError(ParserError errorCode, StringLiteral tag) {
+    return Error{kParserErrorCatergory, static_cast<int>(errorCode), tag};
+}
+
+
 template <typename... Args>
 Optional<Error>
 formatOptionalError(const char* fmt, Args&&... values) {
-    return Optional<Error>{in_place, fmt::format(fmt, std::forward<Args>(values)...)};
+    return makeParserError(ParserError::OptionParsing, "option parsing");
+//    return Optional<Error>{in_place, fmt::format(fmt, std::forward<Args>(values)...)};
 }
 
 
@@ -362,17 +376,19 @@ Parser::Argument::match(StringView const& value, Context const& cntx) const {
 }
 
 
-
+// FIXME: Currently error message is not used. Add proper error codes!
 template<typename... Args>
 Result<std::function<Result<void, Error> ()>, Error>
 fail(const char* msg, Args&&...args) {
-    return Err(Error{fmt::format(msg, std::forward<Args>(args)...), 1});
+    return Err(makeParserError(ParserError::InvalidInput, "Fail"));
+//    return Err(Error{fmt::format(msg, std::forward<Args>(args)...), 1});
 }
 
 template<typename... Args>
 Result<uint, Error>
 failUint(const char* msg, Args&&... args) {
-    return Err(Error{fmt::format(msg, std::forward<Args>(args)...), 1});
+    return Err(makeParserError(ParserError::InvalidInput, "Fail"));
+//    return Err(Error{fmt::format(msg, std::forward<Args>(args)...), 1});
 }
 
 
@@ -391,7 +407,7 @@ parseOption(StringView arg, char prefix, char valueSeparator) {
     }
 
     if (endIndex < arg.length())
-        return std::make_pair(arg.substring(startIndex, endIndex - startIndex),
+        return std::make_pair(arg.substring(startIndex, endIndex),
                         Optional<StringView>(arg.substring(endIndex + 1)));
     else
         return std::make_pair(arg.substring(startIndex), none);
@@ -613,9 +629,8 @@ Parser::printVersion(StringView appName, Version const& appVersion) {
         "Print version",
         Parser::OptionArgument::NotRequired,
         [appName, &appVersion] (Optional<StringView> const&, Context const&) -> Optional<Error> {
-            VersionPrinter printer(appName, appVersion);
-
-            printer(std::cout);
+            VersionPrinter(appName, appVersion)
+                    (std::cout);
 
             return none;
         }
@@ -644,7 +659,7 @@ Parser::Parser::printHelp() {
                             cmdIt->first,
                             cmdIt->second);
                 } else {
-                    return Optional<Error>(Error("Unknown command"));
+                    return Optional<Error>(makeError(BasicError::InvalidInput, "help"));
                 }
             }
 
@@ -654,13 +669,12 @@ Parser::Parser::printHelp() {
 }
 
 Parser::Command::CommandDict::value_type
-Parser::printVersionCmd(StringView appName, const Version& appVersion) {
+Parser::printVersionCmd(StringView appName, Version const& appVersion) {
     return {"version", {
             "Print version",
-            [appName, appVersion]() -> Result<void, Error> {
-                 VersionPrinter printer(appName, appVersion);
-
-                 printer(std::cout);
+            [appName, &appVersion]() -> Result<void, Error> {
+                 VersionPrinter(appName, appVersion)
+                         (std::cout);
 
                  return Ok();
             }

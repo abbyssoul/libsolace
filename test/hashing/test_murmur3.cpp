@@ -29,8 +29,8 @@ using namespace Solace::hashing;
 
 
 TEST(TestHashingMurmur3, testAlgorithmName) {
-    EXPECT_EQ(String("MURMUR3-32"), Murmur3_32(0).getAlgorithm());
-    EXPECT_EQ(String("MURMUR3-128"), Murmur3_128(0).getAlgorithm());
+    EXPECT_EQ(StringLiteral("MURMUR3-32"), Murmur3_32(0).getAlgorithm());
+    EXPECT_EQ(StringLiteral("MURMUR3-128"), Murmur3_128(0).getAlgorithm());
 }
 
 TEST(TestHashingMurmur3, hashEmptyMessage32) {

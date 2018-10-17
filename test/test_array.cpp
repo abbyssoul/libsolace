@@ -44,7 +44,7 @@ protected:
         static int TotalCount;
 
 		static const int IVALUE_DEFAULT;
-		static const String STR_DEFAULT;
+		static const StringLiteral STR_DEFAULT;
 
 		int iValue;
 		String str;
@@ -54,13 +54,17 @@ protected:
             --TotalCount;
         }
 
-		NonPodStruct(int i, const String& inStr) :
-			iValue(i), str(inStr)
+		NonPodStruct(int i, String inStr) :
+			iValue(i), str(std::move(inStr))
 		{
 			++TotalCount;
 		}
 
-		NonPodStruct() : iValue(IVALUE_DEFAULT), str(STR_DEFAULT)
+		NonPodStruct(int i, StringView inStr)
+			: NonPodStruct(i, makeString(inStr))
+		{}
+
+		NonPodStruct() : iValue(IVALUE_DEFAULT), str(makeString(STR_DEFAULT))
 		{
 			++TotalCount;
 		}
@@ -70,7 +74,9 @@ protected:
             ++TotalCount;
         }
 
-        NonPodStruct(const NonPodStruct& other) : iValue(other.iValue), str(other.str)
+        NonPodStruct(const NonPodStruct& other)
+            : iValue(other.iValue)
+            , str(makeString(other.str))
         {
             ++TotalCount;
         }
@@ -78,7 +84,7 @@ protected:
 
         NonPodStruct& operator= (const NonPodStruct& rhs) {
             iValue = rhs.iValue;
-            str = rhs.str;
+            str = makeString(rhs.str);
 
             return (*this);
         }
@@ -98,8 +104,12 @@ protected:
 		{
 		}
 
-        DerivedNonPodStruct(int x, float f, const String& inStr) :
-                NonPodStruct(x, inStr), fValue(f)
+		DerivedNonPodStruct(int x, float f, StringView inStr) :
+			DerivedNonPodStruct(x, f, makeString(inStr))
+		{}
+
+        DerivedNonPodStruct(int x, float f, String inStr) :
+                NonPodStruct(x, std::move(inStr)), fValue(f)
         {
         }
 
@@ -290,8 +300,8 @@ TEST_F(TestArray, testInitializerList) {
     }
 
     {
-        const String native_array[] = {"Abc", "", "dfe", "_xyz3"};
-        auto const array = makeArray<String>({"Abc", "", "dfe", "_xyz3"});
+        const StringLiteral native_array[] = {"Abc", "", "dfe", "_xyz3"};
+        auto const array = makeArray<String>("Abc", "", "dfe", "_xyz3");
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -402,10 +412,10 @@ TEST_F(TestArray, testMoveAssignment) {
         Array<String> array;
         EXPECT_TRUE(array.empty());
 
-        array = moveArray<String>({"tasrd", "", "hhha", "asd"});
+        array = moveArray<String>("tasrd", "", "hhha", "asd");
         EXPECT_TRUE(!array.empty());
 
-        const String src[] = {"tasrd", "", "hhha", "asd"};
+        const StringLiteral src[] = {"tasrd", "", "hhha", "asd"};
         EXPECT_EQ(static_cast<Array<String>::size_type>(4), array.size());
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             EXPECT_EQ(src[i], array[i]);
@@ -729,6 +739,6 @@ const Array<int>::size_type TestArray::TEST_SIZE_0 = 7;
 const Array<int>::size_type TestArray::TEST_SIZE_1 = 35;
 
 const int 		TestArray::NonPodStruct::IVALUE_DEFAULT = -123;
-const String 	TestArray::NonPodStruct::STR_DEFAULT = "test_value";
+const StringLiteral 	TestArray::NonPodStruct::STR_DEFAULT = "test_value";
 
 int TestArray::NonPodStruct::TotalCount = 0;

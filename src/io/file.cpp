@@ -94,12 +94,14 @@ File::File(const Path& path, int flags) {
 
     // TODO(abbyssoul): Should the path be validated?
     const auto pathStr = path.toString();
+    const auto pathStrView = pathStr.view();
+    const auto pathCStr = std::string(pathStrView.data(), pathStrView.size());
 
     bool notDone = true;
 
     // FIXME(abbyssoul): All loops must have upper bound
     while (notDone) {
-        _fd = open(pathStr.c_str(), flags);
+        _fd = open(pathCStr.c_str(), flags);
 
         if ((notDone = (_fd == -1))) {
             switch (errno) {

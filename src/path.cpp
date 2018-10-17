@@ -34,10 +34,7 @@ const StringView ParentRef("..");
 const Path Path::Root = makePath(StringLiteral{""});
 
 
-
-
-
-
+/*
 template<typename T>
 void joinComponents(Vector<String>& base, std::initializer_list<T> paths) {
     for (auto& component : paths) {
@@ -73,23 +70,24 @@ Vector<String> joinComponents(std::initializer_list<Path> paths) {
 
     return components;
 }
+*/
 
 
-
-Path Solace::makePath(StringView str) {
-    return makePath(makeArray<String>({str}));
+Path
+Solace::makePath(StringView str) {
+    return makePath(makeArray<String>(makeString(str)));
 }
 
 
-
+/*
 Path Solace::makePath(Path const& base, Path const& rhs) {
     auto components = makeVector<String>(base.getComponentsCount() + rhs.getComponentsCount());
 
     for (auto const& c : base) {
-        components.emplace_back(c);
+        components.emplace_back(makeString(c));
     }
     for (const auto& c : rhs) {
-        components.emplace_back(c);
+        components.emplace_back(makeString(c));
     }
 
     return makePath(std::move(components));
@@ -115,17 +113,19 @@ Path Solace::makePath(Path const& base, std::initializer_list<Path> paths) {
 }
 
 
-Path Solace::makePath(std::initializer_list<Path> paths) {
+Path
+Solace::makePath(std::initializer_list<Path> paths) {
     return makePath(joinComponents(paths));
 }
 
 
 
-Path Solace::makePath(Path const& base, StringView rhs) {
+Path
+Solace::makePath(Path const& base, StringView rhs) {
     auto components = makeVector<String>(base.getComponentsCount() + 1);
 
     for (auto const& c : base) {
-        components.emplace_back(c);
+        components.emplace_back(makeString(c));
     }
 
     components.emplace_back(rhs);
@@ -134,11 +134,12 @@ Path Solace::makePath(Path const& base, StringView rhs) {
 }
 
 
-Path Solace::makePath(Path const& base, std::initializer_list<StringView> paths) {
+Path
+Solace::makePath(Path const& base, std::initializer_list<StringView> paths) {
     auto components = makeVector<String>(base.getComponentsCount() + paths.size());
 
     for (auto const& component : base) {
-        components.emplace_back(component);
+        components.emplace_back(makeString(component));
     }
 
     joinComponents(components, paths);
@@ -153,11 +154,12 @@ Path Solace::makePath(std::initializer_list<StringView> paths) {
 }
 
 
-Path Solace::makePath(Path const& base, std::initializer_list<String> paths) {
+Path
+Solace::makePath(Path const& base, std::initializer_list<String> paths) {
     auto components = makeVector<String>(base.getComponentsCount() + paths.size());
 
     for (auto const& component : base) {
-        components.emplace_back(component);
+        components.emplace_back(makeString(component));
     }
 
     joinComponents(components, paths);
@@ -174,7 +176,7 @@ Path Solace::makePath(Path const& base, std::initializer_list<const char*> paths
     auto components = makeVector<String>(base.getComponentsCount() + paths.size());
 
     for (auto& component : base) {
-        components.emplace_back(component);
+        components.emplace_back(makeString(component));
     }
 
     joinComponents(components, paths);
@@ -186,7 +188,7 @@ Path Solace::makePath(Path const& base, std::initializer_list<const char*> paths
 Path Solace::makePath(std::initializer_list<const char*> paths) {
     return makePath(joinComponents(paths));
 }
-
+*/
 
 Result<Path, Error>
 Path::parse(StringView str, StringView delim) {
@@ -200,11 +202,11 @@ Path::parse(StringView str, StringView delim) {
             return;
         }
 
-        nonEmptyComponents.emplace_back(c);
+        nonEmptyComponents.emplace_back(makeString(c));
     });
 
     if (nonEmptyComponents.empty()) {
-        nonEmptyComponents.emplace_back(String::Empty);
+        nonEmptyComponents.emplace_back(makeString(String::Empty));
     }
 
     return Ok(Path(nonEmptyComponents.toArray()));
@@ -360,7 +362,7 @@ Path::normalize() const {
         } else if (c.equals(ParentRef) && components.size() > 0) {   // Skip '..' entries
             components.pop_back();
         } else {
-            components.emplace_back(c);
+            components.emplace_back(makeString(c));
         }
     }
 
@@ -379,7 +381,7 @@ Path::getParent() const {
     auto basePath = makeVector<String>(nbBaseComponents);
     // TODO(abbyssoul): Should use array copy
     for (size_type i = 0; i < nbBaseComponents; ++i) {
-        basePath.emplace_back(_components[i]);
+        basePath.emplace_back(makeString(_components[i]));
     }
 
     return Path(basePath.toArray());
@@ -396,11 +398,6 @@ Path::getBasename() const {
                : _components[nbComponents - 1]).view();
 }
 
-
-Path::size_type
-Path::getComponentsCount() const noexcept {
-    return _components.size();
-}
 
 Solace::String const&
 Path::getComponent(size_type index) const {
@@ -425,7 +422,7 @@ Path::subpath(size_type beginIndex, size_type endIndex) const {
 
     auto components = makeVector<String>(endIndex - beginIndex);
     for (size_type i = beginIndex; i < endIndex; ++i) {
-        components.emplace_back(_components[i]);
+        components.emplace_back(makeString(_components[i]));
     }
 
     return {components.toArray()};
@@ -441,6 +438,6 @@ Path::equals(Path const& rhv) const noexcept {
 String
 Path::toString(StringView delim) const {
     return (isAbsolute() && _components.size() == 1)
-            ? delim
-            : String::join(delim, arrayView(_components.data(), _components.size()));
+            ? makeString(delim)
+            : makeStringJoin(delim, _components.view());
 }

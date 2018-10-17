@@ -89,9 +89,9 @@ public:
     MemoryView& operator= (MemoryView const&) noexcept = default;
 
     /** Move construct an instance of the memory view **/
-    MemoryView(MemoryView&& rhs) noexcept :
-        _size(std::exchange(rhs._size, 0)),
-        _dataAddress(std::exchange(rhs._dataAddress, nullptr))
+    constexpr MemoryView(MemoryView&& rhs) noexcept :
+        _size(exchange(rhs._size, 0)),
+        _dataAddress(exchange(rhs._dataAddress, nullptr))
     {
     }
 
@@ -168,7 +168,7 @@ public:
     const value_type* dataAddress(size_type offset) const;
 
     template <typename T>
-    const T* dataAs() const noexcept { return reinterpret_cast<const T*>(_dataAddress); }
+    constexpr const T* dataAs() const noexcept { return reinterpret_cast<const T*>(_dataAddress); }
 
     template <typename T>
     const T* dataAs(size_type offset) const {
@@ -177,7 +177,6 @@ public:
 
         return reinterpret_cast<const T*>(_dataAddress + offset);
     }
-
 
 
     /**  Create a slice/window view of this memory segment.

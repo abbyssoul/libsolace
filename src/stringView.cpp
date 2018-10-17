@@ -19,26 +19,30 @@
  ******************************************************************************/
 #include "solace/stringView.hpp"
 
-#include <cstring>  // strlen
-#include <regex>
+#include <cstring>      // strlen
+#include <algorithm>    // std::min
 
 
 using namespace Solace;
 
 
-StringView::StringView(const char* data) :
-    StringView(assertNotNull(data), data ? strlen(data) : 0)
+StringView::StringView(const char* data)
+    : StringView((data != nullptr)
+               ? narrow_cast<size_type>(strlen(data))
+               : 0,
+               data)
 {
 }
 
 
 bool
 StringView::equals(StringView str) const noexcept {
-    if (size() != str.size()) {
+    auto const thisLen = size();
+    if (thisLen != str.size()) {
         return false;
     }
 
-    for (size_type i = 0; i < size(); ++i) {
+    for (size_type i = 0; i < thisLen; ++i) {
         if (_data[i] != str._data[i]) {
             return false;
         }
@@ -48,30 +52,59 @@ StringView::equals(StringView str) const noexcept {
 }
 
 
-StringView
-StringView::substring(size_type from) const {
-    assertIndexInRange(from, 0, size() + 1);
+int
+StringView::compareTo(StringView x) const noexcept {
+    auto const thisSize = size();
+    auto const xSize = x.size();
 
-    const size_type newSize = _size - from;
+    if (thisSize > xSize) {
+        return charAt(xSize - 1);
+    } else if (thisSize < xSize) {
+        return -x.charAt(xSize - 1);
+    } else {  // thisSize == xSize
+        return strncmp(_data, x._data, thisSize);
+    }
 
-    return {_data + from, newSize};
 }
 
 
 StringView
-StringView::substring(size_type from, size_type len) const {
-    assertIndexInRange(from,  0,  size() + 1, "StringView::substring(from) const");
-    assertIndexInRange(from + len,   from,  size() + 1, "StringView::substring(len) const");
+StringView::substring(size_type from) const {
+//    assertIndexInRange(from, 0, size() + 1, "StringView::substring(<from>) const");
 
-    return {_data + from, len};
+    auto const thisSize = size();
+    from = std::min(from, thisSize);
+
+    size_type const newSize = thisSize - from;
+
+    return {newSize, _data + from};
+}
+
+
+StringView
+StringView::substring(size_type from, size_type to) const {
+    auto const thisSize = size();
+
+//    assertIndexInRange(from,  0,  size() + 1, "StringView::substring(<from>, to) const");
+//    assertIndexInRange(to,  from, size() + 1, "StringView::substring(from, <to>) const");
+
+    from = std::min(from, thisSize);
+    size_type const newSize = to - from;
+    size_type const maxSize = size() - from;
+
+    return {std::min(maxSize, newSize), _data + from};
 }
 
 
 Optional<StringView::size_type>
 StringView::indexOf(const value_type& ch, size_type fromIndex) const {
-    assertIndexInRange(fromIndex,  0,  size() + 1, "StringView::indexOf() const");
+//    assertIndexInRange(fromIndex,  0, thisSize + 1, "StringView::indexOf(ch, fromIndex) const");
+    auto const thisSize = size();
+    if (thisSize < fromIndex) {
+        return none;
+    }
 
-    for (; fromIndex < size(); ++fromIndex) {
+    for (; fromIndex < thisSize; ++fromIndex) {
         if (_data[fromIndex] == ch) {
             return Optional<size_type>(fromIndex);
         }
@@ -81,16 +114,27 @@ StringView::indexOf(const value_type& ch, size_type fromIndex) const {
 }
 
 Optional<StringView::size_type>
-StringView::indexOf(const StringView& str, size_type fromIndex) const {
-    assertIndexInRange(fromIndex,  0,  size() + 1, "StringView::indexOf() const");
+StringView::indexOf(StringView str, size_type fromIndex) const {
+    auto const thisSize = size();
+    auto const strSize = str.size();
 
-    if (size() < str.size()) {
+//    assertIndexInRange(fromIndex,  0,  thisSize + 1, "StringView::indexOf(str, fromIndex) const");
+    if (thisSize < fromIndex) {
         return none;
     }
 
-    for (; fromIndex + str.size() < size() + 1; ++fromIndex) {
+    if (thisSize < strSize) {
+        return none;
+    }
+
+    if (thisSize < fromIndex + strSize) {
+        return none;
+    }
+
+    for (; fromIndex + strSize < thisSize + 1; ++fromIndex) {
         if (_data[fromIndex] == str._data[0] &&
-            substring(fromIndex, str.length()) == str) {
+            str.equals(substring(fromIndex, fromIndex + strSize))) {
+
             return Optional<size_type>(fromIndex);
         }
     }
@@ -102,10 +146,14 @@ StringView::indexOf(const StringView& str, size_type fromIndex) const {
 
 Optional<StringView::size_type>
 StringView::lastIndexOf(const value_type& ch, size_type fromIndex) const {
-    assertIndexInRange(fromIndex,  0,  size() + 1, "StringView::lastIndexOf() const");
+//    assertIndexInRange(fromIndex,  0,  size() + 1, "StringView::lastIndexOf() const");
+    auto const thisSize = size();
+    if (thisSize < fromIndex) {
+        return none;
+    }
 
     Optional<size_type> result;
-    for (; fromIndex < size(); ++fromIndex) {
+    for (; fromIndex < thisSize; ++fromIndex) {
         if (_data[fromIndex] == ch) {
             result = Optional<size_type>(fromIndex);
         }
@@ -115,17 +163,20 @@ StringView::lastIndexOf(const value_type& ch, size_type fromIndex) const {
 }
 
 Optional<StringView::size_type>
-StringView::lastIndexOf(const StringView& str, size_type fromIndex) const {
-    assertIndexInRange(fromIndex,  0,  size() + 1, "StringView::lastIndexOf() const");
+StringView::lastIndexOf(StringView str, size_type fromIndex) const {
+    auto const thisSize = size();
+    auto const strSize = str.size();
 
-    if (size() < str.size()) {
+//    assertIndexInRange(fromIndex,  0,  thisSize + 1, "StringView::lastIndexOf() const");
+
+    if ((thisSize < fromIndex) || (thisSize < strSize) || (thisSize < fromIndex + strSize)) {
         return none;
     }
 
     Optional<size_type> result;
-    for (; fromIndex + str.size() < size() + 1; ++fromIndex) {
+    for (; fromIndex + strSize < thisSize + 1; ++fromIndex) {
         if (_data[fromIndex] == str._data[0] &&
-            substring(fromIndex, str.length()) == str) {
+            str.equals(substring(fromIndex, fromIndex + strSize))) {
             result = Optional<size_type>(fromIndex);
         }
     }
@@ -136,28 +187,30 @@ StringView::lastIndexOf(const StringView& str, size_type fromIndex) const {
 
 bool
 StringView::startsWith(StringView prefix) const noexcept {
-    if (size() < prefix.size()) {
+    auto const prefixSize = prefix.size();
+    if (size() < prefixSize) {
         return false;
     }
 
-//    return strncmp(_data, str._data, str.size()) == 0;
-    return (substring(0, prefix.length()) == prefix);
+    return prefix.equals(substring(0, prefixSize));
 }
 
 
 bool
 StringView::endsWith(StringView suffix) const noexcept {
-    if (size() < suffix.size()) {
+    auto const thisSize = size();
+    auto const suffixSize = suffix.size();
+    if (thisSize < suffixSize) {
         return false;
     }
 
 //    return strncmp(_data + (size() - str.size()), str._data, str.size());
-    return (substring(size() - suffix.size(), suffix.length()) == suffix);
+    return suffix.equals(substring(thisSize - suffixSize));
 }
 
 
 StringView
-StringView::trim() const {
+StringView::trim() const noexcept {
     size_type fromIndex = 0;
 
     while (fromIndex < length() && Char::isWhitespace(_data[fromIndex])) {
@@ -169,11 +222,11 @@ StringView::trim() const {
         --toIndex;
     }
 
-    return substring(fromIndex, toIndex - fromIndex);
+    return substring(fromIndex, toIndex);
 }
 
 StringView
-StringView::trim(value_type delim) const {
+StringView::trim(value_type delim) const noexcept {
     size_type fromIndex = 0;
 
     while (fromIndex < length() && _data[fromIndex] == delim) {
@@ -185,7 +238,7 @@ StringView::trim(value_type delim) const {
         --toIndex;
     }
 
-    return substring(fromIndex, toIndex - fromIndex);
+    return substring(fromIndex, toIndex);
 }
 
 
@@ -199,61 +252,3 @@ StringView::hashCode() const noexcept {
 
     return result;
 }
-
-/*
-Array<StringView>
-StringView::split(value_type delim) const {
-
-    size_type delimCount = 0;
-    for (const auto c : *this){
-        if (c == delim) {
-            ++delimCount;
-        }
-    }
-
-    Array<StringView> result(delimCount + 1);
-    Array<StringView>::size_type i = 0;
-    size_type to = 0, from = 0;
-    for (; to < size(); ++to) {
-        if (_data[to] == delim) {
-            result[i++] = substring(from, to - from);
-            from = to + 1;
-        }
-    }
-
-    result[i++] = substring(from, size() - from);
-
-
-    return result;
-}
-
-Array<StringView>
-StringView::split(StringView delim) const {
-
-    const auto delimLength = delim.length();
-    size_type delimCount = 0;
-
-    for (size_type i = 0; i < size() && delimLength + i <= size(); ++i){
-        if (substring(i, delimLength) == delim) {
-            ++delimCount;
-            i += delimLength - 1;
-        }
-    }
-
-    Array<StringView> result(delimCount + 1);
-    Array<StringView>::size_type i = 0;
-    size_type to = 0, from = 0;
-    for (; to < size() && delimLength + to <= size(); ++to) {
-        if (substring(to, delimLength) == delim) {
-            result[i++] = substring(from, to - from);
-            to += delimLength - 1;
-            from = to + 1;
-        }
-    }
-
-    result[i++] = substring(from, size() - from);
-
-
-    return result;
-}
-*/

@@ -55,9 +55,8 @@ inline std::ostream& operator<< (std::ostream& ostr, Solace::MemoryView view) {
 }
 
 
-// FIXME: std dependence, used for Unit Testing only
 inline std::ostream& operator<< (std::ostream& ostr, Solace::String const& str) {
-    return ostr << str.c_str();
+    return ostr << str.view();
 }
 
 

@@ -141,7 +141,8 @@ MutableMemoryView UUID::view() noexcept {
 String
 UUID::toString() const {
     char buffer[StringSize];
-    return toString(wrapMemory(buffer));
+
+    return makeString(toString(wrapMemory(buffer)));
 }
 
 
@@ -176,7 +177,7 @@ charToBin(byte c);
 Result<UUID, Error>
 UUID::parse(StringView const& str) {
     if (str.size() != StringSize) {
-        return Err(Error("Not enough data"));
+        return Err(makeError(SystemErrors::NODATA, "UUID::parse()"));
     }
 
     byte data[StaticSize];

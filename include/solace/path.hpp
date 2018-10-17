@@ -59,8 +59,9 @@ namespace Solace {
 class Path {
 public:
 
-    using size_type = Array<String>::size_type;
-    using const_iterator = Array<String>::const_iterator;
+    using value_type = String;
+    using size_type = Array<value_type>::size_type;
+    using const_iterator = Array<value_type>::const_iterator;
 
 public:  // Static methods
 
@@ -219,9 +220,17 @@ public:  // Operation
      * @param str The substring to search for.
      * @return <b>true</b> if the path contains the substring, <b>false</b> otherwise.
      */
-    bool contains(const String& str) const {
+    bool contains(StringView str) const {
         // FIXME: Wasteful allocation of string representation
         return toString().contains(str);
+    }
+    /** Determine if the path string representation contains a given substring.
+     *
+     * @param str The substring to search for.
+     * @return <b>true</b> if the path contains the substring, <b>false</b> otherwise.
+     */
+    bool contains(String const& str) const {
+        return contains(str.view());
     }
 
     /** Returns a path that is this path with redundant name elements eliminated.
@@ -251,7 +260,9 @@ public:  // Operation
      * @brief getComponentsCount
      * @return Number of path elements in this path
      */
-    size_type getComponentsCount() const noexcept;
+    constexpr size_type getComponentsCount() const noexcept {
+        return _components.size();
+    }
 
     /** Get number of components this path includes
      * @brief getComponentsCount
@@ -276,13 +287,25 @@ public:  // Operation
 
     /** @see Iterable::forEach */
     template<typename F>
-    const Path& forEach(F&& f) const {
+    std::enable_if_t<isCallable<F, const value_type&>::value, const Path& >
+    forEach(F&& f) const {
         for (auto const& i : _components) {
             f(i);
         }
 
         return *this;
     }
+
+    template<typename F>
+    std::enable_if_t<isCallable<F, value_type&&>::value, Path& >
+    forEach(F&& f) && {
+        for (auto& i : _components) {
+            f(std::move(i));
+        }
+
+        return *this;
+    }
+
 
     /** Get string representation of the path object using give delimiter */
     String toString(StringView delim) const;
@@ -353,9 +376,92 @@ Path makePath(Vector<String>&& vec) {
 }
 
 
+namespace details {
+
+constexpr Path::size_type countPathComponents()                 noexcept { return 0; }
+constexpr Path::size_type countPathComponents(StringView)       noexcept { return 1; }
+constexpr Path::size_type countPathComponents(StringLiteral)    noexcept { return 1; }
+constexpr Path::size_type countPathComponents(String const&)    noexcept { return 1; }
+constexpr Path::size_type countPathComponents(String&)          noexcept { return 1; }
+constexpr Path::size_type countPathComponents(char const*)      noexcept { return 1; }
+constexpr Path::size_type countPathComponents(Path const& path) noexcept { return path.getComponentsCount(); }
+constexpr Path::size_type countPathComponents(Path& path)       noexcept { return path.getComponentsCount(); }
+
+template<typename T, typename...Args>
+Path::size_type countPathComponents(T&& base, Args&&...args) {
+    return (countPathComponents(base) + countPathComponents(std::forward<Args>(args)...));
+}
+
+
+inline void joinComponents(Vector<String>& base, StringView view) {
+    base.emplace_back(makeString(view));
+}
+
+inline void joinComponents(Vector<String>& base, String&& str) {
+    base.emplace_back(std::move(str));
+}
+
+inline void joinComponents(Vector<String>& base, String const& str) {
+    base.emplace_back(makeString(str));
+}
+
+inline void joinComponents(Vector<String>& base, Path&& path) {
+    std::move(path).forEach([&base](Path::value_type&& component) {
+        base.emplace_back(std::move(component));
+    });
+}
+
+inline void joinComponents(Vector<String>& base, Path const& path) {
+    for (auto const& component : path) {
+        base.emplace_back(makeString(component));
+    }
+}
+
+
+template <typename...Args>
+void joinComponents(Vector<String>& base, StringView view, Args&&...args) {
+    joinComponents(base, view);
+    joinComponents(base, std::forward<Args>(args)...);
+}
+
+template <typename...Args>
+void joinComponents(Vector<String>& base, String const& view, Args&&...args) {
+    joinComponents(base, view);
+    joinComponents(base, std::forward<Args>(args)...);
+}
+
+
+template <typename...Args>
+void joinComponents(Vector<String>& base, Path const& path, Args&&...args) {
+    joinComponents(base, path);
+    joinComponents(base, std::forward<Args>(args)...);
+}
+
+}  // namespace details
+
+/*
+template<typename...Args>
+Path makePath(Path const& base, Args&&...args) {
+    auto components = makeVector<String>(details::countComponentes(base, std::forward<Args>(args)...));
+    details::joinComponents(components, base, std::forward<Args>(args)...);
+
+    return makePath(std::move(components));
+}
+*/
+
+template<typename...Args>
+Path makePath(Args&&...args) {
+    auto components = makeVector<Path::value_type>(details::countPathComponents(std::forward<Args>(args)...));
+    details::joinComponents(components, std::forward<Args>(args)...);
+
+    return makePath(std::move(components));
+}
+
+
 /**
  * Join paths objects into a single path
  */
+/*
 Path makePath(Path const& base, Path const& rhs);
 Path makePath(Path const& base, std::initializer_list<Path> paths);
 Path makePath(std::initializer_list<Path> components);
@@ -373,6 +479,6 @@ inline
 Path makePath(Path const& base, char const* rhs) { return makePath(base, StringView(rhs)); }
 Path makePath(Path const& base, std::initializer_list<const char*> paths);
 Path makePath(std::initializer_list<const char*> components);
-
+*/
 }  // namespace Solace
 #endif  // SOLACE_PATH_HPP

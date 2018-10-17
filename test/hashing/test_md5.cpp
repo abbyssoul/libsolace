@@ -28,9 +28,7 @@ using namespace Solace;
 using namespace Solace::hashing;
 
 TEST(TestHashingMD5, testAlgorithmName) {
-    MD5 hash;
-
-    EXPECT_EQ(String("MD5"), hash.getAlgorithm());
+    EXPECT_EQ(StringLiteral("MD5"), MD5{}.getAlgorithm());
 }
 
 TEST(TestHashingMD5, hashEmptyMessage) {

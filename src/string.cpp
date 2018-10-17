@@ -15,15 +15,11 @@
 */
 /*******************************************************************************
  *	@file		solace/string.cpp
- *	@author		$LastChangedBy: soultaker $
- *	@date		$LastChangedDate: 2009-11-18 02:28:25 +0300 (Wed, 18 Nov 2009) $
- *	@brief		Definition of extended String from APRIL.
- *	ID:			$Id: aprilString.cpp 179 2009-11-17 23:28:25Z soultaker $
+ *	@brief		Implementation of fixed size String.
  ******************************************************************************/
 #include "solace/string.hpp"
 
-#include <cstring>
-#include <vector>
+
 
 
 using namespace Solace;
@@ -31,356 +27,220 @@ using namespace Solace;
 
 
 const String String::Empty{};
-const String TRUE_STRING("true");
-const String FALSE_STRING("false");
+const String TRUE_STRING = makeString("true");
+const String FALSE_STRING = makeString("false");
 
 
-String::String(const char* data) :
-    _str(assertNotNull(data)) {
+
+String
+Solace::makeString(StringView view) {
+    auto buffer = getSystemHeapMemoryManager().create(view.size() * sizeof(StringView::value_type));    // May throw
+
+    // Copy string view content into a new buffer
+    buffer.view().write(view.view());
+
+    return { std::move(buffer), view.size() };
 }
 
 
-String::String(const char* data, size_type dataLength): _str(data, dataLength) {
+String
+Solace::makeStringReplace(StringView str, String::value_type what, String::value_type with) {
+    auto const totalStrLen = str.size();
+    auto buffer = getSystemHeapMemoryManager().create(totalStrLen * sizeof(StringView::value_type));    // May throw
+    auto bufferView = buffer.view();
+
+    bufferView.write(str.view());
+
+    for (StringView::size_type to = 0; to < totalStrLen; ++to) {
+        auto offsetValue = bufferView.dataAs<StringView::value_type>(to);
+        if (*offsetValue == what) {
+            *offsetValue = with;
+        }
+    }
+
+    return { std::move(buffer), totalStrLen };
 }
 
-String::String(StringView view) :
-        _str(view.data(), view.size())
-{
+
+String
+Solace::makeStringReplace(StringView str, StringView what, StringView by) {
+    auto const srcStrLen = str.size();
+    auto const delimLength = what.size();
+    StringView::size_type delimCount = 0;
+
+    for (StringView::size_type i = 0; i < srcStrLen && i + delimLength <= srcStrLen; ++i) {
+        if (what.equals(str.substring(i, i + delimLength))) {
+            delimCount += 1;
+            i += delimLength - 1;
+        }
+    }
+
+    auto const byLen = by.size();
+
+    // Note:  srcStrLen >= delimLength*delimCount. Thus this should not overflow.
+    auto const newStrLen = narrow_cast<StringView::size_type>(srcStrLen + byLen * delimCount - delimLength*delimCount);
+
+    auto buffer = getSystemHeapMemoryManager().create(newStrLen * sizeof(StringView::value_type));    // May throw
+    auto writer = ByteWriter(buffer.view());
+
+    StringView::size_type from = 0;
+    for (StringView::size_type to = 0; to < srcStrLen && to + delimLength <= srcStrLen; ++to) {
+        if (what.equals(str.substring(to, to + delimLength))) {
+            auto const tokLen = narrow_cast<StringView::size_type>(to - from);
+
+            writer.write(str.substring(from, from + tokLen).view());
+            writer.write(by.view());
+
+            to += delimLength - 1;
+            from = to + 1;
+        }
+    }
+
+    writer.write(str.substring(from).view());
+
+    return { std::move(buffer), newStrLen };
 }
+
 
 
 String& String::swap(String& rhs) noexcept {
-    _str.swap(rhs._str);
+    using std::swap;
+    _buffer.swap(rhs._buffer);
+    swap(_size, rhs._size);
 
     return *this;
 }
 
-bool String::empty() const  noexcept {
-    return _str.empty();
+bool String::equals(StringView v) const noexcept {
+    return view().equals(v);
 }
 
-String::size_type String::length() const noexcept {
-    return static_cast<size_type>(_str.length());
+int String::compareTo(StringView other) const noexcept {
+    return view().compareTo(other);
 }
 
-String::size_type String::size() const noexcept {
-    return static_cast<size_type>(_str.length());
+String::value_type
+String::charAt(size_type index) const {
+    return view().charAt(index);
 }
 
-bool String::equals(const String& v) const noexcept {
-    return (_str == v._str);
-}
-
-bool String::equals(const char* v) const {
-    return _str.compare(v) == 0;
-}
-
-
-bool String::equals(StringView v) const {
-    return _str.compare(0, _str.length(), v.data(), v.size()) == 0;
-}
-
-
-int String::compareTo(const String& other) const {
-    return _str.compare(other._str);
-}
-
-int String::compareTo(const char* other) const {
-    return _str.compare(other);
-}
-
-String::value_type String::charAt(size_type index) const {
-    return _str.at(index);
+Optional<String::size_type>
+String::indexOf(value_type ch, size_type fromIndex) const {
+    return view().indexOf(ch, fromIndex);
 }
 
 
 Optional<String::size_type>
-String::indexOf(const String& str, size_type fromIndex) const {
-    const auto index = _str.find(str._str, fromIndex);
-
-    return (index != std::string::npos)
-            ? Optional<size_type>(index)
-            : none;
+String::indexOf(StringView str, size_type fromIndex) const {
+    return view().indexOf(str, fromIndex);
 }
 
 Optional<String::size_type>
-String::indexOf(const value_type& ch, size_type fromIndex) const {
-    const auto index = _str.find(ch.getValue(), fromIndex);
-
-    return (index != std::string::npos)
-            ? Optional<size_type>(index)
-            : none;
+String::lastIndexOf(value_type ch, size_type fromIndex) const {
+    return view().lastIndexOf(ch, fromIndex);
 }
 
 Optional<String::size_type>
-String::indexOf(const char* str, size_type fromIndex) const {
-    const auto index = _str.find(str, fromIndex);
-
-    return (index != std::string::npos)
-            ? Optional<size_type>(index)
-            : none;
+String::lastIndexOf(StringView str, size_type fromIndex) const {
+    return view().lastIndexOf(str, fromIndex);
 }
 
-Optional<String::size_type>
-String::lastIndexOf(const String& str, size_type fromIndex) const {
-    const auto thisSize = size();
 
-    std::string::size_type index = fromIndex;
-    std::string::size_type lastIndex = std::string::npos;
-    while ((index < thisSize) &&
-           (index = _str.find(str._str, index)) != std::string::npos)
-    {
-        lastIndex = index;
-        index += str._str.length();
-    }
-
-    return (lastIndex != std::string::npos)
-            ? Optional<size_type>(lastIndex)
-            : none;
+bool String::startsWith(StringView prefix) const {
+    return view().startsWith(prefix);
 }
 
-Optional<String::size_type>
-String::lastIndexOf(const value_type& ch, size_type fromIndex) const {
-    const auto thisSize = size();
-
-    const auto chSize = ch.getBytesCount();
-    std::string::size_type index = fromIndex;
-    std::string::size_type lastIndex = std::string::npos;
-    while ((index < thisSize) &&
-           (index = _str.find(ch.c_str(), index, chSize)) != std::string::npos) {
-        lastIndex = index;
-        index += chSize;
-    }
-
-    return (lastIndex != std::string::npos)
-            ? Optional<size_type>(lastIndex)
-            : none;
+bool String::startsWith(value_type prefix) const {
+    return view().startsWith(prefix);
 }
 
-Optional<String::size_type>
-String::lastIndexOf(const char* str, size_type fromIndex) const {
-    const auto thisSize = size();
-    const auto strLen = strlen(str);
-
-    std::string::size_type index = fromIndex;
-    auto lastIndex = std::string::npos;
-    while ((index < thisSize) &&
-           (index = _str.find(str, index)) != std::string::npos) {
-        lastIndex = index;
-        index += strLen;
-    }
-
-    return (lastIndex != std::string::npos)
-            ? Optional<size_type>(lastIndex)
-            : none;
+bool String::endsWith(StringView suffix) const {
+    return view().endsWith(suffix);
 }
 
-String String::concat(const String& str) const {
-    return String(_str + str._str);
+bool String::endsWith(value_type suffix) const {
+    return view().endsWith(suffix);
 }
 
-String String::concat(const char* str) const {
-    return String(_str + str);
+
+uint64
+String::hashCode() const {
+    return view().hashCode();
 }
 
-String String::replace(const value_type& what, const value_type& with) const {
-    std::string subject(_str);
-    std::string::size_type pos = 0;
 
-    const Char::size_type whatSize = what.getBytesCount();
-    const Char::size_type withSize = with.getBytesCount();
-
-    while ((pos = subject.find(what.c_str(), pos, whatSize)) != std::string::npos) {
-        subject.replace(pos, what.getBytesCount(), with.c_str());
-        pos += withSize;
-    }
-
-    return String{ std::move(subject) };
+StringView
+String::trim() const noexcept {
+    return view().trim();
 }
 
-String String::replace(const String& what, const String& by) const {
-    std::string subject(_str);
-    std::string::size_type pos = 0;
 
-    while ((pos = subject.find(what._str, pos)) != std::string::npos) {
-        subject.replace(pos, what._str.length(), by._str);
-        pos += by._str.length();
-    }
-
-    return String{ std::move(subject) };
-}
 
 /*
-Array<String> String::split(const String& expr) const {
-    std::vector<String> result;
-    auto const splits = view().split(expr.view());
-    result.reserve(splits.size());
-
-    for (auto& s : splits) {
-        result.emplace_back(s);
+String
+String::join(StringView by, std::initializer_list<String> list) {
+    std::string buffer;
+    size_type total_size = 0;
+    for (auto& s : list) {
+        total_size += s.size();
     }
 
-    return {result};
+    if (list.size() > 1) {
+        total_size += (list.size() - 1) * by.size();
+    }
+    buffer.reserve(total_size);
+
+    size_type i = 0;
+    for (auto& s : list) {
+        buffer.append(s._str);
+        if (++i < list.size()) {
+            buffer.append(by.data(), by.size());
+        }
+    }
+
+    return String(buffer);
 }
 */
 
-String String::substring(size_type from, size_type len) const {
-    return String(_str.substr(from, len));
-}
-
-String String::substring(size_type from) const {
-    return String(_str.substr(from));
-}
-
-
-String String::trim() const {
-
-    size_type firstNonWhitespace = 0;
-    while (firstNonWhitespace < _str.size() &&
-            Char::isWhitespace(_str[firstNonWhitespace])) {
-        ++firstNonWhitespace;
-    }
-
-    // This string is whitespaces only
-    if (firstNonWhitespace == _str.size())
-        return Empty;
-
-    size_type lastNonWhitespace = _str.size() - 1;
-    while (lastNonWhitespace > firstNonWhitespace &&
-           Char::isWhitespace(_str[lastNonWhitespace])) {
-        --lastNonWhitespace;
-    }
-
-    return substring(firstNonWhitespace, lastNonWhitespace - firstNonWhitespace + 1);
-}
-
-String String::toLowerCase() const {
-    std::string res;
-
-    res.reserve(_str.size());
-    for (auto c : _str) {
-        auto lower = Char::toLower(c);
-        res.push_back(lower.c_str()[0]);  // FIXME(abbyssoul): Non-UTF8 compatible code
-    }
-
-    return String{ std::move(res) };
-}
-
-String String::toUpperCase() const {
-    std::string res;
-
-    res.reserve(_str.size());
-    for (auto c : _str) {
-        auto lower = Char::toUpper(c);
-        res.push_back(lower.c_str()[0]);  // FIXME(abbyssoul): Non-UTF8 compatible code
-    }
-
-    return String{ std::move(res) };
-}
-
-
-bool String::startsWith(const String& prefix) const {
-    if (empty())
-        return prefix.empty();
-
-    if (prefix.empty())
-        return empty();
-
-    if (prefix.size() > size())
-        return false;
-
-    return std::strncmp(_str.data(), prefix._str.data(), prefix.size()) == 0;
-}
-
-bool String::startsWith(const value_type& prefix) const {
-    return empty() ? false :
-            Char::equals(prefix, _str[0]);
-}
-
-bool String::endsWith(const String& suffix) const {
-    if (empty())
-        return suffix.empty();
-
-    if (suffix.empty())
-        return empty();
-
-    if (suffix.size() > size())
-        return false;
-
-    return std::strncmp(_str.data() + (_str.size() - suffix.size()), suffix._str.data(), suffix.size()) == 0;
-}
-
-bool String::endsWith(const value_type& suffix) const {
-    return empty() ? false :
-           Char::equals(suffix, _str[_str.size() - 1]);
-}
-
-uint64 String::hashCode() const {
-    return std::hash<std::string>()(_str);
-}
-
-const char* String::c_str() const {
-    return _str.c_str();
-}
-
-String String::join(StringView by, std::initializer_list<String> list) {
-    std::string buffer;
-    size_type total_size = 0;
-    for (auto& s : list) {
-        total_size += s.size();
-    }
-
-    if (list.size() > 1) {
-        total_size += (list.size() - 1) * by.size();
-    }
-    buffer.reserve(total_size);
-
-    size_type i = 0;
-    for (auto& s : list) {
-        buffer.append(s._str);
-        if (++i < list.size()) {
-            buffer.append(by.data(), by.size());
-        }
-    }
-
-    return String(buffer);
-}
-
 /** Return jointed string from the given collection */
 String
-String::join(StringView by, ArrayView<const String> list) {
-    std::string buffer;
-    size_type total_size = 0;
-    for (auto const& s : list) {
-        total_size += s.size();
+Solace::makeStringJoin(StringView by, ArrayView<const String> list) {
+    auto totalStrLen = narrow_cast<StringView::size_type>(by.size() * (list.size() - 1));
+    for (auto const& i : list) {
+        totalStrLen += i.size();
     }
 
-    if (list.size() > 1) {
-        total_size += (list.size() - 1) * by.size();
-    }
-    buffer.reserve(total_size);
+    auto buffer = getSystemHeapMemoryManager().create(totalStrLen * sizeof(StringView::value_type));    // May throw
+    auto writer = ByteWriter(buffer.view());
 
-    size_type i = 0;
-    for (auto const& s : list) {
-        buffer.append(s._str);
-        if (++i < list.size()) {
-            buffer.append(by.data(), by.size());
+    // Copy string view content into a new buffer
+    auto count = list.size();
+    for (auto const& i : list) {
+        auto const iView = i.view();
+        writer.write(iView.view());
+        count -= 1;
+
+        if (count > 0) {
+            writer.write(by.view());
         }
     }
 
-    return String(buffer);
+    return { std::move(buffer), totalStrLen };
 }
 
+
+
 /** Return String representation of boolen value **/
+/*
 String String::valueOf(bool value) {
     return (value)
-            ? TRUE_STRING
-            : FALSE_STRING;
+            ? makeString(TRUE_STRING)
+            : makeString(FALSE_STRING);
 }
 
 
 String String::valueOf(StringView value) {
-    return value;
+    return makeString(value);
 }
 
 String String::valueOf(int32 val) {
@@ -406,3 +266,4 @@ String String::valueOf(float32 val) {
 String String::valueOf(float64 val) {
     return String{ std::to_string(val) };
 }
+*/

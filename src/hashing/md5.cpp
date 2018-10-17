@@ -26,7 +26,7 @@ using namespace Solace;
 using namespace Solace::hashing;
 
 
-static const String MD5_NAME = "MD5";
+static const StringLiteral MD5_NAME = "MD5";
 
 static const byte md5_padding[64] = {
  0x80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -203,7 +203,7 @@ MD5::MD5() {
 }
 
 
-String MD5::getAlgorithm() const {
+StringView MD5::getAlgorithm() const {
     return MD5_NAME;
 }
 

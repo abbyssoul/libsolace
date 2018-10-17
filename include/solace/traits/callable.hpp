@@ -46,5 +46,9 @@ struct isCallable {
     static constexpr bool value = decltype(test<F, Args...>(nullptr))::value;
 };
 
+
+template<typename F, typename...Args>
+using isCallable_v = typename isCallable<F, Args...>::value;
+
 }  // End of namespace Solace
 #endif  // SOLACE_TRAITS_CALLABLE_HPP

@@ -79,8 +79,8 @@ public:
 
 TEST_F(TestPlatformFs, testCreation) {
     const auto fileUID = UUID::random();
-    const auto filename = Path::parse(String::join("-", {"test", fileUID.toString()}).view()).unwrap();
-    const auto& fileUIDBytes = fileUID.view();
+    const auto filename = Path::parse(makeStringJoin("-", "test", fileUID.toString()).view()).unwrap();
+    const auto fileUIDBytes = fileUID.view();
 
     auto fs = PlatformFilesystem();
     if (fs.exists(filename)) {
@@ -117,8 +117,8 @@ TEST_F(TestPlatformFs, testCreation) {
 
 TEST_F(TestPlatformFs, testCreationAndRemoval) {
     const auto fileUID = UUID::random();
-    const auto filename = Path::parse(String::join("-", {"test", fileUID.toString()}).view()).unwrap();
-    const auto& fileUIDBytes = fileUID.view();
+    const auto filename = Path::parse(makeStringJoin("-", "test", fileUID.toString()).view()).unwrap();
+    const auto fileUIDBytes = fileUID.view();
 
     auto fs = PlatformFilesystem();
     if (fs.exists(filename)) {

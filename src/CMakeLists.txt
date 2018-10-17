@@ -2,7 +2,9 @@
 set(SOURCE_FILES
         assert.cpp
         exception.cpp
+        errorDomain.cpp
         error.cpp
+        atom.cpp
         char.cpp
 
         memoryView.cpp

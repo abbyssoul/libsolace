@@ -35,6 +35,16 @@
 
 using namespace Solace;
 
+
+static const AtomValue kFutureTestCatergory = atom("fut-test");
+
+inline
+Error makeFutureError(int errCode, StringLiteral tag) {
+    return Error{kFutureTestCatergory, errCode, tag};
+}
+
+
+
 static int resolveVoidFunc() {
     return 99881;
 }
@@ -214,7 +224,7 @@ TEST(TestFuture, structFutureErrorContinuation) {
         resolved3 = (c.x == 4);
     });
 
-    p.setError(Error("testing", 789));
+    p.setError(makeFutureError(789, "structFutureErrorContinuation"));
 
     EXPECT_TRUE(!resolved1);
     EXPECT_TRUE(resolved2);
@@ -242,7 +252,7 @@ TEST(TestFuture, integralFutureErrorContinuation) {
         resolved3 = (c == 'n');
     });
 
-    p.setError(Error("testing", 4433));
+    p.setError(makeFutureError(4433, "integralFutureErrorContinuation"));
 
     EXPECT_TRUE(!resolved1);
     EXPECT_TRUE(resolved2);
@@ -267,7 +277,7 @@ TEST(TestFuture, voidFutureErrorContinuation) {
         resolved3 = true;
     });
 
-    p.setError(Error("testing", 789));
+    p.setError(makeFutureError(789, "voidFutureErrorContinuation"));
 
     EXPECT_TRUE(!resolved1);
     EXPECT_TRUE(resolved2);
@@ -291,7 +301,7 @@ TEST(TestFuture, structFutureErrorResultErrors) {
     .onError([&resolved2](Error&& e) -> Result<SimpleType, Error> {
         resolved2 = (e.value() == 5355);
 
-        return Err(Error("testing", -8152));
+        return Err(makeFutureError(-8152, "structFutureErrorResultErrors-1"));
     })
     .then([&resolved3](SimpleType&& ) {
         resolved3 = true;
@@ -300,7 +310,7 @@ TEST(TestFuture, structFutureErrorResultErrors) {
         resolved4 = (e.value() == -8152);
     });
 
-    p.setError(Error("testing", 5355));
+    p.setError(makeFutureError(5355, "structFutureErrorResultErrors-2"));
 
     EXPECT_TRUE(!resolved1);
     EXPECT_TRUE(resolved2);
@@ -324,7 +334,7 @@ TEST(TestFuture, integralFutureErrorResultErrors) {
     .onError([&resolved2](Error&& e) -> Result<int, Error> {
         resolved2 = (e.value() == 5355);
 
-        return Err(Error("testing", -8152));
+        return Err(makeFutureError(-8152, "integralFutureErrorResultErrors-1"));
     })
     .then([&resolved3](int ) {
         resolved3 = true;
@@ -333,7 +343,7 @@ TEST(TestFuture, integralFutureErrorResultErrors) {
         resolved4 = (e.value() == -8152);
     });
 
-    p.setError(Error("testing", 5355));
+    p.setError(makeFutureError(5355, "integralFutureErrorResultErrors-2"));
 
     EXPECT_TRUE(!resolved1);
     EXPECT_TRUE(resolved2);
@@ -355,7 +365,7 @@ TEST(TestFuture, voidFutureErrorResultErrors) {
     .onError([&resolved2](Error&& e) -> Result<void, Error> {
         resolved2 = (e.value() == 7744);
 
-        return Err(Error("testing", -4424));
+        return Err(makeFutureError(-4424, "voidFutureErrorResultErrors-1"));
     })
     .then([&resolved3]() {
         resolved3 = true;
@@ -364,7 +374,7 @@ TEST(TestFuture, voidFutureErrorResultErrors) {
         resolved4 = (e.value() == -4424);
     });
 
-    p.setError(Error("testing", 7744));
+    p.setError(makeFutureError(7744, "voidFutureErrorResultErrors-2"));
 
     EXPECT_TRUE(!resolved1);
     EXPECT_TRUE(resolved2);
@@ -441,7 +451,7 @@ TEST(TestFuture, integralFutureVoidFutureContinuation) {
     auto p2 = Promise<void>();
 
     f.then([&resolved1, &p2](int x) {
-        resolved1 = (x = 887);
+        resolved1 = (x == 887);
 
         return p2.getFuture();
     })
@@ -514,7 +524,7 @@ TEST(TestFuture, integralFutureIntegralFutureErrorsContinuation) {
     EXPECT_TRUE(!resolved2);
     EXPECT_TRUE(!resolved3);
 
-    p2.setError(Error("Testing testing", 123));
+    p2.setError(makeFutureError(123, "integralFutureIntegralFutureErrorsContinuation"));
     EXPECT_TRUE(resolved1);
     EXPECT_TRUE(!resolved2);
     EXPECT_TRUE(resolved3);
@@ -547,7 +557,7 @@ TEST(TestFuture, voidFutureIntegralFutureErrorsContinuation) {
     EXPECT_TRUE(!resolved2);
     EXPECT_TRUE(!resolved3);
 
-    p2.setError(Error("Testing testing", 321));
+    p2.setError(makeFutureError(321, "voidFutureIntegralFutureErrorsContinuation"));
     EXPECT_TRUE(resolved1);
     EXPECT_TRUE(!resolved2);
     EXPECT_TRUE(resolved3);
@@ -580,7 +590,7 @@ TEST(TestFuture, integralFutureVoidFutureErrorsContinuation) {
     EXPECT_TRUE(!resolved2);
     EXPECT_TRUE(!resolved3);
 
-    p2.setError(Error("Testing testing", -231));
+    p2.setError(makeFutureError(-231, "integralFutureVoidFutureErrorsContinuation"));
     EXPECT_TRUE(resolved1);
     EXPECT_TRUE(!resolved2);
     EXPECT_TRUE(resolved3);
@@ -613,7 +623,7 @@ TEST(TestFuture, voidFutureVoidFutureErrorsContinuation) {
     EXPECT_TRUE(!resolved2);
     EXPECT_TRUE(!resolved3);
 
-    p2.setError(Error("Testing testing", 543));
+    p2.setError(makeFutureError(543, "voidFutureVoidFutureErrorsContinuation"));
     EXPECT_TRUE(resolved1);
     EXPECT_TRUE(!resolved2);
     EXPECT_TRUE(resolved3);
@@ -721,7 +731,7 @@ TEST(TestFuture, integralFutureIntegralResultErrorsContinuation) {
     f.then([&resolved1](char x) -> Result<int, Error> {
         resolved1 = (x == 'n');
 
-        return Err(Error("test", -525));
+        return Err(makeFutureError(-525, "integralFutureIntegralResultErrorsContinuation"));
     })
     .then([&resolved2](int ) {
         resolved2 = true;
@@ -747,7 +757,7 @@ TEST(TestFuture, voidFutureIntegralResultErrorsContinuation) {
     f.then([&resolved1]() -> Result<int, Error> {
         resolved1 = true;
 
-        return Err(Error("test", -525));
+        return Err(makeFutureError(-525, "voidFutureIntegralResultErrorsContinuation"));
     })
     .then([&resolved2](int x) {
         resolved2 = (x == 6568);
@@ -773,7 +783,7 @@ TEST(TestFuture, integralFutureVoidResultErrorsContinuation) {
     f.then([&resolved1](char x) -> Result<void, Error> {
         resolved1 = (x == 'n');
 
-        return Err(Error("test", -525));
+        return Err(makeFutureError(-525, "integralFutureVoidResultErrorsContinuation"));
     })
     .then([&resolved2]() {
         resolved2 = true;
@@ -799,7 +809,7 @@ TEST(TestFuture, voidFutureVoidResultErrorsContinuation) {
     f.then([&resolved1](void) -> Result<void, Error> {
         resolved1 = true;
 
-        return Err(Error("test", 95546));
+        return Err(makeFutureError(95546, "voidFutureVoidResultErrorsContinuation"));
     })
     .then([&resolved2]() {
         resolved2 = true;
@@ -950,7 +960,7 @@ TEST(TestFuture, testOnErrorHandler) {
     });
 
 
-    p1.setError(Solace::Error("Test error"));
+    p1.setError(makeFutureError(0, "testOnErrorHandler"));
     EXPECT_TRUE(!firstCallbackOk);
     EXPECT_TRUE(secondCallbackOk);
 }
@@ -977,7 +987,7 @@ TEST(TestFuture, testOnErrorRestoresTheChain) {
     });
 
 
-    p1.setError(Solace::Error("Test error"));
+    p1.setError(makeFutureError(1, "testOnErrorRestoresTheChain"));
     EXPECT_TRUE(!firstCallbackOk);
     EXPECT_TRUE(secondCallbackOk);
     EXPECT_TRUE(thirdCallbackOk);
@@ -1030,15 +1040,15 @@ TEST(TestFuture, testVoidPromiseThrowsOnDoubleSetValue) {
 TEST(TestFuture, testIntegralPromiseThrowsOnDoubleSetError) {
     Promise<int> promise;
 
-    promise.setError(Error("testError", 991));
-    EXPECT_THROW(promise.setError(Error("testError", -187)), Solace::Exception);
+    promise.setError(makeFutureError(991, "testIntegralPromiseThrowsOnDoubleSetError-1"));
+    EXPECT_THROW(promise.setError(makeFutureError(-187, "testIntegralPromiseThrowsOnDoubleSetError-2")), Solace::Exception);
 }
 
 TEST(TestFuture, testVoidPromiseThrowsOnDoubleSetError) {
     Promise<void> promise;
 
-    promise.setError(Error("testError", 991));
-    EXPECT_THROW(promise.setError(Error("testError", -187)), Solace::Exception);
+    promise.setError(makeFutureError(993, "testVoidPromiseThrowsOnDoubleSetError"));
+    EXPECT_THROW(promise.setError(makeFutureError(-186, "testVoidPromiseThrowsOnDoubleSetError")), Solace::Exception);
 }
 
 
@@ -1140,7 +1150,7 @@ TEST(TestFuture, testCollectIntegralWhenOneFailure) {
     int index = 0;
     for (auto& promise : promises) {
         if ((index % failEach) == 0) {
-            promise.setError(Error("failed", 321));
+            promise.setError(makeFutureError(321, "testCollectIntegralWhenOneFailure"));
         } else {
             promise.setValue(bias + index);
         }
@@ -1183,7 +1193,7 @@ TEST(TestFuture, testCollectVoidWhenOneFailure) {
     int index = 0;
     for (auto& promise : promises) {
         if ((index % failEach) == 0) {
-            promise.setError(Error("failed", 321));
+            promise.setError(makeFutureError(3211, "testCollectVoidWhenOneFailure"));
         } else {
             promise.setValue();
         }

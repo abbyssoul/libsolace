@@ -34,3 +34,16 @@ Only exception is when return is the only statement in a method.
         return result;
     }
 ```
+
+# Resource management and move semantics
+All classes that manage resources (sucha as memory, files, etc) - are creates via
+factory functions. This is done so that user could explicitly pass resource manager.
+For example - if you need a `vector` that needs to allocate memory for storage - you need to pass
+an instance of memeory manager - used for memory allocation - to a factory that constructs `vector`.
+
+Thus, following conventions are used:
+
+ - All non-trivial library types are movable.
+ - All default constructors are `constexpr noexcept`
+   If class provides a default constructor it is `noexcept` as it is not managing resources
+ - size(), empty(), equals() - getters are `constexpr noexcept`

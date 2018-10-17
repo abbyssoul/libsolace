@@ -97,7 +97,10 @@ SharedMemory::~SharedMemory() {
 
         if (_linkedPath) {
             // Unlinking quietly - if the file has been unlinked alredy - we don't care.
-            shm_unlink(_linkedPath.toString().c_str());
+            auto const pathString = _linkedPath.toString();
+            auto const pathView = pathString.view();
+            auto const pathCString = std::string{pathView.data(), pathView.size()};
+            shm_unlink(pathCString.c_str());
         }
     }
 }
@@ -124,9 +127,9 @@ SharedMemory::SharedMemory(poll_id fd, Path&& path) noexcept :
 }
 
 
-SharedMemory::SharedMemory(SharedMemory&& other):
-    _fd(other._fd),
-    _linkedPath(std::move(other._linkedPath))
+SharedMemory::SharedMemory(SharedMemory&& other) noexcept
+    : _fd(other._fd)
+    , _linkedPath(std::move(other._linkedPath))
 {
     other.invalidateFd();
 
@@ -230,8 +233,10 @@ SharedMemory::create(Path&& pathname, size_type memSize, File::AccessMode mode, 
 
     mode_t omode = permissionsMode;
 
-    const auto& pathString = pathname.toString();
-    auto fd = shm_open(pathString.c_str(), O_CREAT | oflags, omode);
+    auto const pathString = pathname.toString();
+    auto const pathView = pathString.view();
+    auto const pathCString = std::string{pathView.data(), pathView.size()};
+    auto fd = shm_open(pathCString.c_str(), O_CREAT | oflags, omode);
 
     if (fd == -1) {
         raise<IOException>(errno, "shm_open");
@@ -241,7 +246,7 @@ SharedMemory::create(Path&& pathname, size_type memSize, File::AccessMode mode, 
         raise<IOException>(errno, "ftruncate");
     }
 
-    return { fd, std::move(pathname) };
+    return SharedMemory{ fd, std::move(pathname) };
 }
 
 
@@ -264,21 +269,25 @@ SharedMemory::open(const Path& pathname, File::AccessMode mode) {
         break;
     }
 
-    const auto& pathString = pathname.toString();
-    auto fd = shm_open(pathString.c_str(), oflags, 0);
+    auto const pathString = pathname.toString();
+    auto const pathView = pathString.view();
+    auto const pathCString = std::string{pathView.data(), pathView.size()};
+    auto fd = shm_open(pathCString.c_str(), oflags, 0);
 
     if (fd == -1) {
         raise<IOException>(errno, "shm_open");
     }
 
-    return { fd };
+    return SharedMemory{ fd };
 }
 
 
-void SharedMemory::unlink(const Path& pathname) {
-    const auto& pathString = pathname.toString();
+void SharedMemory::unlink(Path const& pathname) {
+    auto const pathString = pathname.toString();
+    auto const pathView = pathString.view();
+    auto const pathCString = std::string{pathView.data(), pathView.size()};
 
-    if (shm_unlink(pathString.c_str())) {
+    if (shm_unlink(pathCString.c_str())) {
         raise<IOException>(errno, "shm_unlink");
     }
 }

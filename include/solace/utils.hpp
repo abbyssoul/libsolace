@@ -89,7 +89,7 @@ T&& fwd(DontInfer<T>& t) noexcept {
 
 
 template<class T, class U = T>
-T exchange(T& obj, U&& newValue) {
+constexpr T exchange(T& obj, U&& newValue) {
     T old_value = std::move(obj);
     obj = std::forward<U>(newValue);
 

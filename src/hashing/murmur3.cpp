@@ -16,8 +16,8 @@
 using namespace Solace;
 using namespace Solace::hashing;
 
-static const String MURMUR3_32_NAME = "MURMUR3-32";
-static const String MURMUR3_128_NAME = "MURMUR3-128";
+static const StringLiteral MURMUR3_32_NAME = "MURMUR3-32";
+static const StringLiteral MURMUR3_128_NAME = "MURMUR3-128";
 
 //-----------------------------------------------------------------------------
 // Platform-specific functions and macros
@@ -324,7 +324,7 @@ Murmur3_32::Murmur3_32(uint32 seed) :
 }
 
 
-String Murmur3_32::getAlgorithm() const {
+StringView Murmur3_32::getAlgorithm() const {
     return MURMUR3_32_NAME;
 }
 
@@ -363,7 +363,7 @@ Murmur3_128::Murmur3_128(uint32 seed)
 }
 
 
-String Murmur3_128::getAlgorithm() const {
+StringView Murmur3_128::getAlgorithm() const {
     return MURMUR3_128_NAME;
 }
 
