@@ -15,20 +15,20 @@
 */
 /*******************************************************************************
  * libSolace Unit Test Suit
- * @file: test/test_memoryBuffer.cpp
+ * @file: test/test_MemoryResource.cpp
  * @author: soultaker
 *******************************************************************************/
-#include <solace/memoryBuffer.hpp>  // Class being tested
+#include <solace/memoryResource.hpp>  // Class being tested
 
 #include <gtest/gtest.h>
 
 using namespace Solace;
 
-class TestMemoryBuffer : public ::testing::Test  {
+class TestMemoryResource : public ::testing::Test  {
 
 protected:
 
-    class MockDisposer : public MemoryViewDisposer {
+    class MockDisposer : public MemoryResource::Disposer {
     public:
         MockDisposer(uint count) :
             _count(count)
@@ -44,25 +44,17 @@ protected:
     private:
         mutable uint _count{};
     };
-
-public:
-
-    void setUp() {
-	}
-
-    void tearDown() {
-	}
 };
 
-TEST_F(TestMemoryBuffer, moveAssignment) {
+TEST_F(TestMemoryResource, moveAssignment) {
     byte fakes[32];
 
     auto disposer = MockDisposer(1);
-    auto buff = MemoryBuffer(wrapMemory(fakes), &disposer);
+    auto buff = MemoryResource(wrapMemory(fakes), &disposer);
     EXPECT_EQ(1u, disposer.count());
 
     {
-        MemoryBuffer otherBuff = std::move(buff);
+        MemoryResource otherBuff = std::move(buff);
         EXPECT_EQ(1u, disposer.count());
     }
 

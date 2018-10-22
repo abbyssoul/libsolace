@@ -100,7 +100,7 @@ public:
         return swap(rhs);
     }
 
-    MemoryView& swap(MemoryView& rhs) noexcept {
+    /*constexpr*/ MemoryView& swap(MemoryView& rhs) noexcept {
         using std::swap;
 
         swap(_size, rhs._size);
@@ -110,7 +110,7 @@ public:
     }
 
 
-    bool equals(MemoryView const& other) const noexcept {
+    constexpr bool equals(MemoryView const& other) const noexcept {
         if ((&other == this) ||
             ((_size == other._size) && (_dataAddress == other._dataAddress))) {
             return true;
@@ -133,7 +133,7 @@ public:
         return (_size == 0);
     }
 
-    explicit operator bool() const noexcept {
+    constexpr explicit operator bool() const noexcept {
         return (_dataAddress != nullptr);
     }
 
@@ -146,7 +146,7 @@ public:
      * Return iterator to beginning of the collection
      * @return iterator to beginning of the collection
      */
-    const_iterator begin() const noexcept {
+    constexpr const_iterator begin() const noexcept {
         return _dataAddress;
     }
 
@@ -154,17 +154,13 @@ public:
      * Return iterator to end of the collection
      * @return iterator to end of the collection
      */
-    const_iterator end() const noexcept {
+    constexpr const_iterator end() const noexcept {
         return _dataAddress + _size;
     }
 
-
-    value_type first() const noexcept { return _dataAddress[0]; }
-    value_type last()  const noexcept { return _dataAddress[size() - 1]; }
-
     value_type operator[] (size_type index) const;
 
-    value_type const* dataAddress() const noexcept { return _dataAddress; }
+    constexpr value_type const* dataAddress() const noexcept { return _dataAddress; }
     value_type const* dataAddress(size_type offset) const;
 
     template <typename T>

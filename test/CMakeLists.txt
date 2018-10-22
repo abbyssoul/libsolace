@@ -9,8 +9,8 @@ set(TEST_SOURCE_FILES
         ci/teamcity_gtest.cpp
 
         test_memoryView.cpp
+        test_memoryResource.cpp
         test_memoryManager.cpp
-        test_memoryBuffer.cpp
 
 #        test_array.cpp
         test_arrayView.cpp

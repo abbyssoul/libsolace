@@ -215,13 +215,13 @@ public:
         return ArrayView<T>(begin() + from, to - from);
     }
 
-    MemoryView view() const noexcept {
+    constexpr MemoryView view() const & noexcept {
         return _memory;
     }
 
     template<class Q = T>
     typename std::enable_if<!std::is_const<Q>::value, MutableMemoryView>::type
-    view() noexcept {
+    view() & noexcept {
         return _memory;
     }
 

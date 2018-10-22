@@ -78,7 +78,7 @@ TEST(TestMemoryManager, testAllocation) {
         EXPECT_EQ(static_cast<MutableMemoryView::size_type>(128), memBlock.size());
 
         memBlock.view().fill(128);
-        EXPECT_EQ(static_cast<MutableMemoryView::value_type>(128), memBlock.view().last());
+        EXPECT_EQ(static_cast<MutableMemoryView::value_type>(128), memBlock.view()[memBlock.size() - 1]);
     }
 
     EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), test.size());

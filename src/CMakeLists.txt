@@ -9,7 +9,7 @@ set(SOURCE_FILES
 
         memoryView.cpp
         mutableMemoryView.cpp
-        memoryBuffer.cpp
+        memoryResource.cpp
         memoryManager.cpp
         byteReader.cpp
         byteWriter.cpp
@@ -19,7 +19,6 @@ set(SOURCE_FILES
 #        base32.cpp
         base64.cpp
         parseUtils.cpp
-        uuid.cpp
         string.cpp
         stringBuilder.cpp
         stringView.cpp
@@ -28,6 +27,7 @@ set(SOURCE_FILES
         path.cpp
         encoder.cpp
         env.cpp
+        uuid.cpp
 
         ioobject.cpp
         io/file.cpp

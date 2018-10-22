@@ -23,7 +23,7 @@
 #define SOLACE_BYTEWRITER_HPP
 
 #include "solace/mutableMemoryView.hpp"
-#include "solace/memoryBuffer.hpp"
+#include "solace/memoryResource.hpp"
 
 #include "solace/result.hpp"
 #include "solace/error.hpp"
@@ -37,7 +37,7 @@ namespace Solace {
  */
 class ByteWriter {
 public:
-    using size_type = MemoryBuffer::size_type;
+    using size_type = MemoryResource::size_type;
 
 public:
 
@@ -54,12 +54,12 @@ public:
      */
     ByteWriter(ByteWriter&& other) = default;
 
-    constexpr ByteWriter(MemoryBuffer& buffer) noexcept
+    constexpr ByteWriter(MemoryResource& buffer) noexcept
         : _limit(buffer.size())
         , _storage(buffer.view(), nullptr)
     {}
 
-    constexpr ByteWriter(MemoryBuffer&& buffer) noexcept
+    constexpr ByteWriter(MemoryResource&& buffer) noexcept
         : _limit(buffer.size())
         , _storage(std::move(buffer))
     {}
@@ -267,7 +267,7 @@ private:
     size_type           _position{};
     size_type           _limit{};
 
-    MemoryBuffer        _storage;
+    MemoryResource        _storage;
 };
 
 

@@ -88,7 +88,7 @@ public:
 
 
     /** */
-    constexpr Vector(MemoryBuffer&& buffer, size_type count) noexcept
+    constexpr Vector(MemoryResource&& buffer, size_type count) noexcept
         : _buffer(std::move(buffer))
         , _position(count)
     {
@@ -265,8 +265,8 @@ protected:
     friend class ArrayBuilder;
 
 private:
-    MemoryBuffer                _buffer;
-    size_type                   _position{0};
+    MemoryResource      _buffer;
+    size_type           _position{0};
 };
 
 

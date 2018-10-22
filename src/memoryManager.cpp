@@ -103,7 +103,8 @@ void MemoryManager::free(MemoryView* view) {
 }
 
 
-MemoryBuffer MemoryManager::allocate(size_type dataSize) {
+MemoryResource
+MemoryManager::allocate(size_type dataSize) {
     if (size() + dataSize > capacity()) {
         raise<OverflowException>("dataSize", dataSize, 0, capacity() - size());
     }
@@ -117,7 +118,7 @@ MemoryBuffer MemoryManager::allocate(size_type dataSize) {
 
     _size += dataSize;
 
-    return MemoryBuffer(wrapMemory(data, dataSize), &_disposer);
+    return {wrapMemory(data, dataSize), &_disposer};
 }
 
 

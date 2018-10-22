@@ -25,7 +25,7 @@
 #ifndef SOLACE_MEMORYMANAGER_HPP
 #define SOLACE_MEMORYMANAGER_HPP
 
-#include "solace/memoryBuffer.hpp"
+#include "solace/memoryResource.hpp"
 
 
 
@@ -141,7 +141,7 @@ public:
      * @return A newly allocated memory segment.
      * TODO(abbyssoul): should return Result<>
      */
-    MemoryBuffer allocate(size_type dataSize);
+    MemoryResource allocate(size_type dataSize);
 
     /**
      * Prohibit memory allocations.
@@ -167,7 +167,7 @@ protected:
     /**
      * A specialization of memory dispozer used by memory buffer to deallocate memory allocated via this manager.
      */
-    class HeapMemoryDisposer : public MemoryViewDisposer {
+    class HeapMemoryDisposer : public MemoryResource::Disposer {
     public:
         HeapMemoryDisposer(MemoryManager& self) : _self(&self)
         {}

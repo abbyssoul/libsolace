@@ -75,22 +75,6 @@ MemoryView::slice(size_type from, size_type to) const noexcept {
     size_type const maxSize = thisSize - from;
 
     return {_dataAddress + from, std::min(maxSize, newSize)};
-//    return {std::min(maxSize, newSize), _dataAddress + from};
-
-//    if (to < from) {
-//        raise<IndexOutOfRangeException>("from", from, 0, to + 1);
-//    }
-
-//    if (to > size()) {
-//        raise<IndexOutOfRangeException>("to", to, from, size());
-//    }
-
-//    if ((from != to) && (from >= size())) {
-//        raise<IndexOutOfRangeException>("from", from, 0, size());
-//    }
-
-
-//    return wrapMemory(dataAddress(from), to - from);
 }
 
 

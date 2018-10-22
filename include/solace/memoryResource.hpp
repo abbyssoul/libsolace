@@ -14,13 +14,13 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: MemoryView
- *	@file		solace/memoryBuffer.hpp
- *	@brief		Definition of a MemoryBuffer object
+ * libSolace: MemoryResource
+ *	@file		solace/memoryResource.hpp
+ *	@brief		A resource that represents a chunk of raw system memory.
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_MEMORYBUFFER_HPP
-#define SOLACE_MEMORYBUFFER_HPP
+#ifndef SOLACE_MEMORYRESOURCE_HPP
+#define SOLACE_MEMORYRESOURCE_HPP
 
 #include "solace/mutableMemoryView.hpp"
 
@@ -28,70 +28,75 @@
 namespace Solace {
 
 
-/**
- * Memory disposer strategy.
- * This class encapsulate a strategy to free previously allocated memory.
+/* Fixed-length raw memory buffer resource.
+ * A resource type that represent raw system memory. It has ownership of the memory allocated
+ * and deallocates the buffer when destroyed.
+ *
+ * @Note: Most methods are noexept.
  */
-class MemoryViewDisposer {
+class MemoryResource {
 public:
-    virtual ~MemoryViewDisposer();
 
-    virtual void dispose(MemoryView* view) const = 0;
-};
-
-
-/* Fixed-length raw memory buffer.
- * Note: Unlike MemoryView - MemoryBuffer owns the memory and deallocates is when destroyed.
- */
-class MemoryBuffer {
-public:
     using size_type = MutableMemoryView::size_type;
 
+
+    /**
+     * Memory disposer strategy.
+     * This class encapsulate a strategy to free previously allocated memory.
+     */
+    class Disposer {
+    public:
+        virtual ~Disposer();
+
+        virtual void dispose(MemoryView* view) const = 0;
+    };
+
 public:
 
-    ~MemoryBuffer();
+    /// Non-default destructor release memory owned using disposer.
+    ~MemoryResource();
 
     /** Construct an empty memory buffer */
-    constexpr MemoryBuffer() noexcept = default;
+    constexpr MemoryResource() noexcept = default;
 
-    constexpr MemoryBuffer(MemoryBuffer&& rhs) noexcept
+    constexpr MemoryResource(MemoryResource&& rhs) noexcept
         : _data(std::move(rhs._data))
         , _disposer(exchange(rhs._disposer, nullptr))
     {
     }
 
-    MemoryBuffer& operator= (MemoryBuffer&& rhs) {
+    MemoryResource& operator= (MemoryResource&& rhs) noexcept {
         return swap(rhs);
     }
 
-    MemoryBuffer(MemoryBuffer const& rhs) = delete;
-    MemoryBuffer& operator= (MemoryBuffer const& rhs) = delete;
+    MemoryResource(MemoryResource const& rhs) = delete;
+    MemoryResource& operator= (MemoryResource const& rhs) = delete;
 
     /**
      * Construct a memory buffer from a memory view with a given disposer.
      * @param data A memory view this buffer owns.
      * @param disposer A disposer to dispose of the memory when this memory buffer is destroyed.
      */
-    constexpr MemoryBuffer(MutableMemoryView data, MemoryViewDisposer* disposer = nullptr) noexcept :
+    constexpr MemoryResource(MutableMemoryView data, Disposer* disposer = nullptr) noexcept :
         _data(std::move(data)),
         _disposer(disposer)
     {}
 
-    MemoryBuffer& swap(MemoryBuffer& rhs) noexcept {
+    MemoryResource& swap(MemoryResource& rhs) noexcept {
         _data.swap(rhs._data);
         std::swap(_disposer, rhs._disposer);
 
         return *this;
     }
 
-    constexpr MemoryView          view() const noexcept   { return _data; }
-    constexpr MutableMemoryView   view() noexcept         { return _data; }
+    constexpr MemoryView          view() const & noexcept   { return _data; }
+    constexpr MutableMemoryView   view() & noexcept         { return _data; }
 
     constexpr bool empty() const noexcept {
         return _data.empty();
     }
 
-    explicit operator bool() const noexcept {
+    constexpr explicit operator bool() const noexcept {
         return (_data.dataAddress() != nullptr);
     }
 
@@ -103,9 +108,9 @@ public:
 
 private:
 
-    MutableMemoryView               _data;
-    MemoryViewDisposer const*       _disposer {nullptr};
+    MutableMemoryView   _data;
+    Disposer const*     _disposer {nullptr};
 };
 
 }  // End of namespace Solace
-#endif  // SOLACE_MEMORYBUFFER_HPP
+#endif  // SOLACE_MEMORYRESOURCE_HPP

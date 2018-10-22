@@ -36,7 +36,7 @@ StringBuilder::StringBuilder(MutableMemoryView&& buffer, StringView str)
     _buffer.write(str.view());
 }
 
-StringBuilder::StringBuilder(MemoryBuffer&& buffer, StringView str)
+StringBuilder::StringBuilder(MemoryResource&& buffer, StringView str)
     : StringBuilder(std::move(buffer))
 {
     _buffer.write(str.view());

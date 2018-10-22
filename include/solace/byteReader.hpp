@@ -24,7 +24,7 @@
 
 #include "solace/memoryView.hpp"
 #include "solace/mutableMemoryView.hpp"     // read destination
-#include "solace/memoryBuffer.hpp"
+#include "solace/memoryResource.hpp"
 
 #include "solace/result.hpp"
 #include "solace/error.hpp"
@@ -39,7 +39,7 @@ namespace Solace {
  */
 class ByteReader {
 public:
-    using size_type = MemoryBuffer::size_type;
+    using size_type = MemoryResource::size_type;
 
 public:
 
@@ -68,7 +68,7 @@ public:
      * Use move constructor if you want to delegate life-time management to the instance of the reader.
      * @param other Other buffer to copy data from
      */
-    ByteReader(MemoryBuffer& buffer) :
+    ByteReader(MemoryResource& buffer) :
         _limit(buffer.size()),
         _storage(buffer.view(), nullptr)
     {
@@ -78,7 +78,7 @@ public:
      * Construct the byte buffer from the memory buffer object
      * @param other Other buffer to copy data from
      */
-    ByteReader(MemoryBuffer&& buffer) :
+    ByteReader(MemoryResource&& buffer) :
         _limit(buffer.size()),
         _storage(std::move(buffer))
     {
@@ -271,7 +271,7 @@ protected:
     size_type           _position{};
     size_type           _limit{};
 
-    MemoryBuffer        _storage;
+    MemoryResource      _storage;
 
 };
 

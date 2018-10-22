@@ -70,7 +70,7 @@ TEST(TestSharedMemory, testOpen_Exclusive) {
 
 
 [[noreturn]]
-void writeMessageAndExit(uint64 memSize, MemoryBuffer& view) {
+void writeMessageAndExit(uint64 memSize, MemoryResource& view) {
     EXPECT_EQ(memSize, view.size());
 
     {

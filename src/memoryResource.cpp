@@ -15,20 +15,19 @@
 */
 /*******************************************************************************
  * libSolace
- *	@file		memoryBuffer.cpp
- *	@brief		Implementation of the MemoryBuffer type
+ *	@file		memoryResource.cpp
+ *	@brief		Implementation of the MemoryResource type
  ******************************************************************************/
-#include "solace/memoryBuffer.hpp"
+#include "solace/memoryResource.hpp"
 
 using namespace Solace;
 
 
-
 // No-op but needed in .cpp file to keep compiler virtual table happy.
-MemoryViewDisposer::~MemoryViewDisposer() = default;
+MemoryResource::Disposer::~Disposer() = default;
 
 
-MemoryBuffer::~MemoryBuffer() {
+MemoryResource::~MemoryResource() {
     auto const disposer = exchange(_disposer, nullptr);
     if (disposer != nullptr) {
         disposer->dispose(&_data);

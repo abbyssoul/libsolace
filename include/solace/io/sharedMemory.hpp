@@ -25,7 +25,7 @@
 #define SOLACE_IO_SHAREDMEMORY_HPP
 
 
-#include "solace/memoryBuffer.hpp"
+#include "solace/memoryResource.hpp"
 #include "solace/path.hpp"
 #include "solace/io/selectable.hpp"
 #include "solace/io/file.hpp"           // File::Mode
@@ -112,9 +112,9 @@ public:
      * @param protection Mapped page protection. @see SharedMemory::Protection
      *
      * @return Memory buffer of the mapped shared memory region.
-     * FIXME(abbyssoul): should return Result<MemoryBuffer, IOError>
+     * FIXME(abbyssoul): should return Result<MemoryResource, IOError>
      */
-    static MemoryBuffer createAnon(size_type size,
+    static MemoryResource createAnon(size_type size,
                                    Access mapping = Access::Private,
                                    int protection = Protection::Read | Protection::Write) {
         return mapMem(-1, size, mapping, protection);
@@ -148,7 +148,7 @@ public:
      * @param protection Desired memory protection of the mapping.
      * @return Mapped memory buffer or an error.
      */
-    static MemoryBuffer mapMem(int fd, size_type memSize,
+    static MemoryResource mapMem(int fd, size_type memSize,
                                 Access mapping = Access::Private,
                                 int protection = Protection::Read | Protection::Write);
 
@@ -215,7 +215,7 @@ public:
      *
      * @return Memory view of the mapped shared memory region.
      */
-    MemoryBuffer map(Access mapping = Access::Private,
+    MemoryResource map(Access mapping = Access::Private,
                    int access = Protection::Read | Protection::Write,
                    size_type mapSize = 0);
 

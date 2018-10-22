@@ -24,7 +24,7 @@
 
 
 #include "solace/stringView.hpp"
-#include "solace/memoryBuffer.hpp"
+#include "solace/memoryResource.hpp"
 #include "solace/memoryManager.hpp"
 #include "solace/arrayView.hpp"
 #include "solace/byteWriter.hpp"
@@ -69,7 +69,7 @@ public:
      * @param stringLen Lenght of the string in writtein into the buffer.
      * @note The buffer passed must be big enought to hold the string of the given size.
      */
-    constexpr String(MemoryBuffer&& buffer, size_type stringLen) noexcept
+    constexpr String(MemoryResource&& buffer, size_type stringLen) noexcept
         : _buffer(std::move(buffer))
         , _size(stringLen)
     {}
@@ -364,7 +364,7 @@ public:
     }
 
 private:
-    MemoryBuffer                _buffer;
+    MemoryResource                _buffer;
     size_type                   _size{0};
 };
 

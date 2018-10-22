@@ -238,7 +238,7 @@ TEST_F(TestArrayView, testEmpty) {
 }
 
 
-TEST_F(TestArrayView, testConstructionFromMemoryBuffer) {
+TEST_F(TestArrayView, testConstructionFromMemoryResource) {
     byte buffer[32];  // 32 bytes is 8 u32.
 
     EXPECT_EQ(32, arrayView(buffer).size());

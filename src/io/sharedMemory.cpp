@@ -70,7 +70,7 @@ mapMemory(SharedMemory::size_type memSize, int protection, SharedMemory::Access 
  * Memory disposer to unmap mapped memory.
  */
 class MappedMemoryDisposer :
-        public MemoryViewDisposer {
+        public MemoryResource::Disposer {
 public:
 
     void dispose(MemoryView* view) const override {
@@ -199,11 +199,11 @@ SharedMemory SharedMemory::fromFd(poll_id fid) {
 }
 
 
-MemoryBuffer
+MemoryResource
 SharedMemory::mapMem(int fd, size_type memSize, SharedMemory::Access mapping, int protection) {
     auto addr = mapMemory(memSize, protection, mapping, fd);
 
-    return MemoryBuffer{wrapMemory(addr, memSize), &g_mappedMemoryDisposer};
+    return {wrapMemory(addr, memSize), &g_mappedMemoryDisposer};
 }
 
 
@@ -293,8 +293,7 @@ void SharedMemory::unlink(Path const& pathname) {
 }
 
 
-MemoryBuffer
-SharedMemory::map(SharedMemory::Access mapping, int access, size_type mapSize) {
+MemoryResource SharedMemory::map(SharedMemory::Access mapping, int access, size_type mapSize) {
     const auto fd = validateFd();
 
     if (mapSize == 0) {

@@ -43,12 +43,6 @@ MutableMemoryView::dataAddress(size_type offset) {
 }
 
 
-MutableMemoryView::value_type*
-MutableMemoryView::dataAddress() {
-    return const_cast<value_type*>(MemoryView::dataAddress());
-}
-
-
 MutableMemoryView&
 MutableMemoryView::fill(byte value, size_type from, size_type to) {
     if (from >= size()) {

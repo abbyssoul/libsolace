@@ -75,7 +75,7 @@ public:
 
     using MemoryView::equals;
 
-    bool equals(MutableMemoryView const& other) const noexcept {
+    constexpr bool equals(MutableMemoryView const& other) const noexcept {
         return MemoryView::equals(other);
     }
 
@@ -93,6 +93,7 @@ public:
     iterator begin() noexcept {
         return const_cast<value_type*>(dataAddress());
     }
+
     using MemoryView::begin;
 
     /**
@@ -109,7 +110,10 @@ public:
 
     using MemoryView::dataAddress;
 
-    value_type* dataAddress();
+    constexpr value_type* dataAddress() noexcept {
+        return const_cast<value_type*>(MemoryView::dataAddress());
+    }
+
     value_type* dataAddress(size_type offset);
 
 

@@ -77,7 +77,7 @@ public:
     }
 
     /** */
-    /*constexpr */Array(MemoryBuffer buffer, size_type len) noexcept
+    /*constexpr */Array(MemoryResource buffer, size_type len) noexcept
         : _buffer(std::move(buffer))
         , _size(len)
     {
@@ -306,8 +306,8 @@ protected:
     friend class Array;
 
 private:
-    MemoryBuffer                _buffer;
-    size_type                   _size{0};
+    MemoryResource      _buffer;
+    size_type           _size{0};
 };
 
 

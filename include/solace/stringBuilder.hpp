@@ -52,7 +52,7 @@ public:
     {}
 
     /** Initialize a new instance of StringBuilder with a given storage */
-    StringBuilder(MemoryBuffer&& buffer) :
+    StringBuilder(MemoryResource&& buffer) :
         _buffer(std::move(buffer))
     {}
 
@@ -60,7 +60,7 @@ public:
     StringBuilder(MutableMemoryView&& buffer, StringView str);
 
     /** Initialize a new instance of StringBuilder with a given storage and initial string value.*/
-    StringBuilder(MemoryBuffer&& buffer, StringView str);
+    StringBuilder(MemoryResource&& buffer, StringView str);
 
     //!< Move construct string builder
     StringBuilder(const StringBuilder&) = delete;

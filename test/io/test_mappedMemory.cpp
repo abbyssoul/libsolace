@@ -70,7 +70,7 @@ TEST(TestAnonSharedMemory, testFill) {
 }
 
 [[noreturn]]
-void writeTextAndExit(uint64 memSize, MemoryBuffer& memBuffer) {
+void writeTextAndExit(uint64 memSize, MemoryResource& memBuffer) {
     EXPECT_EQ(memSize, memBuffer.size());
 
     {
