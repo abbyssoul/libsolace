@@ -36,7 +36,7 @@ public:
     MemoryManager _memoryManager;
 
     StringBuilder moveMe() {
-        return { _memoryManager.create(strlen(someConstString)), someConstString };
+        return { _memoryManager.allocate(strlen(someConstString)), someConstString };
 	}
 
 public:
@@ -49,7 +49,7 @@ public:
 
 
 TEST_F(TestStringBuilder, testNullString) {
-    EXPECT_NO_THROW(StringBuilder(_memoryManager.create(5), nullptr));
+    EXPECT_NO_THROW(StringBuilder(_memoryManager.allocate(5), nullptr));
 }
 
 /**
@@ -59,28 +59,28 @@ TEST_F(TestStringBuilder, testConstruction) {
     const StringView constStr { someConstString };
 
     {   // empty buffer usage
-        const StringBuilder empty(_memoryManager.create(0));  // No throw?
+        const StringBuilder empty(_memoryManager.allocate(0));  // No throw?
 
         EXPECT_TRUE(empty.empty());
         EXPECT_TRUE(empty.toString().empty());
     }
 
     {   // Empty string post-conditions
-        const StringBuilder empty(_memoryManager.create(2 * constStr.size()));  // No throw?
+        const StringBuilder empty(_memoryManager.allocate(2 * constStr.size()));  // No throw?
 
         EXPECT_TRUE(empty.empty());
         EXPECT_TRUE(empty.toString().empty());
     }
 
     {
-        const StringBuilder sb(_memoryManager.create(strlen(someConstString)), someConstString);
+        const StringBuilder sb(_memoryManager.allocate(strlen(someConstString)), someConstString);
 
         EXPECT_TRUE(!sb.empty());
         EXPECT_EQ(constStr, sb.view());
     }
 
     {
-        const StringBuilder sb(_memoryManager.create(2 * constStr.size()), constStr);
+        const StringBuilder sb(_memoryManager.allocate(2 * constStr.size()), constStr);
 
         EXPECT_TRUE(!sb.empty());
         EXPECT_EQ(constStr, sb.view());
@@ -98,7 +98,7 @@ TEST_F(TestStringBuilder, testConstruction) {
     * Test toString conversion
     */
 TEST_F(TestStringBuilder, testToString) {
-    const StringBuilder ident(_memoryManager.create(strlen(someConstString)), someConstString);
+    const StringBuilder ident(_memoryManager.allocate(strlen(someConstString)), someConstString);
 
     const auto str = ident.toString();
 

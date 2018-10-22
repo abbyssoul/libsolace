@@ -141,7 +141,7 @@ public:
      * @return A newly allocated memory segment.
      * TODO(abbyssoul): should return Result<>
      */
-    MemoryBuffer create(size_type dataSize);
+    MemoryBuffer allocate(size_type dataSize);
 
     /**
      * Prohibit memory allocations.

@@ -35,7 +35,6 @@ using namespace Solace;
 
 
 const StringLiteral HW_ID_NA = "n/a";
-const std::string Empty {""};
 
 
 StringView viewString(std::string const& str) {
@@ -55,7 +54,7 @@ readLine(Path const& file) {
         return line;
     }
 
-    return Empty;
+    return std::string{};
 }
 
 
@@ -66,7 +65,7 @@ usb_sysfs_friendly_name(Path const& sys_usb_path) {
     auto const serial = readLine(makePath(sys_usb_path, StringLiteral{"serial"}));
 
     if (manufacturer.empty() && product.empty() && serial.empty()) {
-        return makeString(String::Empty);
+        return String{};
     }
 
     return makeStringJoin(" ", viewString(manufacturer), viewString(product), viewString(serial));

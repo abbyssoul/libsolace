@@ -25,10 +25,10 @@
 using namespace Solace;
 
 
-TEST(TestWriteBuffer, testConstruction) {
+TEST(TestByteWriter, testConstruction) {
 }
 
-TEST(TestWriteBuffer, testPositioning) {
+TEST(TestByteWriter, testPositioning) {
     byte mem[12];
     constexpr ByteWriter::size_type testSize = sizeof(mem);
     auto buffer = ByteWriter(wrapMemory(mem));
@@ -53,32 +53,32 @@ TEST(TestWriteBuffer, testPositioning) {
     EXPECT_TRUE(buffer.advance(1).isError());
 }
 
-TEST(TestWriteBuffer, testWrite) {
+TEST(TestByteWriter, testWrite) {
     byte destMem[7];
 
     {  // Happy path
         byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
 
-        ByteWriter buffer(wrapMemory(destMem));
-        EXPECT_NO_THROW(buffer.write(wrapMemory(bytes)));
-        EXPECT_EQ(buffer.limit(), buffer.position());
+        auto writer = ByteWriter{wrapMemory(destMem)};
+        EXPECT_NO_THROW(writer.write(wrapMemory(bytes)));
+        EXPECT_EQ(writer.limit(), writer.position());
     }
 
     {  // Error cases
-        byte truckLoadOfData[] = {'a', 'b', 'c', 0, 'd', 'e', 'f', 'g'};
+        byte const truckLoadOfData[] = {'a', 'b', 'c', 0, 'd', 'e', 'f', 'g'};
         auto viewBytes = wrapMemory(truckLoadOfData);
 
-        ByteWriter buffer(wrapMemory(destMem));
+        auto writer = ByteWriter{wrapMemory(destMem)};
         // Attempt to write more bytes then fit into the dest buffer
-        EXPECT_TRUE(buffer.write(viewBytes).isError());
+        EXPECT_TRUE(writer.write(viewBytes).isError());
 
         // Attempt to write more bytes then availible in the source buffer
-        EXPECT_TRUE(buffer.write(viewBytes, 128).isError());
+        EXPECT_TRUE(writer.write(viewBytes, 128).isError());
     }
 }
 
 
-TEST(TestWriteBuffer, writeBigEndian) {
+TEST(TestByteWriter, writeBigEndian) {
     byte bytes[8];
 
     {
@@ -112,7 +112,7 @@ TEST(TestWriteBuffer, writeBigEndian) {
 }
 
 
-TEST(TestWriteBuffer, writeLittleEndian) {
+TEST(TestByteWriter, writeLittleEndian) {
     byte bytes[8];
     {
         uint16 const value(1025);

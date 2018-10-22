@@ -69,22 +69,6 @@ UUID::UUID(MemoryView view) {
 }
 
 
-UUID::UUID(std::initializer_list<byte> bytes) {
-    if (bytes.size() < size()) {
-        raise<IllegalArgumentException>("bytes");
-    }
-
-    size_type i = 0;
-    for (const auto& v : bytes) {
-        _bytes[i++] = v;
-
-        if (i >= size()) {
-            break;
-        }
-    }
-}
-
-
 UUID& UUID::swap(UUID& rhs) noexcept {
     std::swap(_bytes, rhs._bytes);
 

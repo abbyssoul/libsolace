@@ -164,14 +164,14 @@ public:
 
     value_type operator[] (size_type index) const;
 
-    const value_type* dataAddress() const noexcept { return _dataAddress; }
-    const value_type* dataAddress(size_type offset) const;
+    value_type const* dataAddress() const noexcept { return _dataAddress; }
+    value_type const* dataAddress(size_type offset) const;
 
     template <typename T>
-    constexpr const T* dataAs() const noexcept { return reinterpret_cast<const T*>(_dataAddress); }
+    constexpr T const* dataAs() const noexcept { return reinterpret_cast<const T*>(_dataAddress); }
 
     template <typename T>
-    const T* dataAs(size_type offset) const {
+    T const* dataAs(size_type offset) const {
         assertIndexInRange(offset, 0, this->size());
         assertIndexInRange(offset + sizeof(T), offset, this->size());
 
@@ -186,7 +186,7 @@ public:
      *
      * @return The slice of the memory segment.
      */
-    MemoryView slice(size_type from, size_type to) const;
+    MemoryView slice(size_type from, size_type to) const noexcept;
 
     /**
      * Get a shallow view of this memory buffer.
@@ -195,7 +195,7 @@ public:
      *
      * @return A memory view without ownership of the memory.
      */
-    MemoryView viewImmutableShallow() const;
+    MemoryView viewImmutableShallow() const noexcept;
 
 private:
 

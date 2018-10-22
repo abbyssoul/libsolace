@@ -97,13 +97,13 @@ MemoryManager::HeapMemoryDisposer::dispose(MemoryView* view) const {
 
 void MemoryManager::free(MemoryView* view) {
     const auto size = view->size();
-    delete [] view->dataAddress();
+    ::free(reinterpret_cast<void*>(const_cast<MemoryView::value_type*>(view->dataAddress())));
 
     _size -= size;
 }
 
 
-MemoryBuffer MemoryManager::create(size_type dataSize) {
+MemoryBuffer MemoryManager::allocate(size_type dataSize) {
     if (size() + dataSize > capacity()) {
         raise<OverflowException>("dataSize", dataSize, 0, capacity() - size());
     }
@@ -112,7 +112,8 @@ MemoryBuffer MemoryManager::create(size_type dataSize) {
         raise<Exception>("Cannot allocate memory block: allocator is locked.");
     }
 
-    auto data = new MutableMemoryView::value_type[dataSize];
+//    auto data = new MutableMemoryView::value_type[dataSize];
+    auto data = ::malloc(dataSize);
 
     _size += dataSize;
 

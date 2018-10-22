@@ -46,7 +46,7 @@ protected:
 		static const int IVALUE_DEFAULT;
 		static const StringLiteral STR_DEFAULT;
 
-		int iValue;
+		int iValue{};
 		String str;
 
 
@@ -96,11 +96,11 @@ protected:
 
 
 	struct DerivedNonPodStruct  : public NonPodStruct {
-		float fValue;
+		float fValue{3.1415f};
 
 
-        DerivedNonPodStruct() :
-            NonPodStruct(312, "Derived String"), fValue(3.1415f)
+        DerivedNonPodStruct()
+            : NonPodStruct(312, "Derived String")
 		{
 		}
 
@@ -108,8 +108,9 @@ protected:
 			DerivedNonPodStruct(x, f, makeString(inStr))
 		{}
 
-        DerivedNonPodStruct(int x, float f, String inStr) :
-                NonPodStruct(x, std::move(inStr)), fValue(f)
+        DerivedNonPodStruct(int x, float f, String inStr)
+            : NonPodStruct(x, std::move(inStr))
+            , fValue(f)
         {
         }
 

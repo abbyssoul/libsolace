@@ -65,7 +65,6 @@ bool Version::operator > (const Version& rhv) const {
 
 
 String Version::toString() const {
-    // FIXME(abbyssoul): Using format is an overkill in this case - a simple String concat should do!
     auto const majorString = std::to_string(majorNumber);
     auto const minorString = std::to_string(minorNumber);
     auto const patchString = std::to_string(patchNumber);
@@ -143,24 +142,4 @@ Version::parse(StringView str) {
 
     return Ok<Version>({majorVersion, minorVersion, patchVersion,
                         std::move(preRelease), std::move(build)});
-
-    /*
-    const std::regex versionRegexp("(\\d+)\\.(\\d+)\\.(\\d+)(?:-([A-Za-z0-9\\-\\.]+))?(?:\\+([A-Za-z0-9\\-\\.]+))?");
-
-    std::cmatch capture;
-    if (std::regex_match(str.begin(), str.end(), capture, versionRegexp)) {
-        const value_type majorVersion = std::stoul(capture[1].str());
-        const value_type minorVersion = std::stoul(capture[2].str());
-        const value_type patchVersion = std::stoul(capture[3].str());
-        const String preRelease = (capture[4].length() > 0)
-                ? String{capture[4].str()}
-                : String::Empty;
-        const String build = (capture[5].length() > 0)
-                ? String{ capture[5].str() }
-                : String::Empty;
-
-        return Ok<Version>({majorVersion, minorVersion, patchVersion, preRelease, build});
-    }*/
-
-//    return Err(Error("Invalid format"));
 }

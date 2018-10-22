@@ -73,7 +73,7 @@ TEST(TestMemoryManager, testAllocation) {
     MemoryManager test(1024);
 
     {
-        auto memBlock = test.create(128);
+        auto memBlock = test.allocate(128);
         EXPECT_EQ(static_cast<MutableMemoryView::size_type>(128), test.size());
         EXPECT_EQ(static_cast<MutableMemoryView::size_type>(128), memBlock.size());
 
@@ -86,17 +86,17 @@ TEST(TestMemoryManager, testAllocation) {
 
 TEST(TestMemoryManager, testAllocationBeyondCapacity) {
     MemoryManager test(128);
-    EXPECT_THROW(auto memBlock = test.create(2048), OverflowException);
+    EXPECT_THROW(auto memBlock = test.allocate(2048), OverflowException);
     {
-        auto memBlock0 = test.create(64);
+        auto memBlock0 = test.allocate(64);
         EXPECT_EQ(static_cast<MutableMemoryView::size_type>(64), test.size());
         EXPECT_EQ(static_cast<MutableMemoryView::size_type>(64), memBlock0.size());
 
-        auto memBlock1 = test.create(64);
+        auto memBlock1 = test.allocate(64);
         EXPECT_EQ(static_cast<MutableMemoryView::size_type>(2*64), test.size());
         EXPECT_EQ(static_cast<MutableMemoryView::size_type>(64), memBlock1.size());
 
-        EXPECT_THROW(auto memBlock2 = test.create(64), OverflowException);
+        EXPECT_THROW(auto memBlock2 = test.allocate(64), OverflowException);
     }
 
     EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), test.size());
@@ -109,7 +109,7 @@ TEST(TestMemoryManager, testAllocationLocking) {
     {
         EXPECT_EQ(false, test.isLocked());
 
-        auto memBlock0 = test.create(64);
+        auto memBlock0 = test.allocate(64);
         EXPECT_EQ(static_cast<MutableMemoryView::size_type>(64), test.size());
         EXPECT_EQ(static_cast<MutableMemoryView::size_type>(64), memBlock0.size());
 
@@ -118,11 +118,11 @@ TEST(TestMemoryManager, testAllocationLocking) {
         EXPECT_EQ(true, test.isLocked());
 
         // Create should throw as allocation is prohibited
-        EXPECT_THROW(auto memBlock2 = test.create(64), Exception);
+        EXPECT_THROW(auto memBlock2 = test.allocate(64), Exception);
 
         EXPECT_NO_THROW(test.unlock());
         EXPECT_EQ(false, test.isLocked());
-        EXPECT_NO_THROW(auto memBlock2 = test.create(64));
+        EXPECT_NO_THROW(auto memBlock2 = test.allocate(64));
     }
 
     EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), test.size());

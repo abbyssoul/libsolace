@@ -49,7 +49,7 @@ void raiseInvalidStateError(const char* message);
  * On system that support it - throws an exception or aborts exectution.
  * @param tag A tag to identify the assertion that has failed.
  */
-//[[noreturn]]
+// [[noreturn]]
 void assertFail(const char* tag);
 
 inline void assertTrue(bool condition, const char* tag)  {

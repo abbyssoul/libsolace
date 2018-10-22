@@ -25,16 +25,12 @@
 using namespace Solace;
 
 
-
 const String String::Empty{};
-const String TRUE_STRING = makeString("true");
-const String FALSE_STRING = makeString("false");
-
 
 
 String
 Solace::makeString(StringView view) {
-    auto buffer = getSystemHeapMemoryManager().create(view.size() * sizeof(StringView::value_type));    // May throw
+    auto buffer = getSystemHeapMemoryManager().allocate(view.size() * sizeof(StringView::value_type));    // May throw
 
     // Copy string view content into a new buffer
     buffer.view().write(view.view());
@@ -46,7 +42,7 @@ Solace::makeString(StringView view) {
 String
 Solace::makeStringReplace(StringView str, String::value_type what, String::value_type with) {
     auto const totalStrLen = str.size();
-    auto buffer = getSystemHeapMemoryManager().create(totalStrLen * sizeof(StringView::value_type));    // May throw
+    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
     auto bufferView = buffer.view();
 
     bufferView.write(str.view());
@@ -80,7 +76,7 @@ Solace::makeStringReplace(StringView str, StringView what, StringView by) {
     // Note:  srcStrLen >= delimLength*delimCount. Thus this should not overflow.
     auto const newStrLen = narrow_cast<StringView::size_type>(srcStrLen + byLen * delimCount - delimLength*delimCount);
 
-    auto buffer = getSystemHeapMemoryManager().create(newStrLen * sizeof(StringView::value_type));    // May throw
+    auto buffer = getSystemHeapMemoryManager().allocate(newStrLen * sizeof(StringView::value_type));    // May throw
     auto writer = ByteWriter(buffer.view());
 
     StringView::size_type from = 0;
@@ -125,46 +121,46 @@ String::charAt(size_type index) const {
 }
 
 Optional<String::size_type>
-String::indexOf(value_type ch, size_type fromIndex) const {
+String::indexOf(value_type ch, size_type fromIndex) const noexcept {
     return view().indexOf(ch, fromIndex);
 }
 
 
 Optional<String::size_type>
-String::indexOf(StringView str, size_type fromIndex) const {
+String::indexOf(StringView str, size_type fromIndex) const noexcept {
     return view().indexOf(str, fromIndex);
 }
 
 Optional<String::size_type>
-String::lastIndexOf(value_type ch, size_type fromIndex) const {
+String::lastIndexOf(value_type ch, size_type fromIndex) const noexcept {
     return view().lastIndexOf(ch, fromIndex);
 }
 
 Optional<String::size_type>
-String::lastIndexOf(StringView str, size_type fromIndex) const {
+String::lastIndexOf(StringView str, size_type fromIndex) const noexcept {
     return view().lastIndexOf(str, fromIndex);
 }
 
 
-bool String::startsWith(StringView prefix) const {
+bool String::startsWith(StringView prefix) const noexcept {
     return view().startsWith(prefix);
 }
 
-bool String::startsWith(value_type prefix) const {
+bool String::startsWith(value_type prefix) const noexcept {
     return view().startsWith(prefix);
 }
 
-bool String::endsWith(StringView suffix) const {
+bool String::endsWith(StringView suffix) const noexcept {
     return view().endsWith(suffix);
 }
 
-bool String::endsWith(value_type suffix) const {
+bool String::endsWith(value_type suffix) const noexcept {
     return view().endsWith(suffix);
 }
 
 
 uint64
-String::hashCode() const {
+String::hashCode() const noexcept {
     return view().hashCode();
 }
 
@@ -175,33 +171,6 @@ String::trim() const noexcept {
 }
 
 
-
-/*
-String
-String::join(StringView by, std::initializer_list<String> list) {
-    std::string buffer;
-    size_type total_size = 0;
-    for (auto& s : list) {
-        total_size += s.size();
-    }
-
-    if (list.size() > 1) {
-        total_size += (list.size() - 1) * by.size();
-    }
-    buffer.reserve(total_size);
-
-    size_type i = 0;
-    for (auto& s : list) {
-        buffer.append(s._str);
-        if (++i < list.size()) {
-            buffer.append(by.data(), by.size());
-        }
-    }
-
-    return String(buffer);
-}
-*/
-
 /** Return jointed string from the given collection */
 String
 Solace::makeStringJoin(StringView by, ArrayView<const String> list) {
@@ -210,7 +179,7 @@ Solace::makeStringJoin(StringView by, ArrayView<const String> list) {
         totalStrLen += i.size();
     }
 
-    auto buffer = getSystemHeapMemoryManager().create(totalStrLen * sizeof(StringView::value_type));    // May throw
+    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
     auto writer = ByteWriter(buffer.view());
 
     // Copy string view content into a new buffer

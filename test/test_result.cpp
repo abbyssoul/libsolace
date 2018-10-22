@@ -508,8 +508,7 @@ TEST_F(TestResult, testMapError) {
                 return (x.x == 112)
                     ? StringLiteral{"Error is 112"}
                     : StringLiteral{"Error is unknown"};
-                })
-            );
+                }));
 }
 
 TEST_F(TestResult, testMoveOnlyObjects) {

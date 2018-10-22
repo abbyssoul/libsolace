@@ -26,9 +26,9 @@
 using namespace Solace;
 
 
-StringView::StringView(const char* data)
+StringView::StringView(const char* data) noexcept
     : StringView((data != nullptr)
-               ? narrow_cast<size_type>(strlen(data))
+               ? narrow_cast<size_type>(std::strlen(data))
                : 0,
                data)
 {
@@ -69,36 +69,19 @@ StringView::compareTo(StringView x) const noexcept {
 
 
 StringView
-StringView::substring(size_type from) const {
-//    assertIndexInRange(from, 0, size() + 1, "StringView::substring(<from>) const");
-
+StringView::substring(size_type from, size_type to) const noexcept {
     auto const thisSize = size();
-    from = std::min(from, thisSize);
-
-    size_type const newSize = thisSize - from;
-
-    return {newSize, _data + from};
-}
-
-
-StringView
-StringView::substring(size_type from, size_type to) const {
-    auto const thisSize = size();
-
-//    assertIndexInRange(from,  0,  size() + 1, "StringView::substring(<from>, to) const");
-//    assertIndexInRange(to,  from, size() + 1, "StringView::substring(from, <to>) const");
 
     from = std::min(from, thisSize);
     size_type const newSize = to - from;
-    size_type const maxSize = size() - from;
+    size_type const maxSize = thisSize - from;
 
     return {std::min(maxSize, newSize), _data + from};
 }
 
 
 Optional<StringView::size_type>
-StringView::indexOf(const value_type& ch, size_type fromIndex) const {
-//    assertIndexInRange(fromIndex,  0, thisSize + 1, "StringView::indexOf(ch, fromIndex) const");
+StringView::indexOf(value_type ch, size_type fromIndex) const noexcept {
     auto const thisSize = size();
     if (thisSize < fromIndex) {
         return none;
@@ -113,12 +96,12 @@ StringView::indexOf(const value_type& ch, size_type fromIndex) const {
     return none;
 }
 
+
 Optional<StringView::size_type>
-StringView::indexOf(StringView str, size_type fromIndex) const {
+StringView::indexOf(StringView str, size_type fromIndex) const noexcept {
     auto const thisSize = size();
     auto const strSize = str.size();
 
-//    assertIndexInRange(fromIndex,  0,  thisSize + 1, "StringView::indexOf(str, fromIndex) const");
     if (thisSize < fromIndex) {
         return none;
     }
@@ -145,8 +128,7 @@ StringView::indexOf(StringView str, size_type fromIndex) const {
 
 
 Optional<StringView::size_type>
-StringView::lastIndexOf(const value_type& ch, size_type fromIndex) const {
-//    assertIndexInRange(fromIndex,  0,  size() + 1, "StringView::lastIndexOf() const");
+StringView::lastIndexOf(value_type ch, size_type fromIndex) const noexcept {
     auto const thisSize = size();
     if (thisSize < fromIndex) {
         return none;
@@ -163,11 +145,9 @@ StringView::lastIndexOf(const value_type& ch, size_type fromIndex) const {
 }
 
 Optional<StringView::size_type>
-StringView::lastIndexOf(StringView str, size_type fromIndex) const {
+StringView::lastIndexOf(StringView str, size_type fromIndex) const noexcept {
     auto const thisSize = size();
     auto const strSize = str.size();
-
-//    assertIndexInRange(fromIndex,  0,  thisSize + 1, "StringView::lastIndexOf() const");
 
     if ((thisSize < fromIndex) || (thisSize < strSize) || (thisSize < fromIndex + strSize)) {
         return none;

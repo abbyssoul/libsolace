@@ -62,9 +62,16 @@ public:
     {
     }
 
-    String(MemoryBuffer&& buffer, size_type bufferLen)
+
+    /**
+     * Construct a string giving it memory buffer to manage with it's content being interpreted as a string.
+     * @param buffer A buffer to take ownership of.
+     * @param stringLen Lenght of the string in writtein into the buffer.
+     * @note The buffer passed must be big enought to hold the string of the given size.
+     */
+    constexpr String(MemoryBuffer&& buffer, size_type stringLen) noexcept
         : _buffer(std::move(buffer))
-        , _size(bufferLen)
+        , _size(stringLen)
     {}
 
 public:  // Additional to base object operations
@@ -144,13 +151,13 @@ public:  // Basic collection operations:
 	 * @return <b>true</b> if the string contains at least one occurrence of
 	 * the substring, <b>false</b> otherwise.
 	 */
-	bool contains(StringView str) const
+	bool contains(StringView str) const noexcept
 	{	return indexOf(str).isSome(); }
 
-    bool contains(String const& str) const
+    bool contains(String const& str) const noexcept
     {	return contains(str.view()); }
 
-    bool contains(value_type str) const
+    bool contains(value_type str) const noexcept
     {	return indexOf(str).isSome(); }
 
 	/** Index of the first occurrence of the given character.
@@ -163,25 +170,28 @@ public:  // Basic collection operations:
 	 *
      * @return Optional index of the first occurrence of the given character.
 	 */
-	Optional<size_type> indexOf(StringView str, size_type fromIndex = 0) const;
+	Optional<size_type> indexOf(StringView str, size_type fromIndex = 0) const noexcept;
 
-	Optional<size_type> indexOf(String const& str, size_type fromIndex = 0) const {
+	Optional<size_type> indexOf(String const& str, size_type fromIndex = 0) const noexcept {
 		return indexOf(str.view(), fromIndex);
 	}
 
-    Optional<size_type> indexOf(value_type ch, size_type fromIndex = 0) const;
+	Optional<size_type> indexOf(value_type ch, size_type fromIndex = 0) const noexcept;
 
-    Optional<size_type> lastIndexOf(StringView str, size_type fromIndex = 0) const;
+	Optional<size_type> lastIndexOf(StringView str, size_type fromIndex = 0) const noexcept;
 
-    Optional<size_type> lastIndexOf(String const& str, size_type fromIndex = 0) const {
+    Optional<size_type> lastIndexOf(String const& str, size_type fromIndex = 0) const noexcept {
         return lastIndexOf(str.view(), fromIndex);
     }
 
-    Optional<size_type> lastIndexOf(value_type ch, size_type fromIndex = 0) const;
+    Optional<size_type> lastIndexOf(value_type ch, size_type fromIndex = 0) const noexcept;
 
-	/** Splits this string around matches of expr
-	 *
-	 */
+
+    /**
+     * Splits this string around matches of the given delimeter.
+     * @param delim A delimeter string to split this string around.
+     * @param f A callable object to be called for each split substring.
+     */
     template<typename Callable>
     void split(StringView delim, Callable&& f) const {
         view().split(delim, std::forward<Callable>(f));
@@ -200,7 +210,7 @@ public:  // Basic collection operations:
 	 *  @param len [in] Length of the substring.
      *  @return Substring of this string starting from the given index.
 	 */
-	StringView substring(size_type from, size_type len) const {
+	StringView substring(size_type from, size_type len) const noexcept {
 		return view().substring(from, len);
 	}
 
@@ -211,7 +221,7 @@ public:  // Basic collection operations:
      *  @param from [in] Index of first character of the substring.
      *  @return Substring of this string starting from the given index.
      */
-    StringView substring(size_type from) const {
+    StringView substring(size_type from) const noexcept {
         return view().substring(from);
     }
 
@@ -227,14 +237,14 @@ public:  // Basic collection operations:
      * @param prefix The prefix to check.
      * @return True if this string indeed starts with the given prefix, false otherwise.
      */
-    bool startsWith(StringView prefix) const;
+    bool startsWith(StringView prefix) const noexcept;
 
     /**
      * Tests if this string starts with the given prefix.
      * @param prefix The prefix to check.
      * @return True if this string indeed starts with the given prefix, false otherwise.
 	 */
-	bool startsWith(String const& prefix) const {
+	bool startsWith(String const& prefix) const noexcept {
 		return startsWith(prefix.view());
 	}
 
@@ -243,21 +253,21 @@ public:  // Basic collection operations:
      * @param prefix The prefix to check.
      * @return True if this string indeed starts with the given prefix, false otherwise.
      */
-    bool startsWith(value_type prefix) const;
+    bool startsWith(value_type prefix) const noexcept;
 
 	/**
 	 * Tests if this string ends with the specified suffix.
      * @param suffix The suffix to check.
      * @return True if this string indeed ends with the given suffix, false otherwise.
      */
-    bool endsWith(StringView suffix) const;
+    bool endsWith(StringView suffix) const noexcept;
 
 	/**
 	 * Tests if this string ends with the specified suffix.
 	 * @param suffix The suffix to check.
 	 * @return True if this string indeed ends with the given suffix, false otherwise.
 	 */
-	bool endsWith(String const& suffix) const {
+	bool endsWith(String const& suffix) const noexcept {
 		return endsWith(suffix.view());
 	}
 
@@ -266,7 +276,7 @@ public:  // Basic collection operations:
      * @param suffix The suffix to check.
      * @return True if this string indeed ends with the given suffix, false otherwise.
      */
-    bool endsWith(value_type suffix) const;
+    bool endsWith(value_type suffix) const noexcept;
 
 	/** Returns a hash code for this string.
 	 * The hash code for a String object is computed as
@@ -277,12 +287,12 @@ public:  // Basic collection operations:
 	 *
 	 * @return A hash code value for this object.
 	 */
-    uint64 hashCode() const;
+	uint64 hashCode() const noexcept;
 
 	/**
 	 * Identity operation
 	 */
-	String const& toString() const { return *this; }
+	String const& toString() const noexcept { return *this; }
 
     /** Array index operator. Obtain a copy of the character at the given
 	 * offset in the string.
@@ -304,7 +314,7 @@ public:  // Basic collection operations:
      *
      * @see String::substring
 	 */
-	StringView operator() (size_type from, size_type to) const
+	StringView operator() (size_type from, size_type to) const noexcept
 	{	return substring(from, to); }
 
 
@@ -360,62 +370,61 @@ private:
 
 
 inline
-bool operator< (String const& lhs, String const& rhs) {
+bool operator< (String const& lhs, String const& rhs) noexcept {
 	return lhs.compareTo(rhs) < 0;
 }
 
 
 inline
-bool operator== (String const& lhv, String const& rhv) {
+bool operator== (String const& lhv, String const& rhv) noexcept {
     return lhv.equals(rhv);
 }
 
 inline
-bool operator== (String const& lhv, StringView rhv) {
+bool operator== (String const& lhv, StringView rhv) noexcept {
     return lhv.equals(rhv);
 }
 
 inline
-bool operator== (StringView lhv, String const& rhv) {
+bool operator== (StringView lhv, String const& rhv) noexcept {
     return rhv.equals(lhv);
 }
 
 inline
-bool operator== (String const& lhv, const char* rhv) {
+bool operator== (String const& lhv, const char* rhv) noexcept {
     return lhv.equals(rhv);
 }
 
 inline
-bool operator== (const char* lhv, String const& rhv) {
+bool operator== (const char* lhv, String const& rhv) noexcept {
     return rhv.equals(lhv);
 }
 
 
 inline
-bool operator!= (String const& lhv, String const& rhv) {
+bool operator!= (String const& lhv, String const& rhv) noexcept {
     return !lhv.equals(rhv);
 }
 
 inline
-bool operator!= (String const& lhv, StringView rhv) {
+bool operator!= (String const& lhv, StringView rhv) noexcept {
     return !lhv.equals(rhv);
 }
 
 inline
-bool operator!= (StringView lhv, String const& rhv) {
+bool operator!= (StringView lhv, String const& rhv) noexcept {
     return !rhv.equals(lhv);
 }
 
 inline
-bool operator!= (String const& lhv, const char* rhv) {
+bool operator!= (String const& lhv, const char* rhv) noexcept {
     return !lhv.equals(rhv);
 }
 
 inline
-bool operator!= (const char* lhv, String const& rhv) {
+bool operator!= (const char* lhv, String const& rhv) noexcept {
     return !rhv.equals(lhv);
 }
-
 
 
 inline void swap(String& lhs, String& rhs) noexcept {
@@ -424,7 +433,11 @@ inline void swap(String& lhs, String& rhs) noexcept {
 
 
 
-//!< Construct a string from a StringView
+/**
+ * Construct a new string from a StringView
+ * @param view A string view to copy data from.
+ * @return A new string object that owns the memory where the data is kept.
+ */
 String makeString(StringView view);
 
 //!< Construct a string from a raw null-terminated (C-style) string.
@@ -452,23 +465,13 @@ inline void ctor(String& location, String const& s) {
 }
 
 
-
-/**
- * Concatenates the specified string to the end of this string.
- * @param str A string to append to this string.
- * @return A string that is a result of concatenation of this and a given string.
- */
-//String makeString(StringView lhs, StringView rhs);
-
-
-
-inline
-StringView::size_type totalSize(StringView arg) {
+inline constexpr
+StringView::size_type totalSize(StringView arg) noexcept {
     return arg.size();
 }
 
-inline
-StringView::size_type totalSize(String const& arg) {
+inline constexpr
+StringView::size_type totalSize(String const& arg) noexcept {
     return arg.size();
 }
 
@@ -484,17 +487,13 @@ StringView::size_type totalSize(String const& by, Args&&... args) {
 
 
 inline
-bool writeArg(ByteWriter& dest, StringView arg) {
-    dest.write(arg.view());
-
-    return true;
+auto writeArg(ByteWriter& dest, StringView arg) noexcept {
+    return dest.write(arg.view());
 }
 
 inline
-bool writeArg(ByteWriter& dest, String const& arg) {
-    dest.write(arg.view().view());
-
-    return true;
+auto writeArg(ByteWriter& dest, String const& arg) {
+    return dest.write(arg.view().view());
 }
 
 inline
@@ -508,14 +507,20 @@ bool writeAllArgs(ByteWriter& dest, T&& arg, Args&&...args) {
     return writeAllArgs(dest, std::forward<Args>(args)...);
 }
 
+/**
+ * Concatenates the specified string to the end of this string.
+ * @param str A string to append to this string.
+ * @return A string that is a result of concatenation of this and a given string.
+ */
 template<typename... StringViews>
 String makeString(StringView lhs, StringView rhs, StringViews&&... args) {
     auto const totalStrLen = totalSize(lhs, rhs, std::forward<StringViews>(args)...);
-    auto buffer = getSystemHeapMemoryManager().create(totalStrLen * sizeof(StringView::value_type));    // May throw
+    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
     auto writer = ByteWriter(buffer.view());
 
     // Copy string view content into a new buffer
-    auto r = writeAllArgs(writer, lhs, rhs, std::forward<StringViews>(args)...);
+    // FIXME: WriteAllArgs returns Result<> thus makeString should return -> Result<String, Error>
+    /*auto r = */writeAllArgs(writer, lhs, rhs, std::forward<StringViews>(args)...);
 
     return { std::move(buffer), totalStrLen };
 }
@@ -534,23 +539,6 @@ String makeString(String const& lhs, String const& rhs, StringViews&&... args) {
     return makeString(lhs.view(), rhs.view(), std::forward<StringViews>(args)...);
 }
 
-/*
-inline String makeString(StringView lhs, String const& rhs) {
-    return makeString(lhs, rhs.view());
-}
-
-inline String makeString(String const& lhs, StringView rhs) {
-    return makeString(lhs.view(), rhs);
-}
-
-inline String makeString(String const& lhs, const char* str) {
-    return makeString(lhs, StringView(str));
-}
-
-inline String makeString(String const& lhs, String const& rhs) {
-    return makeString(lhs.view(), rhs.view());
-}
-*/
 
 /**
  * Returns a new string with all occurrences of 'what' replaced with 'with'.
@@ -590,7 +578,7 @@ inline String makeStringReplace(String const& str, StringView what, String const
 
 inline
 String makeStringJoin(StringView SOLACE_UNUSED(by)) {
-    return makeString(String::Empty);
+    return String{};
 }
 
 inline
@@ -605,34 +593,38 @@ String makeStringJoin(StringView SOLACE_UNUSED(by), String const& str) {
 
 
 inline
-bool writeJointArgs(ByteWriter& dest, StringView SOLACE_UNUSED(by), StringView arg) {
-    dest.write(arg.view());
-
-    return true;
+auto writeJointArgs(ByteWriter& dest, StringView SOLACE_UNUSED(by), StringView arg) {
+    return dest.write(arg.view());
 }
 
 inline
-bool writeJointArgs(ByteWriter& dest, StringView SOLACE_UNUSED(by), String const& arg) {
-    dest.write(arg.view().view());
-
-    return true;
+auto writeJointArgs(ByteWriter& dest, StringView SOLACE_UNUSED(by), String const& arg) {
+    return dest.write(arg.view().view());
 }
 
 
 template<typename...Args>
-bool writeJointArgs(ByteWriter& dest, StringView by, StringView arg, Args&&...args) {
-    dest.write(arg.view());
-    dest.write(by.view());
+Result<void, Error> writeJointArgs(ByteWriter& dest, StringView by, StringView arg, Args&&...args) {
+    auto r = dest.write(arg.view())
+            .then([&dest, &by]() {
+                return dest.write(by.view());
+            });
 
-    return writeJointArgs(dest, by, std::forward<Args>(args)...);
+    return r
+            ? writeJointArgs(dest, by, std::forward<Args>(args)...)
+            : std::move(r);
 }
 
 template<typename...Args>
-bool writeJointArgs(ByteWriter& dest, StringView by, String const& arg, Args&&...args) {
-    dest.write(arg.view().view());
-    dest.write(by.view());
+Result<void, Error> writeJointArgs(ByteWriter& dest, StringView by, String const& arg, Args&&...args) {
+    auto r = dest.write(arg.view().view())
+            .then([&dest, &by]() {
+                dest.write(by.view());
+            });
 
-    return writeJointArgs(dest, by, std::forward<Args>(args)...);
+    return r
+            ? writeJointArgs(dest, by, std::forward<Args>(args)...)
+            : std::move(r);
 }
 
 
@@ -640,10 +632,11 @@ template<typename...Args>
 String makeStringJoin(StringView by, Args&&... args) {
     auto const len = totalSize(std::forward<Args>(args)...);
     auto const totalStrLen = narrow_cast<StringView::size_type>(by.size() * (sizeof...(args) - 1) + len);
-    auto buffer = getSystemHeapMemoryManager().create(totalStrLen * sizeof(StringView::value_type));    // May throw
+    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
     auto writer = ByteWriter(buffer.view());
 
     // Copy string view content into a new buffer
+    // FIXME: writeJointArgs returns Result<> thus makeString should return -> Result<String, Error>
     writeJointArgs(writer, by, std::forward<Args>(args)...);
 
     return {std::move(buffer), totalStrLen};
@@ -668,7 +661,7 @@ inline String makeStringJoin(StringView by, String const& lhs, String const& rhs
 */
 
 /**
- * Return jointed string from this given initializer_list
+ * Return string result of joining an array of strings.
  * @param by - A string joining values
  * @param list - An array of strings to join with the give separator
  *

@@ -83,7 +83,7 @@ public:
      * After construction, data() is equal to s, and size() is equal to Traits::length(s).
      * @param s A pointer to a character array or a C string to initialize the view with.
      */
-    StringView(char const* s);
+    StringView(char const* s) noexcept;
 
 
     StringView& swap(StringView& rhs) noexcept {
@@ -167,7 +167,7 @@ public:
      *
      * @return Optional index of the first occurrence of the given substring.
      */
-    Optional<size_type> indexOf(StringView str, size_type fromIndex = 0) const;
+    Optional<size_type> indexOf(StringView str, size_type fromIndex = 0) const noexcept;
 
     /** Index of the first occurrence of the given character.
      *
@@ -179,7 +179,7 @@ public:
      *
      * @return Optional index of the first occurrence of the given character.
      */
-    Optional<size_type> indexOf(value_type const& ch, size_type fromIndex = 0) const;
+    Optional<size_type> indexOf(value_type ch, size_type fromIndex = 0) const noexcept;
 
     /** Index of the last occurrence of the given sub sequance.
      *
@@ -187,7 +187,7 @@ public:
      *
      * @return Optional index of the last occurrence of the given substring.
      */
-    Optional<size_type> lastIndexOf(StringView str, size_type fromIndex = 0) const;
+    Optional<size_type> lastIndexOf(StringView str, size_type fromIndex = 0) const noexcept;
 
     /** Index of the last occurrence of the given character.
      *
@@ -195,7 +195,7 @@ public:
      *
      * @return Optional index of the last occurrence of the given character.
      */
-    Optional<size_type> lastIndexOf(value_type const& ch, size_type fromIndex = 0) const;
+    Optional<size_type> lastIndexOf(value_type ch, size_type fromIndex = 0) const noexcept;
 
     /** Determine if the string contains a given substring.
      *
@@ -203,7 +203,7 @@ public:
      * @return <b>true</b> if the string contains at least one occurrence of
      * the substring, <b>false</b> otherwise.
      */
-    bool contains(StringView const& str) const
+    bool contains(StringView str) const noexcept
     {	return indexOf(str).isSome(); }
 
     /** Determine if the string contains a given character.
@@ -212,7 +212,7 @@ public:
      * @return <b>true</b> if the string contains at least one occurrence of
      * the character, <b>false</b> otherwise.
      */
-    bool contains(value_type const& c) const
+    bool contains(value_type c) const noexcept
     {	return indexOf(c).isSome(); }
 
     /**
@@ -223,7 +223,7 @@ public:
      *  @param to [in] End index.
      *  @return Substring of this string starting from the given index.
      */
-    StringView substring(size_type from, size_type to) const;
+    StringView substring(size_type from, size_type to) const noexcept;
 
     /**
      * Returns a new string that is a substring of this string
@@ -232,7 +232,9 @@ public:
      *  @param from [in] Index of first character of the substring.
      *  @return Substring of this string starting from the given index.
      */
-    StringView substring(size_type from) const;
+    StringView substring(size_type from) const noexcept {
+        return substring(from, size());
+    }
 
     /**
      * Returns a sub-string with leading and trailing whitespace omitted.
@@ -248,6 +250,7 @@ public:
      * Get character at the index.
      * @param index Index of the character in the sequence.
      * @return Character at the index.
+     * FIXME: Should be Optional<> and noexcept
      */
     value_type charAt(size_type index) const {
         index = assertIndexInRange(index, 0, _size);
@@ -261,6 +264,7 @@ public:
 	 * @param index The index.
 	 * @return The character at the specified index, as a Char.
 	 * @throw OutOfBoundsException If <i>index</I> is out of range.
+	 * FIXME: Should be Optional<> and noexcept
 	 */
     value_type operator[] (size_type index) const {
         return _data[index];
@@ -275,7 +279,7 @@ public:
      *
      * @see String::substring
      */
-    StringView operator() (size_type from, size_type to) const {
+    StringView operator() (size_type from, size_type to) const noexcept {
         return substring(from, to);
     }
 

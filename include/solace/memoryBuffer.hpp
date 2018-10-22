@@ -72,7 +72,7 @@ public:
      * @param data A memory view this buffer owns.
      * @param disposer A disposer to dispose of the memory when this memory buffer is destroyed.
      */
-    MemoryBuffer(MutableMemoryView data, MemoryViewDisposer* disposer = nullptr) noexcept :
+    constexpr MemoryBuffer(MutableMemoryView data, MemoryViewDisposer* disposer = nullptr) noexcept :
         _data(std::move(data)),
         _disposer(disposer)
     {}
@@ -99,7 +99,7 @@ public:
      * Get the size of the memory buffer in bytes.
      * @return The size of the memory buffer in bytes.
      */
-    size_type size() const noexcept { return _data.size(); }
+    constexpr size_type size() const noexcept { return _data.size(); }
 
 private:
 

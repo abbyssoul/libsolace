@@ -87,12 +87,6 @@ public:
     /** Copy Construct the UUID */
     UUID(UUID const& rhs) noexcept;
 
-    /**
-     * Try to construct the UUID from individual bytes
-     * @note This can throw if number of byte given is less then expected
-     */
-    UUID(std::initializer_list<byte> bytes);
-
     /** Create the UUID from a byte buffer
      * Try to construct the UUID from individual bytes
      * @note This can throw if number of byte given is less then expected

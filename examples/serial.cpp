@@ -83,7 +83,7 @@ int main(int argc, const char **argv) {
         std::cout << "press ^C to quit" << std::endl;
 
         MemoryManager memManager(2048);
-        ByteWriter readBuffer(memManager.create(bufferSize));
+        ByteWriter readBuffer(memManager.allocate(bufferSize));
         auto selector = IO::Selector::createPoll(2);
         selector.add(&serial,   IO::Selector::Events::Read |
                                 IO::Selector::Events::Error);

@@ -64,17 +64,7 @@ ByteWriter::advance(size_type increment) {
 
 
 Result<void, Error>
-ByteWriter::write(const MemoryView& data, size_type bytesToWrite) {
-    if (data.size() < bytesToWrite) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::write()"));
-    }
-
-    return write(data.dataAddress(), bytesToWrite);
-}
-
-
-Result<void, Error>
-ByteWriter::write(void const* data, size_type count) {
+ByteWriter::write(void const* data, size_type count) noexcept {
     if (count == 0) {
         return Ok();
     }
@@ -92,7 +82,7 @@ ByteWriter::write(void const* data, size_type count) {
 
 
 Result<void, Error>
-ByteWriter::writeLE(uint16 value) {
+ByteWriter::writeLE(uint16 value) noexcept {
     constexpr auto valueSize = sizeof(value);
     auto result = value;
 
@@ -108,7 +98,7 @@ ByteWriter::writeLE(uint16 value) {
 
 
 Result<void, Error>
-ByteWriter::writeLE(uint32 value) {
+ByteWriter::writeLE(uint32 value) noexcept {
     constexpr auto valueSize = sizeof(value);
     auto result = value;
 
@@ -126,7 +116,7 @@ ByteWriter::writeLE(uint32 value) {
 
 
 Result<void, Error>
-ByteWriter::writeLE(uint64 value) {
+ByteWriter::writeLE(uint64 value) noexcept {
     constexpr auto valueSize = sizeof(value);
     auto result = value;
 
@@ -148,7 +138,7 @@ ByteWriter::writeLE(uint64 value) {
 
 
 Result<void, Error>
-ByteWriter::writeBE(uint16 value) {
+ByteWriter::writeBE(uint16 value) noexcept {
     constexpr auto valueSize = sizeof(value);
     auto result = value;
 
@@ -164,7 +154,7 @@ ByteWriter::writeBE(uint16 value) {
 
 
 Result<void, Error>
-ByteWriter::writeBE(uint32 value) {
+ByteWriter::writeBE(uint32 value) noexcept {
     constexpr auto valueSize = sizeof(value);
     auto result = value;
 
@@ -182,7 +172,7 @@ ByteWriter::writeBE(uint32 value) {
 
 
 Result<void, Error>
-ByteWriter::writeBE(uint64 value) {
+ByteWriter::writeBE(uint64 value) noexcept {
     constexpr auto valueSize = sizeof(value);
     auto result = value;
 

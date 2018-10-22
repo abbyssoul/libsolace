@@ -24,13 +24,12 @@
 #include "solace/memoryView.hpp"
 #include "solace/exception.hpp"
 
-#include "solace/base16.hpp"    //  For operator<<
 
 
 using namespace Solace;
 
-constexpr int kOne = 1;
 
+constexpr int kOne = 1;
 
 bool Solace::isBigendian() noexcept {
     return *reinterpret_cast<const char*>(&kOne) == 0;
@@ -68,25 +67,34 @@ MemoryView::dataAddress(size_type offset) const {
 
 
 MemoryView
-MemoryView::slice(size_type from, size_type to) const {
-    if (to < from) {
-        raise<IndexOutOfRangeException>("from", from, 0, to + 1);
-    }
+MemoryView::slice(size_type from, size_type to) const noexcept {
+    auto const thisSize = size();
 
-    if (to > size()) {
-        raise<IndexOutOfRangeException>("to", to, from, size());
-    }
+    from = std::min(from, thisSize);
+    size_type const newSize = to - from;
+    size_type const maxSize = thisSize - from;
 
-    if ((from != to) && (from >= size())) {
-        raise<IndexOutOfRangeException>("from", from, 0, size());
-    }
+    return {_dataAddress + from, std::min(maxSize, newSize)};
+//    return {std::min(maxSize, newSize), _dataAddress + from};
+
+//    if (to < from) {
+//        raise<IndexOutOfRangeException>("from", from, 0, to + 1);
+//    }
+
+//    if (to > size()) {
+//        raise<IndexOutOfRangeException>("to", to, from, size());
+//    }
+
+//    if ((from != to) && (from >= size())) {
+//        raise<IndexOutOfRangeException>("from", from, 0, size());
+//    }
 
 
-    return wrapMemory(dataAddress(from), to - from);
+//    return wrapMemory(dataAddress(from), to - from);
 }
 
 
 MemoryView
-MemoryView::viewImmutableShallow() const {
+MemoryView::viewImmutableShallow() const noexcept {
     return wrapMemory(dataAddress(), size());
 }

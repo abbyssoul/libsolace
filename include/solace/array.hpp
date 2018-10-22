@@ -319,7 +319,7 @@ void swap(Array<T>& lhs, Array<T>& rhs) noexcept {
 /** Construct an default-initialized array of T of a given fixed size */
 template <typename T>
 Array<T> makeArray(typename Array<T>::size_type initialSize) {
-    auto buffer = getSystemHeapMemoryManager().create(initialSize*sizeof(T));           // May throw
+    auto buffer = getSystemHeapMemoryManager().allocate(initialSize*sizeof(T));           // May throw
 
     initArray(buffer.view(), initialSize);
 
@@ -331,7 +331,7 @@ Array<T> makeArray(typename Array<T>::size_type initialSize) {
 template <typename T>
 Array<T> makeArray(typename Array<T>::size_type initialSize, T const* carray) {
     auto const arraySize = initialSize;
-    auto buffer = getSystemHeapMemoryManager().create(arraySize*sizeof(T));           // May throw
+    auto buffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
 
     ArrayView<const T> src = arrayView(carray, arraySize);                                  // No except
     ArrayView<T> dest = arrayView<T>(buffer.view());       // May throw
@@ -354,12 +354,6 @@ Array<T> makeArray(Array<T> const& other) {
     return makeArray(other.size(), other.data());
 }
 
-/** Construct an array from an initialized list */
-template <typename T>
-Array<T> makeArray(std::initializer_list<T> list) {
-    return makeArray(list.begin(), list.size());
-}
-
 /**
  * Create a single element array.
  * (A degenerate case of variable argument list)
@@ -367,7 +361,7 @@ Array<T> makeArray(std::initializer_list<T> list) {
 template <typename T>
 Array<T> makeArray(T&& arg) {
     const typename Array<T>::size_type arraySize = 1;
-    auto buffer = getSystemHeapMemoryManager().create(arraySize*sizeof(T));           // May throw
+    auto buffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
 
     if (std::is_nothrow_default_constructible<T>::value) {
         auto pos = buffer.view().template dataAs<T>();
@@ -419,7 +413,7 @@ template <typename T, typename...Args>
 Array<T> makeArray(T&& a0, Args...args) {
      // Should be relativily safe to cast: we don't expect > 65k arguments
     auto const arraySize = narrow_cast<typename Array<T>::size_type>(1 + sizeof...(args));
-    auto buffer = getSystemHeapMemoryManager().create(arraySize*sizeof(T));           // May throw
+    auto buffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
 
     if (std::is_nothrow_default_constructible<T>::value) {
         auto pos = buffer.view().template dataAs<T>();

@@ -1041,7 +1041,8 @@ TEST(TestFuture, testIntegralPromiseThrowsOnDoubleSetError) {
     Promise<int> promise;
 
     promise.setError(makeFutureError(991, "testIntegralPromiseThrowsOnDoubleSetError-1"));
-    EXPECT_THROW(promise.setError(makeFutureError(-187, "testIntegralPromiseThrowsOnDoubleSetError-2")), Solace::Exception);
+    EXPECT_THROW(promise.setError(makeFutureError(-187, "testIntegralPromiseThrowsOnDoubleSetError-2")),
+                 Solace::Exception);
 }
 
 TEST(TestFuture, testVoidPromiseThrowsOnDoubleSetError) {

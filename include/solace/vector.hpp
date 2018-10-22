@@ -317,13 +317,13 @@ bool operator!= (Vector<T> const& v, const ArrayView<U>& other) noexcept {
  */
 template<typename T>
 Vector<T> makeVector(typename Vector<T>::size_type size) {
-    return { getSystemHeapMemoryManager().create(size*sizeof(T)), 0 };
+    return { getSystemHeapMemoryManager().allocate(size*sizeof(T)), 0 };
 }
 
 /** Construct a new vector from a C-style array */
 template <typename T>
 Vector<T> makeVector(T const* carray, typename Vector<T>::size_type len) {
-    auto buffer = getSystemHeapMemoryManager().create(len*sizeof(T));           // May throw
+    auto buffer = getSystemHeapMemoryManager().allocate(len*sizeof(T));           // May throw
 
     ArrayView<const T> src = arrayView(carray, len);                            // No except
     ArrayView<T> dest = arrayView<T>(buffer.view());                            // No except
@@ -349,7 +349,7 @@ Vector<T> makeVector(std::initializer_list<T> list) {
     // FIXME: Should be checked cast
     auto const vectorSize = narrow_cast<typename Vector<T>::size_type>(list.size());
 
-    auto buffer = getSystemHeapMemoryManager().create(vectorSize * sizeof(T));  // May throw
+    auto buffer = getSystemHeapMemoryManager().allocate(vectorSize * sizeof(T));  // May throw
     if (std::is_nothrow_copy_constructible<T>::value) {
         auto pos = buffer.view().template dataAs<T>();
         for (T const& i : list) {
