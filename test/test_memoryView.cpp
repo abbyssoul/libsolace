@@ -73,6 +73,7 @@ TEST(TestMemoryView, testFill) {
     EXPECT_THROW(buffer.fill(3, 100, 130), IndexOutOfRangeException);
 }
 
+
 TEST(TestMemoryView, testWrapping) {
     void* nullB = nullptr;
     EXPECT_NO_THROW(wrapMemory(nullB, 0));
@@ -103,6 +104,7 @@ TEST(TestMemoryView, testWrapping) {
         }
     }
 }
+
 
 TEST(TestMemoryView, testConstruction) {
     {   // Fixed size constructor
@@ -143,6 +145,7 @@ TEST(TestMemoryView, testConstruction) {
         }
     }
 }
+
 
 TEST(TestMemoryView, testRead) {
     byte b1[128], b2[24];
@@ -199,6 +202,7 @@ TEST(TestMemoryView, testRead) {
     }
 }
 
+
 TEST(TestMemoryView, testReadingPastTheSize) {
     byte src[15];
 
@@ -206,6 +210,7 @@ TEST(TestMemoryView, testReadingPastTheSize) {
     EXPECT_THROW(buffer[1042], IndexOutOfRangeException);
     EXPECT_THROW(buffer.dataAddress(16), IndexOutOfRangeException);
 }
+
 
 TEST(TestMemoryView, testDataAs) {
     byte src[sizeof(SimpleType) + 5];
@@ -248,6 +253,7 @@ TEST(TestMemoryView, testDataAs) {
     auto buffer2 = wrapMemory(src2);
     EXPECT_NO_THROW(buffer2.dataAs<LargePodType>());
 }
+
 
 TEST(TestMemoryView, testWrite) {
     byte b1[128], b2[24];
@@ -325,6 +331,21 @@ TEST(TestMemoryView, testWrite) {
     }
 }
 
+
+TEST(TestMemoryView, testZeroSizedSlice) {
+    byte src[24];
+    auto buffer = wrapMemory(src);
+
+    EXPECT_EQ(0, buffer.slice(3, 3).size());
+    EXPECT_EQ(0, buffer.slice(512, 512).size());
+
+    EXPECT_EQ(0, MemoryView().slice(0, 0).size());
+    EXPECT_EQ(0, MemoryView().slice(312, 312).size());
+    EXPECT_EQ(0, MutableMemoryView().slice(0, 0).size());
+    EXPECT_EQ(0, MutableMemoryView().slice(10, 10).size());
+}
+
+
 TEST(TestMemoryView, testSlice) {
     byte src[64];
 
@@ -333,28 +354,16 @@ TEST(TestMemoryView, testSlice) {
         a = i++;
     }
 
-    auto&& buffer = wrapMemory(src);
-
+    auto buffer = wrapMemory(src);
     auto slice = buffer.slice(32, buffer.size());
-    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(32), slice.size());
-    EXPECT_EQ(static_cast<byte>(32), slice[0]);
-    EXPECT_EQ(static_cast<byte>(63), slice[31]);
+    EXPECT_EQ(32, slice.size());
+    EXPECT_EQ(32, slice[0]);
+    EXPECT_EQ(63, slice[31]);
 
-    EXPECT_THROW(buffer.slice(120, 152), IndexOutOfRangeException);
-    EXPECT_THROW(buffer.slice(31, 18), IndexOutOfRangeException);
-    EXPECT_THROW(buffer.slice(31, 939), IndexOutOfRangeException);
-}
-
-TEST(TestMemoryView, testZeroSizedSlice) {
-    byte src[24];
-    auto&& buffer = wrapMemory(src);
-    buffer.fill(124);
-
-    auto slice = buffer.slice(3, 3);
-    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), slice.size());
-
-    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), MemoryView().slice(0, 0).size());
-    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), MutableMemoryView().slice(0, 0).size());
+    EXPECT_EQ(buffer, buffer.slice(0, buffer.size()));
+    EXPECT_TRUE(buffer.slice(3, 3).empty());
+    EXPECT_TRUE(buffer.slice(128, 256).empty());
+    EXPECT_TRUE(buffer.slice(128, 2).empty());
 }
 
 

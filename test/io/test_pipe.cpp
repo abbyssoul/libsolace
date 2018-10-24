@@ -55,7 +55,7 @@ TEST_F(TestBlockingPipe, testWrite) {
 
     auto msgBuffer = wrapMemory(message);
 
-    const auto written = pipe.write(msgBuffer);
+    auto const written = pipe.write(msgBuffer);
     EXPECT_TRUE(written.isOk());
     EXPECT_EQ(msgBuffer.size(), static_cast<MutableMemoryView::size_type>(written.unwrap()));
 }
@@ -65,13 +65,13 @@ TEST_F(TestBlockingPipe, testWriteRead) {
     Pipe pipe;
 
     auto msgBuffer = wrapMemory(message);
-    const auto written = pipe.write(msgBuffer);
+    auto const written = pipe.write(msgBuffer);
     EXPECT_TRUE(written.isOk());
     EXPECT_EQ(msgBuffer.size(), static_cast<MutableMemoryView::size_type>(written.unwrap()));
 
     byte rcv[48];
     auto rcvBuffer = wrapMemory(rcv);
-    const auto read = pipe.read(rcvBuffer);
+    auto const read = pipe.read(rcvBuffer);
     EXPECT_TRUE(read.isOk());
     EXPECT_EQ(msgBuffer.size(), static_cast<MutableMemoryView::size_type>(read.unwrap()));
 }

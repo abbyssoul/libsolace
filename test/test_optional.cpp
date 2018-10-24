@@ -267,7 +267,7 @@ TEST_F(TestOptional, testEmpty) {
     EXPECT_TRUE(!v1.isSome());
 
     {
-        const auto v = Optional<SimpleType>{};
+        auto const v = Optional<SimpleType>{};
         EXPECT_EQ(0, SimpleType::InstanceCount);
 
         EXPECT_TRUE(v.isNone());
@@ -326,12 +326,12 @@ TEST_F(TestOptional, testMap) {
     };
 
     // Test mapping using lambda
-    const auto v1 = Optional<int>(18)
+    auto const v1 = Optional<int>(18)
                                     .map(f);
     EXPECT_TRUE(v1.isSome());
     EXPECT_EQ(SimpleType(test.x * 18, test.y, test.z), v1.get());
 
-    const auto v2 = Optional<SimpleType>{}
+    auto const v2 = Optional<SimpleType>{}
                                     .map([](SimpleType const& value) {
                                         return value.x;
                                     });
@@ -340,14 +340,14 @@ TEST_F(TestOptional, testMap) {
     EXPECT_EQ(48, v2.orElse(48));
 
     // Test mapping using regular C-function
-    const auto meaningOfLife = Optional<const char*>("42")
+    auto const meaningOfLife = Optional<const char*>("42")
                                     .map(my_atoi);
     EXPECT_TRUE(meaningOfLife.isSome());
     EXPECT_EQ(42, meaningOfLife.get());
 
     {
         auto v = Optional<MoveOnlyType>(MoveOnlyType(1024));
-        const auto d = v.map([] (MoveOnlyType& q) {
+        auto const d = v.map([] (MoveOnlyType& q) {
             return q.x_ / 2;
         });
 
@@ -366,13 +366,13 @@ TEST_F(TestOptional, testFlatMap) {
         return Optional<int>(content.x * 2);
     };
 
-    const auto v1 = Optional<SimpleType>(test)
+    auto const v1 = Optional<SimpleType>(test)
             .flatMap(f);
 
     EXPECT_TRUE(v1.isSome());
     EXPECT_EQ(test.x*2, v1.get());
 
-    const auto v2 = Optional<SimpleType>{}
+    auto const v2 = Optional<SimpleType>{}
             .flatMap(f);
 
     EXPECT_TRUE(v2.isNone());

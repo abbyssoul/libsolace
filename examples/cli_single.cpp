@@ -36,7 +36,7 @@ int main(int argc, const char **argv) {
     float32 floatValue = 0.0f;
     StringView userName(getenv("USER"));
 
-    const auto res = cli::Parser("Solace cli single action example", {
+    auto const res = cli::Parser("Solace cli single action example", {
                 cli::Parser::printHelp(),
                 cli::Parser::printVersion(kAppName, kAppVersion),
 

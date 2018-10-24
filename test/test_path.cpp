@@ -452,12 +452,12 @@ TEST(TestPath, testParsing) {
 TEST(TestPath, testParsing_and_ToString_are_consistent) {
     {
         auto const src = StringLiteral("some-long_path");
-        const auto v = Path::parse(src).unwrap();
+        auto const v = Path::parse(src).unwrap();
         EXPECT_EQ(src, v.toString());
     }
     {
         auto const src = StringLiteral("some/file/path.321");
-        const auto v = Path::parse(src).unwrap();
+        auto const v = Path::parse(src).unwrap();
         EXPECT_EQ(src, v.toString());
     }
     {
@@ -468,17 +468,17 @@ TEST(TestPath, testParsing_and_ToString_are_consistent) {
     }
     {
         auto const src = StringLiteral("/!)/$@#&@#/some/file/path");
-        const auto v = Path::parse(src).unwrap();
+        auto const v = Path::parse(src).unwrap();
         EXPECT_EQ(src, v.toString());
     }
     {
         auto const src = StringLiteral("some.file.path");
-        const auto v = Path::parse(src, "\\.").unwrap();
+        auto const v = Path::parse(src, "\\.").unwrap();
         EXPECT_EQ(src, v.toString("."));
     }
     {
         auto const src = StringLiteral("some.file..path");
-        const auto v = Path::parse(src, "\\.").unwrap();
+        auto const v = Path::parse(src, "\\.").unwrap();
         EXPECT_EQ(src, v.toString("."));
     }
     {

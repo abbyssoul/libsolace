@@ -40,6 +40,17 @@ Solace::makeString(StringView view) {
 
 
 String
+Solace::makeString(StringLiteral literal) {
+    auto view = literal.view();
+    auto buffer = MemoryResource(wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()),
+                                 nullptr);
+//    MemoryResource(literal.view(), nullptr);
+
+    return { std::move(buffer), literal.size() };
+}
+
+
+String
 Solace::makeStringReplace(StringView str, String::value_type what, String::value_type with) {
     auto const totalStrLen = str.size();
     auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw

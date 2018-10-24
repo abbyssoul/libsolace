@@ -94,7 +94,7 @@ int Path::compareTo(const Path& other) const {
         const auto& thisComponent = _components[i];
         const auto& otherComponent = other._components[i];
 
-        const auto diff = thisComponent.compareTo(otherComponent);
+        auto const diff = thisComponent.compareTo(otherComponent);
         if (diff != 0) {
             return diff;
         }
@@ -115,7 +115,7 @@ bool Path::startsWith(const Path& other) const {
     if (other.length() > length())
         return false;
 
-    const auto nbComponents = other.getComponentsCount();
+    auto const nbComponents = other.getComponentsCount();
     for (size_type i = 0; i < nbComponents; ++i) {
         const auto& otherComponent = other._components[i];
         const auto& thisComponent = _components[i];
@@ -141,8 +141,8 @@ bool Path::endsWith(const Path& other) const {
         return false;
     }
 
-    const auto thisEnd = _components.size();
-    const auto nbComponents = other.getComponentsCount();
+    auto const thisEnd = _components.size();
+    auto const nbComponents = other.getComponentsCount();
     for (size_type i = 0; i < nbComponents; ++i) {
         const auto& thisComponent = _components[thisEnd - 1 - i];
         const auto& otherComponent = other._components[nbComponents - 1 - i];
@@ -156,8 +156,8 @@ bool Path::endsWith(const Path& other) const {
 }
 
 bool Path::contains(const Path& path) const {
-    const auto nbOtherComponents = path.getComponentsCount();
-    const auto nbThisComponents = getComponentsCount();
+    auto const nbOtherComponents = path.getComponentsCount();
+    auto const nbThisComponents = getComponentsCount();
 
     if (nbOtherComponents > nbThisComponents) {
         // Longer path can not be contained in this shorter one
@@ -257,7 +257,7 @@ Path::getComponent(size_type index) const {
 
 Path
 Path::subpath(size_type beginIndex, size_type endIndex) const {
-    const auto nbComponent = _components.size();
+    auto const nbComponent = _components.size();
     if (beginIndex > nbComponent) {
         raise<IndexOutOfRangeException>(beginIndex, 0, nbComponent);
     }

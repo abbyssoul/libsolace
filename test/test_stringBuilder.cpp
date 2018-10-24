@@ -100,7 +100,7 @@ TEST_F(TestStringBuilder, testConstruction) {
 TEST_F(TestStringBuilder, testToString) {
     const StringBuilder ident(_memoryManager.allocate(strlen(someConstString)), someConstString);
 
-    const auto str = ident.toString();
+    auto const str = ident.toString();
 
     EXPECT_EQ(str, ident.toString());
     EXPECT_EQ(StringView(someConstString), str);

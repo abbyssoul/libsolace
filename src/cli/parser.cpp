@@ -564,7 +564,7 @@ parseCommand(Parser::Command const& cmd, Parser::Context const& cntx) {
 
         if (!cmd.commands().empty()) {
             auto const subcmdName = StringView {cntx.argv[positionalArgument]};
-            const auto cmdIt = cmd.commands().find(subcmdName);
+            auto const cmdIt = cmd.commands().find(subcmdName);
             if (cmdIt == cmd.commands().end()) {
                 return fail("Command '{}' not supported", subcmdName);
             }

@@ -352,7 +352,7 @@ Serial::Serial(const Path& file, uint32 baudrate,
                Bytesize bytesize, Parity parity, Stopbits stopbits,
                Flowcontrol flowcontrol) : File(file, O_RDWR | O_NOCTTY | O_NONBLOCK)
 {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
     reconfigurePort(fd, baudrate, bytesize, parity, stopbits, flowcontrol);
 }
 
@@ -373,35 +373,35 @@ Serial& Serial::swap(Serial& rhs) noexcept {
 
 
 void Serial::flush() {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     tcdrain(fd);
 }
 
 
 void Serial::flushInput() {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     tcflush(fd, TCIFLUSH);
 }
 
 
 void Serial::flushOutput() {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     tcflush(fd, TCOFLUSH);
 }
 
 
 void Serial::sendBreak(int duration) {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     tcsendbreak(fd, static_cast<int>(duration / 4));
 }
 
 
 void Serial::setBreak(bool level) {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     if (level) {
         if (-1 == ioctl(fd, TIOCSBRK)) {
@@ -416,7 +416,7 @@ void Serial::setBreak(bool level) {
 
 
 void Serial::setRTS(bool level) {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     int command = TIOCM_RTS;
     if (level) {
@@ -431,7 +431,7 @@ void Serial::setRTS(bool level) {
 }
 
 void Serial::setDTR(bool level) {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     int command = TIOCM_DTR;
     if (level) {
@@ -446,7 +446,7 @@ void Serial::setDTR(bool level) {
 }
 
 bool Serial::getCTS() {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     int status;
     if (-1 == ioctl(fd, TIOCMGET, &status)) {
@@ -458,7 +458,7 @@ bool Serial::getCTS() {
 
 
 bool Serial::getDSR() {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     int status;
     if (-1 == ioctl(fd, TIOCMGET, &status)) {
@@ -470,7 +470,7 @@ bool Serial::getDSR() {
 
 
 bool Serial::getRI() {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     int status;
     if (-1 == ioctl(fd, TIOCMGET, &status)) {
@@ -482,7 +482,7 @@ bool Serial::getRI() {
 
 
 bool Serial::getCD() {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     int status;
     if (-1 == ioctl(fd, TIOCMGET, &status)) {
@@ -494,7 +494,7 @@ bool Serial::getCD() {
 
 
 bool Serial::waitForChange() {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
 #ifndef TIOCMIWAIT
     while (isOpened()) {
@@ -528,7 +528,7 @@ bool Serial::waitForChange() {
 }
 
 bool Serial::waitReadable(uint32 timeout) {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     // Setup a select call to block for serial data or a timeout
     fd_set readfds;
@@ -567,7 +567,7 @@ Serial::size_type Serial::available() const {
     int count = 0;
 
 #ifdef SOLACE_PLATFORM_LINUX
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     if (-1 == ioctl(fd, TIOCINQ, &count)) {
         Solace::raise<IOException>(errno, "ioctl(TIOCINQ)");

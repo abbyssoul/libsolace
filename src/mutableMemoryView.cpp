@@ -43,26 +43,6 @@ MutableMemoryView::dataAddress(size_type offset) {
 }
 
 
-MutableMemoryView&
-MutableMemoryView::fill(byte value, size_type from, size_type to) {
-    if (from >= size()) {
-        raise<IndexOutOfRangeException>("from", from, 0, size());
-    }
-
-    if (to < from) {
-        raise<IndexOutOfRangeException>("to", to, from, size());
-    }
-
-    if (to > size()) {
-        raise<IndexOutOfRangeException>("to", to, from, size());
-    }
-
-    memset(dataAddress(from), value, to - from);
-
-    return (*this);
-}
-
-
 void
 MutableMemoryView::write(const MemoryView& source, size_type offset) {
     auto const thisSize = size();
@@ -78,7 +58,6 @@ MutableMemoryView::write(const MemoryView& source, size_type offset) {
 
     if (srcSize > 0) {
         memmove(dataAddress(offset), source.dataAddress(), srcSize);
-//        memmove(const_cast<value_type*>(dataAddress(offset)), source.dataAddress(), srcSize);
     }
 
     // TODO(abbyssoul): return Result<>;
@@ -121,14 +100,36 @@ MutableMemoryView::read(MutableMemoryView& dest, size_type bytesToRead, size_typ
 }
 
 
-MutableMemoryView& MutableMemoryView::fill(byte value) {
+MutableMemoryView&
+MutableMemoryView::fill(byte value) noexcept {
     memset(dataAddress(), value, size());
 
     return (*this);
 }
 
 
-MutableMemoryView& MutableMemoryView::lock() {
+MutableMemoryView&
+MutableMemoryView::fill(byte value, size_type from, size_type to) {
+    if (from >= size()) {
+        raise<IndexOutOfRangeException>("from", from, 0, size());
+    }
+
+    if (to < from) {
+        raise<IndexOutOfRangeException>("to", to, from, size());
+    }
+
+    if (to > size()) {
+        raise<IndexOutOfRangeException>("to", to, from, size());
+    }
+
+    memset(dataAddress(from), value, to - from);
+
+    return (*this);
+}
+
+
+MutableMemoryView&
+MutableMemoryView::lock() {
     if (mlock(dataAddress(), size()) < 0) {
         // TODO(abbyssoul): shold use ErrnoException
         raise<Exception>("failed to lock the memory buffer");
@@ -150,19 +151,16 @@ MutableMemoryView::unlock() {
 
 
 MutableMemoryView
-MutableMemoryView::slice(size_type from, size_type to) {
-    if (to < from) {
-        raise<IndexOutOfRangeException>("from", from, 0, to + 1);
-    }
+MutableMemoryView::slice(size_type from, size_type to) noexcept {
+    auto const thisSize = size();
 
-    if (to > size()) {
-        raise<IndexOutOfRangeException>("to", to, from, size());
-    }
+    // `from` is constrained to [0, size())
+    // `to` is constrained to [from, size())
 
-    if ((from != to) && (from >= size())) {
-        raise<IndexOutOfRangeException>("from", from, 0, size());
-    }
+    from = std::min(from, thisSize);
+    size_type const newSize = to - from;
+    size_type const maxSize = thisSize - from;
 
-
-    return wrapMemory(dataAddress(from), to - from);
+//    _data + from
+    return {dataAddress(from), std::min(maxSize, newSize)};
 }

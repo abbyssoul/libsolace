@@ -38,7 +38,7 @@ public:
         T parsedValue { 0 };
 
         const char* argv[] = {"prog", "-x", strArg, nullptr};
-        const auto result = Parser("Something awesome", {
+        auto const result = Parser("Something awesome", {
                               {{"x", "xxx"}, "Something", &parsedValue}
                           })
                 .parse(countArgc(argv), argv);
@@ -425,7 +425,7 @@ TEST_F(TestCommandlineParser, testCustomNoValue) {
 
     const char* argv[] = {"prog", "--xxx", "756", "-z", nullptr};
     const char* appDesc = "Something awesome";
-    const auto result = Parser(appDesc, {
+    auto const result = Parser(appDesc, {
                     {{"x", "xxx"}, "Something", &xValue},
                     {{"z", "zve"}, "Custom arg", Parser::OptionArgument::Required,
                     [&customCalled, &zValue](const Optional<StringView>& value, const Parser::Context&) {
@@ -532,7 +532,7 @@ TEST_F(TestCommandlineParser, testInlineValuesTypeMismatch) {
     StringView sValue;
 
     const char* argv[] = {"prog", "--intValue=Hello", nullptr};
-    const auto result = Parser("Something awesome", {
+    auto const result = Parser("Something awesome", {
                             {{"intValue"}, "Int Value", &vValue},
                             {{"s", "string"}, "String value", &sValue}
                         })
@@ -619,7 +619,7 @@ TEST_F(TestCommandlineParser, testRepeatingOptionsWithDifferentType) {
                             "--intValue", "918",
                             nullptr};
 
-    const auto result = Parser("Something awesome", {
+    auto const result = Parser("Something awesome", {
                             {{"i", "intValue"}, "Int Value", &vValue},
                             {{"v"}, "Useless value", &unusedValue}
                         })
@@ -747,7 +747,7 @@ TEST_F(TestCommandlineParser, testTrailingArgumentsWithRegular) {
     StringView lastTrailingArg;
 
     const char* argv[] = {"prog", "some", "756", "other", nullptr};
-    const auto result = Parser("Something awesome")
+    auto const result = Parser("Something awesome")
             .arguments({
                 {"manarg1", "Mandatory argument", &mandatoryArgStr},
                 {"*", "Input",
@@ -771,7 +771,7 @@ TEST_F(TestCommandlineParser, testTrailingArguments) {
     int nbTimesInvoked = 0;
 
     const char* argv[] = {"prog", "some", "756", "other", nullptr};
-    const auto result = Parser("Something awesome")
+    auto const result = Parser("Something awesome")
             .arguments({
                 {"*", "Input",
                  [&nbTimesInvoked](StringView, const Parser::Context&) -> Optional<Error> {
@@ -789,7 +789,7 @@ TEST_F(TestCommandlineParser, testTrailingNoArguments) {
     int nbTimesInvoked = 0;
 
     const char* argv[] = {"prog", nullptr};
-    const auto result = Parser("Something awesome")
+    auto const result = Parser("Something awesome")
             .arguments({
                 {"*", "Input", [&nbTimesInvoked](StringView, const Parser::Context&) -> Optional<Error>
                 {
@@ -810,7 +810,7 @@ TEST_F(TestCommandlineParser, testTrailingNoArgumentsLeft) {
     StringView mandatoryArgStr2;
 
     const char* argv[] = {"prog", "man1", "man2", nullptr};
-    const auto result = Parser("Something awesome")
+    auto const result = Parser("Something awesome")
             .arguments({
                 {"manarg1", "Mandatory argument", &mandatoryArgStr1},
                 {"manarg2", "Mandatory argument", &mandatoryArgStr2},
@@ -834,7 +834,7 @@ TEST_F(TestCommandlineParser, testTrailingArgumentsWithOptions) {
     StringView lastTrailingArg;
 
     const char* argv[] = {"prog", "--opt", "756", "maybe_not", nullptr};
-    const auto result = Parser("Something awesome")
+    auto const result = Parser("Something awesome")
             .options({
                 {{"opt"}, "Option", &optValue}
             })
@@ -861,7 +861,7 @@ TEST_F(TestCommandlineParser, testCommandGivenButNotExpected) {
     bool givenOpt = false;
 
     const char* argv[] = {"prog", "command", nullptr};
-    const auto result = Parser("Something awesome", {
+    auto const result = Parser("Something awesome", {
                             {{"b", "bsome"}, "Some option", &givenOpt}
                         })
             .parse(countArgc(argv), argv);
@@ -874,7 +874,7 @@ TEST_F(TestCommandlineParser, testMandatoryCommandNotGiven) {
     bool commandExecuted = false;
 
     const char* argv[] = {"prog", nullptr};
-    const auto result = Parser("Something awesome")
+    auto const result = Parser("Something awesome")
             .commands({
                 {"doThings", {"Mandatory command",
                             [&commandExecuted]() -> Result<void, Error> {
@@ -894,7 +894,7 @@ TEST_F(TestCommandlineParser, testMandatoryCommandWithNoArgumentsSuccess) {
     bool commandExecuted = false;
 
     const char* argv[] = {"prog", "doIt", nullptr};
-    const auto result = Parser("Something awesome")
+    auto const result = Parser("Something awesome")
             .commands({
                             {"doIt", {"Pass the test",
                             [&commandExecuted]() -> Result<void, Error> {
@@ -1027,7 +1027,7 @@ TEST_F(TestCommandlineParser, multipleCommandWithSimilarOptions) {
 
 
     const char* argv[] = {"prog", "comm-2", "--commonOption", "321", nullptr};
-    const auto result = Parser("Something awesome")
+    auto const result = Parser("Something awesome")
             .commands({
                             {"comm-1", {"Run 1st command",
                             [&]() -> Result<void, Error> {
@@ -1073,7 +1073,7 @@ TEST_F(TestCommandlineParser, commandExecutionFails) {
     bool commandExecuted[] = {false, false};
 
     const char* argv[] = {"prog", "comm-f", nullptr};
-    const auto result = Parser("Something awesome")
+    auto const result = Parser("Something awesome")
             .commands({
                         {"comm-s", {"Run 1st command",
                             [&]() -> Result<void, Error> {
@@ -1123,7 +1123,7 @@ TEST_F(TestCommandlineParser, multipleCommandWithOptionsAndArguments) {
 
 
     const char* argv[] = {"prog", "-v", "--intValue", "42", "comm-2", "-o", "11", "ArgValue1", "arg2", nullptr};
-    const auto result = Parser("Something awesome")
+    auto const result = Parser("Something awesome")
             .options({
                             {{"v", "verbose"}, "Verbose output", &verbose},
                             {{"i", "intValue"}, "Global int", &globalInt}

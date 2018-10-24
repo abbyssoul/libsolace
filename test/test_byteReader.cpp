@@ -89,13 +89,13 @@ TEST(TestReadBuffer, testGetByte) {
 
     size_type i = 0;
     for (auto b : srcBytes) {
-        const auto value = buffer.get(i++);
+        auto const value = buffer.get(i++);
         EXPECT_TRUE(value.isOk());
         EXPECT_EQ(b, value.unwrap());
     }
 
     for (auto b : srcBytes) {
-        const auto value = buffer.get();
+        auto const value = buffer.get();
         EXPECT_TRUE(value.isOk());
         EXPECT_EQ(b, value.unwrap());
     }

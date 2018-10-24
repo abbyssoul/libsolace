@@ -90,7 +90,7 @@ public:
      * Return iterator to beginning of the collection
      * @return iterator to beginning of the collection
      */
-    iterator begin() noexcept {
+    constexpr iterator begin() noexcept {
         return const_cast<value_type*>(dataAddress());
     }
 
@@ -100,7 +100,7 @@ public:
      * Return iterator to end of the collection
      * @return iterator to end of the collection
      */
-    iterator end() noexcept {
+    constexpr iterator end() noexcept {
         return const_cast<value_type*>(dataAddress() + size());
     }
     using MemoryView::end;
@@ -154,7 +154,7 @@ public:
      *
      * @return A reference to this for fluent interface
      */
-    MutableMemoryView& fill(byte value);
+    MutableMemoryView& fill(byte value) noexcept;
 
     /** Fill memory block with the given value.
      *
@@ -181,8 +181,11 @@ public:
      */
     MutableMemoryView& unlock();
 
+    /// @see MemoryView::slice
     using MemoryView::slice;
-    MutableMemoryView slice(size_type from, size_type to);
+
+    /// @see MemoryView::slice
+    MutableMemoryView slice(size_type from, size_type to) noexcept;
 
     template<typename T, typename... Args>
     T* construct(Args&&... args) {

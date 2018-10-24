@@ -50,8 +50,8 @@ TEST(TestSharedMemory, testCreate_InvalidSize) {
 }
 
 TEST(TestSharedMemory, testOpen_NonExisting) {
-    const auto uuid = UUID::random();
-    const auto name = makePath(Path::Root, uuid.toString());
+    auto const uuid = UUID::random();
+    auto const name = makePath(Path::Root, uuid.toString());
     EXPECT_THROW(auto mem = SharedMemory::open(name), IOException);
 }
 

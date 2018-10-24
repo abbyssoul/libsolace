@@ -100,14 +100,14 @@ get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
     auto sys_device_path = makePath(SYS_TTY_PATH, device_name, StringLiteral{"device"});
 
     if (device_name.startsWith("ttyUSB")) {
-        const auto deviceSysPath = fs.realPath(sys_device_path).getParent().getParent();
+        auto const deviceSysPath = fs.realPath(sys_device_path).getParent().getParent();
 
         if (fs.exists(deviceSysPath)){
             friendly_name = usb_sysfs_friendly_name(deviceSysPath);
             hardware_id = usb_sysfs_hw_string(deviceSysPath);
         }
     } else if (device_name.startsWith("ttyACM")) {
-        const auto deviceSysPath = fs.realPath(sys_device_path).getParent();
+        auto const deviceSysPath = fs.realPath(sys_device_path).getParent();
 
         if (fs.exists(deviceSysPath)) {
             friendly_name = usb_sysfs_friendly_name(deviceSysPath);
@@ -115,7 +115,7 @@ get_sysfs_info(IO::PlatformFilesystem const& fs, Path const& devicePath) {
         }
     } else {
         // Try to read ID string of PCI device
-        const auto sys_id_path = makePath(sys_device_path, "id");
+        auto const sys_id_path = makePath(sys_device_path, "id");
 
         if (fs.exists(sys_id_path)) {
             auto const hwIdLine = readLine(sys_id_path);

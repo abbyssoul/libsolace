@@ -267,11 +267,11 @@ public:
     template<typename F,
              typename R = typename std::result_of<F(T)>::type>
     Array<R> map(F&& f) const {
-        const auto thisSize = size();
+        auto const thisSize = size();
         typename Array<R>::Storage mappedStorage;  // NOTE: No default size here as it will insert that many elements.
         mappedStorage.reserve(thisSize);
 
-        for (const auto& x : _storage) {
+        for (auto const& x : _storage) {
             mappedStorage.emplace_back(f(x));
         }
 

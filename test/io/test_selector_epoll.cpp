@@ -73,7 +73,7 @@ TEST_F(TestEPollSelector, testReadPolling) {
     EXPECT_TRUE(i == i.end());
 
     char msg[] = "message";
-    const auto written = p.write(wrapMemory(msg));
+    auto const written = p.write(wrapMemory(msg));
     EXPECT_TRUE(written.isOk());
 
     i = s.poll(1);
@@ -86,7 +86,7 @@ TEST_F(TestEPollSelector, testReadPolling) {
     char buff[100];
     auto m = wrapMemory(buff);
     auto dest = m.slice(0, written.unwrap());
-    const auto bytesRead = p.read(dest);
+    auto const bytesRead = p.read(dest);
     EXPECT_TRUE(bytesRead.isOk());
     EXPECT_EQ(written.unwrap(), bytesRead.unwrap());
 

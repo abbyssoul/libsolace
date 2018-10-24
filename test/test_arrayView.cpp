@@ -155,14 +155,14 @@ protected:
     };
 
     static NonPodStruct fillOddNonPods(size_t i) {
-        const auto index = static_cast<int>(i)*2 - 1;
+        auto const index = static_cast<int>(i)*2 - 1;
         auto str = std::string("Some Odd string: ") + std::to_string(index);
 
         return NonPodStruct(index, std::move(str));
     }
 
     static NonPodStruct fillEvenNonPods(size_t i) {
-        const auto index = static_cast<int>(i)*2 + 1;
+        auto const index = static_cast<int>(i)*2 + 1;
         auto str = std::string("Some Event string: ") + std::to_string(index);
 
         return NonPodStruct(index, std::move(str));
@@ -718,13 +718,13 @@ TEST_F(TestArrayView, testIndexOf) {
     auto array = arrayView(src);
 
     {  // Test for existing value:
-        const auto maybeIndex = array.indexOf(2*4 - 1);
+        auto const maybeIndex = array.indexOf(2*4 - 1);
         EXPECT_TRUE(maybeIndex.isSome());
         EXPECT_EQ(ArrayView<int>::size_type(4), maybeIndex.get());
     }
 
     {  // Can we find this sequance? Yes we can
-        const auto view = ArrayView<SimpleType>(wrapMemory(src));
+        auto const view = ArrayView<SimpleType>(wrapMemory(src));
         EXPECT_TRUE(view.indexOf(SimpleType(5, 7, 9)).isSome());
     }
 
@@ -737,7 +737,7 @@ TEST_F(TestArrayView, testIndexOf) {
     }
 
     {  // Can we find this sequance? Nope
-        const auto view = ArrayView<SimpleType>(wrapMemory(src));
+        auto const view = ArrayView<SimpleType>(wrapMemory(src));
         EXPECT_TRUE(view.indexOf(SimpleType(3, 2, 1)).isNone());
     }
 }
@@ -762,7 +762,7 @@ TEST_F(TestArrayView, testContains) {
     }
 
     {  // Can we find this sequance? Yes we can
-        const auto view = ArrayView<SimpleType>(wrapMemory(src));
+        auto const view = ArrayView<SimpleType>(wrapMemory(src));
         EXPECT_TRUE(view.contains(SimpleType(15, 17, 19)));
     }
 }
@@ -773,7 +773,7 @@ TEST_F(TestArrayView, testFillWithConstValue) {
 
     array.fill(42);
 
-    for (const auto i : array) {
+    for (auto const i : array) {
         EXPECT_EQ(42, i);
     }
 }

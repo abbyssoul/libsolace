@@ -93,9 +93,9 @@ File::File(const poll_id fd) noexcept : _fd(fd)
 File::File(const Path& path, int flags) {
 
     // TODO(abbyssoul): Should the path be validated?
-    const auto pathStr = path.toString();
-    const auto pathStrView = pathStr.view();
-    const auto pathCStr = std::string(pathStrView.data(), pathStrView.size());
+    auto const pathStr = path.toString();
+    auto const pathStrView = pathStr.view();
+    auto const pathCStr = std::string(pathStrView.data(), pathStrView.size());
 
     bool notDone = true;
 
@@ -150,8 +150,8 @@ bool File::isOpened() const {
 
 IOObject::IOResult
 File::read(MutableMemoryView& buffer) {
-    const auto fd = validateFd();
-    const auto bytesRead = ::read(fd, buffer.dataAddress(), buffer.size());
+    auto const fd = validateFd();
+    auto const bytesRead = ::read(fd, buffer.dataAddress(), buffer.size());
 
     if (bytesRead < 0) {
         raise<IOException>(errno);
@@ -163,8 +163,8 @@ File::read(MutableMemoryView& buffer) {
 
 IOObject::IOResult
 File::write(const Solace::MemoryView& buffer) {
-    const auto fd = validateFd();
-    const auto bytesWritten = ::write(fd, buffer.dataAddress(), buffer.size());
+    auto const fd = validateFd();
+    auto const bytesWritten = ::write(fd, buffer.dataAddress(), buffer.size());
 
     if (bytesWritten < 0) {
         raise<IOException>(errno);
@@ -176,7 +176,7 @@ File::write(const Solace::MemoryView& buffer) {
 
 
 File::size_type File::seek(size_type offset, Seek type) {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     off_t result = 0;
     switch (type) {
@@ -197,8 +197,8 @@ void File::close() {
     if (isClosed())
         return;
 
-    const auto fd = validateFd();
-    const auto result = ::close(fd);
+    auto const fd = validateFd();
+    auto const result = ::close(fd);
 
     if (result) {
         raise<IOException>(errno);
@@ -209,8 +209,8 @@ void File::close() {
 
 
 void File::flush() {
-    const auto fd = validateFd();
-    const auto result = ::fsync(fd);
+    auto const fd = validateFd();
+    auto const result = ::fsync(fd);
 
     if (result) {
         raise<IOException>(errno);

@@ -53,7 +53,7 @@ TEST(TestProcessEnv, testComplex) {
 
     auto env = Env{};
     {
-        const auto uid1 = randomValue();
+        auto const uid1 = randomValue();
         EXPECT_TRUE(env.set(name, uid1).isOk());
         EXPECT_FALSE(env.empty());
         EXPECT_GT(env.size(), 1);
@@ -64,7 +64,7 @@ TEST(TestProcessEnv, testComplex) {
     }
 
     {
-        const auto uid2 = randomValue();
+        auto const uid2 = randomValue();
         EXPECT_TRUE(env.set(name, uid2).isOk());
 
         auto const var2 = env.get(name);
@@ -90,7 +90,7 @@ TEST(TestProcessEnv, testUnset) {
     auto env = Env{};
 
     EXPECT_TRUE(env.get(name).isNone());
-    const auto currentSize = env.size();
+    auto const currentSize = env.size();
 
     EXPECT_TRUE(env.set(name, randomValue()).isOk());
     EXPECT_EQ(currentSize + 1, env.size());
@@ -126,7 +126,7 @@ TEST(TestProcessEnv, testIteration) {
     auto env = Env{};
 
     EXPECT_TRUE(env.get(name).isNone());
-    const auto currentSize = env.size();
+    auto const currentSize = env.size();
 
     Env::size_type iSize = 0;
     for (auto i : env) {

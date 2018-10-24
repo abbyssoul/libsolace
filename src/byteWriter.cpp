@@ -21,14 +21,14 @@
 #include "solace/byteWriter.hpp"
 
 
-#include <cstring>  // memcpy
+#include <cstring>  // memmove
 
 
 using namespace Solace;
 
 
 Result<void, Error>
-ByteWriter::limit(size_type newLimit) {
+ByteWriter::limit(size_type newLimit) noexcept {
     if (capacity() < newLimit) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::limit()"));
     }
@@ -40,7 +40,7 @@ ByteWriter::limit(size_type newLimit) {
 
 
 Result<void, Error>
-ByteWriter::position(size_type newPosition) {
+ByteWriter::position(size_type newPosition) noexcept {
     if (limit() < newPosition) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::position()"));
     }
@@ -52,7 +52,7 @@ ByteWriter::position(size_type newPosition) {
 
 
 Result<void, Error>
-ByteWriter::advance(size_type increment) {
+ByteWriter::advance(size_type increment) noexcept {
     if (remaining() < increment) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::advance()"));
     }

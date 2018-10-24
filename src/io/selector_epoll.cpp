@@ -155,7 +155,7 @@ public:
 
     Selector::Event getEvent(size_t i) override {
         const auto& ev = _evlist[i];
-        const auto selected = static_cast<Selector::Event*>(ev.data.ptr);
+        auto const selected = static_cast<Selector::Event*>(ev.data.ptr);
 
         Selector::Event event;
         event.fd = selected->fd;

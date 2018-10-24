@@ -78,9 +78,9 @@ public:
 };
 
 TEST_F(TestPlatformFs, testCreation) {
-    const auto fileUID = UUID::random();
-    const auto filename = Path::parse(makeStringJoin("-", "test", fileUID.toString()).view()).unwrap();
-    const auto fileUIDBytes = fileUID.view();
+    auto const fileUID = UUID::random();
+    auto const filename = Path::parse(makeStringJoin("-", "test", fileUID.toString()).view()).unwrap();
+    auto const fileUIDBytes = fileUID.view();
 
     auto fs = PlatformFilesystem();
     if (fs.exists(filename)) {
@@ -92,7 +92,7 @@ TEST_F(TestPlatformFs, testCreation) {
         auto f = fs.create(filename);
         EXPECT_TRUE(fs.exists(filename));
 
-        const auto written = f->write(fileUIDBytes);
+        auto const written = f->write(fileUIDBytes);
         EXPECT_TRUE(written.isOk());
 
         const MutableMemoryView::size_type bytesWriten = written.unwrap();
@@ -101,7 +101,7 @@ TEST_F(TestPlatformFs, testCreation) {
         f->seek(0, File::Seek::Set);
 
         ByteWriter readBuffer(_memoryManager.allocate(fileUIDBytes.size()));
-        const auto read = f->read(readBuffer);
+        auto const read = f->read(readBuffer);
         EXPECT_TRUE(read.isOk());
         const MutableMemoryView::size_type bytesRead = read.unwrap();
         EXPECT_EQ(fileUIDBytes.size(), bytesRead);
@@ -116,9 +116,9 @@ TEST_F(TestPlatformFs, testCreation) {
 }
 
 TEST_F(TestPlatformFs, testCreationAndRemoval) {
-    const auto fileUID = UUID::random();
-    const auto filename = Path::parse(makeStringJoin("-", "test", fileUID.toString()).view()).unwrap();
-    const auto fileUIDBytes = fileUID.view();
+    auto const fileUID = UUID::random();
+    auto const filename = Path::parse(makeStringJoin("-", "test", fileUID.toString()).view()).unwrap();
+    auto const fileUIDBytes = fileUID.view();
 
     auto fs = PlatformFilesystem();
     if (fs.exists(filename)) {
@@ -148,7 +148,7 @@ TEST_F(TestPlatformFs, testCreationAndRemoval) {
         auto f = fs.open(filename);
 
         ByteWriter readBuffer(_memoryManager.allocate(fileUIDBytes.size()));
-        const auto read = f->read(readBuffer);
+        auto const read = f->read(readBuffer);
         EXPECT_TRUE(read.isOk());
         const MutableMemoryView::size_type bytesRead = read.unwrap();
 
@@ -200,14 +200,14 @@ TEST_F(TestPlatformFs, testWorkingDirectory) {
 }
 
 TEST_F(TestPlatformFs, testTemp) {
-    const auto fileUID = UUID::random();
+    auto const fileUID = UUID::random();
     const auto& fileUIDBytes = fileUID.view();
 
     auto fs = PlatformFilesystem();
     {
         auto f = fs.createTemp();
 
-        const auto written = f->write(fileUIDBytes);
+        auto const written = f->write(fileUIDBytes);
         EXPECT_TRUE(written.isOk());
         const MutableMemoryView::size_type bytesWriten = written.unwrap();
         EXPECT_EQ(fileUIDBytes.size(), bytesWriten);
@@ -216,7 +216,7 @@ TEST_F(TestPlatformFs, testTemp) {
         f->seek(0, File::Seek::Set);
 
         ByteWriter readBuffer(_memoryManager.allocate(fileUIDBytes.size()));
-        const auto read = f->read(readBuffer);
+        auto const read = f->read(readBuffer);
         EXPECT_TRUE(read.isOk());
         const MutableMemoryView::size_type bytesRead = read.unwrap();
         EXPECT_EQ(fileUIDBytes.size(), bytesRead);

@@ -239,7 +239,7 @@ public:
     }
 
     Optional<size_type> indexOf(const_reference value) const noexcept {
-        const auto len = size();
+        auto const len = size();
         auto it = begin();
         for (size_type i = 0; i < len; ++i, ++it) {
             if (value == *it) {
@@ -270,7 +270,7 @@ public:
     std::enable_if_t<isCallable<F, size_type>::value, ArrayView&>
     fill(F&& f) noexcept {
         auto it = begin();
-        const auto itEnd = end();
+        auto const itEnd = end();
 
         for (size_type i = 0; it != itEnd; ++i, ++it) {
             *it = f(i);
@@ -313,8 +313,8 @@ public:
             isCallable<F, size_type, const T&>::value,
     const ArrayView<T>& >
     forEach(F&& f) const {
-        const auto thisSize = size();
-        const auto pData = _memory.template dataAs<T>();
+        auto const thisSize = size();
+        auto const pData = _memory.template dataAs<T>();
 
         for (size_type i = 0; i < thisSize; ++i) {
             f(i, pData[i]);
@@ -330,8 +330,8 @@ public:
             isCallable<F, size_type, T&>::value,
     ArrayView<T>& >
     forEach(F&& f) {
-        const auto thisSize = size();
-        const auto pData = _memory.template dataAs<T>();
+        auto const thisSize = size();
+        auto const pData = _memory.template dataAs<T>();
 
         for (size_type i = 0; i < thisSize; ++i) {
             f(i, pData[i]);

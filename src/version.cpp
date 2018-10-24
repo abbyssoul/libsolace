@@ -35,19 +35,21 @@
 using namespace Solace;
 
 
-static const StringLiteral ComponentSeparator{"."};
-static const StringLiteral PreSeparator("-");
-static const StringLiteral BuildSeparator("+");
+const StringView::value_type Version::NumberSeparator{'.'};
+const StringView::value_type Version::ReleaseSeparator{'-'};
+const StringView::value_type Version::BuildSeparator{'+'};
 
 
-Version Solace::getBuildVersion() {
+Version
+Solace::getBuildVersion() {
 	return Version( SOLACE_VERSION_MAJOR,
 					SOLACE_VERSION_MINOR,
 					SOLACE_VERSION_BUILD);
 }
 
 
-bool Version::operator > (const Version& rhv) const {
+bool
+Version::operator > (Version const& rhv) const noexcept {
     if (majorNumber > rhv.majorNumber) {
         return true;
     } else if (majorNumber < rhv.majorNumber) {
@@ -64,22 +66,23 @@ bool Version::operator > (const Version& rhv) const {
 }
 
 
-String Version::toString() const {
+String
+Version::toString() const {
     auto const majorString = std::to_string(majorNumber);
     auto const minorString = std::to_string(minorNumber);
     auto const patchString = std::to_string(patchNumber);
 
-    auto s1 = makeStringJoin(ComponentSeparator,
+    auto s1 = makeStringJoin(NumberSeparator,
                                StringView(majorString.data(), majorString.size()),
                                StringView(minorString.data(), minorString.size()),
                                StringView(patchString.data(), patchString.size()));
 
     auto s2 = (preRelease.empty())
-              ? makeString("")
-              : makeString(PreSeparator, preRelease);
+              ? makeString(StringLiteral{""})
+              : makeString(ReleaseSeparator, preRelease);
 
     auto s3 = build.empty()
-        ? makeString("")
+        ? makeString(StringLiteral{""})
         : makeString(BuildSeparator, build);
 
     return makeString(s1, s2, s3);
@@ -94,7 +97,7 @@ Version::parse(StringView str) {
 
     StringView afterPatch;
     uint splitIndex = 0;
-    str.split('.', [&](StringView split) {
+    str.split(NumberSeparator, [&](StringView split) {
         if (splitIndex == 0) {
             majorVersion = std::strtoul(split.data(), nullptr, 10);
             ++splitIndex;
@@ -125,9 +128,9 @@ Version::parse(StringView str) {
 
     if (!afterPatch.empty()) {
         splitIndex = 0;
-        afterPatch.split('+', [&](StringView split) {
+        afterPatch.split(BuildSeparator, [&](StringView split) {
             if (splitIndex == 0) {
-                preRelease = makeString(split.trim('-'));
+                preRelease = makeString(split.trim(ReleaseSeparator));
             } else if (splitIndex == 1) {
                 build = makeString(split);
             }

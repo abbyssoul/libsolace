@@ -75,10 +75,10 @@ public:
 
     void dispose(MemoryView* view) const override {
         // FIXME(abbyssoul): Some return result check might help.
-        const auto size = view->size();
+        auto const size = view->size();
         auto addr = const_cast<MemoryView::value_type*>(view->dataAddress());
         if (addr && size > 0) {
-            const auto result = munmap(addr, size);
+            auto const result = munmap(addr, size);
             if (result != 0) {
                 raise<IOException>(errno, "munmap");
             }
@@ -157,8 +157,8 @@ bool SharedMemory::isClosed() const {
 
 
 void SharedMemory::close() {
-    const auto fd = validateFd();
-    const auto result = ::close(fd);
+    auto const fd = validateFd();
+    auto const result = ::close(fd);
 
     if (result) {
         raise<IOException>(errno, "close");
@@ -170,7 +170,7 @@ void SharedMemory::close() {
 
 SharedMemory::size_type
 SharedMemory::size() const {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     struct stat sb;
     if (fstat(fd, &sb )) {
@@ -294,7 +294,7 @@ void SharedMemory::unlink(Path const& pathname) {
 
 
 MemoryResource SharedMemory::map(SharedMemory::Access mapping, int access, size_type mapSize) {
-    const auto fd = validateFd();
+    auto const fd = validateFd();
 
     if (mapSize == 0) {
         mapSize = size();

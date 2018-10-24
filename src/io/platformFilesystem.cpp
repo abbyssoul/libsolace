@@ -65,7 +65,7 @@ PlatformFilesystem::BufferedFile::read(MutableMemoryView& buffer) {
         raise<NotOpen>();
     }
 
-    const auto bytesRead = ::fread(buffer.dataAddress(), 1, buffer.size(), _fp);
+    auto const bytesRead = ::fread(buffer.dataAddress(), 1, buffer.size(), _fp);
     // NOTE: Number of bytes read can be less then 'bytesToRead' if there are no more data in the file or end of file
     // has been reached.
 
@@ -79,7 +79,7 @@ PlatformFilesystem::BufferedFile::write(const MemoryView& buffer) {
         raise<NotOpen>();
     }
 
-    const auto bytesWritten = ::fwrite(buffer.dataAddress(), 1, buffer.size(), _fp);
+    auto const bytesWritten = ::fwrite(buffer.dataAddress(), 1, buffer.size(), _fp);
     if (bytesWritten != buffer.size()) {
         raise<IOException>(errno);
     }

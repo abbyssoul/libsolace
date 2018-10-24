@@ -48,7 +48,7 @@ int main(int argc, const char **argv) {
     uint32 bufferSize = 120;
     Path file;
 
-    const auto parseResult = cli::Parser("Serial port example", {
+    auto const parseResult = cli::Parser("Serial port example", {
                           cli::Parser::printHelp(),
                           cli::Parser::printVersion("serial", getBuildVersion()),
                           {{"b", "boudRate"},   "COM port boud rate",   &boudRate},
@@ -93,7 +93,7 @@ int main(int argc, const char **argv) {
             for (auto event : selector.poll()) {
 
                 if ((event.events & IO::Selector::Events::Read) && (event.data == &serial)) {
-                    const auto bytesRead = serial.read(readBuffer);
+                    auto const bytesRead = serial.read(readBuffer);
                     if (bytesRead) {
                         auto dataView = readBuffer.viewWritten();
                         std::cout.write(dataView.dataAs<const char>(), dataView.size());

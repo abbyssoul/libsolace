@@ -108,14 +108,14 @@ public:
 
 
     std::tuple<uint32, uint32> poll(int msec) override {
-        const auto r = ::poll(_pollfds.data(), _pollfds.size(), msec);
+        auto const r = ::poll(_pollfds.data(), _pollfds.size(), msec);
         if (r < 0) {
             Solace::raise<IOException>(errno);
         } else if (r == 0) {
             return std::make_tuple(0, 0);
         }
 
-        const auto pollCount = _pollfds.size();
+        auto const pollCount = _pollfds.size();
         return std::make_tuple(findFirstReady(0, pollCount), pollCount);
     }
 
@@ -145,7 +145,7 @@ public:
 
 
     size_t advance(size_t offsetIndex) override {
-        const auto pollCount = _pollfds.size();
+        auto const pollCount = _pollfds.size();
 
         // Overflow check
         if (offsetIndex >= _pollfds.size()) {

@@ -26,7 +26,7 @@ using namespace Solace;
 
 
 Result<void, Error>
-ByteReader::limit(size_type newLimit) {
+ByteReader::limit(size_type newLimit) noexcept {
     if (capacity() < newLimit) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::limit()"));
     }
@@ -38,7 +38,7 @@ ByteReader::limit(size_type newLimit) {
 
 
 Result<void, Error>
-ByteReader::position(size_type newPosition) {
+ByteReader::position(size_type newPosition) noexcept {
     if (limit() < newPosition) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::position()"));
     }
@@ -50,7 +50,7 @@ ByteReader::position(size_type newPosition) {
 
 
 Result<void, Error>
-ByteReader::advance(size_type increment) {
+ByteReader::advance(size_type increment) noexcept {
     if (remaining() < increment) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::advance()"));
     }
@@ -62,7 +62,7 @@ ByteReader::advance(size_type increment) {
 
 
 Result<byte, Error>
-ByteReader::get() {
+ByteReader::get() noexcept {
     if (remaining() < 1) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::get()"));
     }
@@ -71,7 +71,7 @@ ByteReader::get() {
 }
 
 Result<byte, Error>
-ByteReader::get(size_type pos) const {
+ByteReader::get(size_type pos) const noexcept {
     if (limit() <= pos) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::get(position)"));
     }
@@ -81,7 +81,7 @@ ByteReader::get(size_type pos) const {
 
 
 Result<void, Error>
-ByteReader::read(MutableMemoryView& dest, size_type bytesToRead) {
+ByteReader::read(MutableMemoryView& dest, size_type bytesToRead) noexcept {
     if (dest.size() < bytesToRead) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
     }
@@ -91,7 +91,7 @@ ByteReader::read(MutableMemoryView& dest, size_type bytesToRead) {
 
 
 Result<void, Error>
-ByteReader::read(void* dest, size_type bytesToRead) {
+ByteReader::read(void* dest, size_type bytesToRead) noexcept {
     if (remaining() < bytesToRead) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
     }
@@ -105,7 +105,7 @@ ByteReader::read(void* dest, size_type bytesToRead) {
 
 
 Result<void, Error>
-ByteReader::read(size_type offset, MutableMemoryView& dest, size_type bytesToRead) const {
+ByteReader::read(size_type offset, MutableMemoryView& dest, size_type bytesToRead) const noexcept {
     if (dest.size() < bytesToRead) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
     }
@@ -122,7 +122,7 @@ ByteReader::read(size_type offset, MutableMemoryView& dest, size_type bytesToRea
 
 
 Result<void, Error>
-ByteReader::readLE(uint16& value) {
+ByteReader::readLE(uint16& value) noexcept {
     constexpr auto valueSize = sizeof(value);
     return read(&value, valueSize)
             .then([&]() {
@@ -137,7 +137,7 @@ ByteReader::readLE(uint16& value) {
 }
 
 Result<void, Error>
-ByteReader::readLE(uint32& value) {
+ByteReader::readLE(uint32& value) noexcept {
     constexpr auto valueSize = sizeof(value);
     return read(&value, valueSize)
             .then([&]() {
@@ -155,7 +155,7 @@ ByteReader::readLE(uint32& value) {
 
 
 Result<void, Error>
-ByteReader::readLE(uint64& value) {
+ByteReader::readLE(uint64& value) noexcept {
     constexpr auto valueSize = sizeof(value);
     return read(&value, valueSize)
             .then([&]() {
@@ -177,7 +177,7 @@ ByteReader::readLE(uint64& value) {
 
 
 Result<void, Error>
-ByteReader::readBE(uint16& value) {
+ByteReader::readBE(uint16& value) noexcept {
     constexpr auto valueSize = sizeof(value);
     return read(&value, valueSize)
             .then([&]() {
@@ -192,7 +192,7 @@ ByteReader::readBE(uint16& value) {
 }
 
 Result<void, Error>
-ByteReader::readBE(uint32& value) {
+ByteReader::readBE(uint32& value) noexcept {
     constexpr auto valueSize = sizeof(value);
     return read(&value, valueSize)
             .then([&]() {
@@ -209,7 +209,7 @@ ByteReader::readBE(uint32& value) {
 }
 
 Result<void, Error>
-ByteReader::readBE(uint64& value) {
+ByteReader::readBE(uint64& value) noexcept {
     constexpr auto valueSize = sizeof(value);
     return read(&value, valueSize)
             .then([&]() {

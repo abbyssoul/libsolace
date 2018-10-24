@@ -40,7 +40,7 @@ MemoryManager::MemoryManager(size_type allowedCapacity) :
     _disposer(*this)
 {
 
-    const auto totalAvaliableMemory = getPageSize() * getNbPages();
+    auto const totalAvaliableMemory = getPageSize() * getNbPages();
     if (totalAvaliableMemory < _capacity) {
         Solace::raise<IllegalArgumentException>("allowedCapacity can't be more then total system's memory");
     }
@@ -59,13 +59,13 @@ MemoryManager& MemoryManager::swap(MemoryManager& rhs) noexcept {
 
 
 MemoryManager::size_type MemoryManager::getPageSize() const {
-//    const auto res = sysconf(PAGESIZE);
+//    auto const res = sysconf(PAGESIZE);
     return getpagesize();
 }
 
 
 MemoryManager::size_type MemoryManager::getNbPages() const {
-    const auto res = sysconf(_SC_PHYS_PAGES);
+    auto const res = sysconf(_SC_PHYS_PAGES);
     if (res < 0) {
         Solace::raise<IOException>(errno, "sysconf(_SC_PHYS_PAGES)");
     }
@@ -76,7 +76,7 @@ MemoryManager::size_type MemoryManager::getNbPages() const {
 
 MemoryManager::size_type MemoryManager::getNbAvailablePages() const {
 #ifdef SOLACE_PLATFORM_LINUX
-  const auto res = sysconf(_SC_AVPHYS_PAGES);
+  auto const res = sysconf(_SC_AVPHYS_PAGES);
     if (res < 0) {
         Solace::raise<IOException>(errno, "sysconf(_SC_AVPHYS_PAGES)");
     }
@@ -96,7 +96,7 @@ MemoryManager::HeapMemoryDisposer::dispose(MemoryView* view) const {
 
 
 void MemoryManager::free(MemoryView* view) {
-    const auto size = view->size();
+    auto const size = view->size();
     ::free(reinterpret_cast<void*>(const_cast<MemoryView::value_type*>(view->dataAddress())));
 
     _size -= size;

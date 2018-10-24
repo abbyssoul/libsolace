@@ -454,13 +454,13 @@ TEST_F(TestArray, testEquals) {
         auto const array = makeArray<int>({1, 2, 3});
 
         const int equal_native_array[] = {1, 2, 3};
-        const auto equal_native_array_length = nativeArrayLength(equal_native_array);
+        auto const equal_native_array_length = nativeArrayLength(equal_native_array);
 
         const int nequal_native_array_0[] = {0, 1, 2, 3};
-        const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
+        auto const nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
 
         const int nequal_native_array_1[] = {3, 2, 1};
-        const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
+        auto const nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
         auto const array_eq = makeArray<int>(equal_native_array, equal_native_array_length);
         auto const array_neq_0 = makeArray<int>(nequal_native_array_0, nequal_native_array_0_length);
@@ -492,13 +492,13 @@ TEST_F(TestArray, testEquals) {
         auto const array = makeArray<String>({"tasrd", "", "hhha", "asd"});
 
         const String equal_native_array[] = {"tasrd", "", "hhha", "asd"};
-        const auto equal_native_array_length = nativeArrayLength(equal_native_array);
+        auto const equal_native_array_length = nativeArrayLength(equal_native_array);
 
         const String nequal_native_array_0[] = {"tasrd", "", "hhha", "asd", "ugaga"};
-        const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
+        auto const nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
 
         const String nequal_native_array_1[] = {"tasrd", "", "hhha", "basd"};
-        const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
+        auto const nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
         auto const array_eq = makeArray<String>(equal_native_array, equal_native_array_length);
         auto const array_neq_0 = makeArray<String>(nequal_native_array_0, nequal_native_array_0_length);
@@ -540,7 +540,7 @@ TEST_F(TestArray, testEquals) {
                 NonPodStruct(-321, "yyx"),
                 NonPodStruct(990, "x^hhf")
         };
-        const auto equal_native_array_length = nativeArrayLength(equal_native_array);
+        auto const equal_native_array_length = nativeArrayLength(equal_native_array);
 
         const NonPodStruct nequal_native_array_0[] = {
                 NonPodStruct(-31, "kek-yyyz"),
@@ -549,7 +549,7 @@ TEST_F(TestArray, testEquals) {
                 NonPodStruct(21, "32"),
                 NonPodStruct(990, "x^hhf")
         };
-        const auto nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
+        auto const nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
 
         const NonPodStruct nequal_native_array_1[] = {
                 NonPodStruct(-31, "kek-yyyz"),
@@ -557,7 +557,7 @@ TEST_F(TestArray, testEquals) {
                 NonPodStruct(0, "dhf")
         };
 
-        const auto nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
+        auto const nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
         auto const array_eq = makeArray<NonPodStruct>(equal_native_array, equal_native_array_length);
         auto const array_neq_0 = makeArray<NonPodStruct>(nequal_native_array_0, nequal_native_array_0_length);

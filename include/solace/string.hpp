@@ -440,6 +440,15 @@ inline void swap(String& lhs, String& rhs) noexcept {
  */
 String makeString(StringView view);
 
+
+/**
+ * Construct a new string from a StringLiteral. Resulting string does not own memory buffer.
+ * @param view A string literal that represents the string.
+ * @return A new string object that doesn not owns the memory where the data is kept.
+ */
+String makeString(StringLiteral literal);
+
+
 //!< Construct a string from a raw null-terminated (C-style) string.
 inline String makeString(const char* data) {
     return makeString(StringView(data));
@@ -464,6 +473,15 @@ inline void ctor(String& location, String const& s) {
   new (_::PlacementNew(), &location) String(makeString(s));
 }
 
+inline constexpr
+StringView::size_type totalSize() noexcept {
+    return 0;
+}
+
+inline constexpr
+StringView::size_type totalSize(StringView::value_type SOLACE_UNUSED(arg)) noexcept {
+    return 1;
+}
 
 inline constexpr
 StringView::size_type totalSize(StringView arg) noexcept {
@@ -471,20 +489,35 @@ StringView::size_type totalSize(StringView arg) noexcept {
 }
 
 inline constexpr
+StringView::size_type totalSize(StringLiteral arg) noexcept {
+    return arg.size();
+}
+
+inline
+StringView::size_type totalSize(const char* arg) noexcept {
+    return totalSize(StringView{arg});
+}
+
+template<size_t N>
+StringView::size_type totalSize(char const (&str)[N]) noexcept {
+    return N;
+}
+
+
+inline constexpr
 StringView::size_type totalSize(String const& arg) noexcept {
     return arg.size();
 }
 
-template<typename...Args>
-StringView::size_type totalSize(StringView by, Args&&... args) {
-    return totalSize(by) + totalSize(std::forward<Args>(args)...);
+template<typename T, typename K, typename...Args>
+StringView::size_type totalSize(T&& a, K&& b, Args&&... args) noexcept {
+    return totalSize(a) + totalSize(std::forward<K>(b), std::forward<Args>(args)...);
 }
 
-template<typename...Args>
-StringView::size_type totalSize(String const& by, Args&&... args) {
-    return totalSize(by) + totalSize(std::forward<Args>(args)...);
+inline
+auto writeArg(ByteWriter& dest, StringView::value_type arg) noexcept {
+    return dest.write(arg);
 }
-
 
 inline
 auto writeArg(ByteWriter& dest, StringView arg) noexcept {
@@ -526,9 +559,24 @@ String makeString(StringView lhs, StringView rhs, StringViews&&... args) {
 }
 
 template<typename... StringViews>
+String makeString(StringView::value_type lhs, StringView rhs, StringViews&&... args) {
+    auto const totalStrLen = totalSize(lhs, rhs, std::forward<StringViews>(args)...);
+    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
+    auto writer = ByteWriter(buffer.view());
+
+    // Copy string view content into a new buffer
+    // FIXME: WriteAllArgs returns Result<> thus makeString should return -> Result<String, Error>
+    /*auto r = */writeAllArgs(writer, lhs, rhs, std::forward<StringViews>(args)...);
+
+    return { std::move(buffer), totalStrLen };
+}
+
+
+template<typename... StringViews>
 String makeString(String const& lhs, StringView rhs, StringViews&&... args) {
     return makeString(lhs.view(), rhs, std::forward<StringViews>(args)...);
 }
+
 template<typename... StringViews>
 String makeString(StringView lhs, String const& rhs, StringViews&&... args) {
     return makeString(lhs, rhs.view(), std::forward<StringViews>(args)...);
@@ -539,6 +587,10 @@ String makeString(String const& lhs, String const& rhs, StringViews&&... args) {
     return makeString(lhs.view(), rhs.view(), std::forward<StringViews>(args)...);
 }
 
+template<typename... StringViews>
+String makeString(StringView::value_type lhs, String const& rhs, StringViews&&... args) {
+    return makeString(lhs, rhs.view(), std::forward<StringViews>(args)...);
+}
 
 /**
  * Returns a new string with all occurrences of 'what' replaced with 'with'.
@@ -582,12 +634,27 @@ String makeStringJoin(StringView SOLACE_UNUSED(by)) {
 }
 
 inline
+String makeStringJoin(StringView::value_type SOLACE_UNUSED(by)) {
+    return String{};
+}
+
+inline
 String makeStringJoin(StringView SOLACE_UNUSED(by), StringView str) {
     return makeString(str);
 }
 
 inline
+String makeStringJoin(StringView::value_type SOLACE_UNUSED(by), StringView str) {
+    return makeString(str);
+}
+
+inline
 String makeStringJoin(StringView SOLACE_UNUSED(by), String const& str) {
+    return makeString(str);
+}
+
+inline
+String makeStringJoin(StringView::value_type SOLACE_UNUSED(by), String const& str) {
     return makeString(str);
 }
 
@@ -599,6 +666,16 @@ auto writeJointArgs(ByteWriter& dest, StringView SOLACE_UNUSED(by), StringView a
 
 inline
 auto writeJointArgs(ByteWriter& dest, StringView SOLACE_UNUSED(by), String const& arg) {
+    return dest.write(arg.view().view());
+}
+
+inline
+auto writeJointArgs(ByteWriter& dest, StringView::value_type SOLACE_UNUSED(by), StringView arg) {
+    return dest.write(arg.view());
+}
+
+inline
+auto writeJointArgs(ByteWriter& dest, StringView::value_type SOLACE_UNUSED(by), String const& arg) {
     return dest.write(arg.view().view());
 }
 
@@ -627,11 +704,36 @@ Result<void, Error> writeJointArgs(ByteWriter& dest, StringView by, String const
             : std::move(r);
 }
 
+template<typename...Args>
+Result<void, Error> writeJointArgs(ByteWriter& dest, StringView::value_type by, StringView arg, Args&&...args) {
+    auto r = dest.write(arg.view())
+            .then([&dest, &by]() {
+                return dest.write(by);
+            });
+
+    return r
+            ? writeJointArgs(dest, by, std::forward<Args>(args)...)
+            : std::move(r);
+}
+
+template<typename...Args>
+Result<void, Error> writeJointArgs(ByteWriter& dest, StringView::value_type by, String const& arg, Args&&...args) {
+    auto r = dest.write(arg.view().view())
+            .then([&dest, &by]() {
+                dest.write(by);
+            });
+
+    return r
+            ? writeJointArgs(dest, by, std::forward<Args>(args)...)
+            : std::move(r);
+}
+
+
 
 template<typename...Args>
 String makeStringJoin(StringView by, Args&&... args) {
     auto const len = totalSize(std::forward<Args>(args)...);
-    auto const totalStrLen = narrow_cast<StringView::size_type>(by.size() * (sizeof...(args) - 1) + len);
+    auto const totalStrLen = narrow_cast<StringView::size_type>(totalSize(by) * (sizeof...(args) - 1) + len);
     auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
     auto writer = ByteWriter(buffer.view());
 
@@ -641,6 +743,21 @@ String makeStringJoin(StringView by, Args&&... args) {
 
     return {std::move(buffer), totalStrLen};
 }
+
+template<typename...Args>
+String makeStringJoin(StringView::value_type by, Args&&... args) {
+    auto const len = totalSize(std::forward<Args>(args)...);
+    auto const totalStrLen = narrow_cast<StringView::size_type>(totalSize(by) * (sizeof...(args) - 1) + len);
+    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
+    auto writer = ByteWriter(buffer.view());
+
+    // Copy string view content into a new buffer
+    // FIXME: writeJointArgs returns Result<> thus makeString should return -> Result<String, Error>
+    writeJointArgs(writer, by, std::forward<Args>(args)...);
+
+    return {std::move(buffer), totalStrLen};
+}
+
 
 template<typename...Args>
 String makeStringJoin(String const& by, Args&&... args) {

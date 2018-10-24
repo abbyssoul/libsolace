@@ -27,7 +27,7 @@ Encoder::~Encoder() = default;
 
 Result<void, Error>
 Encoder::encode(ByteReader& src) {
-    const auto remaining = src.remaining();
+    auto const remaining = src.remaining();
     return encode(src.viewRemaining())
             .then([&src, remaining]() { return src.advance(remaining); });
 }

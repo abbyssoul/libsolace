@@ -177,10 +177,10 @@ public:
 
     /**  Create a slice/window view of this memory segment.
      *
-     * @param from [in] Offset to begin the slice from.
-     * @param to [in] The last element to slice to.
+     * @param from [in] Offset to begin the slice from: [0, size())
+     * @param to [in] The index to slise up until: [from, size())
      *
-     * @return The slice of the memory segment.
+     * @return The slice of the memory segment, which may be empty.
      */
     MemoryView slice(size_type from, size_type to) const noexcept;
 

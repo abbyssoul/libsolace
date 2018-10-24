@@ -50,18 +50,23 @@ namespace Solace {
  */
 class Version {
 public:
-    using value_type = uint64;
+    using value_type = uint32;
 
+    static const StringView::value_type NumberSeparator;
+    static const StringView::value_type ReleaseSeparator;
+    static const StringView::value_type BuildSeparator;
+
+public:
 	//!< The major version, to be incremented on incompatible changes.
-	value_type 			majorNumber{};
+	value_type		majorNumber{};
 	//!< The minor version, to be incremented when functionality is added in a backwards-compatible manner.
-	value_type 			minorNumber{};
+	value_type		minorNumber{};
 	//!< The patch version, to be incremented when backwards-compatible bug fixes are made.
-	value_type			patchNumber{};
+	value_type		patchNumber{};
 	//!< The pre-release version identifier, if one exists.
-	String				preRelease;
+	String			preRelease;
 	//!< The build metadata, ignored when determining version precedence.
-	String				build;
+	String			build;
 
 public:
 
@@ -84,14 +89,13 @@ public:
 	constexpr Version() noexcept = default;
 
 	/** Construct the version object by specifying only numeric components */
-    Version(value_type aMajor, value_type aMinor, value_type aPatch) :
-			majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
-			preRelease(), build()
+	constexpr Version(value_type aMajor, value_type aMinor, value_type aPatch) noexcept
+		: majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch)
 	{}
 
     /** Construct the version object by specifying all components */
     // cppcheck-suppress passedByValue
-    Version(value_type aMajor, value_type aMinor, value_type aPatch, StringView aPre)
+    Version(value_type aMajor, value_type aMinor, value_type aPatch, StringLiteral aPre)
         : majorNumber(aMajor)
         , minorNumber(aMinor)
         , patchNumber(aPatch)
@@ -113,23 +117,23 @@ public:
 
     /** Construct the version object by specifying all components */
     // cppcheck-suppress passedByValue
-    Version(value_type aMajor, value_type aMinor, value_type aPatch, StringView aPre, StringView aBuild) :
+    Version(value_type aMajor, value_type aMinor, value_type aPatch, StringLiteral aPre, StringLiteral aBuild) :
                 majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
                 preRelease(makeString(aPre)), build(makeString(aBuild))
     {}
 
     /** Construct the version object by specifying all components */
     // cppcheck-suppress passedByValue
-    Version(value_type aMajor, value_type aMinor, value_type aPatch, String const& aPre, StringView aBuild) :
+    Version(value_type aMajor, value_type aMinor, value_type aPatch, String const& aPre, StringLiteral aBuild) :
                 majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
                 preRelease(makeString(aPre)), build(makeString(aBuild))
     {}
 
 public:
 
-    bool operator> (Version const& rhv) const;
+    bool operator> (Version const& rhv) const noexcept;
 
-    bool operator< (Version const& rhv) const {
+	bool operator< (Version const& rhv) const noexcept {
 		return !(operator >(rhv));
 	}
 
@@ -139,6 +143,7 @@ public:
 				&& (patchNumber == rhv.patchNumber)
 				&& (preRelease.equals(rhv.preRelease)));
 	}
+
 
 	Version& swap(Version& rhs) noexcept {
         using std::swap;

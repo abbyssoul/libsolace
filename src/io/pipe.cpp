@@ -32,7 +32,7 @@ using namespace Solace::IO;
 
 Duplex createPipe() {
     int fds[2];
-    const auto r = pipe(fds);
+    auto const r = pipe(fds);
     if (r < 0) {
         Solace::raise<IOException>(errno, "pipe");
     }

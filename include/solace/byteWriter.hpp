@@ -42,7 +42,7 @@ public:
 public:
 
     /** Construct an empty writer that has nowhere to write too */
-    ByteWriter() noexcept = default;
+    constexpr ByteWriter() noexcept = default;
 
     ByteWriter(ByteWriter const& other) = delete;
     ByteWriter& operator= (ByteWriter const&) = delete;
@@ -52,7 +52,11 @@ public:
      * Construct the byte buffer by moving content from the other buffer
      * @param other Other buffer to take over from
      */
-    ByteWriter(ByteWriter&& other) = default;
+    constexpr ByteWriter(ByteWriter&& other)  noexcept
+        : _position(exchange(other._position, 0))
+        , _limit(exchange(other._limit, 0))
+        , _storage(std::move(other._storage))
+    {}
 
     constexpr ByteWriter(MemoryResource& buffer) noexcept
         : _limit(buffer.size())
@@ -68,9 +72,9 @@ public:
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    constexpr ByteWriter(MutableMemoryView memView) noexcept :
-        _limit(memView.size()),
-        _storage(std::move(memView), nullptr)
+    constexpr ByteWriter(MutableMemoryView memView) noexcept
+        : _limit(memView.size())
+        , _storage(std::move(memView), nullptr)
     {}
 
 
@@ -123,7 +127,7 @@ public:
      *
      * @throws IllegalArgumentException if attempt is made to set limit to more then this buffer capacity.
      */
-    Result<void, Error> limit(size_type newLimit);
+    Result<void, Error> limit(size_type newLimit) noexcept;
 
     /**
      * Get remaining number of bytes in the buffer (Up to the limit)
@@ -142,7 +146,7 @@ public:
      * @return Reference to this buffer.
      */
     Result<void, Error>
-    reset(size_type savedMark) {
+    reset(size_type savedMark) noexcept {
         return position(savedMark);
     }
 
@@ -159,7 +163,7 @@ public:
      * @return Reference to this buffer for fluent interface.
      * @note It is illigal to set position beyond the limit(), and exception will be raised in that case.
      */
-    Result<void, Error> position(size_type newPosition);
+    Result<void, Error> position(size_type newPosition) noexcept;
 
     /**
      * Increment current position by the given amount.
@@ -167,7 +171,7 @@ public:
      * @return Reference to this buffer for fluent interface.
      * @note It is illigal to advance position beyond the limit(), and exception will be raised in that case.
      */
-    Result<void, Error> advance(size_type increment);
+    Result<void, Error> advance(size_type increment) noexcept;
 
     /**
      * Set the limit to the capacity and the position to zero.
@@ -190,19 +194,19 @@ public:
     }
 
 
-    MemoryView viewRemaining() const {
+    MemoryView viewRemaining() const noexcept {
         return _storage.view().slice(position(), limit());
     }
 
-    MutableMemoryView viewRemaining() {
+    MutableMemoryView viewRemaining() noexcept {
         return _storage.view().slice(position(), limit());
     }
 
-    MemoryView viewWritten() const {
+    MemoryView viewWritten() const noexcept {
         return _storage.view().slice(0, position());
     }
 
-    MutableMemoryView viewWritten() {
+    MutableMemoryView viewWritten() noexcept {
         return _storage.view().slice(0, position());
     }
 

@@ -53,7 +53,7 @@ struct Longest<T, true> {
         errno = 0;
         char* pEnd = nullptr;
         // FIXME(abbyssoul): The use of value.data() here is not safe for substrings.
-        const auto result = strtoll(value.data(), &pEnd, 0);
+        auto const result = strtoll(value.data(), &pEnd, 0);
 
         if ((errno == ERANGE && (result == LLONG_MAX || result == LLONG_MIN)) || (errno != 0 && result == 0)) {
             return conversionError("Value is outside of parsable int64 range: ", value);
@@ -80,7 +80,7 @@ struct Longest<T, false> {
         errno = 0;
         char* pEnd = nullptr;
         // FIXME(abbyssoul): The use of value.data() here is not safe for substrings.
-        const auto result = strtoull(value.data(), &pEnd, 0);
+        auto const result = strtoull(value.data(), &pEnd, 0);
 
         if ((errno == ERANGE && (result == ULLONG_MAX)) || (errno != 0 && result == 0)) {
             return conversionError("Value is outside of parsable uint64 range: ", value);

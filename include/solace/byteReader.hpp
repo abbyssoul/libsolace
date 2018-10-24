@@ -44,7 +44,7 @@ public:
 public:
 
     /** Construct an empty buffer of size zero */
-    ByteReader() noexcept = default;
+    constexpr ByteReader() noexcept = default;
 
 
     ByteReader(ByteReader const& other) = delete;
@@ -55,10 +55,10 @@ public:
      * Construct the byte buffer by moving content from the other buffer
      * @param other Other buffer to take over from
      */
-    ByteReader(ByteReader&& other) :
-        _position(other._position),
-        _limit(other._storage.size()),
-        _storage(std::move(other._storage))
+    constexpr ByteReader(ByteReader&& other) noexcept
+        : _position(exchange(other._position, 0))
+        , _limit(exchange(other._limit, 0))
+        , _storage(std::move(other._storage))
     {}
 
 
@@ -68,9 +68,9 @@ public:
      * Use move constructor if you want to delegate life-time management to the instance of the reader.
      * @param other Other buffer to copy data from
      */
-    ByteReader(MemoryResource& buffer) :
-        _limit(buffer.size()),
-        _storage(buffer.view(), nullptr)
+    constexpr ByteReader(MemoryResource& buffer) noexcept
+        : _limit(buffer.size())
+        , _storage(buffer.view(), nullptr)
     {
     }
 
@@ -78,9 +78,9 @@ public:
      * Construct the byte buffer from the memory buffer object
      * @param other Other buffer to copy data from
      */
-    ByteReader(MemoryResource&& buffer) :
-        _limit(buffer.size()),
-        _storage(std::move(buffer))
+    constexpr ByteReader(MemoryResource&& buffer) noexcept
+        : _limit(buffer.size())
+        , _storage(std::move(buffer))
     {
     }
 
@@ -88,9 +88,9 @@ public:
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    ByteReader(MemoryView view) :
-        _limit(view.size()),
-        _storage(wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()), nullptr)
+    ByteReader(MemoryView view) noexcept
+        : _limit(view.size())
+        , _storage(wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()), nullptr)
     {
     }
 
@@ -115,7 +115,7 @@ public:
      * Leave the limit unchanged and sets the position to zero.
      * @return A reference to this for fluency.
      */
-    ByteReader& rewind() noexcept {
+    constexpr ByteReader& rewind() noexcept {
         _position = 0;
 
         return *this;
@@ -127,7 +127,7 @@ public:
      * The capacity of a buffer is never negative and never changes.
      * @return Capacity of the buffer in bytes.
      */
-    size_type capacity() const noexcept { return _storage.size(); }
+    constexpr size_type capacity() const noexcept { return _storage.size(); }
 
     /** Return data read/write limit of this buffer.
      * For write buffer this is the maximum number of bytes this buffer can hold.
@@ -135,7 +135,7 @@ public:
      * @note Buffer limit is always less of equal to buffer's capacity.
      * @return Number of bytes that can be read/written to the buffer
      */
-    size_type limit() const noexcept { return _limit; }
+    constexpr size_type limit() const noexcept { return _limit; }
 
     /** Limit number of bytes that can be read/written to this buffer.
 
@@ -144,26 +144,26 @@ public:
      *
      * @throws IllegalArgumentException if attempt is made to set limit to more then this buffer capacity.
      */
-    Result<void, Error> limit(size_type newLimit);
+    Result<void, Error> limit(size_type newLimit) noexcept;
 
     /**
      * Get remaining number of bytes in the buffer (Up to the limit)
      * @return Remaining number of bytes in the buffer.
      */
-    size_type remaining() const noexcept { return limit() - position(); }
+    constexpr size_type remaining() const noexcept { return limit() - position(); }
 
     /**
      * Check if there are bytes left in the buffer (Up to the limit)
      * @return True if there are still some data before the limit is reached.
      */
-    bool hasRemaining() const noexcept { return remaining() > 0; }
+    constexpr bool hasRemaining() const noexcept { return remaining() > 0; }
 
     /**
      * Set position back to the previously saved mark
      * @return Reference to this buffer.
      */
     Result<void, Error>
-    reset(size_type savedMark) {
+    reset(size_type savedMark) noexcept {
         return position(savedMark);
     }
 
@@ -172,7 +172,7 @@ public:
      * It can be stored to later return to it using @see reset
      * @return Current position in the buffer
      */
-    size_type position() const noexcept { return _position; }
+    constexpr size_type position() const noexcept { return _position; }
 
     /**
      * Set current position to the given one.
@@ -180,7 +180,7 @@ public:
      * @return Reference to this buffer for fluent interface.
      * @note It is illigal to set position beyond the limit(), and exception will be raised in that case.
      */
-    Result<void, Error> position(size_type newPosition);
+    Result<void, Error> position(size_type newPosition) noexcept;
 
     /**
      * Increment current position by the given amount.
@@ -188,20 +188,20 @@ public:
      * @return Reference to this buffer for fluent interface.
      * @note It is illigal to advance position beyond the limit(), and exception will be raised in that case.
      */
-    Result<void, Error> advance(size_type increment);
+    Result<void, Error> advance(size_type increment) noexcept;
 
     /**
      * Read a single byte from the buffer
      * @return One byte read from the buffer
      */
-    Result<byte, Error> get();
+    Result<byte, Error> get() noexcept;
 
     /**
      * Get a single byte from the buffer in the given position
      * @return One byte read from the buffer
      * @note This operation does not advance current position
      */
-    Result<byte, Error> get(size_type position) const;
+    Result<byte, Error> get(size_type position) const noexcept;
 
     /**
      * Read data form this buffer and store it into a given destantion.
@@ -209,62 +209,62 @@ public:
      * @return Nothing if successfull or an error.
      */
     Result<void, Error>
-    read(MutableMemoryView& dest) {
+    read(MutableMemoryView& dest) noexcept {
         return read(dest, dest.size());
     }
 
     Result<void, Error>
-    read(MutableMemoryView& dest, size_type bytesToRead);
+    read(MutableMemoryView& dest, size_type bytesToRead) noexcept;
 
     Result<void, Error>
-    read(size_type offset, MutableMemoryView& dest, size_type bytesToRead) const;
+    read(size_type offset, MutableMemoryView& dest, size_type bytesToRead) const noexcept;
 
     Result<void, Error>
-    read(size_type offset, MutableMemoryView& dest) const  {
+    read(size_type offset, MutableMemoryView& dest) const noexcept {
         return read(offset, dest, dest.size());
     }
 
-    MemoryView viewRemaining() const {
+    MemoryView viewRemaining() const /*noexcept*/ {
         return _storage.view().slice(position(), limit());
     }
 
-    MemoryView viewWritten() const {
+    MemoryView viewWritten() const /*noexcept*/ {
         return _storage.view().slice(0, position());
     }
 
-    Result<void, Error>  read(char*      dest) { return read(dest, sizeof(char));    }
-    Result<void, Error>  read(int8*      dest) { return read(dest, sizeof(int8));    }
-    Result<void, Error>  read(uint8*     dest) { return read(dest, sizeof(uint8));   }
-    Result<void, Error>  read(int16*     dest) { return read(dest, sizeof(int16));   }
-    Result<void, Error>  read(uint16*    dest) { return read(dest, sizeof(uint16));  }
-    Result<void, Error>  read(int32*     dest) { return read(dest, sizeof(int32));   }
-    Result<void, Error>  read(uint32*    dest) { return read(dest, sizeof(uint32));  }
-    Result<void, Error>  read(int64*     dest) { return read(dest, sizeof(int64));   }
-    Result<void, Error>  read(uint64*    dest) { return read(dest, sizeof(uint64));  }
-    Result<void, Error>  read(float32*   dest) { return read(dest, sizeof(float32)); }
-    Result<void, Error>  read(float64*   dest) { return read(dest, sizeof(float64)); }
+    Result<void, Error>  read(char*      dest) noexcept { return read(dest, sizeof(char));    }
+    Result<void, Error>  read(int8*      dest) noexcept { return read(dest, sizeof(int8));    }
+    Result<void, Error>  read(uint8*     dest) noexcept { return read(dest, sizeof(uint8));   }
+    Result<void, Error>  read(int16*     dest) noexcept { return read(dest, sizeof(int16));   }
+    Result<void, Error>  read(uint16*    dest) noexcept { return read(dest, sizeof(uint16));  }
+    Result<void, Error>  read(int32*     dest) noexcept { return read(dest, sizeof(int32));   }
+    Result<void, Error>  read(uint32*    dest) noexcept { return read(dest, sizeof(uint32));  }
+    Result<void, Error>  read(int64*     dest) noexcept { return read(dest, sizeof(int64));   }
+    Result<void, Error>  read(uint64*    dest) noexcept { return read(dest, sizeof(uint64));  }
+    Result<void, Error>  read(float32*   dest) noexcept { return read(dest, sizeof(float32)); }
+    Result<void, Error>  read(float64*   dest) noexcept { return read(dest, sizeof(float64)); }
 
     // Endianess aware read/write
-    Result<void, Error>  readLE(int8& value)  { return read(&value, sizeof(int8)); }
-    Result<void, Error>  readLE(uint8& value) { return read(&value, sizeof(uint8)); }
-    Result<void, Error>  readLE(int16& value) { return readLE(reinterpret_cast<uint16&>(value)); }
-    Result<void, Error>  readLE(uint16& value);
-    Result<void, Error>  readLE(int32& value) { return readLE(reinterpret_cast<uint32&>(value)); }
-    Result<void, Error>  readLE(uint32& value);
-    Result<void, Error>  readLE(int64& value) { return readLE(reinterpret_cast<uint64&>(value)); }
-    Result<void, Error>  readLE(uint64& value);
+    Result<void, Error>  readLE(int8& value)  noexcept { return read(&value, sizeof(int8)); }
+    Result<void, Error>  readLE(uint8& value) noexcept { return read(&value, sizeof(uint8)); }
+    Result<void, Error>  readLE(int16& value) noexcept { return readLE(reinterpret_cast<uint16&>(value)); }
+    Result<void, Error>  readLE(uint16& value)noexcept;
+    Result<void, Error>  readLE(int32& value) noexcept { return readLE(reinterpret_cast<uint32&>(value)); }
+    Result<void, Error>  readLE(uint32& value)noexcept;
+    Result<void, Error>  readLE(int64& value) noexcept { return readLE(reinterpret_cast<uint64&>(value)); }
+    Result<void, Error>  readLE(uint64& value)noexcept;
 
-    Result<void, Error>  readBE(int8& value)  { return read(&value, sizeof(int8)); }
-    Result<void, Error>  readBE(uint8& value) { return read(&value, sizeof(uint8)); }
-    Result<void, Error>  readBE(int16& value) { return readBE(reinterpret_cast<uint16&>(value)); }
-    Result<void, Error>  readBE(uint16& value);
-    Result<void, Error>  readBE(int32& value) { return readBE(reinterpret_cast<uint32&>(value)); }
-    Result<void, Error>  readBE(uint32& value);
-    Result<void, Error>  readBE(int64& value) { return readBE(reinterpret_cast<uint64&>(value)); }
-    Result<void, Error>  readBE(uint64& value);
+    Result<void, Error>  readBE(int8& value)  noexcept { return read(&value, sizeof(int8)); }
+    Result<void, Error>  readBE(uint8& value) noexcept { return read(&value, sizeof(uint8)); }
+    Result<void, Error>  readBE(int16& value) noexcept { return readBE(reinterpret_cast<uint16&>(value)); }
+    Result<void, Error>  readBE(uint16& value)noexcept;
+    Result<void, Error>  readBE(int32& value) noexcept { return readBE(reinterpret_cast<uint32&>(value)); }
+    Result<void, Error>  readBE(uint32& value)noexcept;
+    Result<void, Error>  readBE(int64& value) noexcept { return readBE(reinterpret_cast<uint64&>(value)); }
+    Result<void, Error>  readBE(uint64& value)noexcept;
 
 protected:
-    Result<void, Error>  read(void* dest, size_type count);
+    Result<void, Error>  read(void* dest, size_type count) noexcept;
 
 protected:
 
