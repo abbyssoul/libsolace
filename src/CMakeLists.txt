@@ -18,7 +18,6 @@ set(SOURCE_FILES
         base16.cpp
 #        base32.cpp
         base64.cpp
-        parseUtils.cpp
         string.cpp
         stringBuilder.cpp
         stringView.cpp
@@ -42,9 +41,6 @@ set(SOURCE_FILES
         io/platformFilesystem.cpp
         io/sharedMemory.cpp
 
-        cli/helpPrinter.cpp
-        cli/parser.cpp
-
         hashing/messageDigest.cpp
         hashing/md5.cpp
         hashing/murmur3.cpp
@@ -54,9 +50,6 @@ set(SOURCE_FILES
         )
 
 add_library(${PROJECT_NAME} ${SOURCE_FILES})
-
-target_link_libraries(${PROJECT_NAME} PRIVATE
-    fmt-header-only)
 
 install(TARGETS ${PROJECT_NAME}
         LIBRARY DESTINATION lib

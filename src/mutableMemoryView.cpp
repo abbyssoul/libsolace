@@ -80,7 +80,7 @@ MutableMemoryView::read(MutableMemoryView& dest) {
 
 void
 MutableMemoryView::read(MutableMemoryView& dest, size_type bytesToRead, size_type offset) {
-    const auto thisSize = size();
+    auto const thisSize = size();
 
     if (thisSize < offset) {  // Make sure that offset is within [0, size())
         raise<IndexOutOfRangeException>("offset", offset, 0, thisSize);

@@ -19,7 +19,6 @@
  *	@brief		Implementation of Base64 encoder and decoder.
  ******************************************************************************/
 #include "solace/base64.hpp"
-#include "solace/exception.hpp"
 
 
 #include <cstring>  // memcpy

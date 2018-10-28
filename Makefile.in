@@ -128,7 +128,7 @@ scan-build: ANALYZE_MAKE
 
 tidy:
 	clang-tidy -checks=llvm-*,modernize-*,clang-analyzer-*,-modernize-pass-by-value -header-filter=.* \
-	${SRC_DIR}/*.cpp -- -I${INCLUDE_DIR} -Ilibs/fmt/ -std=c++14
+	${SRC_DIR}/*.cpp -- -I${INCLUDE_DIR} -std=c++14
 
 
 

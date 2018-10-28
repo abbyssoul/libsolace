@@ -19,8 +19,6 @@
  *	@brief		Implementation of Base16 encoder and decoder.
  ******************************************************************************/
 #include "solace/base16.hpp"
-#include "solace/exception.hpp"
-
 
 
 using namespace Solace;

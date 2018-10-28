@@ -20,7 +20,6 @@
 *******************************************************************************/
 #include <solace/io/serial.hpp>
 #include <solace/io/platformFilesystem.hpp>
-#include <solace/exception.hpp>
 
 
 #include <tuple>

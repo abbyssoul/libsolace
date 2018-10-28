@@ -19,7 +19,6 @@
 #include <solace/io/serial.hpp>
 #include <solace/version.hpp>
 #include <solace/exception.hpp>
-#include <solace/cli/parser.hpp>
 #include <solace/output_utils.hpp>
 
 #include <iostream>

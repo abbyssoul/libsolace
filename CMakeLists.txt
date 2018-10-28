@@ -46,7 +46,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wold-style-cast")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-conversion")
 
 
-# FIXME(abbyssoul): fmt produces too much noise with '-Wswitch-enum'
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-enum")
 # Not friendly to GTest: -Wmissing-format-attribute")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat-security")
@@ -136,8 +136,6 @@ endif()
 
 
 # Build project dependencies (should be removed eventually)
-set(FMT_USE_CPP11 OFF CACHE BOOL "Don't add std by fmt" FORCE)
-add_subdirectory(external/fmt EXCLUDE_FROM_ALL)
 add_subdirectory(external/gtest/googletest EXCLUDE_FROM_ALL)
 
 include_directories(include)

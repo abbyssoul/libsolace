@@ -40,8 +40,6 @@ set(TEST_SOURCE_FILES
         io/test_mappedMemory.cpp
         io/test_pipe.cpp
 
-        cli/test_parser.cpp
-
         hashing/test_md5.cpp
         hashing/test_murmur3.cpp
         hashing/test_sha1.cpp
@@ -56,11 +54,9 @@ if(UNIX AND NOT APPLE)
     target_link_libraries(test_${PROJECT_NAME} PRIVATE
         ${PROJECT_NAME}
         gtest
-        rt
-        fmt-header-only)
+        rt)
 else()
     target_link_libraries(test_${PROJECT_NAME} PRIVATE
         ${PROJECT_NAME}
-        gtest
-        fmt-header-only)
+        gtest)
 endif()

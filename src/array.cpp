@@ -23,8 +23,5 @@
  ******************************************************************************/
 #include "solace/array.hpp"
 
-#include "solace/exception.hpp"
-
-
 
 using namespace Solace;

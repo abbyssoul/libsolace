@@ -22,12 +22,10 @@
  *	ID:			$Id$
  ******************************************************************************/
 #include "solace/stringBuilder.hpp"
-#include "solace/exception.hpp"
-
 #include "solace/byteReader.hpp"
 
-using namespace Solace;
 
+using namespace Solace;
 
 
 StringBuilder::StringBuilder(MutableMemoryView&& buffer, StringView str)
