@@ -58,7 +58,7 @@ sudo apt-get install cmake doxygen python-pip valgrind ggcov
 sudo pip install cpplint
 ```
 
-The library has one external dependency: [libfmt](http://fmtlib.net/latest/index.html) - an awesome string formatting library.
+The one external dependency is on [googletest](http://github.com/googletest/) - a unit testing framework.
 It is managed as `git submodule`. Please make sure to use `git clone --recursive` when cloning the project for the first time.
 You can also update existing clone with:
 ```sh
@@ -156,7 +156,6 @@ Given the language of choice library is designed with the idea that exceptions c
 
 ## Dependencies
 The project's external dependency managed via `git submodule`:
-* [fmt](https://github.com/fmtlib/fmt) - C++ Format is an open-source formatting library for C++ [More info](http://fmtlib.net/latest/index.html)
 * [GTest](https://github.com/google/googletest) - Google's C++ test framework
 
 
