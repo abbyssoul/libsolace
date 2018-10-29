@@ -1,11 +1,11 @@
-libsolace   [![C++ standard][c++-standard-shield]][c++-standard-link] [![License][license-shield]][license-link]
+# libsolace [![C++ standard][c++-standard-shield]][c++-standard-link] [![License][license-shield]][license-link]
 ---
 [![TravisCI][travis-shield]][travis-link]
 [![Codecov][codecov-shield]][codecov-link]
 [![Coverity][coverity-shield]][coverity-link]
 [![Coverage Status][coveralls-shield]][coveralls-link]
 
-[c++-standard-shield]: https://img.shields.io/badge/c%2B%2B-14/17/20-blue.svg)
+[c++-standard-shield]: https://img.shields.io/badge/c%2B%2B-14/17/20-blue.svg
 [c++-standard-link]: https://en.wikipedia.org/wiki/C%2B%2B#Standardization
 [license-shield]: https://img.shields.io/badge/License-Apache%202.0-blue.svg
 [license-link]: https://opensource.org/licenses/Apache-2.0
@@ -178,15 +178,6 @@ It is also a good idea to run valgrind on the test suit to make sure that the me
 ```shell
 make verify
 ```
-
-
-## Other useful libraries to consider:
-* [jemalloc](http://www.canonware.com/jemalloc) - General-purpose scalable concurrent malloc implementation.
-* [bzip2](http://www.bzip.org/) - a high-quality data compressor.
-* [libsigc++](http://libsigc.sourceforge.net/) - typesafe callback system for standard C++
-* [utf8cpp](http://utfcpp.sourceforge.net/) - A simple, portable and lightweight generic library for handling UTF-8 encoded strings.
-* [spdlog](https://github.com/gabime/spdlog) - Very fast, header only, C++ logging library.
-
 
 
 ## Projects that might be similar in some aspects:

@@ -135,7 +135,7 @@ endif()
 
 
 
-# Build project dependencies (should be removed eventually)
+# Build project dependencies
 add_subdirectory(external/gtest/googletest EXCLUDE_FROM_ALL)
 
 include_directories(include)
