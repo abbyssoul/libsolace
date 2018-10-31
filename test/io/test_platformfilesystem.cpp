@@ -78,7 +78,7 @@ public:
 };
 
 TEST_F(TestPlatformFs, testCreation) {
-    auto const fileUID = UUID::random();
+    auto const fileUID = makeRandomUUID();
     auto const filename = Path::parse(makeStringJoin("-", "test", fileUID.toString()).view()).unwrap();
     auto const fileUIDBytes = fileUID.view();
 
@@ -116,7 +116,7 @@ TEST_F(TestPlatformFs, testCreation) {
 }
 
 TEST_F(TestPlatformFs, testCreationAndRemoval) {
-    auto const fileUID = UUID::random();
+    auto const fileUID = makeRandomUUID();
     auto const filename = Path::parse(makeStringJoin("-", "test", fileUID.toString()).view()).unwrap();
     auto const fileUIDBytes = fileUID.view();
 
@@ -200,8 +200,8 @@ TEST_F(TestPlatformFs, testWorkingDirectory) {
 }
 
 TEST_F(TestPlatformFs, testTemp) {
-    auto const fileUID = UUID::random();
-    const auto& fileUIDBytes = fileUID.view();
+    auto const fileUID = makeRandomUUID();
+    auto const fileUIDBytes = fileUID.view();
 
     auto fs = PlatformFilesystem();
     {

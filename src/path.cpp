@@ -20,7 +20,6 @@
  *  Created by soultaker on 8/03/16
 ******************************************************************************/
 #include "solace/path.hpp"
-#include "solace/exception.hpp"
 
 
 using namespace Solace;
@@ -256,22 +255,14 @@ Path::getComponent(size_type index) const {
 
 
 Path
-Path::subpath(size_type beginIndex, size_type endIndex) const {
+Path::subpath(size_type from, size_type to) const noexcept {
     auto const nbComponent = _components.size();
-    if (beginIndex > nbComponent) {
-        raise<IndexOutOfRangeException>(beginIndex, 0, nbComponent);
-    }
 
-    if (endIndex > nbComponent) {
-        raise<IndexOutOfRangeException>(endIndex, 0, nbComponent);
-    }
+    from = std::min(from, nbComponent);
+    to = std::max(from, std::min(to, nbComponent));
 
-    if (beginIndex > endIndex) {
-        raise<IndexOutOfRangeException>(beginIndex, 0, endIndex);
-    }
-
-    auto components = makeVector<String>(endIndex - beginIndex);
-    for (size_type i = beginIndex; i < endIndex; ++i) {
+    auto components = makeVector<String>(to - from);
+    for (size_type i = from; i < to; ++i) {
         components.emplace_back(makeString(_components[i]));
     }
 

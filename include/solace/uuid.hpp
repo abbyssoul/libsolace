@@ -25,7 +25,6 @@
 #define SOLACE_UUID_HPP
 
 #include "solace/types.hpp"
-#include "solace/traits/iformattable.hpp"
 #include "solace/traits/icomparable.hpp"
 
 #include "solace/memoryView.hpp"
@@ -41,10 +40,9 @@ namespace Solace {
  * UUID is a collection of bytes or a single unique 128bit nubmer.
  */
 class UUID :
-        public IComparable<UUID>,
-        public IFormattable {
+        public IComparable<UUID> {
 public:
-    using size_type = uint32;
+    using size_type = MemoryView::size_type;
     using value_type = byte;
 
     using reference = value_type &;
@@ -62,12 +60,6 @@ public:
      * e.g. strlen("123e4567-e89b-12d3-a456-426655440000"); */
     static constexpr size_type StringSize = 36;
 
-
-    /** Create random UUID
-     * This method uses system's random number generator to generate a new random UUID.
-     */
-    static UUID random() noexcept;
-
     /**
      * Parse a UUID object from a string.
      *
@@ -79,7 +71,7 @@ public:
 public:
 
     /** Construct default randomly generated UUID */
-    UUID() noexcept;
+    UUID() noexcept = default;
 
     /** Move-Construct the UUID */
     UUID(UUID&& rhs) noexcept;
@@ -87,11 +79,7 @@ public:
     /** Copy Construct the UUID */
     UUID(UUID const& rhs) noexcept;
 
-    /** Create the UUID from a byte buffer
-     * Try to construct the UUID from individual bytes
-     * @note This can throw if number of byte given is less then expected
-     */
-    UUID(MemoryView s);
+    UUID(byte const bytes[StaticSize]) noexcept;
 
 public:
 
@@ -156,12 +144,19 @@ public:
     reference  operator[] (size_type index);
     value_type operator[] (size_type index) const;
 
-    // TODO(abbyssoul): should be ImmutableMemoryView
-    MemoryView view() const noexcept;
-    MutableMemoryView view() noexcept;
+    MemoryView view() const noexcept {
+        return wrapMemory(_bytes);
+    }
 
-    /** @see IFormattable::toString() */
-    String toString() const override;
+    MutableMemoryView view() noexcept {
+        return wrapMemory(_bytes);
+    }
+
+    /**
+     * Return string representation of this path
+     * @return String representation of this path
+     */
+    String toString() const;
     StringView toString(MutableMemoryView buffer) const;
 
     friend bool operator < (UUID const& lhs, UUID const& rhs) noexcept;
@@ -200,6 +195,20 @@ inline void swap(UUID& lhs, UUID& rhs) noexcept {
     lhs.swap(rhs);
 }
 
+
+/** Create the UUID from a byte buffer
+ * Try to construct the UUID from individual bytes
+ * @note This can throw if number of byte given is less then expected
+ */
+UUID makeUUID(MemoryView s);
+
+UUID makeUUID(uint32 a0, uint32 a1, uint32 a2, uint32 a3);
+
+
+/** Create random UUID
+ * This method uses system's random number generator to generate a new random UUID.
+ */
+UUID makeRandomUUID() noexcept;
 
 }  // namespace Solace
 #endif  // SOLACE_UUID_HPP

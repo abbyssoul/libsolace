@@ -288,11 +288,11 @@ TEST(TestPath, testSubpath) {
     // Error modes:
 
     // End index outside of path lenght
-    EXPECT_THROW(makePath("1", "2", "3", "4", "file").subpath(1, 23), IndexOutOfRangeException);
+    EXPECT_EQ(4, makePath("1", "2", "3", "4", "file").subpath(1, 23).getComponentsCount());
     // Start index oustide of path lenght
-    EXPECT_THROW(makePath("1", "2", "3", "4", "file").subpath(17, 18), IndexOutOfRangeException);
+    EXPECT_TRUE(makePath("1", "2", "3", "4", "file").subpath(17, 18).empty());
     // Start greater then end index
-    EXPECT_THROW(makePath("1", "2", "3", "4", "file").subpath(3, 1), IndexOutOfRangeException);
+    EXPECT_TRUE(makePath("1", "2", "3", "4", "file").subpath(3, 1).empty());
 }
 
 

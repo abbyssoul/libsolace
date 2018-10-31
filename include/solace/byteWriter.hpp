@@ -41,6 +41,8 @@ public:
 
 public:
 
+    ~ByteWriter() noexcept = default;
+
     /** Construct an empty writer that has nowhere to write too */
     constexpr ByteWriter() noexcept = default;
 

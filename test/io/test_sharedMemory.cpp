@@ -35,7 +35,6 @@
 #include <sys/wait.h>
 #include <sys/mman.h>
 
-#include "../interruptexception.hpp"
 
 using namespace Solace;
 using namespace Solace::IO;
@@ -50,13 +49,13 @@ TEST(TestSharedMemory, testCreate_InvalidSize) {
 }
 
 TEST(TestSharedMemory, testOpen_NonExisting) {
-    auto const uuid = UUID::random();
+    auto const uuid = makeRandomUUID();
     auto const name = makePath(Path::Root, uuid.toString());
     EXPECT_THROW(auto mem = SharedMemory::open(name), IOException);
 }
 
 TEST(TestSharedMemory, testOpen_Exclusive) {
-    auto const uuid = UUID::random();
+    auto const uuid = makeRandomUUID();
 
     // Create exclusive memory
     auto const mem1 = SharedMemory::create(makePath(Path::Root, uuid.toString()),

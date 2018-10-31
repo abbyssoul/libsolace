@@ -63,7 +63,7 @@ public:
 
     inline ~Array() { dispose(); }
 
-    constexpr explicit Array(decltype(nullptr))
+    constexpr explicit Array(decltype(nullptr)) noexcept
     {}
 
     /** Construct an empty array */

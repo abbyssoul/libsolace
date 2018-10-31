@@ -52,13 +52,31 @@ public:
     /**
      * Environment variables iterator
      */
-    class Iterator {
-    public:
-        bool operator!= (const Iterator& other) const {
+    struct Iterator {
+
+        constexpr Iterator(size_type size, size_type position) noexcept
+            : _index(position)
+            , _size(size)
+        {}
+
+        constexpr Iterator(Iterator const& rhs) noexcept = default;
+
+        constexpr Iterator(Iterator&& rhs) noexcept
+            : _index(rhs._index)
+            , _size(rhs._size)
+        {}
+
+        Iterator& operator= (Iterator&& rhs) noexcept {
+            return swap(rhs);
+        }
+
+
+
+        constexpr bool operator!= (const Iterator& other) const noexcept {
             return (_index != other._index);
         }
 
-        bool operator== (const Iterator& other) const {
+        constexpr bool operator== (const Iterator& other) const noexcept {
             return (_index == other._index);
         }
 
@@ -77,23 +95,7 @@ public:
             return *this;
         }
 
-        Iterator(size_type size, size_type position) noexcept
-            : _index(position)
-            , _size(size)
-        {}
-
-        Iterator(Iterator const& rhs) noexcept = default;
-
-        Iterator(Iterator&& rhs) noexcept
-            : _index(rhs._index)
-            , _size(rhs._size)
-        {}
-
-        Iterator& operator= (Iterator&& rhs) noexcept {
-            return swap(rhs);
-        }
-
-        size_type getIndex() const noexcept { return _index; }
+        constexpr size_type getIndex() const noexcept { return _index; }
 
     private:
         size_type _index;
@@ -110,7 +112,7 @@ public:
      * @param name Name of the variable to get value of.
      * @return Value of the variable or None if no variable is set.
      */
-    Optional<StringView> get(StringView name) const;
+    Optional<StringView> get(StringView name) const noexcept;
 
     /**
      * Set a value of the environment variable.
@@ -119,7 +121,7 @@ public:
      * @param value Value of the variable to set to.
      * @param replace If true and variable already set, the value will be replaced. If false old value is preserved.
      */
-    Result<void, Error> set(StringView name, StringView value, bool replace = true);
+    Result<void, Error> set(StringView name, StringView value, bool replace = true) noexcept;
 
     /**
      * Un-Set a value of the given environment variable.
@@ -127,14 +129,14 @@ public:
      * @param name Name of the variable to get value of.
      * @return Result of the unset operation.
      */
-    Result<void, Error> unset(StringView name);
+    Result<void, Error> unset(StringView name) noexcept;
 
     /**
      * Clear current environment.
      *
      * @return Result of the unset operation.
      */
-    Result<void, Error> clear();
+    Result<void, Error> clear() noexcept;
 
     /**
      * Check if there are no environment variables.

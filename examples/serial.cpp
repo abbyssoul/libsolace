@@ -46,7 +46,7 @@ int main(int argc, const char **argv) {
     uint32 boudRate = 115200;
     uint32 bufferSize = 120;
     Path file;
-
+/*
     auto const parseResult = cli::Parser("Serial port example", {
                           cli::Parser::printHelp(),
                           cli::Parser::printVersion("serial", getBuildVersion()),
@@ -72,7 +72,7 @@ int main(int argc, const char **argv) {
 
         return EXIT_FAILURE;
     }
-
+*/
     std::cout << "Opening port: " << file << std::endl
               << "boudrate: " << boudRate << std::endl;
 

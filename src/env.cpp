@@ -21,6 +21,7 @@
 #include "solace/env.hpp"
 #include "solace/exception.hpp"
 
+
 #include <cstdlib>
 #include <cstring>
 
@@ -95,7 +96,7 @@ Env::Iterator::operator-> () const {
 
 
 Optional<StringView>
-Env::get(StringView name) const {
+Env::get(StringView name) const noexcept {
     auto value =
     #ifdef SOLACE_PLATFORM_LINUX
         secure_getenv(name.data());
@@ -110,14 +111,14 @@ Env::get(StringView name) const {
 
 
 Result<void, Error>
-Env::set(StringView name, StringView value, bool replace) {
+Env::set(StringView name, StringView value, bool replace) noexcept {
     return (setenv(name.data(), value.empty() ? "" : value.data(), replace) == 0)
             ? none
             : Result<void, Error>{makeErrno("setenv")};
 }
 
 
-Result<void, Error> Env::unset(StringView name) {
+Result<void, Error> Env::unset(StringView name) noexcept {
     return (unsetenv(name.empty() ? "" : name.data()) == 0)
             ? none
             : Result<void, Error>{makeErrno("unsetenv")};
@@ -125,7 +126,7 @@ Result<void, Error> Env::unset(StringView name) {
 
 
 // cppcheck-suppress unusedFunction
-Result<void, Error> Env::clear() {
+Result<void, Error> Env::clear() noexcept {
     return (clearenv())
         ? none
         : Result<void, Error>{makeErrno("clearenv")};

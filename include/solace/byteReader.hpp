@@ -43,6 +43,8 @@ public:
 
 public:
 
+    ~ByteReader() noexcept = default;
+
     /** Construct an empty buffer of size zero */
     constexpr ByteReader() noexcept = default;
 
@@ -224,11 +226,11 @@ public:
         return read(offset, dest, dest.size());
     }
 
-    MemoryView viewRemaining() const /*noexcept*/ {
+    MemoryView viewRemaining() const noexcept {
         return _storage.view().slice(position(), limit());
     }
 
-    MemoryView viewWritten() const /*noexcept*/ {
+    MemoryView viewWritten() const noexcept {
         return _storage.view().slice(0, position());
     }
 

@@ -279,10 +279,10 @@ public:  // Operation
     }
 
     /** Returns sub path of this path
-     * Splice of this path object
+     * Slice of this path object
      * @return Sub path of this path
      */
-    Path subpath(size_type beginIndex, size_type endIndex) const;
+    Path subpath(size_type beginIndex, size_type endIndex) const noexcept;
 
 
     /** @see Iterable::forEach */
@@ -310,7 +310,10 @@ public:  // Operation
     /** Get string representation of the path object using give delimiter */
     String toString(StringView delim) const;
 
-    /** @see IFormattable::toString() */
+    /**
+     * Return string representation of this path
+     * @return String representation of this path
+     */
     String toString() const {
         return toString(Delimiter);
     }

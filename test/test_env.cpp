@@ -35,7 +35,8 @@ StringView randomName() {
     static char buffer[9 + UUID::StringSize + 1];
     memset(buffer, 0, sizeof(buffer));
     strncpy(buffer, "test-env-", sizeof(buffer));
-    return UUID::random().toString(wrapMemory(buffer + 9, UUID::StringSize));
+
+    return makeRandomUUID().toString(wrapMemory(buffer + 9, UUID::StringSize));
 
 }
 
@@ -43,7 +44,7 @@ StringView randomValue() {
     static char buffer[UUID::StringSize + 1];
     memset(buffer, 0, sizeof(buffer));
 
-    return UUID::random().toString(wrapMemory(buffer));
+    return makeRandomUUID().toString(wrapMemory(buffer));
 }
 
 

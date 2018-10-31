@@ -41,7 +41,7 @@ TEST(TestUUID, testRandom) {
     UUID ids[RandomSampleSize];
 
     for (auto& id : ids) {
-        id = UUID::random();
+        id = makeRandomUUID();
     }
 
     for (uint i = 0; i < RandomSampleSize; ++i) {
@@ -50,6 +50,7 @@ TEST(TestUUID, testRandom) {
         }
     }
 }
+
 
 TEST(TestUUID, testConstruction) {
 
@@ -62,32 +63,32 @@ TEST(TestUUID, testConstruction) {
     UUID uid3(uid);
     EXPECT_EQ(uid, uid3);
 
-    // Move construction
+    // Construct from a byte array
     {
         byte buff[] = {7, 5, 3, 4, 8, 6, 7, 8, 3, 7, 3, 4, 5, 6, 7, 8};
-
-        UUID uid4(wrapMemory(buff, sizeof(buff)));
+        auto const uid4 = UUID{buff};
         for (UUID::size_type i = 0; i < sizeof(buff); ++i) {
             EXPECT_EQ(buff[i], uid4[i]);
         }
     }
 
-    byte const bytes[] = {1, 0, 3, 4, 5, 6, 7, 8, 1, 0, 3, 4, 5, 6, 7, 8};
     {
+        byte const bytes[] = {1, 0, 3, 4, 5, 6, 7, 8, 1, 0, 3, 4, 5, 6, 7, 8};
         auto const memView = wrapMemory(bytes);
-        auto const uid4x = UUID{memView};
+        auto const uid4x = UUID{bytes};
         for (UUID::size_type i = 0; i < sizeof(bytes); ++i) {
             EXPECT_EQ(bytes[i], uid4x[i]);
         }
     }
+}
 
-    {
-        byte const fewBytes[] = {1, 0, 3, 4, 5, 6, 7, 8};
 
-        EXPECT_THROW(auto const x = UUID{wrapMemory(fewBytes)}, IllegalArgumentException);
-    }
+TEST(TestUUID, testMakeUUIDwithInsufficientData) {
+    byte const fewBytes[] = {1, 0, 3, 4, 5, 6, 7, 8};
+    EXPECT_THROW(makeUUID(wrapMemory(fewBytes)), Exception);
 
-    EXPECT_THROW(auto const x = UUID{wrapMemory(bytes, 7)}, IllegalArgumentException);
+    byte const bytes[] = {1, 0, 3, 4, 5, 6, 7, 8, 1, 0, 3, 4, 5, 6, 7, 8};
+    EXPECT_THROW(auto const x = makeUUID(wrapMemory(bytes, 7)), Exception);
 }
 
 
@@ -96,25 +97,28 @@ TEST(TestUUID, testComparable) {
     auto const memView = wrapMemory(bytes);
 
     // Same source - same value:
-    EXPECT_EQ(UUID{memView}, UUID{memView});
+    EXPECT_EQ(UUID{bytes}, makeUUID(memView));
 
     byte const otherBytes[] = {1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-    EXPECT_EQ(false, UUID(memView) == UUID(wrapMemory(otherBytes)));
+    EXPECT_NE(UUID{bytes}, makeUUID(wrapMemory(otherBytes)));
 }
 
 
 TEST(TestUUID, testIterable) {
 
-    byte startValue = 15;
+    int startValue = 15;
     byte const bytes[] = {15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0};
-    auto const uuid = UUID{wrapMemory(bytes)};
+    auto const uuid = UUID{bytes};
 
     for (auto v : uuid) {
         EXPECT_EQ(startValue, v);
         --startValue;
     }
-    EXPECT_EQ(static_cast<byte>(-1), startValue);
+    EXPECT_EQ(-1, startValue);
+}
 
+
+TEST(TestUUID, testIndexOpThrowsOnIndexOutOfRange) {
     EXPECT_THROW(UUID().operator [](UUID::StaticSize), IndexOutOfRangeException);
 }
 
@@ -123,13 +127,11 @@ TEST(TestUUID, testFormattable) {
                           0xa4, 0x56, 0x42, 0x66, 0x55, 0x44, 0x0, 0x0};
 
     EXPECT_EQ(StringView("123e4567-e89b-12d3-a456-426655440000"),
-                            UUID(wrapMemory(bytes))
-                            .toString());
+                            UUID(bytes).toString());
 
     byte const zeros[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     EXPECT_EQ(StringView("00000000-0000-0000-0000-000000000000"),
-                            UUID(wrapMemory(zeros))
-                            .toString());
+                            UUID(zeros).toString());
 
 }
 
@@ -140,32 +142,34 @@ TEST(TestUUID, testParsable) {
 
     byte const bytes[] = {0x12, 0x3e, 0x45, 0x67, 0xe8, 0x9b, 0x12, 0xd3,
                           0xa4, 0x56, 0x42, 0x66, 0x55, 0x44, 0x0, 0x0};
-    EXPECT_EQ(UUID(wrapMemory(bytes)),
-                            UUID::parse("123e4567-e89b-12d3-a456-426655440000").unwrap());
+    EXPECT_EQ(UUID(bytes),
+              UUID::parse("123e4567-e89b-12d3-a456-426655440000").unwrap());
 
     EXPECT_TRUE(UUID::parse("SOMEHTING").isError());
     EXPECT_TRUE(UUID::parse("1203045e-X054-Y000-3e3d-000000000000").isError());
 }
 
+
 TEST(TestUUID, testParsing_and_ToString_are_consistent) {
     for (uint i = 0; i < RandomSampleSize; ++i) {
-        UUID r0 = UUID::random();
+        auto const r0 = makeRandomUUID();
         auto parseResult = UUID::parse(r0.toString().view());
         EXPECT_TRUE(parseResult.isOk());
         EXPECT_EQ(r0, parseResult.unwrap());
     }
 }
 
+
 TEST(TestUUID, testContainerReq) {
     {
         std::vector<UUID> uids(2);
         EXPECT_EQ(UUID::StaticSize, uids[0].size());
-        EXPECT_EQ(false, uids[0].isNull());
+        EXPECT_TRUE(uids[0].isNull());
+        EXPECT_TRUE(uids[1].isNull());
     }
 
 
     {
-
         byte const bytes[][16] = {
             {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15},
             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -174,10 +178,10 @@ TEST(TestUUID, testContainerReq) {
         };
 
         auto const uids = std::vector<UUID> {
-                    wrapMemory(bytes[0]),
-                    wrapMemory(bytes[1]),
-                    wrapMemory(bytes[2]),
-                    wrapMemory(bytes[3])
+                    bytes[0],
+                    bytes[1],
+                    bytes[2],
+                    bytes[3]
                 };
 
         EXPECT_EQ(false, uids[0].isNull());

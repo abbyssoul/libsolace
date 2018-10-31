@@ -43,32 +43,32 @@ class Error {
 public:
 
     //! Construct error with a message
-    Error(AtomValue errorDomain, int code, StringLiteral tag) noexcept
+    constexpr Error(AtomValue errorDomain, int code, StringLiteral tag) noexcept
         : _domain(errorDomain)
         , _code(code)
         , _tag(std::move(tag))
     {}
 
     //! Construct error with a message
-    Error(AtomValue errorDomain, int code) noexcept
+    constexpr Error(AtomValue errorDomain, int code) noexcept
         : _domain(errorDomain)
         , _code(code)
     {}
 
 
-    int value() const noexcept {
+    constexpr int value() const noexcept {
         return _code;
     }
 
-    StringView tag() const noexcept {
+    constexpr StringView tag() const noexcept {
         return _tag;
     }
 
-    AtomValue domain() const noexcept {
+    constexpr AtomValue domain() const noexcept {
         return _domain;
     }
 
-    bool operator== (Error const& rhs) const noexcept {
+    constexpr bool operator== (Error const& rhs) const noexcept {
         return ((_domain == rhs._domain) &&
                 (_code == rhs._code));
     }
@@ -82,7 +82,7 @@ public:
         return (*this);
     }
 
-    explicit operator bool () const noexcept {
+    constexpr explicit operator bool () const noexcept {
         return (value() != 0);
     }
 

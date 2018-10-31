@@ -36,18 +36,6 @@ constexpr UUID::size_type UUID::StaticSize;
 constexpr UUID::size_type UUID::StringSize;
 
 
-UUID UUID::random() noexcept {
-    return UUID();
-}
-
-
-UUID::UUID() noexcept {
-    for (auto& b : _bytes) {
-        b = static_cast<byte>(rand() % 255);
-    }
-}
-
-
 UUID::UUID(UUID&& rhs) noexcept {
     memcpy(_bytes, rhs._bytes, StaticSize);
 }
@@ -58,14 +46,8 @@ UUID::UUID(UUID const& rhs) noexcept {
 }
 
 
-UUID::UUID(MemoryView view) {
-    if (view.size() < size()) {
-        raise<IllegalArgumentException>("bytes");
-    }
-
-    for (size_type i = 0; i < StaticSize; ++i) {
-        _bytes[i] = view[i];
-    }
+UUID::UUID(byte const bytes[StaticSize]) noexcept {
+    memcpy(_bytes, bytes, StaticSize);
 }
 
 
@@ -109,16 +91,6 @@ UUID::value_type UUID::operator[] (size_type index) const {
 
 bool Solace::operator < (UUID const& lhs, UUID const& rhs) noexcept {
     return memcmp(lhs._bytes, rhs._bytes, lhs.size()) < 0;
-}
-
-
-MemoryView UUID::view() const noexcept {
-    return wrapMemory(const_cast<byte*>(_bytes), size());
-}
-
-
-MutableMemoryView UUID::view() noexcept {
-    return wrapMemory(const_cast<byte*>(_bytes), size());
 }
 
 
@@ -182,5 +154,30 @@ UUID::parse(StringView const& str) {
         }
     }
 
-    return Ok(UUID(wrapMemory(data)));
+    return Ok(makeUUID(wrapMemory(data)));
+}
+
+
+UUID
+Solace::makeUUID(MemoryView view) {
+    assertTrue(view.size() >= UUID::StaticSize);
+
+    byte bytes[UUID::StaticSize];
+    for (UUID::size_type i = 0; i < UUID::StaticSize; ++i) {
+        bytes[i] = view[i];
+    }
+
+    return {bytes};
+}
+
+
+UUID
+Solace::makeRandomUUID() noexcept {
+    byte bytes[UUID::StaticSize];
+
+    for (auto& b : bytes) {
+        b = static_cast<byte>(rand() % 255);
+    }
+
+    return {bytes};
 }
