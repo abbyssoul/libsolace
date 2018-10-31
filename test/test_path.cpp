@@ -373,7 +373,7 @@ TEST(TestPath, testNormalize) {
 }
 
 /**
-    * Test implementation and contract of IFormattable
+    * Test implementation and contract of toString
     */
 TEST(TestPath, testToString) {
     EXPECT_EQ(StringLiteral("/"), makePath("").toString());

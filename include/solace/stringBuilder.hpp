@@ -29,8 +29,6 @@
 #include "solace/byteWriter.hpp"
 #include "solace/string.hpp"
 
-#include "solace/traits/iformattable.hpp"
-
 
 namespace Solace {
 
@@ -91,10 +89,6 @@ public:
 
     StringBuilder& append(String const& str) {
         return append(str.view());
-    }
-
-    StringBuilder& append(IFormattable const& str) {
-        return append(str.toString());
     }
 
     StringBuilder& appendFormat(StringView fmt) { return append(fmt); }

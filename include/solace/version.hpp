@@ -158,9 +158,11 @@ public:
     }
 
 
-    //!< @see IFormattable
+    /**
+     * String representation of this object.
+     * @return String representing this version object.
+     */
     String toString() const;
-
 };
 
 

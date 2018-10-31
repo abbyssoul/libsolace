@@ -162,7 +162,7 @@ TEST(TestVersion, testSpecs_ignoringMeta) {
 }
 
 /**
-	* Test implementation and contract of IFormattable
+	* Test implementation and contract of toString
 	*/
 TEST(TestVersion, testToString) {
 	EXPECT_EQ(StringLiteral("3.2.1"), Version(3, 2, 1).toString());

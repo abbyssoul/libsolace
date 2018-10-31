@@ -17,9 +17,7 @@
  * libSolace
  *	@file		uuid.cpp
  ******************************************************************************/
-
 #include "solace/uuid.hpp"
-#include "solace/exception.hpp"
 #include "solace/base16.hpp"
 
 
@@ -72,18 +70,16 @@ bool UUID::equals(UUID const& rhs) const noexcept {
 }
 
 
-UUID::reference UUID::operator[] (size_type index) {
-    if (index >= size()) {
-        Solace::raise<IndexOutOfRangeException>(index, 0, size());
-    }
+UUID::reference
+UUID::operator[] (size_type index) {
+    index = assertIndexInRange(index, 0, size());
 
     return _bytes[index];
 }
 
-UUID::value_type UUID::operator[] (size_type index) const {
-    if (index >= size()) {
-        Solace::raise<IndexOutOfRangeException>(index, 0, size());
-    }
+UUID::value_type
+UUID::operator[] (size_type index) const {
+    index = assertIndexInRange(index, 0, size());
 
     return _bytes[index];
 }
