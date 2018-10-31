@@ -38,17 +38,11 @@ Selector::Iterator Selector::Iterator::end() const {
     return Iterator(_pimpl, _size, _size);
 }
 
-const Selector::Iterator& Selector::Iterator::operator++ () {
-    if (_index < _size) {
-        _index = _pimpl->advance(_index);
-    } else {
-        // Actually we are better off raising an exception:
-        Solace::raise<IndexOutOfRangeException>("iterator",
-                                                static_cast<size_t>(_index),
-                                                static_cast<size_t>(0),
-                                                static_cast<size_t>(_size));
-        _index = _size;
-    }
+Selector::Iterator const&
+Selector::Iterator::operator++ () {
+    assertIndexInRange(_index, 0, _size, "iterator");
+
+    _index = _pimpl->advance(_index);
 
     return (*this);
 }

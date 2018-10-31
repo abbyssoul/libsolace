@@ -364,6 +364,7 @@ TEST(TestMemoryView, testSlice) {
     EXPECT_TRUE(buffer.slice(3, 3).empty());
     EXPECT_TRUE(buffer.slice(128, 256).empty());
     EXPECT_TRUE(buffer.slice(128, 2).empty());
+    EXPECT_TRUE(buffer.slice(32, 2).empty());
 }
 
 

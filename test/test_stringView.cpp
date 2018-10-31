@@ -205,7 +205,7 @@ TEST(TestStringView, testSubstring) {
     EXPECT_TRUE(StringView("hi").substring(13, 14).empty());
     EXPECT_TRUE(StringView("hi").substring(13, 3).empty());
     EXPECT_EQ(StringView("hi"), StringView("hi").substring(0, 8));
-    EXPECT_TRUE(StringView("hi").substring(2, 1).empty());
+    EXPECT_TRUE(StringView("hi there").substring(4, 2).empty());
 }
 
 

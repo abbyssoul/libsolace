@@ -48,9 +48,7 @@ MemoryView::MemoryView(const void* data, size_type newSize) :
 
 MemoryView::value_type
 MemoryView::operator[] (size_type index) const {
-    if (index >= size()) {
-        raise<IndexOutOfRangeException>("index", index, 0, size());
-    }
+    assertIndexInRange(index, 0, _size, "index");
 
     return _dataAddress[index];
 }
@@ -58,8 +56,8 @@ MemoryView::operator[] (size_type index) const {
 
 const MemoryView::value_type*
 MemoryView::dataAddress(size_type offset) const {
-    if ((offset != 0) && (offset > size())) {
-        raise<IndexOutOfRangeException>("offset", offset, 0, size());
+    if (offset != 0) {
+        assertIndexInRange(offset, 0, _size + 1, "offset");
     }
 
     return _dataAddress + offset;
@@ -71,14 +69,15 @@ MemoryView::slice(size_type from, size_type to) const noexcept {
     auto const thisSize = size();
 
     from = std::min(from, thisSize);
+    to = std::min(thisSize, std::max(to, from));
     size_type const newSize = to - from;
-    size_type const maxSize = thisSize - from;
+//    size_type const maxSize = thisSize - from;
 
-    return {_dataAddress + from, std::min(maxSize, newSize)};
+    return {_dataAddress + from, newSize};
 }
 
 
 MemoryView
 MemoryView::viewImmutableShallow() const noexcept {
-    return wrapMemory(dataAddress(), size());
+    return *this; wrapMemory(dataAddress(), size());
 }

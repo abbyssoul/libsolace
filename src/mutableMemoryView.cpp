@@ -82,17 +82,12 @@ void
 MutableMemoryView::read(MutableMemoryView& dest, size_type bytesToRead, size_type offset) {
     auto const thisSize = size();
 
-    if (thisSize < offset) {  // Make sure that offset is within [0, size())
-        raise<IndexOutOfRangeException>("offset", offset, 0, thisSize);
-    }
-
-    if (bytesToRead > thisSize - offset) {  // Make sure that bytes to read is within [offset, size())
-        raise<IndexOutOfRangeException>("bytesToRead", offset, 0, thisSize - offset);
-    }
-
-    if (dest.size() < bytesToRead) {  // Make sure that dest has enough space to store data
-        raise<OverflowException>("dest.size()", dest.size(), 0, bytesToRead);
-    }
+    // Check if there is enough room in the dest to hold `bytesToRead` bytes.
+    assertIndexInRange(bytesToRead, 0, dest.size() + 1, "dest.size()");
+    // Make sure that offset is within [0, size())
+    assertIndexInRange(offset, 0, thisSize, "offset");
+    // Make sure there is enough data in this buffer to read
+    assertIndexInRange(offset + bytesToRead, 0, thisSize + 1, "bytesToRead");
 
     memmove(dest.dataAddress(), dataAddress(offset), bytesToRead);
 
@@ -110,17 +105,8 @@ MutableMemoryView::fill(byte value) noexcept {
 
 MutableMemoryView&
 MutableMemoryView::fill(byte value, size_type from, size_type to) {
-    if (from >= size()) {
-        raise<IndexOutOfRangeException>("from", from, 0, size());
-    }
-
-    if (to < from) {
-        raise<IndexOutOfRangeException>("to", to, from, size());
-    }
-
-    if (to > size()) {
-        raise<IndexOutOfRangeException>("to", to, from, size());
-    }
+    from = assertIndexInRange(from, 0, size(), "from");
+    to = assertIndexInRange(to, from, size() + 1, "to");
 
     memset(dataAddress(from), value, to - from);
 
@@ -156,11 +142,10 @@ MutableMemoryView::slice(size_type from, size_type to) noexcept {
 
     // `from` is constrained to [0, size())
     // `to` is constrained to [from, size())
-
     from = std::min(from, thisSize);
+    to = std::min(thisSize, std::max(to, from));
     size_type const newSize = to - from;
-    size_type const maxSize = thisSize - from;
 
 //    _data + from
-    return {dataAddress(from), std::min(maxSize, newSize)};
+    return {dataAddress(from), newSize};
 }

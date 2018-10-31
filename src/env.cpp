@@ -19,7 +19,6 @@
  *	@brief		Implementation of Env class
  ******************************************************************************/
 #include "solace/env.hpp"
-#include "solace/exception.hpp"
 
 
 #include <cstdlib>
@@ -54,13 +53,7 @@ extern char **environ;
 
 Env::Iterator&
 Env::Iterator::operator++ () {
-    if (_size < _index) {
-        raise<IndexOutOfRangeException>("iterator",
-                                        static_cast<size_t>(_index),
-                                        static_cast<size_t>(0),
-                                        static_cast<size_t>(_size));
-        _index = _size;
-    }
+    assertIndexInRange(_index, 0, _size, "iterator");
 
     ++_index;
 
@@ -70,12 +63,7 @@ Env::Iterator::operator++ () {
 
 Env::Var
 Env::Iterator::operator-> () const {
-    if (!(_index < _size)) {
-        raise<IndexOutOfRangeException>("iterator",
-                                        static_cast<size_t>(_index),
-                                        static_cast<size_t>(0),
-                                        static_cast<size_t>(_size));
-    }
+    assertIndexInRange(_index, 0, _size, "iterator");
 
     int i = 0;
     Env::Var var;

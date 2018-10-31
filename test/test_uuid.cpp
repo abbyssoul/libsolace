@@ -74,7 +74,6 @@ TEST(TestUUID, testConstruction) {
 
     {
         byte const bytes[] = {1, 0, 3, 4, 5, 6, 7, 8, 1, 0, 3, 4, 5, 6, 7, 8};
-        auto const memView = wrapMemory(bytes);
         auto const uid4x = UUID{bytes};
         for (UUID::size_type i = 0; i < sizeof(bytes); ++i) {
             EXPECT_EQ(bytes[i], uid4x[i]);

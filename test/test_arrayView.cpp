@@ -812,6 +812,30 @@ TEST_F(TestArrayView, testFillWithGenerator) {
     }
 }
 
+
+TEST_F(TestArrayView, slice) {
+    int src[24];
+    auto array = arrayView(src);
+
+    array.fill([](ArrayView<int>::size_type i) { return static_cast<int>(i); });
+
+    EXPECT_EQ(array.size(), array.slice(0, array.size()).size());
+    EXPECT_EQ(array, array.slice(0, array.size()));
+
+    auto halfView = array.slice(12, 22);
+    EXPECT_EQ(10, halfView.size());
+    for (ArrayView<int>::size_type i = 0; i < halfView.size(); ++i) {
+        EXPECT_EQ(12 + i, halfView[i]);
+    }
+
+    EXPECT_TRUE(array.slice(12, 12).empty());
+    EXPECT_TRUE(array.slice(128, 300).empty());
+    EXPECT_EQ(14, array.slice(10, 300).size());
+    EXPECT_TRUE(array.slice(128, 21).empty());
+    EXPECT_TRUE(array.slice(21, 7).empty());
+}
+
+
 TEST_F(TestArrayView, testFillWithGeneratorOfExplosiveValue) {
     EXPECT_EQ(0, SometimesConstructable::InstanceCount);
     {

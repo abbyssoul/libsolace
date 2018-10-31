@@ -201,18 +201,13 @@ public:
 
     const_pointer data() const noexcept { return begin(); }
 
-    ArrayView<const T> slice(size_type from, size_type to) const {
-        from   = assertIndexInRange(from, 0,     size(), "ArrayView::slice() const");
-        to     = assertIndexInRange(to,   from,  size(), "ArrayView::slice() const");
-
-        return ArrayView<const T>(begin() + from, to - from);
+    ArrayView<const T>
+    slice(size_type from, size_type to) const noexcept {
+        return {_memory.slice(from*sizeof(T), to*sizeof(T))};
     }
 
-    ArrayView slice(size_type from, size_type to) {
-        from   = assertIndexInRange(from, 0,     size(), "ArrayView::slice()");
-        to     = assertIndexInRange(to,   from,  size(), "ArrayView::slice()");
-
-        return ArrayView<T>(begin() + from, to - from);
+    ArrayView slice(size_type from, size_type to) noexcept {
+        return {_memory.slice(from*sizeof(T), to*sizeof(T))};
     }
 
     constexpr MemoryView view() const & noexcept {

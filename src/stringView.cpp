@@ -72,11 +72,13 @@ StringView
 StringView::substring(size_type from, size_type to) const noexcept {
     auto const thisSize = size();
 
+    // `from` is constrained to [0, size())
+    // `to` is constrained to [from, size())
     from = std::min(from, thisSize);
+    to = std::min(thisSize, std::max(to, from));
     size_type const newSize = to - from;
-    size_type const maxSize = thisSize - from;
 
-    return {std::min(maxSize, newSize), _data + from};
+    return {newSize, _data + from};
 }
 
 
