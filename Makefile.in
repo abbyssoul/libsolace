@@ -105,7 +105,9 @@ ANALYZE_MAKE: ${ANALYZE_DIR}
 
 tools/cppcheck:
 	# Getting latest cppcheck
-	git clone --depth 1 https://github.com/danmar/cppcheck.git tools/cppcheck
+	# git clone --depth 1 https://github.com/danmar/cppcheck.git tools/cppcheck
+	# Fix cppcheck version to 1.85 as master is borked
+	git clone -b '1.85' --single-branch --depth 1 https://github.com/danmar/cppcheck.git tools/cppcheck
 
 tools/cppcheck/cppcheck: tools/cppcheck
 	git -C tools/cppcheck pull
