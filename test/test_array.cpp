@@ -19,7 +19,7 @@
  *	@brief		Test suit for Solace::Array
  ******************************************************************************/
 #include <solace/array.hpp>    // Class being tested.
-#include <solace/string.hpp>   // Non POD subject.
+#include <string>   // Non POD subject.
 
 #include <gtest/gtest.h>
 #include "mockTypes.hpp"
@@ -44,50 +44,45 @@ protected:
         static int TotalCount;
 
 		static const int IVALUE_DEFAULT;
-		static const StringLiteral STR_DEFAULT;
+		static const std::string STR_DEFAULT;
 
 		int iValue{};
-		String str;
+		std::string str;
 
 
         virtual ~NonPodStruct() {
             --TotalCount;
         }
 
-		NonPodStruct(int i, String inStr) :
+		NonPodStruct(int i, std::string inStr) :
 			iValue(i), str(std::move(inStr))
 		{
 			++TotalCount;
 		}
 
-		NonPodStruct(int i, StringView inStr)
-			: NonPodStruct(i, makeString(inStr))
-		{}
-
-		NonPodStruct() : iValue(IVALUE_DEFAULT), str(makeString(STR_DEFAULT))
+		NonPodStruct()
+			: iValue(IVALUE_DEFAULT)
+			, str(STR_DEFAULT)
 		{
 			++TotalCount;
 		}
 
-        NonPodStruct(NonPodStruct&& other) : iValue(other.iValue), str(std::move(other.str))
-        {
-            ++TotalCount;
-        }
-
-        NonPodStruct(const NonPodStruct& other)
+        NonPodStruct(NonPodStruct&& other)
             : iValue(other.iValue)
-            , str(makeString(other.str))
+            , str(std::move(other.str))
+        {
+            ++TotalCount;
+        }
+
+        NonPodStruct(NonPodStruct const& other)
+            : iValue(other.iValue)
+            , str(other.str)
         {
             ++TotalCount;
         }
 
 
-        NonPodStruct& operator= (const NonPodStruct& rhs) {
-            iValue = rhs.iValue;
-            str = makeString(rhs.str);
-
-            return (*this);
-        }
+        NonPodStruct& operator= (const NonPodStruct& rhs) = default;
 
         bool operator== (const NonPodStruct& other) const {
             return iValue == other.iValue && str == other.str;
@@ -104,11 +99,7 @@ protected:
 		{
 		}
 
-		DerivedNonPodStruct(int x, float f, StringView inStr) :
-			DerivedNonPodStruct(x, f, makeString(inStr))
-		{}
-
-        DerivedNonPodStruct(int x, float f, String inStr)
+        DerivedNonPodStruct(int x, float f, std::string inStr)
             : NonPodStruct(x, std::move(inStr))
             , fValue(f)
         {
@@ -133,17 +124,6 @@ public:
     }
 
 
-    struct Composite {
-        Array<NonPodStruct> nonPods;
-        int uselessPadding;
-        Array<SimpleType> simpletons;
-
-        Composite(int x, std::initializer_list<NonPodStruct> nons, std::initializer_list<SimpleType> simps) :
-            nonPods{makeArray(nons)},
-            uselessPadding(x),
-            simpletons{makeArray(simps)}
-        {}
-    };
 };
 
 
@@ -282,7 +262,7 @@ TEST_F(TestArray, testNonPods) {
 
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             EXPECT_EQ(static_cast<int>(i), array[i].iValue);
-            EXPECT_EQ(String("Item " + std::to_string(i)), array[i].str);
+            EXPECT_EQ(std::string("Item ") + std::to_string(i), array[i].str);
         }
     }
     EXPECT_EQ(0, NonPodStruct::TotalCount);
@@ -291,7 +271,7 @@ TEST_F(TestArray, testNonPods) {
 TEST_F(TestArray, testInitializerList) {
     {
         const int native_array[] = {0, 1, 2, 3};
-        auto const array = makeArray<int>({0, 1, 2, 3});
+        auto const array = makeArray<int>(0, 1, 2, 3);
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -302,7 +282,7 @@ TEST_F(TestArray, testInitializerList) {
 
     {
         const StringLiteral native_array[] = {"Abc", "", "dfe", "_xyz3"};
-        auto const array = makeArray<String>("Abc", "", "dfe", "_xyz3");
+        auto const array = makeArray<StringView>("Abc", "", "dfe", "_xyz3");
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -322,12 +302,12 @@ TEST_F(TestArray, testInitializerList) {
         EXPECT_EQ(nativeArrayLength(native_array),
                                 static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount));
 
-        auto const array = makeArray<NonPodStruct> ({
+        auto const array = makeArray<NonPodStruct> (
                 NonPodStruct(0, "yyyz"),
                 NonPodStruct(),
                 NonPodStruct(-321, "yyx"),
                 NonPodStruct(990, "x^hhf")
-        });
+        );
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
         EXPECT_EQ(nativeArrayLength(native_array) + array.size(),
@@ -346,7 +326,7 @@ TEST_F(TestArray, testFromNativeConvertion) {
 
     {
         const int native_array[] = {0, 1, 2, 3};
-        auto const array = makeArray<int>(native_array, nativeArrayLength(native_array));
+        auto const array = makeArray<int>(nativeArrayLength(native_array), native_array);
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -357,7 +337,7 @@ TEST_F(TestArray, testFromNativeConvertion) {
 
     {
         const std::string native_array[] = {"Abc", "", "dfe", "_xyz3"};
-        auto const array = makeArray<std::string>(native_array, nativeArrayLength(native_array));
+        auto const array = makeArray<std::string>(nativeArrayLength(native_array), native_array);
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -373,7 +353,7 @@ TEST_F(TestArray, testFromNativeConvertion) {
                 NonPodStruct(-321, "yyx"),
                 NonPodStruct(990, "x^hhf")
         };
-        auto const array = makeArray<NonPodStruct>(native_array, nativeArrayLength(native_array));
+        auto const array = makeArray<NonPodStruct>(nativeArrayLength(native_array), native_array);
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -384,12 +364,6 @@ TEST_F(TestArray, testFromNativeConvertion) {
     }
 }
 
-template <typename T>
-Array<T> moveArray(std::initializer_list<T> list) {
-    auto array = makeArray<T>(list);
-
-    return array;
-}
 
 TEST_F(TestArray, testMoveAssignment) {
     {
@@ -399,7 +373,7 @@ TEST_F(TestArray, testMoveAssignment) {
         EXPECT_TRUE(array.empty());
         EXPECT_EQ(ZERO, array.size());
 
-        array = moveArray<int>({1, 2, 3});
+        array = makeArray<int>(1, 2, 3);
         EXPECT_TRUE(!array.empty());
         const int src1[] = {1, 2, 3};
 
@@ -410,14 +384,14 @@ TEST_F(TestArray, testMoveAssignment) {
     }
 
     {   // Test on strings types
-        Array<String> array;
+        Array<std::string> array;
         EXPECT_TRUE(array.empty());
 
-        array = moveArray<String>("tasrd", "", "hhha", "asd");
+        array = makeArray<std::string>("tasrd", "", "hhha", "asd");
         EXPECT_TRUE(!array.empty());
 
-        const StringLiteral src[] = {"tasrd", "", "hhha", "asd"};
-        EXPECT_EQ(static_cast<Array<String>::size_type>(4), array.size());
+        std::string const src[] = {"tasrd", "", "hhha", "asd"};
+        EXPECT_EQ(static_cast<Array<std::string>::size_type>(4), array.size());
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             EXPECT_EQ(src[i], array[i]);
         }
@@ -433,12 +407,12 @@ TEST_F(TestArray, testMoveAssignment) {
         };
         EXPECT_TRUE(array.empty());
 
-        array = moveArray<NonPodStruct>({
-                                            NonPodStruct(0, "yyyz"),
-                                            NonPodStruct(),
-                                            NonPodStruct(-321, "yyx"),
-                                            NonPodStruct(990, "x^hhf")
-                                        });
+        array = makeArray<NonPodStruct>(
+                    NonPodStruct(0, "yyyz"),
+                    NonPodStruct(),
+                    NonPodStruct(-321, "yyx"),
+                    NonPodStruct(990, "x^hhf")
+                    );
         EXPECT_TRUE(!array.empty());
         EXPECT_EQ(static_cast<Array<NonPodStruct>::size_type>(4), array.size());
 
@@ -451,7 +425,7 @@ TEST_F(TestArray, testMoveAssignment) {
 
 TEST_F(TestArray, testEquals) {
     {
-        auto const array = makeArray<int>({1, 2, 3});
+        auto const array = makeArray<int>(1, 2, 3);
 
         const int equal_native_array[] = {1, 2, 3};
         auto const equal_native_array_length = nativeArrayLength(equal_native_array);
@@ -462,9 +436,9 @@ TEST_F(TestArray, testEquals) {
         const int nequal_native_array_1[] = {3, 2, 1};
         auto const nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
-        auto const array_eq = makeArray<int>(equal_native_array, equal_native_array_length);
-        auto const array_neq_0 = makeArray<int>(nequal_native_array_0, nequal_native_array_0_length);
-        auto const array_neq_1 = makeArray<int>(nequal_native_array_1, nequal_native_array_1_length);
+        auto const array_eq = makeArray<int>(equal_native_array_length, equal_native_array);
+        auto const array_neq_0 = makeArray<int>(nequal_native_array_0_length, nequal_native_array_0);
+        auto const array_neq_1 = makeArray<int>(nequal_native_array_1_length, nequal_native_array_1);
 
         EXPECT_EQ(equal_native_array_length, array.size());
         EXPECT_TRUE(nequal_native_array_0_length != array.size());
@@ -489,20 +463,20 @@ TEST_F(TestArray, testEquals) {
     }
 
     {
-        auto const array = makeArray<String>({"tasrd", "", "hhha", "asd"});
+        auto const array = makeArray<std::string>("tasrd", "", "hhha", "asd");
 
-        const String equal_native_array[] = {"tasrd", "", "hhha", "asd"};
+        const std::string equal_native_array[] = {"tasrd", "", "hhha", "asd"};
         auto const equal_native_array_length = nativeArrayLength(equal_native_array);
 
-        const String nequal_native_array_0[] = {"tasrd", "", "hhha", "asd", "ugaga"};
+        const std::string nequal_native_array_0[] = {"tasrd", "", "hhha", "asd", "ugaga"};
         auto const nequal_native_array_0_length = nativeArrayLength(nequal_native_array_0);
 
-        const String nequal_native_array_1[] = {"tasrd", "", "hhha", "basd"};
+        const std::string nequal_native_array_1[] = {"tasrd", "", "hhha", "basd"};
         auto const nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
-        auto const array_eq = makeArray<String>(equal_native_array, equal_native_array_length);
-        auto const array_neq_0 = makeArray<String>(nequal_native_array_0, nequal_native_array_0_length);
-        auto const array_neq_1 = makeArray<String>(nequal_native_array_1, nequal_native_array_1_length);
+        auto const array_eq = makeArray<std::string>(equal_native_array_length, equal_native_array);
+        auto const array_neq_0 = makeArray<std::string>(nequal_native_array_0_length, nequal_native_array_0);
+        auto const array_neq_1 = makeArray<std::string>(nequal_native_array_1_length, nequal_native_array_1);
 
         EXPECT_EQ(equal_native_array_length, array.size());
         EXPECT_TRUE(nequal_native_array_0_length != array.size());
@@ -527,12 +501,12 @@ TEST_F(TestArray, testEquals) {
     }
 
     {
-        auto const array = makeArray<NonPodStruct>({
+        auto const array = makeArray<NonPodStruct>(
                 NonPodStruct(0, "yyyz"),
                 NonPodStruct(),
                 NonPodStruct(-321, "yyx"),
                 NonPodStruct(990, "x^hhf")
-        });
+        );
 
         const NonPodStruct equal_native_array[] = {
                 NonPodStruct(0, "yyyz"),
@@ -559,9 +533,9 @@ TEST_F(TestArray, testEquals) {
 
         auto const nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
-        auto const array_eq = makeArray<NonPodStruct>(equal_native_array, equal_native_array_length);
-        auto const array_neq_0 = makeArray<NonPodStruct>(nequal_native_array_0, nequal_native_array_0_length);
-        auto const array_neq_1 = makeArray<NonPodStruct>(nequal_native_array_1, nequal_native_array_1_length);
+        auto const array_eq = makeArray<NonPodStruct>(equal_native_array_length, equal_native_array);
+        auto const array_neq_0 = makeArray<NonPodStruct>(nequal_native_array_0_length, nequal_native_array_0);
+        auto const array_neq_1 = makeArray<NonPodStruct>(nequal_native_array_1_length, nequal_native_array_1);
 
         EXPECT_EQ(equal_native_array_length, array.size());
         EXPECT_TRUE(nequal_native_array_0_length != array.size());
@@ -627,7 +601,7 @@ TEST_F(TestArray, testFill) {
 */
 
 TEST_F(TestArray, testForEach_byValue) {
-    auto const array = makeArray<int>({1, 2, 3, 4, 5, 6});
+    auto const array = makeArray<int>(1, 2, 3, 4, 5, 6);
 
     int acc = 0;
     array.forEach([&acc](int x) {
@@ -639,7 +613,7 @@ TEST_F(TestArray, testForEach_byValue) {
 }
 
 TEST_F(TestArray, testForEach_byConstRef) {
-    auto const array = makeArray<std::string>({"Hello", " ", "world", "!"});
+    auto const array = makeArray<std::string>("Hello", " ", "world", "!");
 
     std::string acc;
     array.forEach([&acc](const std::string& x) {
@@ -650,7 +624,7 @@ TEST_F(TestArray, testForEach_byConstRef) {
 }
 
 TEST_F(TestArray, testForEach_byValueConversion) {
-    auto const array = makeArray<int>({1, 2, 3, 4, 5, 6});
+    auto const array = makeArray<int>(1, 2, 3, 4, 5, 6);
 
     double acc = 0;
     array.forEach([&acc](double x) {
@@ -661,7 +635,7 @@ TEST_F(TestArray, testForEach_byValueConversion) {
 }
 
 TEST_F(TestArray, testForEachIndexed) {
-    auto const array = makeArray<int>({1, 2, 3, 4, 5, 6});
+    auto const array = makeArray<int>(1, 2, 3, 4, 5, 6);
     bool allEq = true;
 
     array.forEach([&allEq](Array<int>::size_type i, Array<int>::size_type x) {
@@ -714,7 +688,7 @@ TEST_F(TestArray, testDeallocationWhenElementConstructorThrows) {
 
 
 TEST_F(TestArray, testSet) {
-    auto array = makeArray<int>({1, 2, 3, 4, 5, 6});
+    auto array = makeArray<int>(1, 2, 3, 4, 5, 6);
 
     int acc = 6;
 
@@ -740,6 +714,6 @@ const Array<int>::size_type TestArray::TEST_SIZE_0 = 7;
 const Array<int>::size_type TestArray::TEST_SIZE_1 = 35;
 
 const int 		TestArray::NonPodStruct::IVALUE_DEFAULT = -123;
-const StringLiteral 	TestArray::NonPodStruct::STR_DEFAULT = "test_value";
+const std::string TestArray::NonPodStruct::STR_DEFAULT = "test_value";
 
 int TestArray::NonPodStruct::TotalCount = 0;

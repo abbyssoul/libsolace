@@ -47,14 +47,13 @@ class Exception :
         public std::exception {
 public:
 
+    ~Exception() noexcept override = default;
+
     //! Construct exception w. message
     Exception(const std::string& message) noexcept;
 
-    Exception(const Exception& other) noexcept;
-
-    Exception(Exception&& other) noexcept;
-
-     ~Exception() noexcept override = default;
+    Exception(Exception const& other)       = default;
+    Exception(Exception&& other) noexcept   = default;
 
     virtual StringView getMessage() const noexcept;
 
@@ -66,7 +65,7 @@ public:
 
 private:
 
-    const std::string	_message;		//!< Message of the exception.
+    std::string	_message;		//!< Message of the exception.
 
 #ifdef SOLACE_DEBUG
 //  const Debug::Trace 	_trace;			//!< Stack trace

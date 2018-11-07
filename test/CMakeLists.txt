@@ -12,7 +12,7 @@ set(TEST_SOURCE_FILES
         test_memoryResource.cpp
         test_memoryManager.cpp
 
-#        test_array.cpp
+        test_array.cpp
         test_arrayView.cpp
         test_vector.cpp
         test_dictionary.cpp

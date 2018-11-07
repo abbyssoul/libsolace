@@ -31,9 +31,7 @@
 #include "solace/errorDomain.hpp"
 
 
-
 namespace Solace {
-
 
 
 /**

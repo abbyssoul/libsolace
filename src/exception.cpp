@@ -66,18 +66,6 @@ Exception::Exception(const std::string& message) noexcept :
     // Nothing else to do here
 }
 
-Exception::Exception(const Exception& other) noexcept :
-    _message(other._message)
-{
-    // Nothing else to do here
-}
-
-Exception::Exception(Exception&& other) noexcept :
-    _message(std::move(other._message))
-{
-    // Nothing else to do here
-}
-
 
 StringView Exception::getMessage() const noexcept {
     return StringView{_message.c_str(), static_cast<StringView::size_type>(_message.size())};

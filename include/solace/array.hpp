@@ -321,7 +321,7 @@ template <typename T>
 Array<T> makeArray(typename Array<T>::size_type initialSize) {
     auto buffer = getSystemHeapMemoryManager().allocate(initialSize*sizeof(T));           // May throw
 
-    initArray(buffer.view(), initialSize);
+    initArray<T>(buffer.view(), initialSize);
 
     return {std::move(buffer), initialSize};  // No except c-tor
 }

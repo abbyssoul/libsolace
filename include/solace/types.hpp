@@ -30,6 +30,7 @@
 #include <cstddef>
 #include <cstdint>
 
+
 namespace Solace {
 
 using int8 = int8_t;

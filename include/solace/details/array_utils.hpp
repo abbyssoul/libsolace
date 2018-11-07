@@ -47,7 +47,7 @@ struct ExceptionGuard {
 
 
 template <typename T>
-void initArray(MemoryView bufferView, typename ArrayView<T>::size_type arraySize) {
+void initArray(MutableMemoryView bufferView, typename ArrayView<T>::size_type arraySize) {
     if (std::is_nothrow_default_constructible<T>::value) {
         auto pos = bufferView.template dataAs<T>();
         for (size_t i = 0; i < arraySize; ++i) {
