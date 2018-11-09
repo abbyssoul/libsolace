@@ -44,7 +44,7 @@ protected:
         static int TotalCount;
 
 		static const int IVALUE_DEFAULT;
-		static const std::string STR_DEFAULT;
+		static const char STR_DEFAULT[];
 
 		int iValue{};
 		std::string str;
@@ -306,8 +306,7 @@ TEST_F(TestArray, testInitializerList) {
                 NonPodStruct(0, "yyyz"),
                 NonPodStruct(),
                 NonPodStruct(-321, "yyx"),
-                NonPodStruct(990, "x^hhf")
-        );
+                NonPodStruct(990, "x^hhf"));
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
         EXPECT_EQ(nativeArrayLength(native_array) + array.size(),
@@ -411,8 +410,7 @@ TEST_F(TestArray, testMoveAssignment) {
                     NonPodStruct(0, "yyyz"),
                     NonPodStruct(),
                     NonPodStruct(-321, "yyx"),
-                    NonPodStruct(990, "x^hhf")
-                    );
+                    NonPodStruct(990, "x^hhf"));
         EXPECT_TRUE(!array.empty());
         EXPECT_EQ(static_cast<Array<NonPodStruct>::size_type>(4), array.size());
 
@@ -505,8 +503,7 @@ TEST_F(TestArray, testEquals) {
                 NonPodStruct(0, "yyyz"),
                 NonPodStruct(),
                 NonPodStruct(-321, "yyx"),
-                NonPodStruct(990, "x^hhf")
-        );
+                NonPodStruct(990, "x^hhf"));
 
         const NonPodStruct equal_native_array[] = {
                 NonPodStruct(0, "yyyz"),
@@ -713,7 +710,7 @@ const Array<int>::size_type TestArray::ZERO = 0;
 const Array<int>::size_type TestArray::TEST_SIZE_0 = 7;
 const Array<int>::size_type TestArray::TEST_SIZE_1 = 35;
 
-const int 		TestArray::NonPodStruct::IVALUE_DEFAULT = -123;
-const std::string TestArray::NonPodStruct::STR_DEFAULT = "test_value";
+const int   TestArray::NonPodStruct::IVALUE_DEFAULT = -123;
+const char  TestArray::NonPodStruct::STR_DEFAULT[] = "test_value";
 
 int TestArray::NonPodStruct::TotalCount = 0;
