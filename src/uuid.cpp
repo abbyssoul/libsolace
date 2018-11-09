@@ -34,6 +34,11 @@ constexpr UUID::size_type UUID::StaticSize;
 constexpr UUID::size_type UUID::StringSize;
 
 
+UUID::UUID() noexcept
+    : _bytes{0}
+{
+}
+
 UUID::UUID(UUID&& rhs) noexcept {
     memcpy(_bytes, rhs._bytes, StaticSize);
 }

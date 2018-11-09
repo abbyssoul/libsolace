@@ -56,8 +56,8 @@ TEST(TestUUID, testConstruction) {
 
     // Random UUID using default constructor
     UUID uid;
+    EXPECT_TRUE(uid.isNull());
     EXPECT_EQ(UUID::StaticSize, uid.size());
-    EXPECT_EQ(false, uid.isNull());
 
     // Copy construction
     UUID uid3(uid);

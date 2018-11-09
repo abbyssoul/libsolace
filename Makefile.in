@@ -151,7 +151,7 @@ valgrind-sgcheck: $(TEST_TAGRET)
 
 valgrind-memcheck: $(TEST_TAGRET)
 	valgrind --tool=memcheck --trace-children=yes --track-fds=yes --redzone-size=128 --error-exitcode=3 \
-	--leak-check=full --show-leak-kinds=all --track-origins=yes --partial-loads-ok=no \
+	--leak-check=full --show-leak-kinds=all --track-origins=yes --errors-for-leak-kinds=all --partial-loads-ok=no \
 	$(TEST_TAGRET) --gtest_filter=-TestSharedMemory.testCreateAndMap:TestAnonSharedMemory.testShareAndMap
 
 

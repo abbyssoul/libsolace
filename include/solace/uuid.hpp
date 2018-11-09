@@ -71,7 +71,7 @@ public:
 public:
 
     /** Construct default randomly generated UUID */
-    UUID() noexcept = default;
+    UUID() noexcept;
 
     /** Move-Construct the UUID */
     UUID(UUID&& rhs) noexcept;
