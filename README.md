@@ -26,7 +26,9 @@ That is the aims is to provide building blocks for efficient and reliable applic
 _Note: it is by no means as strict implementation of all of P10 rules but an attempt to provide components that make it easy to observe this rules._
 
 ### Motivation
-Solace is used to provide building primitives to develop a systems of communicating process that solve a problem via collaboration (aka cluster application / actor system). As such it will never spawn a thread or allocate memory after initialisation.
+Solace is used to provide building primitives to develop a systems of communicating process
+that solve a problem via collaboration (aka cluster application / actor system).
+As such it will never spawn a thread or allocate memory after initialisation.
 
 ## Contributing changes
 The framework is work in progress and contributions are very welcomed.

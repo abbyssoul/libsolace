@@ -26,7 +26,7 @@ using namespace Solace;
 namespace {
 
 // encodes ASCII characters to 6bit encoding
-constexpr unsigned char encoding_table[] = {
+constexpr unsigned char kEncodingTable[] = {
 /*     ..0 ..1 ..2 ..3 ..4 ..5 ..6 ..7 ..8 ..9 ..A ..B ..C ..D ..E ..F  */
 /* 0.. */  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
 /* 1.. */  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,
@@ -38,21 +38,21 @@ constexpr unsigned char encoding_table[] = {
 /* 7.. */ 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,  0,  0,  0,  0,  0};
 
 // decodes 6bit characters to ASCII
-constexpr char decoding_table[] = " 0123456789"
+constexpr char kDecodingTable[] = " 0123456789"
                                   "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
                                   "abcdefghijklmnopqrstuvwxyz";
 
 
-uint64 next_interim(uint64 current, size_t char_code) {
-    return (current << 6) | encoding_table[(char_code <= 0x7F) ? char_code : 0];
+constexpr uint64 nextInterim(uint64 current, size_t char_code) {
+    return (current << 6) | kEncodingTable[(char_code <= 0x7F) ? char_code : 0];
 }
 
 }  // namespace
 
 
 uint64
-Solace::detail::atom_val(const char* cstr, uint64 interim) {
+Solace::detail::atomVal(const char* cstr, uint64 interim) noexcept {
     return (*cstr == '\0')
             ? interim
-            : atom_val(cstr + 1, next_interim(interim, static_cast<size_t>(*cstr)));
+            : atomVal(cstr + 1, nextInterim(interim, static_cast<size_t>(*cstr)));
 }

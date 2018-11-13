@@ -1,8 +1,8 @@
 # Application Framework
 
 libsolace provides a number of classes to help building various applications while allowing
-for efficient resouce management. To achive a number of assumptions about application's
-lifecycle has been made in the design process. Main assumption is that applications has dedicated
+for efficient resouce management. To achive that a number of assumptions about application's
+lifecycle has to be made in the design process. Main assumption is that applications has dedicated
 phases:
  - Initialization.
  - Event loop / processing.

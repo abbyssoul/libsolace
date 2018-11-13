@@ -8,6 +8,12 @@ set(TEST_SOURCE_FILES
         ci/teamcity_messages.cpp
         ci/teamcity_gtest.cpp
 
+        test_stringView.cpp
+        test_error.cpp
+        test_optional.cpp
+        test_result.cpp
+        test_future.cpp
+
         test_memoryView.cpp
         test_memoryResource.cpp
         test_memoryManager.cpp
@@ -20,14 +26,10 @@ set(TEST_SOURCE_FILES
         test_base64.cpp
         test_byteReader.cpp
         test_byteWriter.cpp
-        test_optional.cpp
-        test_result.cpp
-        test_future.cpp
         test_uuid.cpp
         test_char.cpp
         test_string.cpp
         test_stringBuilder.cpp
-        test_stringView.cpp
         test_path.cpp
         test_env.cpp
         test_version.cpp

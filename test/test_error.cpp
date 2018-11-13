@@ -14,40 +14,24 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: atom
- *	@file		solace/atom.hpp
+ * libSolace Unit Test Suit
+ *	@file test/test_error.cpp
+ *	@brief		Test suit for Solace::Error
  ******************************************************************************/
-#pragma once
-#ifndef SOLACE_ATOM_HPP
-#define SOLACE_ATOM_HPP
+#include <solace/error.hpp>    // Class being tested.
 
-#include "solace/types.hpp"
+#include <gtest/gtest.h>
+#include "mockTypes.hpp"
 
-
-namespace Solace {
+using namespace Solace;
 
 
-/**
- * Atoms value type
- */
-enum class AtomValue : uint64_t {
-    /// @cond PRIVATE
-    _dirty_little_hack = 1337
-    /// @endcond
-};
+TEST(TestError, constructor) {
+    AtomValue testCategory = atom("test");
+    Error v{testCategory, 1, "Test"};
 
-namespace detail {
-uint64 atomVal(const char* cstr, uint64 interim = 0xF) noexcept;
+    EXPECT_TRUE(v);
+    EXPECT_EQ(testCategory, v.domain());
+    EXPECT_EQ(1, v.value());
+    EXPECT_EQ(StringLiteral("Test"), v.tag());
 }
-
-/// Creates an atom from given string literal.
-template <size_t Size>
-AtomValue atom(char const (&str)[Size]) {
-    // last character is the NULL terminator
-    static_assert(Size < 11, "only 10 characters are allowed");
-
-    return static_cast<AtomValue>(detail::atomVal(str));
-}
-
-}  // End of namespace Solace
-#endif  // SOLACE_ATOM_HPP
