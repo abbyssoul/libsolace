@@ -36,7 +36,7 @@
 using namespace Solace;
 
 
-static const AtomValue kFutureTestCatergory = atom("fut-test");
+static const AtomValue kFutureTestCatergory = atom("fut-tst");
 
 inline
 Error makeFutureError(int errCode, StringLiteral tag) {

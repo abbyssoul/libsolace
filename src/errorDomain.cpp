@@ -19,11 +19,15 @@
  ******************************************************************************/
 #include "solace/errorDomain.hpp"
 
+#include "solace/dictionary.hpp"
 
 using namespace Solace;
 
 
-ErrorDomain*
-Solace::getErrorDomain(AtomValue categoryId) {
-    return nullptr;
+static Dictionary<AtomValue, ErrorDomain*> kErrorDomainMap;
+
+
+Optional<ErrorDomain*>
+Solace::getErrorDomain(AtomValue categoryId) noexcept {
+    return kErrorDomainMap.find(categoryId);
 }

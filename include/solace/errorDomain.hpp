@@ -23,7 +23,9 @@
 
 #include "solace/types.hpp"
 #include "solace/atom.hpp"
+#include "solace/optional.hpp"
 #include "solace/stringView.hpp"
+
 
 namespace Solace {
 
@@ -33,7 +35,7 @@ namespace Solace {
  */
 class ErrorDomain {
 public:
-    virtual ~ErrorDomain() = default;
+    virtual ~ErrorDomain() noexcept = default;
 
     ErrorDomain() = default;
     ErrorDomain(ErrorDomain const&) = delete;
@@ -52,7 +54,7 @@ public:
  * @param categoryId Atom identifing error domain
  * @return An error domain if one was found.
  */
-ErrorDomain* getErrorDomain(AtomValue categoryId);
+Optional<ErrorDomain*> getErrorDomain(AtomValue categoryId) noexcept;
 
 
 extern const AtomValue kDefaultCatergory;

@@ -63,4 +63,17 @@ library provide minimalistic set of fixed size collections/containers that are m
 See [collections](./collections.md) for detailed information.
 
 ## Utility Classes
-TBD
+Being a collection of reusable components - libsolace includes a number of comoponents that model some domain concept.
+Given wide spread of this concepts in all domains where this library might be usefull - the decision has been made to
+distribute this components as part this fundamental library.
+
+### Version
+Class incapsulating semantic versioning version.
+
+### UUID
+Universal unique identifier.
+
+### ByteReaded/ByteWriter
+This classes provide a convenience method of working with views and byte buffers in a steam style.
+Similar concepts can be found in a number of popular frameworks and proved to be very useful when
+working with data serialization.

@@ -21,6 +21,7 @@
 ******************************************************************************/
 #include "solace/path.hpp"
 
+#include <algorithm>  // std::min/std::max
 
 using namespace Solace;
 

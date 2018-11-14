@@ -28,6 +28,7 @@
 #include "solace/traits/callable.hpp"     // type-traits: isCallable<>
 #include "solace/assert.hpp"
 
+#include <new>  // operator new
 
 // Note: with C++17 can use std::optional
 // #include <optional>
@@ -85,11 +86,12 @@ struct is_optional<Optional<T>>: std::true_type {
     unit: Optional.of()
     bind: Optional.flatMap()
  */
-template<typename T>
 // cppcheck-suppress copyCtorAndEqOperator
+template<typename T>
 class Optional {
 public:
     using value_type = T;
+    using Stored_type = std::remove_const_t<value_type>;
 
 public:
 
@@ -212,10 +214,10 @@ public:
 
     constexpr bool isNone() const noexcept { return !_engaged; }
 
-    T& operator* () { return get(); }
-    const T& operator* () const { return get(); }
+    T& operator* () noexcept { return get(); }
+    T const& operator* () const noexcept { return get(); }
 
-    const T& get() const {
+    T const& get() const {
         if (isNone()) {
             raiseInvalidStateError();
         }
@@ -240,7 +242,7 @@ public:
         return std::move(_payload);
     }
 
-    const T& orElse(T const& t) const noexcept {
+    T const& orElse(T const& t) const noexcept {
         if (isNone()) {
             return t;
         }
@@ -297,16 +299,11 @@ public:
 protected:
 
 
-    constexpr bool construct(T const& t) noexcept(std::is_nothrow_copy_constructible<T>::value) {
-        ::new (reinterpret_cast<void *>(std::addressof(_payload))) Stored_type(t);
-
-        _engaged = true;
-
-        return _engaged;
-    }
-
-    constexpr bool construct(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value) {
-        ::new (reinterpret_cast<void *>(std::addressof(_payload))) Stored_type(std::move(t));
+    template<typename...Args>
+    constexpr bool
+    construct(Args&&... args)
+    noexcept(std::is_nothrow_constructible<Stored_type, Args...>()) {
+        :: new (static_cast<void *>(std::addressof(_payload))) Stored_type(std::forward<Args>(args)...);
 
         _engaged = true;
 
@@ -327,7 +324,6 @@ private:
     template <class>
     friend class Optional;
 
-    using   Stored_type = std::remove_const_t<T>;
     struct  Empty_type {};
 
     union {

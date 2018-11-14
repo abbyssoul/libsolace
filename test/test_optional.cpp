@@ -440,3 +440,34 @@ TEST_F(TestOptional, testMoveOnlyMove) {
     EXPECT_EQ(732, r.get().x_);
     EXPECT_EQ(732, r.orElse(MoveOnlyType(-9876)).x_);
 }
+
+
+TEST_F(TestOptional, optionalPointer) {
+    struct Dummy {
+        virtual ~Dummy() noexcept = default;
+
+        Dummy() = default;
+        Dummy(Dummy const&) = delete;
+        Dummy(Dummy&&) = default;
+        Dummy& operator= (Dummy const&) = delete;
+        Dummy& operator= (Dummy&&) = default;
+
+        virtual StringView getSome() const noexcept = 0;
+    };
+
+    auto getMaybe = [](uint i) noexcept -> Optional<Dummy*> {
+        return (i < 12)
+                ? Optional<Dummy*>{}
+                : Optional<Dummy*>{nullptr};
+    };
+
+
+    auto const r = Optional<MoveOnlyType*>(nullptr);
+
+    EXPECT_EQ(0, MoveOnlyType::InstanceCount);
+    EXPECT_TRUE(r.isSome());
+
+    auto const r2 = getMaybe(0);
+    EXPECT_EQ(0, MoveOnlyType::InstanceCount);
+    EXPECT_TRUE(r2.isNone());
+}

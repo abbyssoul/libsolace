@@ -28,7 +28,7 @@
 using namespace Solace;
 
 
-const AtomValue Solace::kDefaultCatergory = atom("default");
+const AtomValue Solace::kDefaultCatergory = atom("defaul");
 const AtomValue Solace::kSystemCatergory = atom("posix");
 
 
@@ -57,6 +57,11 @@ Solace::makeErrno() {
 StringView
 Error::toString() const {
     auto const domain = getErrorDomain(_domain);
-    return domain->getMessage(_code);
+
+    if (!domain) {
+        return _tag;
+    }
+
+    return (*domain)->getMessage(_code);
 }
 

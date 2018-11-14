@@ -39,7 +39,7 @@ TEST(TestDictionary, testEmptyDictionaryIsEmpty) {
     // Test pre-condition
     ASSERT_EQ(0, SimpleType::InstanceCount);
 
-    Dictionary<SimpleType, int32> v;
+    Dictionary<int32, SimpleType> v;
 
     EXPECT_TRUE(v.empty());
     EXPECT_EQ(0, v.size());
@@ -57,7 +57,7 @@ TEST(TestDictionary, factoryIntergralWithCapacity) {
 
 TEST(TestDictionary, factoryWithCapacityCreatesNoObjects) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
-    auto v = makeDictionary<SimpleType, int32>(10);
+    auto v = makeDictionary<int32, SimpleType>(10);
 
     EXPECT_EQ(10, v.capacity());
     EXPECT_TRUE(v.empty());
@@ -70,7 +70,7 @@ TEST(TestDictionary, addIntoEmptyCollectionFails) {
     Dictionary<int32, int32> integral;
     EXPECT_ANY_THROW(integral.put(212, 8288));
 
-    Dictionary<SimpleType, int32> custom;
+    Dictionary<int32, SimpleType> custom;
     EXPECT_ANY_THROW(custom.put(212, {1, 2, 3}));
 }
 
@@ -93,7 +93,7 @@ TEST(TestDictionary, addIntoIntegralNonEmptyCollection) {
 TEST(TestDictionary, addIntoNonEmptyCollection) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeDictionary<SimpleType, int32>(10);
+        auto v = makeDictionary<int32, SimpleType>(10);
 
         EXPECT_EQ(10, v.capacity());
         EXPECT_TRUE(v.empty());
@@ -114,7 +114,7 @@ TEST(TestDictionary, addIntoNonEmptyCollection) {
 TEST(TestDictionary, containsDataType) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeDictionary<SimpleType, int32>({
+        auto v = makeDictionary<int32, SimpleType>({
                                                 {0, {99888, 2, 3}},
                                                 {321, {1, 2, 3}},
                                                 {17, {3, 0, 0}}
@@ -132,7 +132,7 @@ TEST(TestDictionary, containsDataType) {
 TEST(TestDictionary, containsUsingCustomKey) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeDictionary<SimpleType, int32>({
+        auto v = makeDictionary<int32, SimpleType>({
                                                 {0, {99888, 2, 3}},
                                                 {321, {1, 2, 3}},
                                                 {17, {3, 0, 0}}
@@ -150,7 +150,7 @@ TEST(TestDictionary, containsUsingCustomKey) {
 TEST(TestDictionary, forEachValue) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeDictionary<SimpleType, int32>({
+        auto v = makeDictionary<int32, SimpleType>({
                                                 {-1,  {1, 2, 3}},
                                                 {13, {2, 3, 4}},
                                                 {17, {3, 4, 5}}

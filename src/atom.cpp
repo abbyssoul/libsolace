@@ -37,6 +37,7 @@ constexpr unsigned char kEncodingTable[] = {
 /* 6.. */  0, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52,
 /* 7.. */ 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63,  0,  0,  0,  0,  0};
 
+/*
 // decodes 6bit characters to ASCII
 constexpr char kDecodingTable[] = " 0123456789"
                                   "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
@@ -46,13 +47,15 @@ constexpr char kDecodingTable[] = " 0123456789"
 constexpr uint64 nextInterim(uint64 current, size_t char_code) {
     return (current << 6) | kEncodingTable[(char_code <= 0x7F) ? char_code : 0];
 }
+*/
 
 }  // namespace
 
-
+/*
 uint64
-Solace::detail::atomVal(const char* cstr, uint64 interim) noexcept {
+atomVal(const char* cstr, uint64 interim) noexcept {
     return (*cstr == '\0')
             ? interim
             : atomVal(cstr + 1, nextInterim(interim, static_cast<size_t>(*cstr)));
 }
+*/

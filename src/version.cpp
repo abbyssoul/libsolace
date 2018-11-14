@@ -24,6 +24,7 @@
 
 #include "solace/libsolace_config.hpp"		// Defines compile time version
 
+#include <string>       // std::to_string
 
 
 #define SOLACE_VERSION_MAJOR 0
@@ -96,7 +97,7 @@ Version::parse(StringView str) {
     value_type patchVersion;
 
     StringView afterPatch;
-    uint splitIndex = 0;
+    StringView::size_type splitIndex = 0;
     str.split(NumberSeparator, [&](StringView split) {
         if (splitIndex == 0) {
             majorVersion = std::strtoul(split.data(), nullptr, 10);

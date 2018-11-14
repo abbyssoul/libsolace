@@ -23,6 +23,10 @@
 
 #include "solace/types.hpp"
 
+#include <type_traits>
+#include <climits>
+#include <cstdint>
+
 
 namespace Solace {
 
@@ -36,17 +40,45 @@ enum class AtomValue : uint64_t {
     /// @endcond
 };
 
+
 namespace detail {
-uint64 atomVal(const char* cstr, uint64 interim = 0xF) noexcept;
+
+template <typename T = std::uintmax_t>
+constexpr std::enable_if_t<std::is_integral<T>::value, T>
+wrap(const char *const str) noexcept {
+    constexpr auto N = sizeof(T);
+    T n {};
+    std::size_t i {};
+    while (i < N && str[i]) {
+        n = (n << CHAR_BIT) | str[i++];
+    }
+
+    return (n << (N - i) * CHAR_BIT);
 }
 
-/// Creates an atom from given string literal.
+template <typename T>
+std::enable_if_t<std::is_integral<T>::value>
+unwrap(const T n, char *const buffer) noexcept {
+    constexpr auto N = sizeof(T);
+    constexpr auto lastbyte = static_cast<char>(~0);
+    for (std::size_t i = 0UL; i < N; ++i) {
+        buffer[i] = ((n >> (N - i - 1) * CHAR_BIT) & lastbyte);
+    }
+
+    buffer[N] = '\0';
+}
+
+}  // namespace detail
+
+
+/// Creates an atom value from a given short string literal.
 template <size_t Size>
 AtomValue atom(char const (&str)[Size]) {
     // last character is the NULL terminator
-    static_assert(Size < 11, "only 10 characters are allowed");
+    constexpr auto kMaxLiteralSize = sizeof(std::uintmax_t);
+    static_assert(Size <= kMaxLiteralSize, "String literal too long");
 
-    return static_cast<AtomValue>(detail::atomVal(str));
+    return static_cast<AtomValue>(detail::wrap(str));
 }
 
 }  // End of namespace Solace
