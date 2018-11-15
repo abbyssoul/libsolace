@@ -21,6 +21,7 @@
  *	ID:			$Id$
  ******************************************************************************/
 #include "solace/version.hpp"
+#include "solace/posixErrorDomain.hpp"
 
 #include "solace/libsolace_config.hpp"		// Defines compile time version
 

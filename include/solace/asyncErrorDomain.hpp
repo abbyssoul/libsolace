@@ -14,41 +14,35 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- *	@file		error.cpp
- *	@author		$LastChangedBy: $
- *	@date		$LastChangedDate: $
- *	@brief		Implementation of error type
- *	ID:			$Id: $
+ * libSolace: Domain for error codes
+ *	@file		solace/asyncErrorDomain.hpp
  ******************************************************************************/
-#include "solace/posixErrorDomain.hpp"
+#pragma once
+#ifndef SOLACE_ASYNCERRORDOMAIN_HPP
+#define SOLACE_ASYNCERRORDOMAIN_HPP
 
-#include <cstring>
-#include <cerrno>
+#include "solace/atom.hpp"
+#include "solace/error.hpp"
+#include "solace/errorDomain.hpp"
 
 
-using namespace Solace;
+namespace Solace {
 
 
+/** Category of async errors.
+ *
+ */
+extern const AtomValue kAsyncErrorCatergory;
 
-Error
-Solace::makeErrno() noexcept {
-    return makeSystemError(errno);
+enum class AsyncError: int {
+    AsyncError
+};
+
+
+/*constexpr*/ inline
+Error makeError(AsyncError errCode, StringLiteral tag) noexcept {
+    return Error{kAsyncErrorCatergory, static_cast<int>(errCode), tag};
 }
 
-
-Error
-Solace::makeErrno(StringLiteral tag) noexcept {
-    return makeSystemError(errno, std::move(tag));
-}
-
-
-StringView
-Error::toString() const {
-    auto const domain = getErrorDomain(_domain);
-
-    if (!domain) {
-        return _tag;
-    }
-
-    return (*domain)->getMessage(_code);
-}
+}  // End of namespace Solace
+#endif  // SOLACE_ASYNCERRORDOMAIN_HPP

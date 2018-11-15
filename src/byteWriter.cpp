@@ -19,7 +19,7 @@
  *	@brief		Implementation of ByteWriter
  ******************************************************************************/
 #include "solace/byteWriter.hpp"
-
+#include "solace/posixErrorDomain.hpp"
 
 #include <cstring>  // memmove
 

@@ -25,6 +25,8 @@
 #define SOLACE_DEATILS_FUTURE_COMPOSITION_HPP
 
 #include "solace/future.hpp"
+#include "solace/asyncErrorDomain.hpp"
+
 
 #include <atomic>
 #include <vector>

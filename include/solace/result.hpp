@@ -28,8 +28,6 @@
 #include "solace/assert.hpp"
 #include "solace/optional.hpp"
 
-#include <functional>
-
 
 namespace Solace {
 

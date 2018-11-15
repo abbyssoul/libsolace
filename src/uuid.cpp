@@ -19,6 +19,7 @@
  ******************************************************************************/
 #include "solace/uuid.hpp"
 #include "solace/base16.hpp"
+#include "solace/posixErrorDomain.hpp"
 
 
 #include <cstring>  // memcmp (should review)

@@ -17,15 +17,16 @@
  * libSolace Unit Test Suit for Result<>
  * @file: test/test_result.cpp
  * @author: soultaker
- *
- * Created on: 14 Aug 2016
-*******************************************************************************/
+ *******************************************************************************/
 #include <solace/result.hpp>			// Class being tested
 
 #include <solace/unit.hpp>
 #include <solace/error.hpp>
 #include <solace/string.hpp>
 #include <solace/exception.hpp>
+#include <solace/posixErrorDomain.hpp>
+
+
 #include <cmath>
 
 #include <gtest/gtest.h>

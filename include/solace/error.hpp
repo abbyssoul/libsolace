@@ -34,8 +34,9 @@
 namespace Solace {
 
 
-/**
- * Error type
+/** Error type
+ * This class represent runtime error that can be encountered when the process is running.
+ * The implementation is heavily inspired by std::error proposal P0709, although not a direct implementation.
  */
 class Error {
 public:
@@ -98,37 +99,6 @@ private:
 inline void swap(Error& lhs, Error& rhs) noexcept {
     lhs.swap(rhs);
 }
-
-
-
-
-
-inline
-Error makeError(BasicError errCode, StringLiteral tag) {
-    return Error{kSystemCatergory, static_cast<int>(errCode), tag};
-}
-
-inline
-Error makeError(GenericError errCode, StringLiteral tag) {
-    return Error{kSystemCatergory, static_cast<int>(errCode), tag};
-}
-
-inline
-Error makeError(AsyncError errCode, StringLiteral tag) {
-    return Error{kSystemCatergory, static_cast<int>(errCode), tag};
-}
-
-inline
-Error makeError(SystemErrors errCode, StringLiteral tag) {
-    return Error{kSystemCatergory, static_cast<int>(errCode), tag};
-}
-
-
-
-Error makeErrno(int errCode, StringLiteral tag);
-Error makeErrno(int errCode);
-Error makeErrno(StringLiteral tag);
-Error makeErrno();
 
 
 static_assert(sizeof(Error) <= 4*sizeof(void*),

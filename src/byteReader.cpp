@@ -19,6 +19,7 @@
  *	@brief		Implementation of Byte Reader
  ******************************************************************************/
 #include "solace/byteReader.hpp"
+#include "solace/posixErrorDomain.hpp"
 
 #include <cstring>  // memmove
 

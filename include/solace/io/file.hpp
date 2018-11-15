@@ -102,12 +102,11 @@ public:
 	};
 
 
-    using size_type = ssize_t;
+	using size_type = size_t;
 	using ISelectable::poll_id;
 
 public:
 
-//    using IOObject::operator !;
     using IOObject::read;
     using IOObject::write;
 

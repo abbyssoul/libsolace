@@ -19,6 +19,7 @@
  *	@brief		Implementation of Env class
  ******************************************************************************/
 #include "solace/env.hpp"
+#include "solace/posixErrorDomain.hpp"
 
 
 #include <cstdlib>
