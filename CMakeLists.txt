@@ -11,7 +11,7 @@ option(SANITIZE "Enable 'sanitize' compiler flag" OFF)
 
 
 # libsolace requires at least C++17
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors") #  -fno-rtti
@@ -27,6 +27,10 @@ check_cxx_compiler_flag("-fsanitize-address-use-after-scope" WITH_SANITIZE_ADDRE
 check_cxx_compiler_flag("-fsanitize=signed-integer-overflow" WITH_SANITIZE_SIGNED_INTEGER_OVERFLOW)
 check_cxx_compiler_flag("-fsanitize=unsigned-integer-overflow" WITH_SANITIZE_UNSIGNED_INTEGER_OVERFLOW)
 
+check_cxx_compiler_flag("-Wlogical-op" WITH_WARN_LOGICAL_OP)
+check_cxx_compiler_flag("-Wstrict-null-sentinel" WITH_WARN_STRICT_NULL_SENTINEL)
+
+
 
 # Enable all the warnings one can get
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wmissing-include-dirs -Wpacked -Wredundant-decls")
@@ -35,8 +39,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wfloat-equal")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpointer-arith -Wcast-align -Wcast-qual -Wwrite-strings")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused -Wunused-function -Wunused-label -Wunused-value -Wunused-variable")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winit-self -Wdisabled-optimization  -Wlogical-op")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winit-self -Wdisabled-optimization")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-promo -Wstrict-overflow=5")
 # -Werror
 # -Wundef -Wmissing-declarations
 # Not compatible wit GTest: -Wctor-dtor-privacy
@@ -50,6 +54,14 @@ endif(WITH_IMPLICIT_FALLTHROUGH)
 if (WITH_WNOEXCEPT_FALLTHROUGH)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnoexcept")
 endif (WITH_WNOEXCEPT_FALLTHROUGH)
+if (WITH_WARN_LOGICAL_OP)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wlogical-op")
+endif (WITH_WARN_LOGICAL_OP)
+if (WITH_WARN_STRICT_NULL_SENTINEL)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wstrict-null-sentinel")
+endif (WITH_WARN_STRICT_NULL_SENTINEL)
+
+
 
 # TODO: Make this warning work too!
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion -Wold-style-cast -Wsign-conversion")
