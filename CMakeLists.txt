@@ -10,15 +10,16 @@ option(COVERALLS "Generate coveralls data" OFF)
 option(SANITIZE "Enable 'sanitize' compiler flag" OFF)
 
 
-# libsolace requires at least C++14
+# libsolace requires at least C++17
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED on)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors") #  -fno-rtti
 
 # Enable stack-protector if compiler supports it (it should)
-check_cxx_compiler_flag("-fvtable-verify" WITH_VTABLE_VERIFY)
 check_cxx_compiler_flag("-Wimplicit-fallthrough=2" WITH_IMPLICIT_FALLTHROUGH)
+check_cxx_compiler_flag("-Wnoexcept" WITH_WNOEXCEPT_FALLTHROUGH)
+check_cxx_compiler_flag("-fvtable-verify" WITH_VTABLE_VERIFY)
 #check_cxx_compiler_flag("-Wl,-fuse-ld=gold" WITH_GOLD_LINKER)
 check_cxx_compiler_flag("-fstack-protector" WITH_STACK_PROTECTOR)
 check_cxx_compiler_flag("-fno-omit-frame-pointer" WITH_FRAME_POINTER)
@@ -29,15 +30,26 @@ check_cxx_compiler_flag("-fsanitize=unsigned-integer-overflow" WITH_SANITIZE_UNS
 
 # Enable all the warnings one can get
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wshadow -Wmissing-include-dirs -Wpacked -Wredundant-decls")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Woverloaded-virtual -Wnoexcept")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnon-virtual-dtor -Woverloaded-virtual")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wfloat-equal")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpointer-arith -Wcast-align -Wwrite-strings")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wpointer-arith -Wcast-align -Wcast-qual -Wwrite-strings")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wunused -Wunused-function -Wunused-label -Wunused-value -Wunused-variable")
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winit-self -Wdisabled-optimization  -Wlogical-op")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-promo -Wstrict-null-sentinel -Wstrict-overflow=5")
+# -Werror
+# -Wundef -Wmissing-declarations
+# Not compatible wit GTest: -Wctor-dtor-privacy
 
 # New in gcc-7
 if (WITH_IMPLICIT_FALLTHROUGH)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wimplicit-fallthrough=2")
 endif(WITH_IMPLICIT_FALLTHROUGH)
+
+# GCC specific
+if (WITH_WNOEXCEPT_FALLTHROUGH)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnoexcept")
+endif (WITH_WNOEXCEPT_FALLTHROUGH)
 
 # TODO: Make this warning work too!
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion -Wold-style-cast -Wsign-conversion")
@@ -46,11 +58,11 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wold-style-cast")
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-conversion")
 
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-enum")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wswitch-enum -Wswitch-default")
 # Not friendly to GTest: -Wmissing-format-attribute")
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat-security")
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++ ")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat=2 -Wformat-security")
+#Lots of lyes: set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weffc++ ")
 
 
 # It's better to use fortify_sources if compiler supports it

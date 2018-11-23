@@ -184,14 +184,10 @@ public:
      */
     MemoryView slice(size_type from, size_type to) const noexcept;
 
-    /**
-     * Get a shallow view of this memory buffer.
-     * Shallow view does not get any ownership of the memory.
-     * When owner of the memory goes out of scope the view will become invalid.
-     *
-     * @return A memory view without ownership of the memory.
-     */
-    MemoryView viewImmutableShallow() const noexcept;
+    template<typename T>
+    MemoryView sliceFor(size_type offset, size_type count=1) const noexcept {
+        return slice(offset * sizeof(T), (offset + count) * sizeof(T));
+    }
 
 private:
 

@@ -469,8 +469,8 @@ inline String makeString(String const& s) {
 }
 
 template <>
-inline void ctor(String& location, String const& s) {
-  new (_::PlacementNew(), &location) String(makeString(s));
+inline String* ctor(String& location, String const& s) {
+  return new (_::PlacementNew(), &location) String(makeString(s));
 }
 
 inline constexpr
@@ -499,7 +499,7 @@ StringView::size_type totalSize(const char* arg) noexcept {
 }
 
 template<size_t N>
-StringView::size_type totalSize(char const (&str)[N]) noexcept {
+StringView::size_type totalSize(char const (&)[N]) noexcept {
     return N;
 }
 

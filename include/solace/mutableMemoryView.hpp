@@ -27,6 +27,18 @@
 
 namespace Solace {
 
+template <typename T, typename... Params>
+inline T* ctor(T& location, Params&&... params) {
+    return new (_::PlacementNew(), &location) T(std::forward<Params>(params)...);
+}
+
+template <typename T>
+inline void dtor(T& location) noexcept(std::is_nothrow_destructible<T>::value) {
+    location.~T();
+}
+
+
+
 /* View into a fixed-length raw memory buffer which allows mutation of the undelaying data.
  * A very thin abstruction on top of raw memory address - it remembers memory block address and size.
  *
@@ -187,16 +199,22 @@ public:
     /// @see MemoryView::slice
     MutableMemoryView slice(size_type from, size_type to) noexcept;
 
+    template<typename T>
+    MutableMemoryView sliceFor(size_type offset, size_type count = 1) noexcept {
+        return slice(offset * sizeof(T), (offset + count) * sizeof(T));
+    }
+
+
     template<typename T, typename... Args>
     T* construct(Args&&... args) {
-        assertIndexInRange(static_cast<size_type>(sizeof(T)), static_cast<size_type>(0), this->size() + 1);
-
-        return new (dataAddress()) T(std::forward<Args>(args)...);
+        // Note: dataAs<> does assertion for the storage size
+        return ctor(*dataAs<T>(), std::forward<Args>(args)...);
     }
 
     template<typename T>
-    void destruct() {
-        dataAs<T>()->~T();
+    void destruct() noexcept(std::is_nothrow_destructible<T>::value) {
+        // Note: dataAs<> does assertion for the storage size
+        dtor(*dataAs<T>());
     }
 };
 

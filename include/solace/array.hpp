@@ -381,12 +381,12 @@ Array<T> makeArray(T&& arg) {
 }
 
 template<typename T, typename A>
-void arrayConstructNoThrow(T* &pos, A&& a) {
+void arrayConstructNoThrow(T* &pos, A&& a) noexcept {
     ctor(*pos++, std::forward<A>(a));
 }
 
 template<typename T, typename A, typename...Args>
-void arrayConstructNoThrow(T* &pos, A&& a, Args...args) {
+void arrayConstructNoThrow(T* &pos, A&& a, Args&&...args) noexcept {
     arrayConstructNoThrow(pos, std::forward<A>(a));
 
     // recurse:
@@ -401,7 +401,7 @@ void arrayConstructRecursive(ExceptionGuard<T>& guard, A&& a) {
 }
 
 template<typename T, typename A, typename...Args>
-void arrayConstructRecursive(ExceptionGuard<T>& guard, A&& a, Args...args) {
+void arrayConstructRecursive(ExceptionGuard<T>& guard, A&& a, Args&&...args) {
     arrayConstructRecursive(guard, std::forward<A>(a));
 
     // recurse:
@@ -410,12 +410,12 @@ void arrayConstructRecursive(ExceptionGuard<T>& guard, A&& a, Args...args) {
 
 
 template <typename T, typename...Args>
-Array<T> makeArray(T&& a0, Args...args) {
+Array<T> makeArray(T&& a0, Args&&...args) {
      // Should be relativily safe to cast: we don't expect > 65k arguments
     auto const arraySize = narrow_cast<typename Array<T>::size_type>(1 + sizeof...(args));
     auto buffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
 
-    if (std::is_nothrow_default_constructible<T>::value) {
+    if (std::is_nothrow_move_constructible<T>::value) {
         auto pos = buffer.view().template dataAs<T>();
         arrayConstructNoThrow(pos, std::forward<T>(a0), std::forward<Args>(args)...);
     } else {

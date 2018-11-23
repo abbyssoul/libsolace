@@ -23,45 +23,42 @@
 #include <utility>
 #include <iostream>
 
+
+
 struct PimitiveType {
 
     static int InstanceCount;
 
-    int x;
+    int x{};
 
-    ~PimitiveType() {
+    ~PimitiveType() noexcept {
         --InstanceCount;
     }
 
-    PimitiveType() noexcept : x() {}
+    constexpr PimitiveType() noexcept = default;
 
-    PimitiveType(int x_) noexcept :
-        x(x_)
+    PimitiveType(int x_) noexcept
+        : x(x_)
     {
         ++InstanceCount;
     }
 
-    PimitiveType(const PimitiveType& rhs) noexcept :
-        x(rhs.x)
+    PimitiveType(PimitiveType const& rhs) noexcept
+        : x(rhs.x)
     {
         ++InstanceCount;
     }
 
-    PimitiveType(PimitiveType&& rhs): PimitiveType() {
+    PimitiveType(PimitiveType&& rhs) noexcept
+        : x(rhs.x)
+    {
         ++InstanceCount;
 
         swap(rhs);
     }
 
-    PimitiveType& operator= (const PimitiveType& rhs) {
-        x = rhs.x;
-
-        return (*this);
-    }
-
-    PimitiveType& operator= (PimitiveType&& rhs) {
-        return swap(rhs);
-    }
+    PimitiveType& operator= (PimitiveType const & rhs) noexcept = default;
+    PimitiveType& operator= (PimitiveType&& rhs) noexcept = default;
 
     PimitiveType& swap(PimitiveType& rhs) noexcept {
         using std::swap;
@@ -71,11 +68,13 @@ struct PimitiveType {
         return *this;
     }
 
-    friend bool operator == (const PimitiveType& a, const PimitiveType& b) {
+    friend bool operator == (PimitiveType const& a, PimitiveType const& b) noexcept {
         return (a.x == b.x);
     }
 
 };
+
+
 
 
 struct SimpleType {
@@ -182,29 +181,32 @@ struct SometimesConstructable {
         --InstanceCount;
     }
 
-
-    SometimesConstructable(): SometimesConstructable(3)
-    {}
-
-    SometimesConstructable(int value): someValue(value) {
-        if (BlowUpEveryInstance && ((InstanceCount + 1) % BlowUpEveryInstance) == 0) {
+    static void maybeBlowup() {
+        if (BlowUpEveryInstance > 0 && ((InstanceCount + 1) % BlowUpEveryInstance) == 0) {
             throw Solace::Exception("Blowing up on purpose");
         }
+    }
+
+    SometimesConstructable() : SometimesConstructable(3)
+    {}
+
+    SometimesConstructable(int value) : someValue(value) {
+        maybeBlowup();
 
         ++InstanceCount;
     }
 
-    SometimesConstructable(const SometimesConstructable& rhs): someValue(rhs.someValue)
-    {
+    SometimesConstructable(SometimesConstructable const& rhs): someValue(rhs.someValue) {
+        maybeBlowup();
         ++InstanceCount;
     }
 
-    SometimesConstructable(SometimesConstructable&& rhs): someValue(rhs.someValue)
-    {
+    SometimesConstructable(SometimesConstructable&& rhs) : someValue(rhs.someValue) {
+        maybeBlowup();
         ++InstanceCount;
     }
 
-    SometimesConstructable& operator= (const SometimesConstructable& rhs) {
+    SometimesConstructable& operator= (SometimesConstructable const& rhs) {
         someValue = rhs.someValue;
 
         return *this;
@@ -216,7 +218,7 @@ struct SometimesConstructable {
         return *this;
     }
 
-    bool operator == (const SometimesConstructable& rhs) const {
+    bool operator == (SometimesConstructable const& rhs) const {
         return (someValue == rhs.someValue);
     }
 };

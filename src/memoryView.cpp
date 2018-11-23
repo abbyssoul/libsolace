@@ -75,9 +75,3 @@ MemoryView::slice(size_type from, size_type to) const noexcept {
 
     return {_dataAddress + from, newSize};
 }
-
-
-MemoryView
-MemoryView::viewImmutableShallow() const noexcept {
-    return *this; wrapMemory(dataAddress(), size());
-}

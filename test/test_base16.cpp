@@ -60,39 +60,39 @@ TEST(TestBase16, testBasicEncoding) {
     // BASE16("f") = "66"
     dest.rewind();
     encoder.encode(wrapMemory(srcMem, 1));
-    EXPECT_EQ(wrapMemory("66", 2), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("66", 2), dest.viewWritten());
 
     // BASE16("fo") = "666F"
     dest.rewind();
     encoder.encode(wrapMemory(srcMem, 2));
-    EXPECT_EQ(wrapMemory("666f", 4), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("666f", 4), dest.viewWritten());
 
     // BASE16("foo") = "666F6F"
     dest.rewind();
     encoder.encode(wrapMemory(srcMem, 3));
-    EXPECT_EQ(wrapMemory("666f6f", 6), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("666f6f", 6), dest.viewWritten());
 
     // BASE16("foob") = "666F6F62"
     dest.rewind();
     encoder.encode(wrapMemory(srcMem, 4));
-    EXPECT_EQ(wrapMemory("666f6f62", 8), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("666f6f62", 8), dest.viewWritten());
 
     // BASE16("fooba") = "666F6F6261"
     dest.rewind();
     encoder.encode(wrapMemory(srcMem, 5));
-    EXPECT_EQ(wrapMemory("666f6f6261", 10), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("666f6f6261", 10), dest.viewWritten());
 
     // BASE16("foobar") = "666F6F626172"
     dest.rewind();
     encoder.encode(wrapMemory(srcMem, 6));
-    EXPECT_EQ(wrapMemory("666f6f626172", 12), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("666f6f626172", 12), dest.viewWritten());
 
 
     dest.rewind();
     encoder.encode(wrapMemory("This is test message we want to encode", 38));
     EXPECT_EQ(wrapMemory("546869732069732074657374206d6573736167652077652077616e7420746f20656e636f6465",
                                     76),
-                            dest.viewWritten().viewImmutableShallow());
+                            dest.viewWritten());
 }
 
 TEST(TestBase16, testBasicEncodingIterator) {
@@ -121,37 +121,37 @@ TEST(TestBase16, testBasicDecoding) {
     // BASE16("f") = "66"
     dest.rewind();
     decoder.encode(wrapMemory("66", 2));
-    EXPECT_EQ(wrapMemory("f", 1), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("f", 1), dest.viewWritten());
 
     // BASE16("fo") = "666F"
     dest.rewind();
     decoder.encode(wrapMemory("666F", 4));
-    EXPECT_EQ(wrapMemory("fo", 2), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("fo", 2), dest.viewWritten());
 
     // BASE16("foo") = "666F6F"
     dest.rewind();
     decoder.encode(wrapMemory("666F6F", 6));
-    EXPECT_EQ(wrapMemory("foo", 3), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("foo", 3), dest.viewWritten());
 
     // BASE16("foob") = "666F6F62"
     dest.rewind();
     decoder.encode(wrapMemory("666F6F62", 8));
-    EXPECT_EQ(wrapMemory("foob", 4), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("foob", 4), dest.viewWritten());
 
     // BASE16("fooba") = "666F6F6261"
     dest.rewind();
     decoder.encode(wrapMemory("666F6F6261", 10));
-    EXPECT_EQ(wrapMemory("fooba", 5), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("fooba", 5), dest.viewWritten());
 
     // BASE16("foobar") = "666F6F626172"
     dest.rewind();
     decoder.encode(wrapMemory("666F6F626172", 12));
-    EXPECT_EQ(wrapMemory("foobar", 6), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("foobar", 6), dest.viewWritten());
 
     dest.rewind();
     decoder.encode(wrapMemory("546869732069732074657374206D6573736167652077652077616E7420746F20656E636F6465", 76));
     EXPECT_EQ(wrapMemory("This is test message we want to encode", 38),
-                            dest.viewWritten().viewImmutableShallow());
+                            dest.viewWritten());
 
 }
 

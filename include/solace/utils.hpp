@@ -27,8 +27,12 @@
 
 #include <utility>  // FIXME(later): remove after removal of std::true_type/false_type
 
-
 namespace Solace {
+
+namespace _ {  // private
+// Custom placement new tag
+struct PlacementNew {};
+}  // namespace _
 
 /**
  * Use DontInfer<T>::value in place of T for a template function parameter to prevent inference of
@@ -90,7 +94,7 @@ T&& fwd(DontInfer<T>& t) noexcept {
 
 template<class T, class U = T>
 constexpr T exchange(T& obj, U&& newValue) {
-    T old_value = std::move(obj);
+    T old_value{mv(obj)};
     obj = std::forward<U>(newValue);
 
     return old_value;
@@ -125,4 +129,10 @@ template<class X, class Y> using has_greater_equal = op_valid<X, Y, std::greater
 */
 
 }  // End of namespace Solace
+
+
+inline void* operator new(size_t, Solace::_::PlacementNew, void* __p) noexcept { return __p; }
+inline void operator delete(void*, Solace::_::PlacementNew, void*) noexcept {}
+
+
 #endif  // SOLACE_UTILS_HPP

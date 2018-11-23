@@ -70,38 +70,38 @@ TEST(TestBase64, testBasicEncoding) {
     //  BASE64("f") = "Zg=="
     dest.rewind();
     encoder.encode(wrapMemory(srcMem, 1));
-    EXPECT_EQ(wrapMemory("Zg==", 4), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("Zg==", 4), dest.viewWritten());
 
     //  BASE64("fo") = "Zm8="
     dest.rewind();
     encoder.encode(wrapMemory(srcMem, 2));
-    EXPECT_EQ(wrapMemory("Zm8=", 4), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("Zm8=", 4), dest.viewWritten());
 
     //  BASE64("foo") = "Zm9v"
     dest.rewind();
     encoder.encode(wrapMemory(srcMem, 3));
-    EXPECT_EQ(wrapMemory("Zm9v", 4), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("Zm9v", 4), dest.viewWritten());
 
     //  BASE64("foob") = "Zm9vYg=="
     dest.rewind();
     encoder.encode(wrapMemory(srcMem, 4));
-    EXPECT_EQ(wrapMemory("Zm9vYg==", 8), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("Zm9vYg==", 8), dest.viewWritten());
 
     //  BASE64("fooba") = "Zm9vYmE="
     dest.rewind();
     encoder.encode(wrapMemory(srcMem, 5));
-    EXPECT_EQ(wrapMemory("Zm9vYmE=", 8), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("Zm9vYmE=", 8), dest.viewWritten());
 
     //  BASE64("foobar") = "Zm9vYmFy"
     dest.rewind();
     encoder.encode(wrapMemory(srcMem, 6));
-    EXPECT_EQ(wrapMemory("Zm9vYmFy", 8), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("Zm9vYmFy", 8), dest.viewWritten());
 
 
     dest.rewind();
     encoder.encode(wrapMemory("This is test message we want to encode", 38));
     EXPECT_EQ(wrapMemory("VGhpcyBpcyB0ZXN0IG1lc3NhZ2Ugd2Ugd2FudCB0byBlbmNvZGU=", 52),
-                            dest.viewWritten().viewImmutableShallow());
+                            dest.viewWritten());
 }
 
 TEST(TestBase64, testBasicDecoding) {
@@ -117,37 +117,37 @@ TEST(TestBase64, testBasicDecoding) {
     //  BASE64("f") = "Zg=="
     dest.rewind();
     decoder.encode(wrapMemory("Zg==", 4));
-    EXPECT_EQ(wrapMemory("f", 1), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("f", 1), dest.viewWritten());
 
     //  BASE64("fo") = "Zm8="
     dest.rewind();
     decoder.encode(wrapMemory("Zm8=", 4));
-    EXPECT_EQ(wrapMemory("fo", 2), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("fo", 2), dest.viewWritten());
 
     //  BASE64("foo") = "Zm9v"
     dest.rewind();
     decoder.encode(wrapMemory("Zm9v", 4));
-    EXPECT_EQ(wrapMemory("foo", 3), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("foo", 3), dest.viewWritten());
 
     //  BASE64("foob") = "Zm9vYg=="
     dest.rewind();
     decoder.encode(wrapMemory("Zm9vYg==", 8));
-    EXPECT_EQ(wrapMemory("foob", 4), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("foob", 4), dest.viewWritten());
 
     //  BASE64("fooba") = "Zm9vYmE="
     dest.rewind();
     decoder.encode(wrapMemory("Zm9vYmE=", 8));
-    EXPECT_EQ(wrapMemory("fooba", 5), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("fooba", 5), dest.viewWritten());
 
     //  BASE64("foobar") = "Zm9vYmFy"
     dest.rewind();
     decoder.encode(wrapMemory("Zm9vYmFy", 8));
-    EXPECT_EQ(wrapMemory("foobar", 6), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory("foobar", 6), dest.viewWritten());
 
     dest.rewind();
     decoder.encode(wrapMemory("VGhpcyBpcyB0ZXN0IG1lc3NhZ2Ugd2Ugd2FudCB0byBlbmNvZGU=", 53));
     EXPECT_EQ(wrapMemory("This is test message we want to encode", 38),
-                            dest.viewWritten().viewImmutableShallow());
+                            dest.viewWritten());
 
 }
 
@@ -159,7 +159,7 @@ TEST(TestBase64, testBasicUrlEncoding) {
 
     encoder.encode(wrapMemory("This is test message encoded as a URL safe base64", 49));
     EXPECT_EQ(wrapMemory("VGhpcyBpcyB0ZXN0IG1lc3NhZ2UgZW5jb2RlZCBhcyBhIFVSTCBzYWZlIGJhc2U2NA==", 68),
-                            dest.viewWritten().viewImmutableShallow());
+                            dest.viewWritten());
 }
 
 TEST(TestBase64, testBasicUrlDecoding) {
@@ -170,7 +170,7 @@ TEST(TestBase64, testBasicUrlDecoding) {
 
     encoder.encode(wrapMemory("VGhpcyBpcyB0ZXN0IG1lc3NhZ2UgZW5jb2RlZCBhcyBhIFVSTCBzYWZlIGJhc2U2NA==", 68));
     EXPECT_EQ(wrapMemory("This is test message encoded as a URL safe base64", 49),
-                            dest.viewWritten().viewImmutableShallow());
+                            dest.viewWritten());
 }
 
 
@@ -185,7 +185,7 @@ TEST(TestBase64, testMultilineMessageEncoding) {
     Base64Encoder(dest)
             .encode(wrapMemory(srcMem, strlen(srcMem)));
 
-    EXPECT_EQ(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten());
 }
 
 TEST(TestBase64, testMultilineMessageDecoding) {
@@ -198,7 +198,7 @@ TEST(TestBase64, testMultilineMessageDecoding) {
     Base64Decoder(dest)
             .encode(wrapMemory(srcMem, strlen(srcMem)));
 
-    EXPECT_EQ(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten());
 }
 
 TEST(TestBase64, testUnicodeCharactersEncoding) {
@@ -211,7 +211,7 @@ TEST(TestBase64, testUnicodeCharactersEncoding) {
     Base64Encoder(dest)
             .encode(wrapMemory(srcMem, strlen(srcMem)));
 
-    EXPECT_EQ(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten());
 }
 
 TEST(TestBase64, testUnicodeCharactersDecoding) {
@@ -224,5 +224,5 @@ TEST(TestBase64, testUnicodeCharactersDecoding) {
     Base64Decoder(dest)
             .encode(wrapMemory(srcMem, strlen(srcMem)));
 
-    EXPECT_EQ(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten().viewImmutableShallow());
+    EXPECT_EQ(wrapMemory(expectedMsg, strlen(expectedMsg)), dest.viewWritten());
 }

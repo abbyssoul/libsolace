@@ -114,14 +114,12 @@ TEST(TestDictionary, addIntoNonEmptyCollection) {
 TEST(TestDictionary, containsDataType) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeDictionary<int32, SimpleType>({
+        auto v = makeDictionary<int32, SimpleType>(
                                                 {0, {99888, 2, 3}},
-                                                {321, {1, 2, 3}},
-                                                {17, {3, 0, 0}}
-                                            });
+                                                Dictionary<int32, SimpleType>::Entry{321, {1, 2, 3}},
+                                                Dictionary<int32, SimpleType>::Entry{17, {3, 0, 0}});
         EXPECT_TRUE(v.contains(321));
         EXPECT_TRUE(v.contains(17));
-
         EXPECT_FALSE(v.contains(18));
     }
 
@@ -132,11 +130,10 @@ TEST(TestDictionary, containsDataType) {
 TEST(TestDictionary, containsUsingCustomKey) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeDictionary<int32, SimpleType>({
+        auto v = makeDictionary<int32, SimpleType>(
                                                 {0, {99888, 2, 3}},
-                                                {321, {1, 2, 3}},
-                                                {17, {3, 0, 0}}
-                                            });
+                                                Dictionary<int32, SimpleType>::Entry{321, {1, 2, 3}},
+                                                Dictionary<int32, SimpleType>::Entry{17, {3, 0, 0}});
         EXPECT_TRUE(v.contains(321));
         EXPECT_TRUE(v.contains(17));
 
@@ -150,11 +147,10 @@ TEST(TestDictionary, containsUsingCustomKey) {
 TEST(TestDictionary, forEachValue) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeDictionary<int32, SimpleType>({
+        auto v = makeDictionary<int32, SimpleType>(
                                                 {-1,  {1, 2, 3}},
-                                                {13, {2, 3, 4}},
-                                                {17, {3, 4, 5}}
-                                            });
+                                                Dictionary<int32, SimpleType>::Entry{13, {2, 3, 4}},
+                                                Dictionary<int32, SimpleType>::Entry{17, {3, 4, 5}});
 
         int32 acc = 0;
         int32 counter = 1;
@@ -175,4 +171,23 @@ TEST(TestDictionary, forEachValue) {
     }
 
     ASSERT_EQ(0, SimpleType::InstanceCount);
+}
+
+
+
+TEST(TestDictionary, constructionThrow) {
+    ASSERT_EQ(0, SimpleType::InstanceCount);
+    ASSERT_EQ(0, SometimesConstructable::InstanceCount);
+
+    SometimesConstructable::BlowUpEveryInstance = 4;
+    {
+        EXPECT_ANY_THROW( (makeDictionary<SimpleType, SometimesConstructable>(
+                             Dictionary<SimpleType, SometimesConstructable>::Entry{{81, 2, 3}, 1},
+                             Dictionary<SimpleType, SometimesConstructable>::Entry{{12, 7, 3}, 2},
+                             Dictionary<SimpleType, SometimesConstructable>::Entry{{-3, 0, 0}, 3}
+                         )) );
+
+        EXPECT_EQ(0, SimpleType::InstanceCount);
+        EXPECT_EQ(0, SometimesConstructable::InstanceCount);
+    }
 }

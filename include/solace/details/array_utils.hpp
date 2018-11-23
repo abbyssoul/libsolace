@@ -44,6 +44,25 @@ struct ExceptionGuard {
     constexpr void release() noexcept { start = pos; }
 };
 
+template<typename T>
+struct ArrayExceptionGuard {
+    using value_type = T;
+    using ArrayType = ArrayView<T>;
+    using Iterator = typename ArrayType::Iterator;
+    using const_iterator = typename ArrayType::const_iterator;
+
+    const_iterator start;
+    Iterator pos;
+
+    inline ~ArrayExceptionGuard() noexcept(false) {
+        while (pos > start) {
+            dtor(*--pos);
+        }
+    }
+
+    constexpr explicit ArrayExceptionGuard(ArrayView<T>& a) noexcept : start{a.begin()}, pos{a.begin()} {}
+    constexpr void release() noexcept { start = pos; }
+};
 
 
 template <typename T>

@@ -47,10 +47,10 @@ public:
     using const_iterator = T const *;
 
     using reference = T &;
-    using const_reference = const T &;
+    using const_reference = T const&;
 
     using pointer_type = T *;
-    using const_pointer = const T *;
+    using const_pointer = T const *;
 
 public:
 
@@ -198,7 +198,6 @@ public:
 
     const_iterator end()     const noexcept { return (begin() + size()); }
 
-
     const_pointer data() const noexcept { return begin(); }
 
     ArrayView<const T>
@@ -215,19 +214,46 @@ public:
     }
 
     template<class Q = T>
-    typename std::enable_if<!std::is_const<Q>::value, MutableMemoryView>::type
+    std::enable_if_t<!std::is_const<Q>::value, MutableMemoryView>
     view() & noexcept {
         return _memory;
     }
 
     template<typename F, class Q = T>
-    typename std::enable_if<!std::is_const<Q>::value, void>::type
+    std::enable_if_t<!std::is_const<Q>::value, void>
     set(size_type index, F&& f) {
         index = assertIndexInRange(index, 0, size(), "ArrayView.set()");
 
         _memory.template dataAs<T>()[index] = f();
     }
 
+
+    /**
+     * Construct a new object in-place. Old value gets destroyed first
+     */
+    template<class Q = T, typename...Args>
+    std::enable_if_t<!std::is_const<Q>::value, void>
+    emplace(size_type index, Args&&...args) {
+        index = assertIndexInRange(index, 0, size(), "ArrayView.emplace()");
+
+        auto memBlock = _memory.template sliceFor<T>(index);
+        memBlock.template destruct<T>();
+        memBlock.template construct<T>(std::forward<Args>(args)...);
+    }
+
+    /**
+     * Construct a new object in-place without destroying old value.
+     * @note This is a dangereous opeartion tha can lead to memory leak if
+     * used on already initialised storage.
+     */
+    template<class Q = T, typename...Args>
+    std::enable_if_t<!std::is_const<Q>::value, void>
+    _emplace_unintialized(size_type index, Args&&...args) {
+        index = assertIndexInRange(index, 0, size(), "ArrayView.emplace()");
+
+        _memory .template sliceFor<T>(index)
+                .template construct<T>(std::forward<Args>(args)...);
+    }
 
     bool contains(const_reference value) const noexcept {
         return indexOf(value).isSome();
@@ -245,11 +271,11 @@ public:
         return none;
     }
 
-    constexpr ArrayView<const T> asConst() const noexcept {
-      return ArrayView<const T>(_memory);
+    constexpr ArrayView<T const> asConst() const noexcept {
+      return ArrayView<T const>(_memory);
     }
 
-    constexpr operator ArrayView<const T>() const noexcept {
+    constexpr operator ArrayView<T const>() const noexcept {
       return asConst();
     }
 

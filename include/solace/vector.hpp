@@ -28,7 +28,7 @@
 #include "solace/arrayView.hpp"
 #include "solace/array.hpp"
 #include "solace/mutableMemoryView.hpp"
-#include "solace/memoryManager.hpp"  // TODO(abbyssoul): Allocate memory via memory manager
+#include "solace/memoryManager.hpp"
 
 #include "solace/traits/callable.hpp"
 #include "solace/details/array_utils.hpp"
@@ -81,11 +81,9 @@ public:
     /**
      * Construct empty vector with zero capacity.
      */
-    constexpr explicit Vector(decltype(nullptr))
-        : _buffer{}
-        , _position{0}
-    {}
-
+    constexpr explicit Vector(decltype(nullptr)) noexcept
+    {
+    }
 
     /** */
     constexpr Vector(MemoryResource&& buffer, size_type count) noexcept
@@ -200,12 +198,12 @@ public:
     }
 
     template<typename... Args>
-    void emplace_back(Args... args) {
+    void emplace_back(Args&&... args) {
         assertIndexInRange(_position, 0, capacity());
 
         _buffer.view()
-                .slice(_position * sizeof(value_type), (_position + 1) * sizeof(value_type))
-                . template construct<value_type>(std::forward<Args>(args)...);
+                .template sliceFor<value_type>(_position)
+                .template construct<value_type>(std::forward<Args>(args)...);
 
         _position += 1;
     }
@@ -214,8 +212,8 @@ public:
         assertIndexInRange(_position, 0, capacity());
 
         _buffer.view()
-                .slice(_position * sizeof(value_type), (_position + 1) * sizeof(value_type))
-                . template construct<value_type>(value);
+                .template sliceFor<value_type>(_position)
+                .template construct<value_type>(value);
 
         _position += 1;
     }
@@ -237,8 +235,8 @@ public:
 
         _position -= 1;
         _buffer.view()
-                .slice(_position * sizeof(value_type), (_position+1) * sizeof(value_type))
-                . template destruct<value_type>();
+                .template sliceFor<value_type>(_position)
+                .template destruct<value_type>();
     }
 
 
@@ -310,46 +308,123 @@ bool operator!= (Vector<T> const& v, const ArrayView<U>& other) noexcept {
 }
 
 
+namespace details {
+
+template <typename T>
+void constructArrayValues(ArrayExceptionGuard<T>&) noexcept { /*return index;*/ }
+
+template <typename T, typename V,
+          typename...Args>
+void constructArrayValues(ArrayExceptionGuard<T>& dest, V&& a, Args&&...args) {
+    ctor(*(dest.pos), std::forward<V>(a));
+    dest.pos++;
+
+    // recurse:
+    constructArrayValues<T>(dest, std::forward<Args>(args)...);
+}
+
+
+template <typename T>
+typename ArrayView<T>::size_type
+constructArrayValuesNoThrow(ArrayView<T>&, typename ArrayView<T>::size_type index) noexcept { return index; }
+
+template <typename T, typename V,
+          typename...Args>
+void constructArrayValuesNoThrow(ArrayView<T>& dest, typename ArrayView<T>::size_type index,
+                                 V&& a, Args&&...args) noexcept {
+    dest._emplace_unintialized(index, std::forward<V>(a));  // ctor(*pos++, std::move(a.key));
+
+    // recurse:
+    constructArrayValuesNoThrow<T>(dest, index + 1, std::forward<Args>(args)...);
+}
+
+
+
+
+template <typename T, typename F>
+typename ArrayView<T>::size_type
+constructArrayValuesNoThrowF(ArrayView<T>&, typename ArrayView<T>::size_type index, F&& ) noexcept { return index; }
+
+template <typename T, typename V, typename F,
+          typename...Args>
+void constructArrayValuesNoThrowF(ArrayView<T>& dest, typename ArrayView<T>::size_type index, F&& f,
+                                 V&& a, Args&&...args) noexcept {
+    dest._emplace_unintialized(index, f(std::forward<V>(a)));  // ctor(*pos++, std::move(a.key));
+
+    // recurse:
+    constructArrayValuesNoThrowF<T>(dest, index + 1, std::forward<F>(f), std::forward<Args>(args)...);
+}
+
+
+}  // namespace details
+
 
 /**
- * Vector factory function.
+ * Create an empty zero-capacity vector
+ * @return A newly constructed empty, zero-capacity vector.
+ */
+template<typename T>
+constexpr Vector<T> makeVector() noexcept {
+    return {};
+}
+
+
+/**
+ * Create a new vector with a given memory resource.
+ * @return A newly constructed empty vector.
+ */
+template<typename T>
+constexpr Vector<T> makeVector(MemoryResource&& memory) noexcept {
+    return { std::move(memory), 0 };
+}
+
+/**
+ * Vector factory method: create a vector on the heap with a specified capacity.
  * @return A newly constructed empty vector of the required capacity.
  */
 template<typename T>
 Vector<T> makeVector(typename Vector<T>::size_type size) {
-    return { getSystemHeapMemoryManager().allocate(size*sizeof(T)), 0 };
+    return makeVector<T>(getSystemHeapMemoryManager().allocate(size*sizeof(T)));
 }
+
+/** Construct a new vector from an array view */
+template <typename T>
+Vector<T> makeVector(ArrayView<T const> array) {
+    auto buffer = getSystemHeapMemoryManager().allocate(array.size() * sizeof(T));           // May throw
+    auto dest = arrayView<T>(buffer.view());                            // No except
+
+    CopyConstructArray_<RemoveConst<T>, Decay<T*>, false>::apply(dest, array);    // May throw if copy-ctor throws
+
+    return { std::move(buffer), array.size() };                                 // No except
+}
+
+
+/** Create an on the heap copy of the given vector
+ * @param other A vector to copy data from.
+*/
+template <typename T>
+Vector<T> makeVector(Vector<T> const& other) {
+    return makeVector(other.view());
+}
+
 
 /** Construct a new vector from a C-style array */
 template <typename T>
 Vector<T> makeVector(T const* carray, typename Vector<T>::size_type len) {
-    auto buffer = getSystemHeapMemoryManager().allocate(len*sizeof(T));           // May throw
-
-    ArrayView<const T> src = arrayView(carray, len);                            // No except
-    ArrayView<T> dest = arrayView<T>(buffer.view());                            // No except
-
-    CopyConstructArray_<RemoveConst<T>, Decay<T*>, false>::apply(dest, src);    // May throw if copy-ctor throws
-
-    return { std::move(buffer), len };                                 // No except
+    return makeVector(arrayView(carray, len));
 }
 
-
-/** Create a copy of the given vector */
-template <typename T>
-Vector<T> makeVector(Vector<T> const& other) {
-    return makeVector(other.data(), other.size());
-}
 
 /**
  * Vector factory function.
  * @return A newly constructed vector with given items.
  */
 template <typename T>
-Vector<T> makeVector(std::initializer_list<T> list) {
+Vector<T> makeVectorOf(std::initializer_list<T> list) {
     // FIXME: Should be checked cast
     auto const vectorSize = narrow_cast<typename Vector<T>::size_type>(list.size());
-
     auto buffer = getSystemHeapMemoryManager().allocate(vectorSize * sizeof(T));  // May throw
+
     if (std::is_nothrow_copy_constructible<T>::value) {
         auto pos = buffer.view().template dataAs<T>();
         for (T const& i : list) {
@@ -362,6 +437,30 @@ Vector<T> makeVector(std::initializer_list<T> list) {
             ++guard.pos;
         }
         guard.release();
+    }
+
+    return {std::move(buffer), vectorSize};                                 // No except
+}
+
+
+/**
+ * Vector factory function.
+ * @return A newly constructed vector with given items.
+ */
+template <typename T,
+          typename...Args>
+Vector<T> makeVectorOf(Args&&...args) {
+    auto const vectorSize = narrow_cast<typename Vector<T>::size_type>(sizeof...(args));
+    auto buffer = getSystemHeapMemoryManager().allocate(vectorSize*sizeof(T));           // May throw
+    auto values = arrayView<T>(buffer.view());
+
+    // NOTE: This should be `if constexpr`
+    if (std::is_nothrow_move_constructible<T>::value) {
+        details::constructArrayValuesNoThrow(values, 0, std::forward<Args>(args)...);
+    } else {
+        ArrayExceptionGuard<T> valuesGuard(values);
+        details::constructArrayValues(valuesGuard, std::forward<Args>(args)...);
+        valuesGuard.release();
     }
 
     return {std::move(buffer), vectorSize};                                 // No except

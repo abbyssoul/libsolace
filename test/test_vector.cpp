@@ -27,7 +27,7 @@ using namespace Solace;
 
 
 TEST(TestVector, testEmptyIntegralVectorIsEmpty) {
-    Vector<uint32> v;
+    Vector<uint32> v{};
 
     EXPECT_TRUE(v.empty());
     EXPECT_EQ(0, v.size());
@@ -151,7 +151,7 @@ TEST(TestVector, movingWhenCopyConstructorThrowsIsSafe) {
     EXPECT_EQ(10, v.capacity());
     EXPECT_EQ(0, SometimesConstructable::InstanceCount);
 
-    auto movedInto = std::move(v);
+    Vector<SometimesConstructable> const movedInto = std::move(v);
 
     EXPECT_TRUE(v.empty());
     EXPECT_EQ(0, v.size());
@@ -163,7 +163,7 @@ TEST(TestVector, movingWhenCopyConstructorThrowsIsSafe) {
 TEST(TestVector, constructionFromInitializerList) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeVector<SimpleType>({
+        auto v = makeVectorOf<SimpleType>({
                                             {3, 2, 1},
                                             {2, 1, 0},
                                             {1, 0, -1}
@@ -178,10 +178,27 @@ TEST(TestVector, constructionFromInitializerList) {
     EXPECT_EQ(0, SimpleType::InstanceCount);
 }
 
+
+
+TEST(TestVector, constructionFromVarArgs) {
+    ASSERT_EQ(0, PimitiveType::InstanceCount);
+    {
+        auto v = makeVectorOf<PimitiveType>(3, 2, 1);
+        EXPECT_FALSE(v.empty());
+        EXPECT_EQ(3, v.capacity());
+        EXPECT_EQ(3, v.size());
+        EXPECT_EQ(3, PimitiveType::InstanceCount);
+    }
+
+    // Important to make sure all the instances has been correctly destructed after scope exit
+    EXPECT_EQ(0, PimitiveType::InstanceCount);
+}
+
+
 TEST(TestVector, copy) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto const origin = makeVector<SimpleType>({
+        auto const origin = makeVectorOf<SimpleType>({
                                             {3, 2, 1},
                                             {2, 1, 0},
                                             {1, 0, -1}
@@ -220,7 +237,7 @@ TEST(TestVector, interatingOverEmptyVector) {
 TEST(TestVector, interationNoMutation) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto const v = makeVector<SimpleType>({
+        auto const v = makeVectorOf<SimpleType>({
                                             {3, 2, 1},
                                             {2, 1, 0},
                                             {1, 0, -1}
@@ -241,7 +258,7 @@ TEST(TestVector, interationNoMutation) {
 TEST(TestVector, interationMutation) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeVector<SimpleType>({
+        auto v = makeVectorOf<SimpleType>({
                                             {3, 2, 1},
                                             {2, 1, 0},
                                             {1, 0, -1}
@@ -365,18 +382,18 @@ TEST(TestVector, toArray_MoveOnlyType) {
 
 TEST(TestVector, toArray) {
     ASSERT_EQ(0, SometimesConstructable::InstanceCount);
-    SometimesConstructable::BlowUpEveryInstance = 5;
+    SometimesConstructable::BlowUpEveryInstance = 4*2 + 1;
     {
-        auto v = makeVector<SometimesConstructable>({7, 5, 3, 1});
+        auto v = makeVectorOf<SometimesConstructable>(7, 5, 3, 1);
         EXPECT_EQ(4, v.capacity());
         EXPECT_FALSE(v.empty());
         EXPECT_EQ(4, v.size());
         EXPECT_EQ(4, SometimesConstructable::InstanceCount);
 
         Array<SometimesConstructable> array = v.toArray();
+        EXPECT_EQ(4, SometimesConstructable::InstanceCount);
         EXPECT_FALSE(array.empty());
         EXPECT_EQ(4, array.size());
-        EXPECT_EQ(4, SometimesConstructable::InstanceCount);
 
 
         // vector 'v' has been moved from - thus should be 'empty'
