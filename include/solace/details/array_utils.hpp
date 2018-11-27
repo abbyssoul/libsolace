@@ -44,26 +44,6 @@ struct ExceptionGuard {
     constexpr void release() noexcept { start = pos; }
 };
 
-template<typename T>
-struct ArrayExceptionGuard {
-    using value_type = T;
-    using ArrayType = ArrayView<T>;
-    using Iterator = typename ArrayType::Iterator;
-    using const_iterator = typename ArrayType::const_iterator;
-
-    const_iterator start;
-    Iterator pos;
-
-    inline ~ArrayExceptionGuard() noexcept(false) {
-        while (pos > start) {
-            dtor(*--pos);
-        }
-    }
-
-    constexpr explicit ArrayExceptionGuard(ArrayView<T>& a) noexcept : start{a.begin()}, pos{a.begin()} {}
-    constexpr void release() noexcept { start = pos; }
-};
-
 
 template <typename T>
 void initArray(MutableMemoryView bufferView, typename ArrayView<T>::size_type arraySize) {
@@ -125,8 +105,7 @@ struct CopyConstructArray_<T, Iterator, false, false> {
         auto start = src.begin();
         auto const end = src.end();
 
-        if (std::is_nothrow_copy_constructible<T>::value) {
-//        if (noexcept(T(*start))) {
+        if constexpr (std::is_nothrow_copy_constructible<T>::value) {
             auto pos = dest.begin();
             while (start != end) {
                 ctor(*pos++, *start++);
@@ -148,7 +127,7 @@ struct CopyConstructArray_<T, Iterator, true, false> {
         auto start = src.begin();
         auto const end = src.end();
 
-        if (std::is_nothrow_move_constructible<T>::value) {
+        if constexpr(std::is_nothrow_move_constructible<T>::value) {
             auto pos = dest.begin();
             while (start != end) {
                 ctor(*pos++, std::move(*start++));

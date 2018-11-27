@@ -206,7 +206,7 @@ public:
 
 
     template<typename T, typename... Args>
-    T* construct(Args&&... args) {
+    /*[[nodiscard]]*/ T* construct(Args&&... args) {
         // Note: dataAs<> does assertion for the storage size
         return ctor(*dataAs<T>(), std::forward<Args>(args)...);
     }
@@ -229,13 +229,16 @@ public:
  *
  * @return MemoryView object wrapping the memory address given
  */
+
+[[nodiscard]]
 inline MutableMemoryView wrapMemory(void* data, MutableMemoryView::size_type size) { return {data, size}; }
-
+[[nodiscard]]
 inline MutableMemoryView wrapMemory(byte* data, MutableMemoryView::size_type size) { return {data, size}; }
-
+[[nodiscard]]
 inline MutableMemoryView wrapMemory(char* data, MutableMemoryView::size_type size) { return {data, size}; }
 
 template<typename PodType, size_t N>
+[[nodiscard]]
 inline MutableMemoryView wrapMemory(PodType (&data)[N]) {
     return wrapMemory(static_cast<void*>(data), N * sizeof(PodType));
 }

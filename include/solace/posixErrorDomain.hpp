@@ -190,39 +190,39 @@ enum class SystemErrors : int {
 };
 
 /// Create an error object representing given system error code.
-/*constexpr*/ inline
+/*constexpr*/ [[nodiscard]] inline
 Error makeSystemError(int errCode) noexcept {
     return Error{kSystemCatergory, errCode};
 }
 
 /// Create an error object representing given system error code with a tag.
-/*constexpr*/ inline
+/*constexpr*/ [[nodiscard]] inline
 Error makeSystemError(int errCode, StringLiteral tag) noexcept {
     return Error{kSystemCatergory, errCode, std::move(tag)};
 }
 
 
-/*constexpr*/ inline
+/*constexpr*/ [[nodiscard]] inline
 Error makeError(BasicError errCode, StringLiteral tag) noexcept {
     return Error{kSystemCatergory, static_cast<int>(errCode), tag};
 }
 
-/*constexpr*/ inline
+/*constexpr*/ [[nodiscard]] inline
 Error makeError(GenericError errCode, StringLiteral tag) noexcept {
     return Error{kSystemCatergory, static_cast<int>(errCode), tag};
 }
 
-/*constexpr*/ inline
+/*constexpr*/ [[nodiscard]] inline
 Error makeError(SystemErrors errCode, StringLiteral tag) noexcept {
     return Error{kSystemCatergory, static_cast<int>(errCode), tag};
 }
 
 
 /// Create an error object representing current errno code.
-Error makeErrno() noexcept;
+[[nodiscard]] Error makeErrno() noexcept;
 
 /// Create an error object representing current errno code with a tag.
-Error makeErrno(StringLiteral tag) noexcept;
+[[nodiscard]] Error makeErrno(StringLiteral tag) noexcept;
 
 
 }  // End of namespace Solace

@@ -308,62 +308,13 @@ bool operator!= (Vector<T> const& v, const ArrayView<U>& other) noexcept {
 }
 
 
-namespace details {
-
-template <typename T>
-void constructArrayValues(ArrayExceptionGuard<T>&) noexcept { /*return index;*/ }
-
-template <typename T, typename V,
-          typename...Args>
-void constructArrayValues(ArrayExceptionGuard<T>& dest, V&& a, Args&&...args) {
-    ctor(*(dest.pos), std::forward<V>(a));
-    dest.pos++;
-
-    // recurse:
-    constructArrayValues<T>(dest, std::forward<Args>(args)...);
-}
-
-
-template <typename T>
-typename ArrayView<T>::size_type
-constructArrayValuesNoThrow(ArrayView<T>&, typename ArrayView<T>::size_type index) noexcept { return index; }
-
-template <typename T, typename V,
-          typename...Args>
-void constructArrayValuesNoThrow(ArrayView<T>& dest, typename ArrayView<T>::size_type index,
-                                 V&& a, Args&&...args) noexcept {
-    dest._emplace_unintialized(index, std::forward<V>(a));  // ctor(*pos++, std::move(a.key));
-
-    // recurse:
-    constructArrayValuesNoThrow<T>(dest, index + 1, std::forward<Args>(args)...);
-}
-
-
-
-
-template <typename T, typename F>
-typename ArrayView<T>::size_type
-constructArrayValuesNoThrowF(ArrayView<T>&, typename ArrayView<T>::size_type index, F&& ) noexcept { return index; }
-
-template <typename T, typename V, typename F,
-          typename...Args>
-void constructArrayValuesNoThrowF(ArrayView<T>& dest, typename ArrayView<T>::size_type index, F&& f,
-                                 V&& a, Args&&...args) noexcept {
-    dest._emplace_unintialized(index, f(std::forward<V>(a)));  // ctor(*pos++, std::move(a.key));
-
-    // recurse:
-    constructArrayValuesNoThrowF<T>(dest, index + 1, std::forward<F>(f), std::forward<Args>(args)...);
-}
-
-
-}  // namespace details
-
 
 /**
  * Create an empty zero-capacity vector
  * @return A newly constructed empty, zero-capacity vector.
  */
 template<typename T>
+[[nodiscard]]
 constexpr Vector<T> makeVector() noexcept {
     return {};
 }
@@ -374,6 +325,7 @@ constexpr Vector<T> makeVector() noexcept {
  * @return A newly constructed empty vector.
  */
 template<typename T>
+[[nodiscard]]
 constexpr Vector<T> makeVector(MemoryResource&& memory) noexcept {
     return { std::move(memory), 0 };
 }
@@ -383,12 +335,14 @@ constexpr Vector<T> makeVector(MemoryResource&& memory) noexcept {
  * @return A newly constructed empty vector of the required capacity.
  */
 template<typename T>
+[[nodiscard]]
 Vector<T> makeVector(typename Vector<T>::size_type size) {
     return makeVector<T>(getSystemHeapMemoryManager().allocate(size*sizeof(T)));
 }
 
 /** Construct a new vector from an array view */
 template <typename T>
+[[nodiscard]]
 Vector<T> makeVector(ArrayView<T const> array) {
     auto buffer = getSystemHeapMemoryManager().allocate(array.size() * sizeof(T));           // May throw
     auto dest = arrayView<T>(buffer.view());                            // No except
@@ -403,6 +357,7 @@ Vector<T> makeVector(ArrayView<T const> array) {
  * @param other A vector to copy data from.
 */
 template <typename T>
+[[nodiscard]]
 Vector<T> makeVector(Vector<T> const& other) {
     return makeVector(other.view());
 }
@@ -410,6 +365,7 @@ Vector<T> makeVector(Vector<T> const& other) {
 
 /** Construct a new vector from a C-style array */
 template <typename T>
+[[nodiscard]]
 Vector<T> makeVector(T const* carray, typename Vector<T>::size_type len) {
     return makeVector(arrayView(carray, len));
 }
@@ -420,6 +376,7 @@ Vector<T> makeVector(T const* carray, typename Vector<T>::size_type len) {
  * @return A newly constructed vector with given items.
  */
 template <typename T>
+[[nodiscard]]
 Vector<T> makeVectorOf(std::initializer_list<T> list) {
     // FIXME: Should be checked cast
     auto const vectorSize = narrow_cast<typename Vector<T>::size_type>(list.size());
@@ -449,19 +406,14 @@ Vector<T> makeVectorOf(std::initializer_list<T> list) {
  */
 template <typename T,
           typename...Args>
+[[nodiscard]]
 Vector<T> makeVectorOf(Args&&...args) {
-    auto const vectorSize = narrow_cast<typename Vector<T>::size_type>(sizeof...(args));
+    using size_type = typename Vector<T>::size_type;
+    auto const vectorSize = narrow_cast<size_type>(sizeof...(args));
     auto buffer = getSystemHeapMemoryManager().allocate(vectorSize*sizeof(T));           // May throw
     auto values = arrayView<T>(buffer.view());
 
-    // NOTE: This should be `if constexpr`
-    if (std::is_nothrow_move_constructible<T>::value) {
-        details::constructArrayValuesNoThrow(values, 0, std::forward<Args>(args)...);
-    } else {
-        ArrayExceptionGuard<T> valuesGuard(values);
-        details::constructArrayValues(valuesGuard, std::forward<Args>(args)...);
-        valuesGuard.release();
-    }
+    values.emplaceAll(std::forward<Args>(args)...);
 
     return {std::move(buffer), vectorSize};                                 // No except
 }

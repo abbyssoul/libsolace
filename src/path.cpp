@@ -36,7 +36,7 @@ const Path Path::Root = makePath(StringLiteral{""});
 
 Path
 Solace::makePath(StringView str) {
-    return makePath(makeArray<String>(makeString(str)));
+    return makePath(makeArrayOf<String>(makeString(str)));
 }
 
 

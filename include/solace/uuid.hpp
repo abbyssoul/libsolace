@@ -200,15 +200,15 @@ inline void swap(UUID& lhs, UUID& rhs) noexcept {
  * Try to construct the UUID from individual bytes
  * @note This can throw if number of byte given is less then expected
  */
-UUID makeUUID(MemoryView s);
+[[nodiscard]] UUID makeUUID(MemoryView s);
 
-UUID makeUUID(uint32 a0, uint32 a1, uint32 a2, uint32 a3);
+[[nodiscard]] UUID makeUUID(uint32 a0, uint32 a1, uint32 a2, uint32 a3);
 
 
 /** Create random UUID
  * This method uses system's random number generator to generate a new random UUID.
  */
-UUID makeRandomUUID() noexcept;
+[[nodiscard]] UUID makeRandomUUID() noexcept;
 
 }  // namespace Solace
 #endif  // SOLACE_UUID_HPP

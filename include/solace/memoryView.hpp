@@ -185,7 +185,7 @@ public:
     MemoryView slice(size_type from, size_type to) const noexcept;
 
     template<typename T>
-    MemoryView sliceFor(size_type offset, size_type count=1) const noexcept {
+    MemoryView sliceFor(size_type offset, size_type count = 1) const noexcept {
         return slice(offset * sizeof(T), (offset + count) * sizeof(T));
     }
 
@@ -206,13 +206,15 @@ private:
  *
  * @return MemoryView object wrapping the memory address given
  */
+[[nodiscard]]
 inline MemoryView wrapMemory(void const* data, MemoryView::size_type size) { return {data, size}; }
-
+[[nodiscard]]
 inline MemoryView wrapMemory(byte const* data, MemoryView::size_type size) { return {data, size}; }
-
+[[nodiscard]]
 inline MemoryView wrapMemory(char const* data, MemoryView::size_type size) { return {data, size}; }
 
 template<typename PodType, size_t N>
+[[nodiscard]]
 inline MemoryView wrapMemory(PodType const (&data)[N]) {
     return wrapMemory(static_cast<void const*>(data), N * sizeof(PodType));
 }

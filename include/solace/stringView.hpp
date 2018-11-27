@@ -114,7 +114,6 @@ public:
     //!< True if values are equal
     bool equals(StringView x) const noexcept;
 
-
     int compareTo(StringView x) const noexcept;
 
     int compareTo(const char* x) const noexcept {
@@ -310,7 +309,6 @@ public:
         size_type const toInc = (delimLength == 0) ? 0 : delimLength - 1;
         size_type from = 0, count = 1;
 
-//        auto const delimStartChar = delim._data[0];
         for (size_type to = 0; to + delimLength <= thisSize; ++to) {
             if (delim.equals(substring(to, to + toInc + 1))) {
                 count += 1;

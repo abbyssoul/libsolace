@@ -39,7 +39,7 @@ enum class AsyncError: int {
 };
 
 
-/*constexpr*/ inline
+/*constexpr*/ [[nodiscard]] inline
 Error makeError(AsyncError errCode, StringLiteral tag) noexcept {
     return Error{kAsyncErrorCatergory, static_cast<int>(errCode), tag};
 }

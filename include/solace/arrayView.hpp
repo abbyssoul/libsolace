@@ -255,6 +255,13 @@ public:
                 .template construct<T>(std::forward<Args>(args)...);
     }
 
+
+    template<typename...Args>
+    void emplaceAll(Args&&... args);
+
+//    template<typename F, typename...Args>
+//    void emplaceAllWith(F&& f, Args&&... args);
+
     bool contains(const_reference value) const noexcept {
         return indexOf(value).isSome();
     }
@@ -368,6 +375,42 @@ private:
 };
 
 
+template<typename T>
+struct ArrayExceptionGuard {
+    using value_type = T;
+    using ArrayType = ArrayView<T>;
+    using Iterator = typename ArrayType::Iterator;
+    using const_iterator = typename ArrayType::const_iterator;
+
+    const_iterator start;
+    Iterator pos;
+
+    inline ~ArrayExceptionGuard() noexcept(false) {
+        while (pos > start) {
+            dtor(*--pos);
+        }
+    }
+
+    constexpr explicit ArrayExceptionGuard(ArrayView<T>& a) noexcept : start{a.begin()}, pos{a.begin()} {}
+    constexpr void release() noexcept { start = pos; }
+
+
+    template <typename V>
+    void emplace(V&& v) {
+        ctor(*pos, std::forward<V>(v));
+        ++pos;
+    }
+};
+
+template <typename T>
+template<typename...Args>
+void ArrayView<T>::emplaceAll(Args&&... args) {
+    ArrayExceptionGuard<T> valuesGuard(*this);
+
+    (valuesGuard.emplace(std::forward<Args>(args)), ...);
+
+    valuesGuard.release();
+}
 
 
 template<typename T>
@@ -378,48 +421,48 @@ void swap(ArrayView<T>& lhs, ArrayView<T>& rhs) noexcept {
 
 /** ArrayView factory */
 template <typename T>
-constexpr ArrayView<T const> arrayView(MemoryView memView) noexcept {
+[[nodiscard]] constexpr ArrayView<T const> arrayView(MemoryView memView) noexcept {
   return ArrayView<T const>(memView);
 }
 
 template <typename T>
-constexpr ArrayView<T const> arrayView(MemoryView memView, typename ArrayView<T const>::size_type len) noexcept {
+[[nodiscard]] constexpr ArrayView<T const> arrayView(MemoryView memView, typename ArrayView<T const>::size_type len) noexcept {
   return ArrayView<T const>(memView.slice(0, len * sizeof(T)));
 }
 
 template <typename T>
-constexpr ArrayView<T> arrayView(MutableMemoryView memView) noexcept {
+[[nodiscard]] constexpr ArrayView<T> arrayView(MutableMemoryView memView) noexcept {
   return ArrayView<T>(memView);
 }
 
 template <typename T>
-constexpr ArrayView<T> arrayView(MutableMemoryView memView, typename ArrayView<T>::size_type len) noexcept {
+[[nodiscard]] constexpr ArrayView<T> arrayView(MutableMemoryView memView, typename ArrayView<T>::size_type len) noexcept {
   return ArrayView<T>(memView.slice(0, len * sizeof(T)));
 }
 
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-constexpr ArrayView<T> arrayView(T* ptr, size_t size) noexcept {
+[[nodiscard]] constexpr ArrayView<T> arrayView(T* ptr, size_t size) noexcept {
   return ArrayView<T>(ptr, size);
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-constexpr ArrayView<const T> arrayView(T const* ptr, size_t size) noexcept {
+[[nodiscard]] constexpr ArrayView<const T> arrayView(T const* ptr, size_t size) noexcept {
   return ArrayView<const T>(ptr, size);
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T, size_t N>
-constexpr ArrayView<T> arrayView(T (&carray)[N]) noexcept {
+[[nodiscard]] constexpr ArrayView<T> arrayView(T (&carray)[N]) noexcept {
   return ArrayView<T>(carray);
 }
 
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-constexpr ArrayView<T> arrayView(T* begin, T* end) noexcept {
+[[nodiscard]] constexpr ArrayView<T> arrayView(T* begin, T* end) noexcept {
   return ArrayView<T>(begin, end);
 }
 

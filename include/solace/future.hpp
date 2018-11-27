@@ -128,8 +128,8 @@ template <typename T>
 class Future {
 public:
 
-    typedef T       value_type;
-    typedef Error   error_type;
+    using value_type = T;
+    using error_type = Error;
 
 public:
 
@@ -251,8 +251,8 @@ template <>
 class Future<void> {
 public:
 
-    typedef void    value_type;
-    typedef Error   error_type;
+    using value_type = void;
+    using error_type = Error;
 
 public:
 
@@ -373,6 +373,7 @@ Promise<void>::getFuture() {
 
 
 template<typename T>
+[[nodiscard]]
 Future<T> makeFuture(T&& value) {
     Promise<T> p;
     auto future = p.getFuture();

@@ -271,7 +271,7 @@ TEST_F(TestArray, testNonPods) {
 TEST_F(TestArray, testInitializerList) {
     {
         const int native_array[] = {0, 1, 2, 3};
-        auto const array = makeArray<int>(0, 1, 2, 3);
+        auto const array = makeArrayOf<int>(0, 1, 2, 3);
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -282,7 +282,7 @@ TEST_F(TestArray, testInitializerList) {
 
     {
         const StringLiteral native_array[] = {"Abc", "", "dfe", "_xyz3"};
-        auto const array = makeArray<StringView>("Abc", "", "dfe", "_xyz3");
+        auto const array = makeArrayOf<StringView>("Abc", "", "dfe", "_xyz3");
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
@@ -302,7 +302,7 @@ TEST_F(TestArray, testInitializerList) {
         EXPECT_EQ(nativeArrayLength(native_array),
                                 static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount));
 
-        auto const array = makeArray<NonPodStruct> (
+        auto const array = makeArrayOf<NonPodStruct> (
                 NonPodStruct(0, "yyyz"),
                 NonPodStruct(),
                 NonPodStruct(-321, "yyx"),
@@ -372,7 +372,7 @@ TEST_F(TestArray, testMoveAssignment) {
         EXPECT_TRUE(array.empty());
         EXPECT_EQ(ZERO, array.size());
 
-        array = makeArray<int>(1, 2, 3);
+        array = makeArrayOf<int>(1, 2, 3);
         EXPECT_TRUE(!array.empty());
         const int src1[] = {1, 2, 3};
 
@@ -386,7 +386,7 @@ TEST_F(TestArray, testMoveAssignment) {
         Array<std::string> array;
         EXPECT_TRUE(array.empty());
 
-        array = makeArray<std::string>("tasrd", "", "hhha", "asd");
+        array = makeArrayOf<std::string>("tasrd", "", "hhha", "asd");
         EXPECT_TRUE(!array.empty());
 
         std::string const src[] = {"tasrd", "", "hhha", "asd"};
@@ -406,7 +406,7 @@ TEST_F(TestArray, testMoveAssignment) {
         };
         EXPECT_TRUE(array.empty());
 
-        array = makeArray<NonPodStruct>(
+        array = makeArrayOf<NonPodStruct>(
                     NonPodStruct(0, "yyyz"),
                     NonPodStruct(),
                     NonPodStruct(-321, "yyx"),
@@ -423,7 +423,7 @@ TEST_F(TestArray, testMoveAssignment) {
 
 TEST_F(TestArray, testEquals) {
     {
-        auto const array = makeArray<int>(1, 2, 3);
+        auto const array = makeArrayOf<int>(1, 2, 3);
 
         const int equal_native_array[] = {1, 2, 3};
         auto const equal_native_array_length = nativeArrayLength(equal_native_array);
@@ -461,7 +461,7 @@ TEST_F(TestArray, testEquals) {
     }
 
     {
-        auto const array = makeArray<std::string>("tasrd", "", "hhha", "asd");
+        auto const array = makeArrayOf<std::string>("tasrd", "", "hhha", "asd");
 
         const std::string equal_native_array[] = {"tasrd", "", "hhha", "asd"};
         auto const equal_native_array_length = nativeArrayLength(equal_native_array);
@@ -499,7 +499,7 @@ TEST_F(TestArray, testEquals) {
     }
 
     {
-        auto const array = makeArray<NonPodStruct>(
+        auto const array = makeArrayOf<NonPodStruct>(
                 NonPodStruct(0, "yyyz"),
                 NonPodStruct(),
                 NonPodStruct(-321, "yyx"),
@@ -598,7 +598,7 @@ TEST_F(TestArray, testFill) {
 */
 
 TEST_F(TestArray, testForEach_byValue) {
-    auto const array = makeArray<int>(1, 2, 3, 4, 5, 6);
+    auto const array = makeArrayOf<int>(1, 2, 3, 4, 5, 6);
 
     int acc = 0;
     array.forEach([&acc](int x) {
@@ -610,7 +610,7 @@ TEST_F(TestArray, testForEach_byValue) {
 }
 
 TEST_F(TestArray, testForEach_byConstRef) {
-    auto const array = makeArray<std::string>("Hello", " ", "world", "!");
+    auto const array = makeArrayOf<std::string>("Hello", " ", "world", "!");
 
     std::string acc;
     array.forEach([&acc](const std::string& x) {
@@ -621,7 +621,7 @@ TEST_F(TestArray, testForEach_byConstRef) {
 }
 
 TEST_F(TestArray, testForEach_byValueConversion) {
-    auto const array = makeArray<int>(1, 2, 3, 4, 5, 6);
+    auto const array = makeArrayOf<int>(1, 2, 3, 4, 5, 6);
 
     double acc = 0;
     array.forEach([&acc](double x) {
@@ -632,7 +632,7 @@ TEST_F(TestArray, testForEach_byValueConversion) {
 }
 
 TEST_F(TestArray, testForEachIndexed) {
-    auto const array = makeArray<int>(1, 2, 3, 4, 5, 6);
+    auto const array = makeArrayOf<int>(1, 2, 3, 4, 5, 6);
     bool allEq = true;
 
     array.forEach([&allEq](Array<int>::size_type i, Array<int>::size_type x) {
@@ -678,14 +678,14 @@ TEST_F(TestArray, testMap) {
 TEST_F(TestArray, testDeallocationWhenElementConstructorThrows) {
     SometimesConstructable::BlowUpEveryInstance = 9;
 
-    EXPECT_ANY_THROW(makeArray<SometimesConstructable>(10));
+    EXPECT_ANY_THROW(auto unsuedArray = makeArray<SometimesConstructable>(10));
 
     EXPECT_EQ(0, SometimesConstructable::InstanceCount);
 }
 
 
 TEST_F(TestArray, testSet) {
-    auto array = makeArray<int>(1, 2, 3, 4, 5, 6);
+    auto array = makeArrayOf<int>(1, 2, 3, 4, 5, 6);
 
     int acc = 6;
 

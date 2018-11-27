@@ -70,8 +70,6 @@ public:
             return swap(rhs);
         }
 
-
-
         constexpr bool operator!= (const Iterator& other) const noexcept {
             return (_index != other._index);
         }

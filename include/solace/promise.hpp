@@ -115,8 +115,8 @@ class Future;
 template<typename T>
 class Promise {
 public:
-    typedef T value_type;
-    typedef Core<T> core_type;
+    using value_type = T;
+    using core_type = Core<T>;
 
 public:
 
@@ -162,6 +162,7 @@ public:
      *
      * @return A Future assocciated with this promise
      */
+    [[nodiscard]]
     Future<T> getFuture();
 
     /**
@@ -258,6 +259,7 @@ public:
      *
      * @return A Future assocciated with this promise
      */
+    [[nodiscard]]
     Future<value_type> getFuture();
 
     /**

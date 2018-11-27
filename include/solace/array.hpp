@@ -77,11 +77,12 @@ public:
     }
 
     /** */
-    /*constexpr */Array(MemoryResource buffer, size_type len) noexcept
+    constexpr Array(MemoryResource&& buffer, size_type len) noexcept
         : _buffer(std::move(buffer))
         , _size(len)
     {
     }
+
 
 public:
 
@@ -311,121 +312,8 @@ private:
 };
 
 
-template<typename T>
-void swap(Array<T>& lhs, Array<T>& rhs) noexcept {
-    lhs.swap(rhs);
-}
-
-/** Construct an default-initialized array of T of a given fixed size */
-template <typename T>
-Array<T> makeArray(typename Array<T>::size_type initialSize) {
-    auto buffer = getSystemHeapMemoryManager().allocate(initialSize*sizeof(T));           // May throw
-
-    initArray<T>(buffer.view(), initialSize);
-
-    return {std::move(buffer), initialSize};  // No except c-tor
-}
-
-
-/** Construct a new array from a C-style array */
-template <typename T>
-Array<T> makeArray(typename Array<T>::size_type initialSize, T const* carray) {
-    auto const arraySize = initialSize;
-    auto buffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
-
-    ArrayView<const T> src = arrayView(carray, arraySize);                                  // No except
-    ArrayView<T> dest = arrayView<T>(buffer.view());       // May throw
-
-    CopyConstructArray_<RemoveConst<T>, Decay<T*>, false>::apply(dest, src);    // May throw if copy-ctor throws
-
-    return {std::move(buffer), arraySize};                                 // No except
-}
-
-
-/** Create a copy of the given array */
-template <typename T>
-Array<T> makeArray(ArrayView<T> other) {
-    return makeArray(other.size(), other.data());
-}
-
-/** Create a copy of the given array */
-template <typename T>
-Array<T> makeArray(Array<T> const& other) {
-    return makeArray(other.size(), other.data());
-}
-
-/**
- * Create a single element array.
- * (A degenerate case of variable argument list)
- */
-template <typename T>
-Array<T> makeArray(T&& arg) {
-    const typename Array<T>::size_type arraySize = 1;
-    auto buffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
-
-    if (std::is_nothrow_default_constructible<T>::value) {
-        auto pos = buffer.view().template dataAs<T>();
-        for (size_t i = 0; i < arraySize; ++i) {
-            ctor(*pos++, std::forward<T>(arg));
-        }
-    } else {
-        ExceptionGuard<T> guard(buffer.view().template dataAs<T>());
-        for (size_t i = 0; i < arraySize; ++i) {
-            ctor(*guard.pos, std::forward<T>(arg));
-            ++guard.pos;  // Important to be on a different line, in case of exception.
-        }
-        guard.release();
-    }
-
-    return {std::move(buffer), arraySize};  // No except c-tor
-}
-
-template<typename T, typename A>
-void arrayConstructNoThrow(T* &pos, A&& a) noexcept {
-    ctor(*pos++, std::forward<A>(a));
-}
-
-template<typename T, typename A, typename...Args>
-void arrayConstructNoThrow(T* &pos, A&& a, Args&&...args) noexcept {
-    arrayConstructNoThrow(pos, std::forward<A>(a));
-
-    // recurse:
-    arrayConstructNoThrow(pos, std::forward<Args>(args)...);
-}
-
-
-template<typename T, typename A>
-void arrayConstructRecursive(ExceptionGuard<T>& guard, A&& a) {
-    ctor(*guard.pos, std::forward<A>(a));
-    ++guard.pos;  // Important to be on a different line, in case of exception.
-}
-
-template<typename T, typename A, typename...Args>
-void arrayConstructRecursive(ExceptionGuard<T>& guard, A&& a, Args&&...args) {
-    arrayConstructRecursive(guard, std::forward<A>(a));
-
-    // recurse:
-    arrayConstructRecursive(guard, std::forward<Args>(args)...);
-}
-
-
-template <typename T, typename...Args>
-Array<T> makeArray(T&& a0, Args&&...args) {
-     // Should be relativily safe to cast: we don't expect > 65k arguments
-    auto const arraySize = narrow_cast<typename Array<T>::size_type>(1 + sizeof...(args));
-    auto buffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
-
-    if (std::is_nothrow_move_constructible<T>::value) {
-        auto pos = buffer.view().template dataAs<T>();
-        arrayConstructNoThrow(pos, std::forward<T>(a0), std::forward<Args>(args)...);
-    } else {
-        ExceptionGuard<T> guard(buffer.view().template dataAs<T>());
-        arrayConstructRecursive(guard, std::forward<T>(a0), std::forward<Args>(args)...);
-        guard.release();
-    }
-
-    return Array<T>{ std::move(buffer), arraySize };  // No except c-tor
-}
+// Static code check
+static_assert(!canMemcpy<Array<char>>(), "canMemcpy<>() is broken");
 
 
 template <typename T>
@@ -448,9 +336,75 @@ bool operator!= (Array<T> const& lhv, Array<T> const& rhv) noexcept {
     return !lhv.equals(rhv);
 }
 
+template<typename T>
+void swap(Array<T>& lhs, Array<T>& rhs) noexcept {
+    lhs.swap(rhs);
+}
 
-// Static code check
-static_assert(!canMemcpy<Array<char>>(), "canMemcpy<>() is broken");
+/** Construct an empty array of T of a size 0 */
+template <typename T>
+[[nodiscard]]
+constexpr Array<T> makeArray() noexcept {
+    return {};
+}
+
+/** Construct an default-initialized array of T of a given fixed size */
+template <typename T>
+[[nodiscard]]
+Array<T> makeArray(typename Array<T>::size_type initialSize) {
+    auto buffer = getSystemHeapMemoryManager().allocate(initialSize*sizeof(T));           // May throw
+
+    initArray<T>(buffer.view(), initialSize);
+
+    return {std::move(buffer), initialSize};  // No except c-tor
+}
+
+
+/** Construct a new array from a C-style array */
+template <typename T>
+[[nodiscard]]
+Array<T> makeArray(typename Array<T>::size_type initialSize, T const* carray) {
+    auto const arraySize = initialSize;
+    auto buffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
+
+    ArrayView<const T> src = arrayView(carray, arraySize);                                  // No except
+    ArrayView<T> dest = arrayView<T>(buffer.view());       // May throw
+
+    CopyConstructArray_<RemoveConst<T>, Decay<T*>, false>::apply(dest, src);    // May throw if copy-ctor throws
+
+    return {std::move(buffer), arraySize};                                 // No except
+}
+
+
+/** Create a copy of the given array */
+template <typename T>
+[[nodiscard]]
+Array<T> makeArray(ArrayView<T> other) {
+    return makeArray(other.size(), other.data());
+}
+
+/** Create a copy of the given array */
+template <typename T>
+[[nodiscard]]
+Array<T> makeArray(Array<T> const& other) {
+    return makeArray(other.size(), other.data());
+}
+
+template <typename T,
+          typename...Args>
+[[nodiscard]]
+Array<T> makeArrayOf(Args&&...args) {
+     // Should be relativily safe to cast: we don't expect > 65k arguments
+    using size_type = typename Array<T>::size_type;
+    auto const arraySize = narrow_cast<size_type>(sizeof...(args));
+    auto buffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
+    auto values = arrayView<T>(buffer.view());
+
+    values.emplaceAll(std::forward<Args>(args)...);
+
+    return {std::move(buffer), arraySize};                                 // No except
+}
+
 
 }  // End of namespace Solace
 #endif  // SOLACE_ARRAY_HPP

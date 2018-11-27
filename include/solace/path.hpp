@@ -120,14 +120,14 @@ public:  // Operation
      * Path is empty only when it has no components.
      * @return True if the path object is empty.
      */
-    bool empty() const noexcept {
+    constexpr bool empty() const noexcept {
         return _components.empty();
     }
 
     /** Test if path is not empty.
      * @return True if this path is not an empty object.
      */
-    explicit operator bool() const {
+    explicit constexpr operator bool() const {
       return !empty();
     }
 
@@ -356,24 +356,25 @@ void swap(Path& lhs, Path& rhs) noexcept {
  *
  * @note The string is is parsed into component, please use Path::parse
  */
+[[nodiscard]]
 Path makePath(StringView str);
 
-inline
+[[nodiscard]] inline
 Path makePath(String const& str) {
     return makePath(str.view());
 }
 
-inline
+[[nodiscard]] inline
 Path makePath(char const* str) {
     return makePath(StringView{str});
 }
 
-inline
+[[nodiscard]] inline
 Path makePath(Array<String>&& array) {
     return {std::move(array)};
 }
 
-inline
+[[nodiscard]] inline
 Path makePath(Vector<String>&& vec) {
     return makePath(vec.toArray());
 }
@@ -442,17 +443,9 @@ void joinComponents(Vector<String>& base, Path const& path, Args&&...args) {
 
 }  // namespace details
 
-/*
-template<typename...Args>
-Path makePath(Path const& base, Args&&...args) {
-    auto components = makeVector<String>(details::countComponentes(base, std::forward<Args>(args)...));
-    details::joinComponents(components, base, std::forward<Args>(args)...);
-
-    return makePath(std::move(components));
-}
-*/
 
 template<typename...Args>
+[[nodiscard]]
 Path makePath(Args&&...args) {
     auto components = makeVector<Path::value_type>(details::countPathComponents(std::forward<Args>(args)...));
     details::joinComponents(components, std::forward<Args>(args)...);
@@ -460,28 +453,5 @@ Path makePath(Args&&...args) {
     return makePath(std::move(components));
 }
 
-
-/**
- * Join paths objects into a single path
- */
-/*
-Path makePath(Path const& base, Path const& rhs);
-Path makePath(Path const& base, std::initializer_list<Path> paths);
-Path makePath(std::initializer_list<Path> components);
-
-Path makePath(Path const& base, StringView rhs);
-Path makePath(Path const& base, std::initializer_list<StringView> paths);
-Path makePath(std::initializer_list<StringView> components);
-
-inline
-Path makePath(Path const& base, String const& rhs) { return makePath(base, rhs.view()); }
-Path makePath(Path const& base, std::initializer_list<String> paths);
-Path makePath(std::initializer_list<String> components);
-
-inline
-Path makePath(Path const& base, char const* rhs) { return makePath(base, StringView(rhs)); }
-Path makePath(Path const& base, std::initializer_list<const char*> paths);
-Path makePath(std::initializer_list<const char*> components);
-*/
 }  // namespace Solace
 #endif  // SOLACE_PATH_HPP

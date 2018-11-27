@@ -105,73 +105,10 @@ private:
 };
 
 
-namespace details {
-
-/*
-template <typename K, typename T>
-typename ArrayView<K>::size_type
-constructKeysArrayNoThrow(ArrayView<K>&, typename ArrayView<K>::size_type index) noexcept { return index; }
-
-template <typename K, typename T>
-typename ArrayView<T>::size_type
-constructValuesArrayNoThrow(ArrayView<T>&, typename ArrayView<T>::size_type index) noexcept { return index; }
-
-template <typename K, typename T,
-          typename...Args>
-void constructKeysArrayNoThrow(ArrayView<K>& dest, typename ArrayView<K>::size_type index,
-                               typename Dictionary<K, T>::Entry&& a, Args&&...args) noexcept {
-    // Emplace one element
-    dest.emplace(index, std::move(a.key));  // ctor(*pos++, std::move(a.key));
-
-    // recurse:
-    constructKeysArrayNoThrow<K, T>(dest, index + 1, std::forward<Args>(args)...);
-}
-
-
-template <typename K, typename T,
-          typename...Args>
-void constructValuesArrayNoThrow(ArrayView<T>& dest, typename ArrayView<T>::size_type index,
-                                 typename Dictionary<K, T>::Entry&& a, Args&&...args) noexcept {
-    dest._emplace_unintialized(index, std::move(a.value));  // ctor(*pos++, std::move(a.key));
-
-    // recurse:
-    constructValuesArrayNoThrow<K, T>(dest, index + 1, std::forward<Args>(args)...);
-}
-*/
-
-
-template<typename K, typename T>
-constexpr void constructKeysArray(ExceptionGuard<K>& SOLACE_UNUSED(guard)) noexcept {}
-
-template <typename K, typename T>
-constexpr void constructValuesArray(ExceptionGuard<T>& SOLACE_UNUSED(guard)) noexcept {}
-
-template <typename K, typename T,
-          typename...Args>
-void constructKeysArray(ExceptionGuard<K>& guard, typename Dictionary<K, T>::Entry&& a, Args&&...args) {
-    ctor(*guard.pos, std::move(a.key));
-    ++guard.pos;  // Important to be on a different line, in case of an exception
-
-    // recurse:
-    constructKeysArray<K, T>(guard, std::forward<Args>(args)...);
-}
-
-template <typename K, typename T,
-          typename...Args>
-void constructValuesArray(ExceptionGuard<T>& guard, typename Dictionary<K, T>::Entry&& a, Args&&...args) {
-    ctor(*guard.pos, std::move(a.value));
-    ++guard.pos;  // Important to be on a different line, in case of an exception
-
-    // recurse:
-    constructValuesArray<K, T>(guard, std::forward<Args>(args)...);
-}
-
-
-}  // details
-
 
 /// Create an empty zero sized dictionary
 template<typename K, typename T>
+[[nodiscard]]
 constexpr Dictionary<K, T> makeDictionary() noexcept {
     return {};
 }
@@ -182,6 +119,7 @@ constexpr Dictionary<K, T> makeDictionary() noexcept {
  * @return A new Dictionary instance.
  */
 template<typename K, typename T>
+[[nodiscard]]
 Dictionary<K, T> makeDictionary(typename Dictionary<K, T>::size_type size) {
     using DictT = Dictionary<K, T>;
 
@@ -192,34 +130,25 @@ Dictionary<K, T> makeDictionary(typename Dictionary<K, T>::size_type size) {
 
 template <typename K, typename T,
           typename...Args>
-Dictionary<K, T>
-makeDictionary(typename Dictionary<K, T>::Entry&& a0, Args&&...args) {
-    using Entry = typename Dictionary<K, T>::Entry;
+[[nodiscard]]
+Dictionary<K, T> makeDictionaryOf(Args&&...args) {
+    using size_type = typename Dictionary<K, T>::size_type;
     // Should be relativily safe to cast: we don't expect > 65k arguments
-    auto const arraySize = narrow_cast<typename Dictionary<K, T>::size_type>(1 + sizeof...(args));
+    auto const arraySize = narrow_cast<size_type>(sizeof...(args));
     auto keysBuffer   = getSystemHeapMemoryManager().allocate(arraySize*sizeof(K));           // May throw
     auto valuesBuffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
 
-    if (std::is_nothrow_move_constructible<K>::value &&
-        std::is_nothrow_move_constructible<T>::value) {
+    auto posKeys = arrayView<K>(keysBuffer.view());
+    auto posValues = arrayView<T>(valuesBuffer.view());
 
-        auto posKeys = arrayView<K>(keysBuffer.view());
-        details::constructArrayValuesNoThrowF<K>(posKeys, 0, [](Entry&& x) { return std::move(x.key); },
-                                                 std::forward<Entry>(a0), std::forward<Args>(args)...);
+    ArrayExceptionGuard<K> keysGuard(posKeys);
+    ArrayExceptionGuard<T> valuesGuard(posValues);
 
-        auto posValues = arrayView<T>(valuesBuffer.view());
-        details::constructArrayValuesNoThrowF<T>(posValues, 0, [](Entry&& x) { return std::move(x.value); },
-                                                   std::forward<Entry>(a0), std::forward<Args>(args)...);
-    } else {
-        ExceptionGuard<K> keysGuard(keysBuffer.view().template dataAs<K>());
-        ExceptionGuard<T> valuesGuard(keysBuffer.view().template dataAs<T>());
+    (keysGuard.emplace(std::move(args.key)), ...);
+    (valuesGuard.emplace(std::move(args.value)), ...);
 
-        details::constructKeysArray<K, T>(keysGuard, std::forward<Entry>(a0), std::forward<Args>(args)...);
-        details::constructValuesArray<K, T>(valuesGuard, std::forward<Entry>(a0), std::forward<Args>(args)...);
-
-        keysGuard.release();
-        valuesGuard.release();
-    }
+    keysGuard.release();
+    valuesGuard.release();
 
     return {{std::move(keysBuffer),     arraySize},
             {std::move(valuesBuffer),   arraySize}};  // No except c-tor

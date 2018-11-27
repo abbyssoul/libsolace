@@ -40,7 +40,7 @@ struct InPlace {
     explicit InPlace() = default;
 };
 
-/*inline*/ constexpr InPlace in_place{};
+inline constexpr InPlace in_place{};
 
 /**
  * A type to represent empty option of any type.
@@ -55,7 +55,7 @@ struct None {
 
 
 /// Tag to disengage optional objects.
-/*inline*/ constexpr None none { None::_Construct::_Token };
+inline constexpr None none { None::_Construct::_Token };
 
 
 // Forward declaration for type-trait

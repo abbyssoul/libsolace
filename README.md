@@ -22,7 +22,7 @@ libSolace is a _library_ to help building mission critical application.
 > library: a collection of types, functions, classes, etc. implementing a set of facilities (abstractions) meant to be potentially used as part of more that one program. From [Cpp Code guidelines gloassay](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#glossary)
 
 Idea of this library is partially inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).
-That is the aims is to provide building blocks for efficient and reliable applications using modern C++ (at least **C++14**).
+That is the aims is to provide building blocks for efficient and reliable applications using modern C++ (at least **C++17**).
 _Note: it is by no means as strict implementation of all of P10 rules but an attempt to provide components that make it easy to observe this rules._
 
 ### Motivation
@@ -51,7 +51,7 @@ In order to build this project following tools must be present in the system:
 * cpplint (for static code analysis in addition to cppcheck)
 * valgrind (for runtime code quality verification)
 
-This project is using **C++14** features extensively. The minimal tested/required version of gcc is gcc-4.9.
+This project is using **C++17** features extensively. The minimal tested/required version of gcc is gcc-4.9.
 CI is using clang-5 and gcc-7.
 To install build tools on Debian based Linux distribution:
 ```shell

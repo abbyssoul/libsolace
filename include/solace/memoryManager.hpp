@@ -116,12 +116,15 @@ public:
      * @return A newly allocated memory segment.
      * TODO(abbyssoul): should return Result<>
      */
+    [[nodiscard]]
     MemoryResource allocate(size_type dataSize);
 
     /**
      * Prohibit memory allocations.
      * Any calls to create to allocate a new memry segment will fail.
      * @see create()
+     *
+     * FIXME(abbyssoul): Lock must produce lock object
      */
     void lock();
 

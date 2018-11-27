@@ -181,8 +181,7 @@ struct isResult<OV, OE, types::Err<E>> : public std::true_type {
  * Note: Result<void, Error> is technically equivalent of Optional<Error>
  */
 template <typename V, typename E>
-// TODO(c++17): [[nodiscard]]
-class Result {
+class /*[[nodiscard]] */Result {
 public:
     using value_type = V;
     using error_type = E;
@@ -192,7 +191,7 @@ public:
 
 public:
 
-    ~Result() {
+    inline ~Result() {
         destroy();
     }
 
@@ -586,8 +585,7 @@ private:
 
 
 template <typename E>
-// TODO(c++17): [[nodiscard]]
-class Result<void, E> {
+class /*[[nodiscard]]*/ Result<void, E> {
 public:
     using value_type = void;
     using error_type = E;

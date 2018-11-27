@@ -40,7 +40,7 @@ Solace::makeString(StringView view) {
 
 
 String
-Solace::makeString(StringLiteral literal) {
+Solace::makeString(StringLiteral literal) noexcept {
     auto view = literal.view();
     auto buffer = MemoryResource(wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()),
                                  nullptr);

@@ -73,6 +73,7 @@ unwrap(const T n, char *const buffer) noexcept {
 
 /// Creates an atom value from a given short string literal.
 template <size_t Size>
+[[nodiscard]]
 AtomValue atom(char const (&str)[Size]) {
     // last character is the NULL terminator
     constexpr auto kMaxLiteralSize = sizeof(std::uintmax_t);

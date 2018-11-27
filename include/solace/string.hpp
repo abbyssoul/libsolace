@@ -331,25 +331,6 @@ public:
 	/** The <b>empty</b> string. */
     static String const  Empty;
 
-    /**
-     * Return String representation of value.
-     * @param val Value to convert into the string
-     *
-     * @return The string representation of the given value
-     **/
-//    static String valueOf(bool val);
-//    static String valueOf(String const& val);
-//    static String valueOf(StringView val);
-//    static String valueOf(int16 val);
-//    static String valueOf(int32 val);
-//    static String valueOf(int64 val);
-//    static String valueOf(uint16 val);
-//    static String valueOf(uint32 val);
-//    static String valueOf(uint64 val);
-//    static String valueOf(float32 val);
-//    static String valueOf(float64 val);
-
-
     /** @see Iterable::forEach */
     template<typename F>
     std::enable_if_t<isCallable<F, const value_type&>::value || isCallable<F, value_type>::value,
@@ -438,7 +419,7 @@ inline void swap(String& lhs, String& rhs) noexcept {
  * @param view A string view to copy data from.
  * @return A new string object that owns the memory where the data is kept.
  */
-String makeString(StringView view);
+[[nodiscard]] String makeString(StringView view);
 
 
 /**
@@ -446,16 +427,17 @@ String makeString(StringView view);
  * @param view A string literal that represents the string.
  * @return A new string object that doesn not owns the memory where the data is kept.
  */
-String makeString(StringLiteral literal);
+[[nodiscard]]
+String makeString(StringLiteral literal) noexcept;
 
 
 //!< Construct a string from a raw null-terminated (C-style) string.
-inline String makeString(const char* data) {
+[[nodiscard]] inline String makeString(const char* data) {
     return makeString(StringView(data));
 }
 
 //!< Construct a string from a raw byte buffer of a given size
-inline String makeString(const char* data, String::size_type dataLength)  {
+[[nodiscard]] inline String makeString(const char* data, String::size_type dataLength)  {
     return makeString(StringView(data, dataLength));
 }
 
@@ -464,7 +446,7 @@ inline String makeString(const char* data, String::size_type dataLength)  {
 // TODO(one day): String makeString(std::string&& buffer);
 
 //!< Copy string content from another string.
-inline String makeString(String const& s) {
+[[nodiscard]] inline String makeString(String const& s) {
     return makeString(s.view());
 }
 
@@ -763,19 +745,6 @@ template<typename...Args>
 String makeStringJoin(String const& by, Args&&... args) {
     return makeStringJoin(by.view(), std::forward<Args>(args)...);
 }
-/*
-inline String makeStringJoin(StringView by, String const& lhs, StringView rhs) {
-    return makeStringJoin(by, lhs.view(), rhs);
-}
-
-inline String makeStringJoin(StringView by, StringView lhs, String const& rhs) {
-    return makeStringJoin(by, lhs, rhs.view());
-}
-
-inline String makeStringJoin(StringView by, String const& lhs, String const& rhs) {
-    return makeStringJoin(by, lhs.view(), rhs.view());
-}
-*/
 
 /**
  * Return string result of joining an array of strings.
