@@ -426,7 +426,8 @@ template <typename T>
 }
 
 template <typename T>
-[[nodiscard]] constexpr ArrayView<T const> arrayView(MemoryView memView, typename ArrayView<T const>::size_type len) noexcept {
+[[nodiscard]]
+constexpr ArrayView<T const> arrayView(MemoryView memView, typename ArrayView<T const>::size_type len) noexcept {
   return ArrayView<T const>(memView.slice(0, len * sizeof(T)));
 }
 
@@ -436,7 +437,8 @@ template <typename T>
 }
 
 template <typename T>
-[[nodiscard]] constexpr ArrayView<T> arrayView(MutableMemoryView memView, typename ArrayView<T>::size_type len) noexcept {
+[[nodiscard]]
+constexpr ArrayView<T> arrayView(MutableMemoryView memView, typename ArrayView<T>::size_type len) noexcept {
   return ArrayView<T>(memView.slice(0, len * sizeof(T)));
 }
 

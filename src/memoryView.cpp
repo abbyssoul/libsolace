@@ -24,6 +24,10 @@
 #include "solace/memoryView.hpp"
 #include "solace/exception.hpp"
 
+#include "solace/error.hpp"
+#include "solace/posixErrorDomain.hpp"
+
+#include <sys/mman.h>  // mlock/munlock
 
 
 using namespace Solace;
@@ -75,3 +79,23 @@ MemoryView::slice(size_type from, size_type to) const noexcept {
 
     return {_dataAddress + from, newSize};
 }
+
+
+Result<MemoryView::Lock, Error>
+MemoryView::lock() {
+    if (mlock(dataAddress(), size()) < 0) {
+        return Err(makeErrno("mlock"));
+    }
+
+
+    return Ok<Lock>(Lock{*this});
+}
+
+
+MemoryView::Lock::~Lock() {
+    if (munlock(_lockedMem.dataAddress(), _lockedMem.size()) < 0) {
+        // TODO(abbyssoul): shold use ErrnoException
+        raise<Exception>("failed to unlock the memory buffer");
+    }
+}
+

@@ -1,3 +1,5 @@
+#include <utility>
+
 /*
 *  Copyright 2016 Ivan Ryabov
 *
@@ -21,12 +23,7 @@
 #include "solace/mutableMemoryView.hpp"
 #include "solace/exception.hpp"
 
-
-#include <cstring>  // memcpy
-#include <utility>
-
-#include <sys/mman.h>
-
+#include <cstring>  // std::memmove
 
 using namespace Solace;
 
@@ -57,7 +54,7 @@ MutableMemoryView::write(const MemoryView& source, size_type offset) {
     }
 
     if (srcSize > 0) {
-        memmove(dataAddress(offset), source.dataAddress(), srcSize);
+        std::memmove(dataAddress(offset), source.dataAddress(), srcSize);
     }
 
     // TODO(abbyssoul): return Result<>;
@@ -73,7 +70,7 @@ MutableMemoryView::read(MutableMemoryView& dest) {
         raise<OverflowException>("dest", thisSize, 0, destSize);
     }
 
-    memmove(dest.dataAddress(), dataAddress(), destSize);
+    std::memmove(dest.dataAddress(), dataAddress(), destSize);
     // TODO(abbyssoul): return Result<>;
 }
 
@@ -89,7 +86,7 @@ MutableMemoryView::read(MutableMemoryView& dest, size_type bytesToRead, size_typ
     // Make sure there is enough data in this buffer to read
     assertIndexInRange(offset + bytesToRead, 0, thisSize + 1, "bytesToRead");
 
-    memmove(dest.dataAddress(), dataAddress(offset), bytesToRead);
+    std::memmove(dest.dataAddress(), dataAddress(offset), bytesToRead);
 
     // TODO(abbyssoul): return Result<>;
 }
@@ -109,28 +106,6 @@ MutableMemoryView::fill(byte value, size_type from, size_type to) {
     to = assertIndexInRange(to, from, size() + 1, "to");
 
     memset(dataAddress(from), value, to - from);
-
-    return (*this);
-}
-
-
-MutableMemoryView&
-MutableMemoryView::lock() {
-    if (mlock(dataAddress(), size()) < 0) {
-        // TODO(abbyssoul): shold use ErrnoException
-        raise<Exception>("failed to lock the memory buffer");
-    }
-
-    return (*this);
-}
-
-
-MutableMemoryView&
-MutableMemoryView::unlock() {
-    if (munlock(dataAddress(), size()) < 0) {
-        // TODO(abbyssoul): shold use ErrnoException
-        raise<Exception>("failed to unlock the memory buffer");
-    }
 
     return (*this);
 }

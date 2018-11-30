@@ -25,9 +25,13 @@
 #include "solace/types.hpp"
 #include "solace/assert.hpp"
 #include "solace/utils.hpp"
+#include "solace/result.hpp"
 
 
 namespace Solace {
+
+/// FWD declaration as error depends on StringView which in turn depends on this file.
+class Error;
 
 /**
  * Check if Runtime platform is big or little endian.
@@ -46,7 +50,7 @@ bool isBigendian() noexcept;
  * For a mutable access please use @see MemoryView
  * For the stream semantic please @see ReadBuffer
  *
- * Class invariant:
+ * Class invariants:
  *  * if (a.size() > 0) => (a.dataAddress() != nullptr)
  *  * if (a.dataAddress() == nullptr) => (a.size() == 0)
  *
@@ -61,6 +65,12 @@ public:
 
     using const_reference = value_type const&;
     using const_iterator  = value_type const*;
+
+
+    /**
+     * Memory lock RAII wrapper
+     */
+    class Lock;
 
 public:
 
@@ -175,6 +185,14 @@ public:
     }
 
 
+    /**
+     * Lock this virtual address space memory into RAM, preventing that memory from being paged to the swap area.
+     * @note: Memory locking and unlocking are performed in units of whole pages.
+     * That is if when this memory view if locked - it will lock all memory that falls onto the same pages as this.
+     */
+    Result<Lock, Error> lock();
+
+
     /**  Create a slice/window view of this memory segment.
      *
      * @param from [in] Offset to begin the slice from: [0, size())
@@ -193,6 +211,31 @@ private:
 
     size_type                   _size{};
     byte const*                 _dataAddress{nullptr};
+};
+
+
+
+/**
+ * Memory lock RAII wrapper
+ */
+class MemoryView::Lock {
+public:
+    ~Lock();
+
+    Lock(MemoryView lockedMem) noexcept
+        : _lockedMem(std::move(lockedMem))
+    {
+        // No-op
+    }
+
+    Lock(Lock&&) noexcept = default;
+    Lock(Lock const&) noexcept = delete;
+
+    Lock& operator= (Lock const& SOLACE_UNUSED(v)) = delete;
+    Lock& operator= (Lock&& SOLACE_UNUSED(v)) = default;
+
+private:
+    MemoryView  _lockedMem;
 };
 
 

@@ -178,21 +178,6 @@ public:
      */
     MutableMemoryView& fill(byte value, size_type from, size_type to);
 
-    /**
-     * Lock this virtual address space memory into RAM, preventing that memory from being paged to the swap area.
-     * @note: Memory locking and unlocking are performed in units of whole pages.
-     * That is if when this memory view if locked - it will lock all memory that falls onto the same pages as this.
-     */
-    MutableMemoryView& lock();
-
-    /**
-     * Unlock virtual address space, so that pages in the specified virtual address range may once more to be
-     * swapped out if required by the kernel memory manager.
-     * @note: Memory locking and unlocking are performed in units of whole pages.
-     * That is if when this memory view is unlocked - it will also unlock all memory that falls onto the same pages.
-     */
-    MutableMemoryView& unlock();
-
     /// @see MemoryView::slice
     using MemoryView::slice;
 
