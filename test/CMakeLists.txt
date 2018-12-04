@@ -34,14 +34,6 @@ set(TEST_SOURCE_FILES
         test_env.cpp
         test_version.cpp
 
-        io/test_signalDispatcher.cpp
-        io/test_selector_epoll.cpp
-        io/test_selector_poll.cpp
-        io/test_platformfilesystem.cpp
-        io/test_sharedMemory.cpp
-        io/test_mappedMemory.cpp
-        io/test_pipe.cpp
-
         hashing/test_md5.cpp
         hashing/test_murmur3.cpp
         hashing/test_sha1.cpp

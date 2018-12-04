@@ -28,19 +28,6 @@ set(SOURCE_FILES
         env.cpp
         uuid.cpp
 
-        ioobject.cpp
-        io/file.cpp
-        io/duplex.cpp
-        io/pipe.cpp
-        io/serial.cpp
-        io/serial_list_ports.cpp
-        io/signalDispatcher.cpp
-        io/selector.cpp
-        io/selector_poll.cpp
-        io/selector_epoll.cpp
-        io/platformFilesystem.cpp
-        io/sharedMemory.cpp
-
         hashing/messageDigest.cpp
         hashing/md5.cpp
         hashing/murmur3.cpp
