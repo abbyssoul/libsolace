@@ -33,8 +33,8 @@ static constexpr size_t RandomSampleSize = 100;
 
 
 TEST(TestUUID, testStaticConstraints) {
-    EXPECT_EQ(static_cast<UUID::size_type>(16), UUID::StaticSize);
-    EXPECT_EQ(static_cast<UUID::size_type>(36), UUID::StringSize);
+    EXPECT_EQ(16, UUID::StaticSize);
+    EXPECT_EQ(36, UUID::StringSize);
 }
 
 TEST(TestUUID, testRandom) {
@@ -84,7 +84,7 @@ TEST(TestUUID, testConstruction) {
 
 TEST(TestUUID, testMakeUUIDwithInsufficientData) {
     byte const fewBytes[] = {1, 0, 3, 4, 5, 6, 7, 8};
-    EXPECT_THROW(makeUUID(wrapMemory(fewBytes)), Exception);
+    EXPECT_THROW(auto unused = makeUUID(wrapMemory(fewBytes)), Exception);
 
     byte const bytes[] = {1, 0, 3, 4, 5, 6, 7, 8, 1, 0, 3, 4, 5, 6, 7, 8};
     EXPECT_THROW(auto const x = makeUUID(wrapMemory(bytes, 7)), Exception);

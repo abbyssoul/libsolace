@@ -181,7 +181,7 @@ TEST(TestDictionary, constructionThrow) {
 
     SometimesConstructable::BlowUpEveryInstance = 4;
     {
-        EXPECT_ANY_THROW((makeDictionaryOf<SimpleType, SometimesConstructable>(
+        EXPECT_ANY_THROW(auto x = (makeDictionaryOf<SimpleType, SometimesConstructable>(
                              Dictionary<SimpleType, SometimesConstructable>::Entry{{81, 2, 3}, 1},
                              Dictionary<SimpleType, SometimesConstructable>::Entry{{12, 7, 3}, 2},
                              Dictionary<SimpleType, SometimesConstructable>::Entry{{-3, 0, 0}, 3})));

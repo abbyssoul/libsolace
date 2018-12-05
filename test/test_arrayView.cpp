@@ -502,7 +502,7 @@ TEST_F(TestArrayView, testMoveAssignment) {
         EXPECT_TRUE(!array.empty());
         const int src1[] = {1, 2, 3};
 
-        EXPECT_EQ(static_cast<ArrayView<int>::size_type>(3), array.size());
+        EXPECT_EQ(3, array.size());
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             EXPECT_EQ(src1[i], array[i]);
         }
@@ -516,7 +516,7 @@ TEST_F(TestArrayView, testMoveAssignment) {
         EXPECT_TRUE(!array.empty());
 
         const String src[] = {"tasrd", "", "hhha", "asd"};
-        EXPECT_EQ(static_cast<ArrayView<String>::size_type>(4), array.size());
+        EXPECT_EQ(4, array.size());
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             EXPECT_EQ(src[i], array[i]);
         }
@@ -539,7 +539,7 @@ TEST_F(TestArrayView, testMoveAssignment) {
                                                 NonPodStruct(990, "x^hhf")
                                         });
         EXPECT_TRUE(!array.empty());
-        EXPECT_EQ(static_cast<ArrayView<NonPodStruct>::size_type>(4), array.size());
+        EXPECT_EQ(4, array.size());
 
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             EXPECT_EQ(src[i].iValue, array[i].iValue);

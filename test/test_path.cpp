@@ -66,23 +66,23 @@ TEST(TestPath, testEmpty) {
 
 
 TEST(TestPath, testLength) {
-    EXPECT_EQ(static_cast<String::size_type>(0), Path().length());
-    EXPECT_EQ(static_cast<String::size_type>(4), makePath("file").length());
+    EXPECT_EQ(0, Path().length());
+    EXPECT_EQ(4, makePath("file").length());
 
     // Special case of a root path
-    EXPECT_EQ(static_cast<String::size_type>(1), makePath("").length());
-    EXPECT_EQ(static_cast<String::size_type>(5), makePath("").length("[]lll"));
+    EXPECT_EQ(1, makePath("").length());
+    EXPECT_EQ(5, makePath("").length("[]lll"));
 
-    EXPECT_EQ(static_cast<String::size_type>(std::strlen("some/path/to/file")),
+    EXPECT_EQ(std::strlen("some/path/to/file"),
                             makePath("some", "path", "to", "file").length());
 
-    EXPECT_EQ(static_cast<String::size_type>(std::strlen("/file")),
+    EXPECT_EQ(std::strlen("/file"),
                             makePath("", "file").length());
 
-    EXPECT_EQ(static_cast<String::size_type>(std::strlen("/some/path/to/file")),
+    EXPECT_EQ(std::strlen("/some/path/to/file"),
                             makePath("", "some", "path", "to", "file").length());
 
-    EXPECT_EQ(static_cast<String::size_type>(std::strlen("[-:]some[-:]path[-:]to[-:]file")),
+    EXPECT_EQ(std::strlen("[-:]some[-:]path[-:]to[-:]file"),
                             makePath("", "some", "path", "to", "file").length("[-:]"));
 }
 

@@ -376,7 +376,7 @@ TEST_F(TestArray, testMoveAssignment) {
         EXPECT_TRUE(!array.empty());
         const int src1[] = {1, 2, 3};
 
-        EXPECT_EQ(static_cast<Array<int>::size_type>(3), array.size());
+        EXPECT_EQ(3, array.size());
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             EXPECT_EQ(src1[i], array[i]);
         }
@@ -390,7 +390,7 @@ TEST_F(TestArray, testMoveAssignment) {
         EXPECT_TRUE(!array.empty());
 
         std::string const src[] = {"tasrd", "", "hhha", "asd"};
-        EXPECT_EQ(static_cast<Array<std::string>::size_type>(4), array.size());
+        EXPECT_EQ(4, array.size());
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             EXPECT_EQ(src[i], array[i]);
         }
@@ -412,7 +412,7 @@ TEST_F(TestArray, testMoveAssignment) {
                     NonPodStruct(-321, "yyx"),
                     NonPodStruct(990, "x^hhf"));
         EXPECT_TRUE(!array.empty());
-        EXPECT_EQ(static_cast<Array<NonPodStruct>::size_type>(4), array.size());
+        EXPECT_EQ(4, array.size());
 
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             EXPECT_EQ(src[i].iValue, array[i].iValue);

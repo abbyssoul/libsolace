@@ -73,7 +73,7 @@ TEST(TestHashingMurmur3, hashABC128) {
 }
 
 TEST(TestHashingMurmur3, hashMessageDigest32) {
-    EXPECT_EQ(static_cast<Murmur3_32::size_type>(32), Murmur3_32(0).getDigestLength());
+    EXPECT_EQ(32, Murmur3_32(0).getDigestLength());
 
     char message[] = "message digest";
     EXPECT_EQ(std::initializer_list<byte>({0x63, 0x8F, 0x41, 0x69}),
@@ -81,7 +81,7 @@ TEST(TestHashingMurmur3, hashMessageDigest32) {
 }
 
 TEST(TestHashingMurmur3, hashMessageDigest128) {
-    EXPECT_EQ(static_cast<Murmur3_128::size_type>(128), Murmur3_128(0).getDigestLength());
+    EXPECT_EQ(128, Murmur3_128(0).getDigestLength());
 
     char message[] = "message digest";
     EXPECT_EQ(std::initializer_list<byte>({0xfc, 0x7d, 0x14, 0x76, 0x2d, 0x2c, 0x5d, 0x87,

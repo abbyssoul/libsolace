@@ -27,23 +27,23 @@ using namespace Solace;
 
 
 TEST(TestBase16, testEncodedSize) {
-    EXPECT_EQ(static_cast<Base16Encoder::size_type>(0), Base16Encoder::encodedSize(0));
-    EXPECT_EQ(static_cast<Base16Encoder::size_type>(2), Base16Encoder::encodedSize(1));
-    EXPECT_EQ(static_cast<Base16Encoder::size_type>(4), Base16Encoder::encodedSize(2));
-    EXPECT_EQ(static_cast<Base16Encoder::size_type>(6), Base16Encoder::encodedSize(3));
-    EXPECT_EQ(static_cast<Base16Encoder::size_type>(8), Base16Encoder::encodedSize(4));
-    EXPECT_EQ(static_cast<Base16Encoder::size_type>(10), Base16Encoder::encodedSize(5));
-    EXPECT_EQ(static_cast<Base16Encoder::size_type>(12), Base16Encoder::encodedSize(6));
+    EXPECT_EQ(0, Base16Encoder::encodedSize(0));
+    EXPECT_EQ(2, Base16Encoder::encodedSize(1));
+    EXPECT_EQ(4, Base16Encoder::encodedSize(2));
+    EXPECT_EQ(6, Base16Encoder::encodedSize(3));
+    EXPECT_EQ(8, Base16Encoder::encodedSize(4));
+    EXPECT_EQ(10, Base16Encoder::encodedSize(5));
+    EXPECT_EQ(12, Base16Encoder::encodedSize(6));
 }
 
 TEST(TestBase16, testDecodedSize) {
-    EXPECT_EQ(static_cast<Base16Decoder::size_type>(0), Base16Decoder::encodedSize(0));
-    EXPECT_EQ(static_cast<Base16Decoder::size_type>(0), Base16Decoder::encodedSize(1));
-    EXPECT_EQ(static_cast<Base16Decoder::size_type>(1), Base16Decoder::encodedSize(2));
-    EXPECT_EQ(static_cast<Base16Decoder::size_type>(1), Base16Decoder::encodedSize(3));
-    EXPECT_EQ(static_cast<Base16Decoder::size_type>(2), Base16Decoder::encodedSize(4));
-    EXPECT_EQ(static_cast<Base16Decoder::size_type>(2), Base16Decoder::encodedSize(5));
-    EXPECT_EQ(static_cast<Base16Decoder::size_type>(3), Base16Decoder::encodedSize(6));
+    EXPECT_EQ(0, Base16Decoder::encodedSize(0));
+    EXPECT_EQ(0, Base16Decoder::encodedSize(1));
+    EXPECT_EQ(1, Base16Decoder::encodedSize(2));
+    EXPECT_EQ(1, Base16Decoder::encodedSize(3));
+    EXPECT_EQ(2, Base16Decoder::encodedSize(4));
+    EXPECT_EQ(2, Base16Decoder::encodedSize(5));
+    EXPECT_EQ(3, Base16Decoder::encodedSize(6));
 }
 
 TEST(TestBase16, testBasicEncoding) {

@@ -39,7 +39,7 @@ namespace Solace {
 class Env {
 public:
 
-    using size_type = size_t;
+    using size_type = uint16;
 
     /**
      * Struct representing environment variable.

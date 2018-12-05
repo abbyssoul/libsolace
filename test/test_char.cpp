@@ -32,13 +32,13 @@ TEST(TestChar, testConstruction) {
 
     {
         const Char c;
-        EXPECT_EQ(static_cast<Char::size_type>(0), c.getBytesCount());
-        EXPECT_EQ(static_cast<Char::value_type>(0), c.getValue());
+        EXPECT_EQ(0, c.getBytesCount());
+        EXPECT_EQ(0, c.getValue());
     }
 
     {
         const Char x{'c'};
-        EXPECT_EQ(static_cast<Char::size_type>(1), x.getBytesCount());
+        EXPECT_EQ(1, x.getBytesCount());
         EXPECT_EQ(static_cast<Char::value_type>('c'), x.getValue());
     }
 

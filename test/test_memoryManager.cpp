@@ -35,16 +35,16 @@ TEST(TestMemoryManager, testConstruction) {
 //             EXPECT_THROW(Buffer nullbuffer(321, nullptr), IllegalArgumentException);
         MemoryManager nullManager(0);
 
-        EXPECT_EQ(static_cast<MemoryManager::size_type>(0), nullManager.size());
-        EXPECT_EQ(static_cast<MemoryManager::size_type>(0), nullManager.capacity());
+        EXPECT_EQ(0, nullManager.size());
+        EXPECT_EQ(0, nullManager.capacity());
     }
     {   // Fixed size constructor
         MemoryManager test(1024);
 
         EXPECT_TRUE(test.empty());
-        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(1024), test.capacity());
-        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), test.size());
-        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(1024), test.capacity());
+        EXPECT_EQ(1024, test.capacity());
+        EXPECT_EQ(0, test.size());
+        EXPECT_EQ(1024, test.capacity());
 
     }
 }
@@ -52,19 +52,19 @@ TEST(TestMemoryManager, testConstruction) {
 TEST(TestMemoryManager, testNativePageSize) {
     MemoryManager test(1024);
 
-    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(getpagesize()), test.getPageSize());
-    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(sysconf(_SC_PAGESIZE)), test.getPageSize());
+    EXPECT_EQ(getpagesize(), test.getPageSize());
+    EXPECT_EQ(sysconf(_SC_PAGESIZE), test.getPageSize());
 }
 
 
 TEST(TestMemoryManager, testNativePageCount) {
     MemoryManager test(1024);
 
-    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(sysconf(_SC_PHYS_PAGES)), test.getNbPages());
+    EXPECT_EQ(sysconf(_SC_PHYS_PAGES), test.getNbPages());
 
     #ifdef SOLACE_PLATFORM_LINUX
     // NOTE: This is a pretty stupid test as number of avaliable pages changes all the time!
-    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(sysconf(_SC_AVPHYS_PAGES)) / 1000,
+    EXPECT_EQ(sysconf(_SC_AVPHYS_PAGES) / 1000,
                             test.getNbAvailablePages() / 1000);
     #endif
 }
@@ -74,14 +74,14 @@ TEST(TestMemoryManager, testAllocation) {
 
     {
         auto memBlock = test.allocate(128);
-        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(128), test.size());
-        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(128), memBlock.size());
+        EXPECT_EQ(128, test.size());
+        EXPECT_EQ(128, memBlock.size());
 
         memBlock.view().fill(128);
-        EXPECT_EQ(static_cast<MutableMemoryView::value_type>(128), memBlock.view()[memBlock.size() - 1]);
+        EXPECT_EQ(128, memBlock.view()[memBlock.size() - 1]);
     }
 
-    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), test.size());
+    EXPECT_EQ(0, test.size());
 }
 
 TEST(TestMemoryManager, testAllocationBeyondCapacity) {
@@ -89,17 +89,17 @@ TEST(TestMemoryManager, testAllocationBeyondCapacity) {
     EXPECT_THROW(auto memBlock = test.allocate(2048), OverflowException);
     {
         auto memBlock0 = test.allocate(64);
-        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(64), test.size());
-        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(64), memBlock0.size());
+        EXPECT_EQ(64, test.size());
+        EXPECT_EQ(64, memBlock0.size());
 
         auto memBlock1 = test.allocate(64);
-        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(2*64), test.size());
-        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(64), memBlock1.size());
+        EXPECT_EQ(2*64, test.size());
+        EXPECT_EQ(64, memBlock1.size());
 
         EXPECT_THROW(auto memBlock2 = test.allocate(64), OverflowException);
     }
 
-    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), test.size());
+    EXPECT_EQ(0, test.size());
 }
 
 
@@ -110,8 +110,8 @@ TEST(TestMemoryManager, testAllocationLocking) {
         EXPECT_EQ(false, test.isLocked());
 
         auto memBlock0 = test.allocate(64);
-        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(64), test.size());
-        EXPECT_EQ(static_cast<MutableMemoryView::size_type>(64), memBlock0.size());
+        EXPECT_EQ(64, test.size());
+        EXPECT_EQ(64, memBlock0.size());
 
         // Lock allocation
         EXPECT_NO_THROW(test.lock());
@@ -125,5 +125,5 @@ TEST(TestMemoryManager, testAllocationLocking) {
         EXPECT_NO_THROW(auto memBlock2 = test.allocate(64));
     }
 
-    EXPECT_EQ(static_cast<MutableMemoryView::size_type>(0), test.size());
+    EXPECT_EQ(0, test.size());
 }

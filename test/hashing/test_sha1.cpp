@@ -82,7 +82,7 @@ TEST(TestHashingSHA1, hashABC) {
 TEST(TestHashingSHA1, hashMessageDigest) {
     Sha1 hash;
 
-    EXPECT_EQ(static_cast<Sha1::size_type>(160), hash.getDigestLength());
+    EXPECT_EQ(160, hash.getDigestLength());
 
     char message[] = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
     hash.update(wrapMemory(message, sizeof(message) - 1));

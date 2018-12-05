@@ -36,7 +36,7 @@ TEST(TestString, testConstruction_null) {
     {   // NullPointer smoke test
         const char* nullCString = nullptr;
 
-        EXPECT_NO_THROW(makeString(nullCString));
+        EXPECT_NO_THROW(auto unused = makeString(nullCString));
     }
 
 
@@ -206,7 +206,7 @@ TEST(TestString, testSplit) {
             result.emplace_back(makeString(bit));
         });
 
-        EXPECT_EQ(static_cast<array_size_t>(3), result.size());
+        EXPECT_EQ(3, result.size());
         EXPECT_EQ(dest0, result[0]);
         EXPECT_EQ(dest1, result[1]);
         EXPECT_EQ(dest2, result[2]);
@@ -218,7 +218,7 @@ TEST(TestString, testSplit) {
             result.emplace_back(makeString(bit));
         });
 
-        EXPECT_EQ(static_cast<array_size_t>(1), result.size());
+        EXPECT_EQ(1, result.size());
         EXPECT_EQ(dest0, result[0]);
     }
 
@@ -228,7 +228,7 @@ TEST(TestString, testSplit) {
             result.emplace_back(makeString(bit));
         });
 
-        EXPECT_EQ(static_cast<array_size_t>(1), result.size());
+        EXPECT_EQ(1, result.size());
         EXPECT_EQ(source, result[0]);
     }
 
@@ -238,7 +238,7 @@ TEST(TestString, testSplit) {
             result.emplace_back(makeString(bit));
         });
 
-        EXPECT_EQ(static_cast<array_size_t>(2), result.size());
+        EXPECT_EQ(2, result.size());
         EXPECT_EQ(String::Empty, result[0]);
         EXPECT_EQ(dest2, result[1]);
     }
@@ -249,10 +249,10 @@ TEST(TestString, testIndexOf) {
     String const world = makeString("World");
 
     // Happy case:
-    EXPECT_EQ(static_cast<String::size_type>(7), source.indexOf(world).get());
-    EXPECT_EQ(static_cast<String::size_type>(12), source.indexOf('!').get());
-    EXPECT_EQ(static_cast<String::size_type>(24), source.indexOf(world, 12).get());
-    EXPECT_EQ(static_cast<String::size_type>(19), source.indexOf("bye", 3).get());
+    EXPECT_EQ(7, source.indexOf(world).get());
+    EXPECT_EQ(12, source.indexOf('!').get());
+    EXPECT_EQ(24, source.indexOf(world, 12).get());
+    EXPECT_EQ(19, source.indexOf("bye", 3).get());
 
     // Fail cases:
     EXPECT_TRUE(source.indexOf("awesome").isNone());
@@ -276,10 +276,10 @@ TEST(TestString, testLastIndexOf) {
     String const source = makeString("Hello, World! Good bye, World - and again!");
     String const world = makeString("World");
 
-    EXPECT_EQ(static_cast<String::size_type>(24), source.lastIndexOf(world).get());
-    EXPECT_EQ(static_cast<String::size_type>(41), source.lastIndexOf('!').get());
-    EXPECT_EQ(static_cast<String::size_type>(24), source.lastIndexOf(world, 12).get());
-    EXPECT_EQ(static_cast<String::size_type>(19), source.lastIndexOf("bye", 12).get());
+    EXPECT_EQ(24, source.lastIndexOf(world).get());
+    EXPECT_EQ(41, source.lastIndexOf('!').get());
+    EXPECT_EQ(24, source.lastIndexOf(world, 12).get());
+    EXPECT_EQ(19, source.lastIndexOf("bye", 12).get());
 
     // Fail case:
     EXPECT_TRUE(source.lastIndexOf('!', source.length()).isNone());

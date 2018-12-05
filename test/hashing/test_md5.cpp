@@ -67,7 +67,7 @@ TEST(TestHashingMD5, hashABC) {
 TEST(TestHashingMD5, hashMessageDigest) {
     MD5 hash;
 
-    EXPECT_EQ(static_cast<MD5::size_type>(128), hash.getDigestLength());
+    EXPECT_EQ(128, hash.getDigestLength());
 
     char message[] = "message digest";
     hash.update(wrapMemory(message, sizeof(message) - 1));
