@@ -144,18 +144,13 @@ codecheck: cpplint cppcheck #scan-build
 # Runtime Quality Control
 #-------------------------------------------------------------------------------
 
-valgrind-sgcheck: $(TEST_TAGRET)
-	# > 3.10 (not avaliable on trusty) --expensive-definedness-checks=yes --read-var-info=yes
-	valgrind --trace-children=yes --track-fds=yes --redzone-size=128 --error-exitcode=4 \
-	--tool=exp-sgcheck $(TEST_TAGRET)
-
 valgrind-memcheck: $(TEST_TAGRET)
 	valgrind --tool=memcheck --trace-children=yes --track-fds=yes --redzone-size=128 --error-exitcode=3 \
 	--leak-check=full --track-origins=yes --show-reachable=yes --show-leak-kinds=all --errors-for-leak-kinds=all --partial-loads-ok=no \
-	$(TEST_TAGRET) --gtest_filter=-TestSharedMemory.testCreateAndMap:TestAnonSharedMemory.testShareAndMap
+	$(TEST_TAGRET)
 
 
-# valgrind-sgcheck is broken for now :'(
+# Plugin more valgrind checks when they are available
 verify: valgrind-memcheck
 
 
