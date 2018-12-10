@@ -16,7 +16,7 @@
 /*******************************************************************************
  * libSolace
  *  @brief		Fixed size array container
- *	@file		solace/array.hpp
+ *  @file		solace/array.hpp
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_ARRAY_HPP
