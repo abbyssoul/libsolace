@@ -1,13 +1,15 @@
 cmake_minimum_required(VERSION 3.3)
 project(solace)
 
+
 include(CheckCXXCompilerFlag)
 
 
 # Custom build target to generate code coverage:
-# We probably don't want this to run on every build.
-option(COVERALLS "Generate coveralls data" OFF)
-option(SANITIZE "Enable 'sanitize' compiler flag" OFF)
+# Don't want this to run on every build.
+option(SOLACE_GTEST_SUPPORT "Build without GTEST" ON)
+option(SOLACE_COVERALLS "Generate coveralls data" OFF)
+option(SOLACE_SANITIZE "Enable 'sanitize' compiler flag" OFF)
 
 
 # libsolace requires at least C++17
@@ -120,7 +122,7 @@ endif()
 
 
 # When sanitizers are ON
-if (SANITIZE)
+if (SOLACE_SANITIZE)
     check_cxx_compiler_flag("-fsanitize=leak" WITH_SANITIZE_LEAK)
     if (WITH_SANITIZE_LEAK)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address,undefined,leak")
@@ -147,7 +149,7 @@ if (SANITIZE)
 endif()
 
 
-if (COVERALLS)
+if (SOLACE_COVERALLS)
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} --coverage") # enabling coverage
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
@@ -160,16 +162,17 @@ endif()
 
 
 # Build project dependencies
-add_subdirectory(external/gtest/googletest EXCLUDE_FROM_ALL)
+set(SOLACE_EXTERNAL_DEP_GTEST_DIR "external/gtest/googletest"
+    CACHE PATH "The path to the Google Test framework.")
 
 include_directories(include)
 
 add_subdirectory(src)
-add_subdirectory(test)
-add_subdirectory(examples)
+add_subdirectory(test EXCLUDE_FROM_ALL)
+add_subdirectory(examples EXCLUDE_FROM_ALL)
 
 message(STATUS, "BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 message(STATUS, "CXXFLAGS: ${CMAKE_CXX_FLAGS}")
 message(STATUS, "SANITIZE: ${SANITIZE}")
 message(STATUS, "COVERALLS: ${COVERALLS}")
-
+message(STATUS, "SOLACE_GTEST_SUPPORT: ${SOLACE_GTEST_SUPPORT}")
