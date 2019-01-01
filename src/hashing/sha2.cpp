@@ -179,18 +179,22 @@ void sha256_update(Sha256::State& ctx, const byte input[], Sha256::size_type ile
 
 
 
-Sha256::Sha256() {
-    _state.total[0] = 0;
-    _state.total[1] = 0;
-
-    _state.state[0] = 0x6a09e667;
-    _state.state[1] = 0xbb67ae85;
-    _state.state[2] = 0x3c6ef372;
-    _state.state[3] = 0xa54ff53a;
-    _state.state[4] = 0x510e527f;
-    _state.state[5] = 0x9b05688c;
-    _state.state[6] = 0x1f83d9ab;
-    _state.state[7] = 0x5be0cd19;
+Sha256::Sha256()
+    : _state {
+          {0, 0},
+          {
+              0x6a09e667,
+              0xbb67ae85,
+              0x3c6ef372,
+              0xa54ff53a,
+              0x510e527f,
+              0x9b05688c,
+              0x1f83d9ab,
+              0x5be0cd19
+          },
+          {0}
+      }
+{
 }
 
 

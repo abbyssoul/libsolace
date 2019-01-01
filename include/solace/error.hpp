@@ -101,7 +101,9 @@ inline void swap(Error& lhs, Error& rhs) noexcept {
 }
 
 
-static_assert(sizeof(Error) <= 4*sizeof(void*),
+// Make sure that on x64 platforms sizeof(Error) is just 2 pointers
+static_assert(sizeof(void*) == 8 &&
+              sizeof(Error) <= 4*sizeof(void*),
               "Error must be no more then 2 pointers in size");
 
 static_assert(std::is_trivially_copyable<Error>::value,

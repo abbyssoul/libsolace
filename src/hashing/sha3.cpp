@@ -23,6 +23,43 @@
 using namespace Solace;
 using namespace Solace::hashing;
 
-Sha3::Sha3() {
 
+static const StringLiteral SHA_3_NAME = "SHA3";
+
+
+Sha3::Sha3()
+    : _state {
+          {0, 0},
+          {0},
+          {0}
+      }
+{
+}
+
+
+StringView
+Sha3::getAlgorithm() const {
+    return SHA_3_NAME;
+}
+
+
+Sha3::size_type
+Sha3::getDigestLength() const {
+    return 256;
+}
+
+
+HashingAlgorithm&
+Sha3::update(MemoryView SOLACE_UNUSED(input)) {
+    // TODO(abbyssoul): Not implemented yet.
+
+    return (*this);
+}
+
+
+MessageDigest
+Sha3::digest() {
+    byte result[32];
+
+    return MessageDigest(wrapMemory(result));
 }
