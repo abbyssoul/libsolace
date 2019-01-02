@@ -92,7 +92,7 @@ endif (WITH_VTABLE_VERIFY)
 # Release Optimization flags
 # ---------------------------------
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -mtune=native")
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -march=native -mtune=native")
 
 # Extra optimizations on GCC
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT "MINGW")
