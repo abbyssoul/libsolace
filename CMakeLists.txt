@@ -1,20 +1,22 @@
 cmake_minimum_required(VERSION 3.3)
 project(solace)
+set(PROJECT_DESCRIPTION "library of High Reliability and HPC components")
 
 
 # Custom build target to generate code coverage:
 # Don't want this to run on every build.
 option(SOLACE_GTEST_SUPPORT "Build without GTEST" ON)
-option(SOLACE_COVERALLS "Generate coveralls data" OFF)
-option(SOLACE_SANITIZE "Enable 'sanitize' compiler flag" OFF)
+option(COVERALLS "Generate coveralls data" OFF)
+option(SANITIZE "Enable 'sanitize' compiler flag" OFF)
 
 
 # Include common compile flag
 include(cmake/compile_flags.cmake)
+include(GNUInstallDirs)
 
-# libsolace requires at least C++17
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED on)
+# Configure the project:
+configure_file(libsolace.pc.in libsolace.pc @ONLY)
+
 
 # ---------------------------------
 # Build project dependencies
@@ -27,6 +29,13 @@ include_directories(include)
 add_subdirectory(src)
 add_subdirectory(test EXCLUDE_FROM_ALL)
 add_subdirectory(examples EXCLUDE_FROM_ALL)
+
+# Install include headers
+install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+
+# Install pkgconfig descriptor
+install(FILES ${CMAKE_BINARY_DIR}/libsolace.pc
+    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
 message(STATUS, "BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 message(STATUS, "CXXFLAGS: ${CMAKE_CXX_FLAGS}")
