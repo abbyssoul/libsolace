@@ -9,14 +9,12 @@ option(SOLACE_GTEST_SUPPORT "Build without GTEST" ON)
 option(COVERALLS "Generate coveralls data" OFF)
 option(SANITIZE "Enable 'sanitize' compiler flag" OFF)
 
-
 # Include common compile flag
 include(cmake/compile_flags.cmake)
 include(GNUInstallDirs)
 
 # Configure the project:
-configure_file(libsolace.pc.in libsolace.pc @ONLY)
-
+configure_file(lib${PROJECT_NAME}.pc.in lib${PROJECT_NAME}.pc @ONLY)
 
 # ---------------------------------
 # Build project dependencies
@@ -34,9 +32,12 @@ add_subdirectory(examples EXCLUDE_FROM_ALL)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Install pkgconfig descriptor
-install(FILES ${CMAKE_BINARY_DIR}/libsolace.pc
+install(FILES ${CMAKE_BINARY_DIR}/lib${PROJECT_NAME}.pc
     DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
 
+# ---------------------------------
+# Show build configuration status:
+# ---------------------------------
 message(STATUS, "BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 message(STATUS, "CXXFLAGS: ${CMAKE_CXX_FLAGS}")
 message(STATUS, "SANITIZE: ${SANITIZE}")
