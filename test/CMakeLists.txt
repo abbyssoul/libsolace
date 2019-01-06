@@ -49,6 +49,7 @@ else()
     message(STATUS, "Using provided version of GTest")
 endif()
 
+
 enable_testing()
 add_executable(test_${PROJECT_NAME} EXCLUDE_FROM_ALL ${TEST_SOURCE_FILES})
 add_test(NAME test_${PROJECT_NAME} COMMAND test_${PROJECT_NAME})

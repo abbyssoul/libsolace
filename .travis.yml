@@ -37,9 +37,10 @@ addons:
   branch_pattern: coverity_scan
 
 before_install:
-  - pip install --user cpp-coveralls
-  - pip install --user cpplint
+  - sudo pip install cpplint cpp-coveralls
+  - sudo pip install conan --upgrade
   - gem install coveralls-lcov
+
 install:
   - gcov --version
   - lcov --version
@@ -49,11 +50,12 @@ install:
   - echo $CXX
   - $CXX --version
   - ld --version
+  - conan remote add abbyssoul https://api.bintray.com/conan/abbyssoul/public-conan
 
 script:
   - ./configure --enable-sanitizer
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make clean codecheck; fi
-  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make -j2 test; fi
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make test; fi
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./configure --disable-sanitizer --enable-debug && make clean && make verify ; fi
 
 after_success:

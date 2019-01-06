@@ -12,6 +12,8 @@ option(SANITIZE "Enable 'sanitize' compiler flag" OFF)
 # Include common compile flag
 include(cmake/compile_flags.cmake)
 include(GNUInstallDirs)
+include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
+conan_basic_setup()
 
 # Configure the project:
 configure_file(lib${PROJECT_NAME}.pc.in lib${PROJECT_NAME}.pc @ONLY)
@@ -42,4 +44,3 @@ message(STATUS, "BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 message(STATUS, "CXXFLAGS: ${CMAKE_CXX_FLAGS}")
 message(STATUS, "SANITIZE: ${SANITIZE}")
 message(STATUS, "COVERALLS: ${COVERALLS}")
-message(STATUS, "SOLACE_GTEST_SUPPORT: ${SOLACE_GTEST_SUPPORT}")

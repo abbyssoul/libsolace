@@ -12,13 +12,14 @@ TEST_DIR = test
 MODULE_HEADERS = ${INCLUDE_DIR}/*
 MODULE_SRC = ${SRC_DIR}/*
 
+DEP_INSTALL = ${BUILD_DIR}/conaninfo.txt
 GENERATED_MAKE = ${BUILD_DIR}/Makefile
 
 LIBNAME = lib$(PROJECT).a
 LIB_TAGRET = $(BUILD_DIR)/$(SRC_DIR)/$(LIBNAME)
 
 TESTNAME = test_$(PROJECT)
-TEST_TAGRET = $(BUILD_DIR)/$(TEST_DIR)/$(TESTNAME)
+TEST_TAGRET = $(BUILD_DIR)/bin/$(TESTNAME)
 
 DOC_DIR = docs
 DOC_TARGET_HTML = $(DOC_DIR)/html
@@ -39,7 +40,7 @@ endif
 
 
 # First tagret that starts not with '.'' - is a default target to run
-.PHONY: codecheck verify ANALYZE_MAKE test
+.PHONY: codecheck verify test ANALYZE_MAKE
 
 all: lib
 
@@ -50,11 +51,14 @@ all: lib
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
-$(GENERATED_MAKE): ${BUILD_DIR}
+$(DEP_INSTALL): $(BUILD_DIR)
+	cd ${BUILD_DIR} && conan install ..
+
+$(GENERATED_MAKE): $(DEP_INSTALL)
 	cd ${BUILD_DIR} && cmake -DSANITIZE=${SANITIZE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
 
-${BUILD_DIR}/build_coverage: ${BUILD_DIR}
+${BUILD_DIR}/build_coverage: $(DEP_INSTALL)
 	cd ${BUILD_DIR} && cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug ..
 	$(MAKE) -C ${BUILD_DIR}
 	$(shell touch ${BUILD_DIR}/build_coverage)
@@ -105,7 +109,6 @@ ANALYZE_MAKE: ${ANALYZE_DIR}
 
 tools/cppcheck:
 	# Getting latest cppcheck
-	# git clone --depth 1 https://github.com/danmar/cppcheck.git tools/cppcheck
 	# Fix cppcheck version to 1.85 as master is borked
 	git clone -b '1.85' --single-branch --depth 1 https://github.com/danmar/cppcheck.git tools/cppcheck
 
@@ -114,18 +117,19 @@ tools/cppcheck/cppcheck: tools/cppcheck
 	$(MAKE) -j2 -C tools/cppcheck cppcheck
 
 
-cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
-	cpplint --recursive --exclude=${TEST_DIR}/ci/* ${INCLUDE_DIR} ${SRC_DIR} ${TEST_DIR}
-
-
 # TODO: Extra cppcheck options to consider: --enable=style,unusedFunction --inconclusive
 # not --enable=all, cause style is too verbose
+.PHONY: cppcheck
 cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) tools/cppcheck/cppcheck
 	tools/cppcheck/cppcheck --std=c++14 --std=posix -D __linux__ -D __x86_64__ --inline-suppr -q --error-exitcode=2 \
 	--enable=warning,performance,portability,missingInclude,information \
 	--report-progress \
 	-I include -i test/ci ${SRC_DIR} ${TEST_DIR} examples
 
+
+.PHONY: cpplint
+cpplint: $(MODULE_HEADERS) $(MODULE_SRC)
+	cpplint --recursive --exclude=${TEST_DIR}/ci/* ${INCLUDE_DIR} ${SRC_DIR} ${TEST_DIR}
 
 scan-build: ANALYZE_MAKE
 	cd $(ANALYZE_DIR) && scan-build $(MAKE)
@@ -135,7 +139,7 @@ tidy:
 	${SRC_DIR}/*.cpp -- -I${INCLUDE_DIR} -std=c++14
 
 
-
+.PHONY: codecheck
 codecheck: cpplint cppcheck #scan-build
 
 
@@ -151,11 +155,12 @@ valgrind-memcheck: $(TEST_TAGRET)
 
 
 # Plugin more valgrind checks when they are available
+.PHONY: verify
 verify: valgrind-memcheck
 
 
 $(COVERAGE_REPORT): $(BUILD_DIR)/build_coverage
-	cd ${BUILD_DIR} && ./${TEST_DIR}/$(TESTNAME)
+	./$(TEST_TAGRET)
 
 	# capture coverage info
 	lcov --directory . --capture --output-file $@
@@ -175,11 +180,12 @@ coverage_report: $(COVERAGE_REPORT)
 
 .PHONY: install
 install: $(LIB_TAGRET)
-	@install -m 644 -v -D -t $(DESTDIR)$(PREFIX)/lib $(LIB_TAGRET)
-	@for i in $(shell find $(INCLUDE_DIR)/$(PROJECT) -type d); do \
-		install -m 755 -v -d $(DESTDIR)$(PREFIX)/$$i; \
-		install -m 644 -v -D -t $(DESTDIR)$(PREFIX)/$$i $$i/*.hpp; \
-	done
+	cd ${BUILD_DIR} && cmake \
+		-DCMAKE_INSTALL_PREFIX=$(PREFIX) \
+		-DSANITIZE=${SANITIZE} \
+		..
+	#cd ${BUILD_DIR} && cmake --build . --target install --config ${BUILD_TYPE}
+	$(MAKE) -C ${BUILD_DIR} install DESTDIR=$(DESTDIR)
 
 
 .PHONY: uninstall
