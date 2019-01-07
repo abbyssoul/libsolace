@@ -16,7 +16,7 @@
 /*******************************************************************************
  * libSolace: ostream output support for libsolace types
  *	@file		solace/output_utils.hpp
- *	@brief		MemoryView object
+ *	@brief		Util functions to out various objects into ostream
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_OUTPUT_UTILS_HPP
