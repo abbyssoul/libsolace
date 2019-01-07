@@ -9,6 +9,8 @@ sanitizer=true
 project_name=$(basename $DIR)
 if [ -f "PROJECT.name" ]; then
     project_name=$(cat "PROJECT.name")
+else
+    echo "Warning: no file 'PROJECT.name' found, guessing project name: '${project_name}'"
 fi
 
 
