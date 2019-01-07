@@ -22,8 +22,6 @@
 #ifndef SOLACE_OUTPUT_UTILS_HPP
 #define SOLACE_OUTPUT_UTILS_HPP
 
-#include <ostream>
-
 #include "solace/stringView.hpp"
 #include "solace/string.hpp"
 #include "solace/path.hpp"
@@ -34,9 +32,37 @@
 
 #include "solace/base16.hpp"
 
+#include <ostream>
+
 
 inline std::ostream& operator<< (std::ostream& ostr, Solace::StringView const& str) {
     return ostr.write(str.data(), str.size());
+}
+
+inline std::ostream& operator<< (std::ostream& ostr, Solace::Error const& e) {
+    auto const errorDomaint = e.domain();
+    auto const domain = getErrorDomain(errorDomaint);
+
+    if (domain) {
+        ostr << (*domain)->getName();
+    } else {
+        constexpr auto N = sizeof(Solace::AtomValue);
+        char buffer[sizeof(N) + 1];
+        Solace::detail::unwrap<std::uintmax_t>(static_cast<std::uintmax_t>(errorDomaint), buffer);
+        ostr.write(buffer, N);
+    }
+
+    ostr << ':' << e.value() << ':';
+    if (domain) {
+        ostr << (*domain)->getMessage(e.value());
+    }
+
+    auto const tag = e.tag();
+    if (!tag.empty()) {
+        ostr << ':' << tag;
+    }
+
+    return ostr;
 }
 
 inline std::ostream& operator<< (std::ostream& ostr, Solace::MemoryView view) {

@@ -225,7 +225,7 @@ public:
 
     /** Removes the last element of the container.
      * Last element is destroyed and containter size decremented by one.
-     * @note This method modifies container size thus invalidating iterators.
+     * @note This method modifies container size thus invalidating all iterators.
      * @note No exception is thrown if element doesn't throw on destruction.
      */
     void pop_back() noexcept(std::is_nothrow_destructible<T>::value) {
@@ -237,6 +237,17 @@ public:
         _buffer.view()
                 .template sliceFor<value_type>(_position)
                 .template destruct<value_type>();
+    }
+
+
+    /** Remove all elements from the container.
+     * @note This method modifies container size thus invalidating all iterators.
+     * @note No exception is thrown if element doesn't throw on destruction.
+     */
+    void clear() noexcept(std::is_nothrow_destructible<T>::value) {
+        while (_position > 0) {
+            pop_back();
+        }
     }
 
 

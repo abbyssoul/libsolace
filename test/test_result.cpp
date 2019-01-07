@@ -99,13 +99,13 @@ public:
 public:
 
 
-    void setUp() {
+    void SetUp() override {
         EXPECT_EQ(0, SimpleType::InstanceCount);
         EXPECT_EQ(0, SomeTestType::InstanceCount);
         EXPECT_EQ(0, MoveOnlyType::InstanceCount);
     }
 
-    void tearDown() {
+    void TearDown() override {
         EXPECT_EQ(0, SimpleType::InstanceCount);
         EXPECT_EQ(0, SomeTestType::InstanceCount);
         EXPECT_EQ(0, MoveOnlyType::InstanceCount);

@@ -34,7 +34,7 @@ namespace Solace {
 /**
  * Atoms value type
  */
-enum class AtomValue : uint64_t {
+enum class AtomValue : std::uintmax_t {
     /// @cond PRIVATE
     _dirty_little_hack = 1337
     /// @endcond
@@ -45,7 +45,7 @@ namespace detail {
 
 template <typename T = std::uintmax_t>
 constexpr std::enable_if_t<std::is_integral<T>::value, T>
-wrap(const char *const str) noexcept {
+wrap(char const* const str) noexcept {
     constexpr auto N = sizeof(T);
     T n {};
     std::size_t i {};

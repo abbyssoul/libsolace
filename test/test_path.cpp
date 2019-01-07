@@ -24,7 +24,13 @@
 #include <solace/exception.hpp>     // Checked expcetions
 
 
+#include "mockTypes.hpp"
+#include <gtest/gtest.h>
+#include <cstring>
+
 #include <ostream>
+
+using namespace Solace;
 
 
 std::ostream& operator<< (std::ostream& ostr, Solace::Path const& v) {
@@ -38,13 +44,6 @@ std::ostream& operator<< (std::ostream& ostr, Solace::Path const& v) {
     ostr << "}";
     return ostr;
 }
-
-
-#include "mockTypes.hpp"
-#include <gtest/gtest.h>
-#include <cstring>
-
-using namespace Solace;
 
 
 TEST(TestPath, testRootIsSingleComponent) {

@@ -30,8 +30,6 @@ using namespace Solace;
 
 
 StringView randomName() {
-//    return String::join("-", {"test-env-", UUID::random().toString()});
-
     static char buffer[9 + UUID::StringSize + 1];
     memset(buffer, 0, sizeof(buffer));
     strncpy(buffer, "test-env-", sizeof(buffer));

@@ -195,13 +195,13 @@ protected:
 
 public:
 
-    void setUp() {
+    void SetUp() override {
         // TODO(abbyssoul): Debug::BeginMemCheck();
         EXPECT_EQ(ZERO, NonPodStruct::TotalCount);
         EXPECT_EQ(0, SometimesConstructable::InstanceCount);
     }
 
-    void tearDown() {
+    void TearDown() override {
         // TODO(abbyssoul): Debug::EndMemCheck();
         EXPECT_EQ(ZERO, NonPodStruct::TotalCount);
         EXPECT_EQ(0, SometimesConstructable::InstanceCount);

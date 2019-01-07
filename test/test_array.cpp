@@ -41,88 +41,88 @@ protected:
 
 	struct NonPodStruct {
 
-        static int TotalCount;
+            static int TotalCount;
 
-		static const int IVALUE_DEFAULT;
-		static const char STR_DEFAULT[];
+            static const int IVALUE_DEFAULT;
+            static const char STR_DEFAULT[];
 
-		int iValue{};
-		std::string str;
-
-
-        virtual ~NonPodStruct() {
-            --TotalCount;
-        }
-
-		NonPodStruct(int i, std::string inStr) :
-			iValue(i), str(std::move(inStr))
-		{
-			++TotalCount;
-		}
-
-		NonPodStruct()
-			: iValue(IVALUE_DEFAULT)
-			, str(STR_DEFAULT)
-		{
-			++TotalCount;
-		}
-
-        NonPodStruct(NonPodStruct&& other)
-            : iValue(other.iValue)
-            , str(std::move(other.str))
-        {
-            ++TotalCount;
-        }
-
-        NonPodStruct(NonPodStruct const& other)
-            : iValue(other.iValue)
-            , str(other.str)
-        {
-            ++TotalCount;
-        }
+            int iValue{};
+            std::string str;
 
 
-        NonPodStruct& operator= (const NonPodStruct& rhs) = default;
+            virtual ~NonPodStruct() {
+                --TotalCount;
+            }
 
-        bool operator== (const NonPodStruct& other) const {
-            return iValue == other.iValue && str == other.str;
-        }
-	};
+            NonPodStruct(int i, std::string inStr) :
+                    iValue(i), str(std::move(inStr))
+            {
+                    ++TotalCount;
+            }
+
+            NonPodStruct()
+                    : iValue(IVALUE_DEFAULT)
+                    , str(STR_DEFAULT)
+            {
+                    ++TotalCount;
+            }
+
+            NonPodStruct(NonPodStruct&& other)
+                : iValue(other.iValue)
+                , str(std::move(other.str))
+            {
+                ++TotalCount;
+            }
+
+            NonPodStruct(NonPodStruct const& other)
+                : iValue(other.iValue)
+                , str(other.str)
+            {
+                ++TotalCount;
+            }
 
 
-	struct DerivedNonPodStruct  : public NonPodStruct {
-		float fValue{3.1415f};
+            NonPodStruct& operator= (const NonPodStruct& rhs) = default;
+
+            bool operator== (const NonPodStruct& other) const {
+                return iValue == other.iValue && str == other.str;
+            }
+
+        };
 
 
-        DerivedNonPodStruct()
-            : NonPodStruct(312, "Derived String")
-		{
-		}
+        struct DerivedNonPodStruct  : public NonPodStruct {
 
-        DerivedNonPodStruct(int x, float f, std::string inStr)
-            : NonPodStruct(x, std::move(inStr))
-            , fValue(f)
-        {
-        }
+            float fValue{3.1415f};
+
+            DerivedNonPodStruct()
+                : NonPodStruct(312, "Derived String")
+            {
+            }
+
+            DerivedNonPodStruct(int x, float f, std::string inStr)
+                : NonPodStruct(x, std::move(inStr))
+                , fValue(f)
+            {
+            }
 
 	};
 
 public:
 
-    void setUp() {
+    void SetUp() override {
         // TODO(abbyssoul): Debug::BeginMemCheck();
-        EXPECT_EQ(0, NonPodStruct::TotalCount);
-        EXPECT_EQ(0, SimpleType::InstanceCount);
-        EXPECT_EQ(0, SometimesConstructable::InstanceCount);
-	}
-
-    void tearDown() {
-        // TODO(abbyssoul): Debug::EndMemCheck();
         EXPECT_EQ(0, NonPodStruct::TotalCount);
         EXPECT_EQ(0, SimpleType::InstanceCount);
         EXPECT_EQ(0, SometimesConstructable::InstanceCount);
     }
 
+    void TearDown() override {
+        // TODO(abbyssoul): Debug::EndMemCheck();
+        EXPECT_EQ(0, NonPodStruct::TotalCount);
+        EXPECT_EQ(0, SimpleType::InstanceCount);
+        EXPECT_EQ(0, SometimesConstructable::InstanceCount);
+    }
 
 };
 

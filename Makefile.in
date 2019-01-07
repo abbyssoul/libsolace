@@ -1,5 +1,7 @@
-# Project name
-PROJECT = solace
+# This is a template for project build automation with make.
+# The actual build system in use if CMake.
+# This file is not meant to be used directly. Please generate a working Makefile for your system via configure script:
+# ./configure [configuration options]
 
 # Project directory layout
 BUILD_DIR = build
@@ -8,12 +10,12 @@ INCLUDE_DIR = include
 SRC_DIR = src
 TEST_DIR = test
 
-
 MODULE_HEADERS = ${INCLUDE_DIR}/*
 MODULE_SRC = ${SRC_DIR}/*
 
 DEP_INSTALL = ${BUILD_DIR}/conaninfo.txt
 GENERATED_MAKE = ${BUILD_DIR}/Makefile
+GENERATED_MAKE_WITH_COVERAGE = ${BUILD_DIR}/Makefile.coverage
 
 LIBNAME = lib$(PROJECT).a
 LIB_TAGRET = $(BUILD_DIR)/$(SRC_DIR)/$(LIBNAME)
@@ -57,12 +59,9 @@ $(DEP_INSTALL): $(BUILD_DIR)
 $(GENERATED_MAKE): $(DEP_INSTALL)
 	cd ${BUILD_DIR} && cmake -DSANITIZE=${SANITIZE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
-
-${BUILD_DIR}/build_coverage: $(DEP_INSTALL)
+$(GENERATED_MAKE_WITH_COVERAGE): $(DEP_INSTALL)
 	cd ${BUILD_DIR} && cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug ..
-	$(MAKE) -C ${BUILD_DIR}
-	$(shell touch ${BUILD_DIR}/build_coverage)
-
+	$(shell touch $(GENERATED_MAKE_WITH_COVERAGE))
 
 #-------------------------------------------------------------------------------
 # Build the project
@@ -71,6 +70,10 @@ $(LIB_TAGRET): $(GENERATED_MAKE)
 	$(MAKE) -C ${BUILD_DIR} $(PROJECT)
 
 lib: $(LIB_TAGRET)
+
+
+$(BUILD_DIR)/build_coverage: $(GENERATED_MAKE_WITH_COVERAGE) $(LIB_TAGRET)
+	$(shell touch ${BUILD_DIR}/build_coverage)
 
 # Build the project with coverage
 build_coverage: $(BUILD_DIR)/build_coverage
@@ -87,6 +90,15 @@ tests: $(LIB_TAGRET) $(TEST_TAGRET)
 
 test: tests
 	 ./$(TEST_TAGRET)
+
+
+#-------------------------------------------------------------------------------
+# Build examples
+#-------------------------------------------------------------------------------
+.PHONY: examples
+examples: $(LIB_TAGRET)
+	$(MAKE) -C ${BUILD_DIR} examples
+
 
 #-------------------------------------------------------------------------------
 # Build docxygen documentation

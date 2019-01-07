@@ -2,7 +2,11 @@
 [options]
 
 [build_requires]
-
+#cppcheck/1.84@abbyssoul/stable
+#valgrind/3.14.0@abbyssoul/stable
 
 [generators]
 cmake
+
+[imports]
+valgrind:bin, * -> tools/bin # Copies all dll files from packages bin folder to my "bin" folder

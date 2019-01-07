@@ -23,6 +23,7 @@
 #include <gtest/gtest.h>
 #include "mockTypes.hpp"
 
+
 using namespace Solace;
 
 
@@ -309,6 +310,30 @@ TEST(TestVector, popBack) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
 }
 
+
+TEST(TestVector, clear) {
+    ASSERT_EQ(0, SimpleType::InstanceCount);
+    {
+        auto v = makeVector<SimpleType>(10);
+        v.emplace_back(3, 2, 1);
+        v.emplace_back(2, 1, 0);
+        v.emplace_back(1, 0, -1);
+        v.emplace_back(2, 1, 0);
+        v.emplace_back(3, 2, 1);
+
+        EXPECT_EQ(10, v.capacity());
+        EXPECT_FALSE(v.empty());
+        EXPECT_EQ(5, v.size());
+        EXPECT_EQ(5, SimpleType::InstanceCount);
+
+        EXPECT_NO_THROW(v.clear());
+        EXPECT_EQ(0, v.size());
+        EXPECT_EQ(0, SimpleType::InstanceCount);
+    }
+
+    // Important to make sure all the instances has been correctly destructed after scope exit
+    ASSERT_EQ(0, SimpleType::InstanceCount);
+}
 
 
 TEST(TestVector, moveOnlyTypes) {

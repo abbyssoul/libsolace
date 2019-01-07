@@ -1,10 +1,16 @@
 #!/usr/bin/env sh
 
 DIR="$( cd "$( dirname "${0}" )" && pwd )"
-project_name=$(basename $DIR)
 prefix=/usr/local
 debugsym=true
 sanitizer=true
+
+# Figure out project name:
+project_name=$(basename $DIR)
+if [ -f "PROJECT.name" ]; then
+    project_name=$(cat "PROJECT.name")
+fi
+
 
 for arg in "$@"; do
     case "$arg" in
@@ -49,6 +55,8 @@ done
 echo "Generating Makefile for ${project_name}..."
 echo "# Generated Makefile for ${project_name}: $(date)" > Makefile
 echo "PREFIX ?= ${prefix}" >> Makefile
+echo "PROJECT ?= ${project_name}" >> Makefile
+
 
 if $debugsym; then
     echo 'dbg = -g' >> Makefile
