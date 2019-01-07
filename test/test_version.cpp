@@ -89,7 +89,8 @@ TEST(TestVersion, testSpecs) {
         EXPECT_TRUE(v1_alpha < v1);
     }
 
-    { // 1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-alpha.beta < 1.0.0-beta < 1.0.0-beta.2 < 1.0.0-beta.11 < 1.0.0-rc.1 < 1.0.0
+    // 1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-alpha.beta < 1.0.0-beta < 1.0.0-beta.2 < 1.0.0-beta.11 < 1.0.0-rc.1 < 1.0.0
+    {
         const Version v1(1, 0, 7);
         const Version v1_alpha(1, 0, 7, "alpha");
         const Version v1_alpha1(1, 0, 7, "alpha.1");
@@ -138,7 +139,8 @@ TEST(TestVersion, testSpecs_ignoringMeta) {
         EXPECT_TRUE(v1_alpha < v1);
     }
 
-    {  // 1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-alpha.beta < 1.0.0-beta < 1.0.0-beta.2 < 1.0.0-beta.11 < 1.0.0-rc.1 < 1.0.0.
+    // 1.0.0-alpha < 1.0.0-alpha.1 < 1.0.0-alpha.beta < 1.0.0-beta < 1.0.0-beta.2 < 1.0.0-beta.11 < 1.0.0-rc.1 < 1.0.0
+    {
         const Version v1(1, 0, 0, "how.to.mess.it.123");
         const Version v1_alpha(1, 0, 0, "alpha");
         const Version v1_alpha1(1, 0, 0, "alpha.1");
@@ -280,7 +282,7 @@ TEST(TestVersion, testContainerReq) {
         EXPECT_EQ(Version(i, i % 3, 2*i + 1), versions[i]);
     }
 
-    versions.clear(); //[i] = Version(2*i + 1, i, i % 3, String::Empty, "Some-tags");
+    versions.clear();
     for (uint i = 0; i < kTestSetSize; ++i) {
         versions.emplace_back(2*i + 1, i, i % 3, String::Empty, "Some-tags");
     }
