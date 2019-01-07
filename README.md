@@ -28,7 +28,8 @@ _Note: it is by no means as strict implementation of all of P10 rules but an att
 ### Motivation
 Solace is used to provide building primitives to develop a systems of communicating process
 that solve a problem via collaboration (aka cluster application / actor system).
-As such it will never spawn a thread or allocate memory after initialisation.
+It puts developer in charge of the system and provides mechnism for explicit memory management.
+As such it will never spawn a thread or allocates memory after initialisation.
 
 ## Contributing changes
 The framework is work in progress and contributions are very welcomed.
@@ -39,7 +40,28 @@ Please note that in order to maintain code quality a set of static code analysis
 Thus all contributions must be verified by this tools before PR can be accepted.
 
 
-## Building
+# Using the library
+This library needs to be installed on your system in oreder to be used. There are a few ways this can be done:
+ - You can install pre-built version via [Conan](https://conan.io/) package manager. (Recomended)
+ - You can build it from sources and install locally.
+ - You can install pre-built version via your system's package manager such as deb/apt if it is avaliable in your system's repository.
+
+## Consuming library with conan
+The library can added to your project dependecies with conan:
+```
+[requires]
+libsolace/0.1.1@abbyssoul/stable
+```
+
+While the library is not avaliable in the conan-central repository - you need to use:
+```
+    conan remote add <REMOTE> https://api.bintray.com/conan/abbyssoul/public-conan
+```
+
+Please check the latest avliable [binary version](https://bintray.com/abbyssoul/public-conan/libsolace%3Aabbyssoul/_latestVersion).
+
+
+## Building from sources
 The project build is managed via CMake with a Makefile provided to automate some common actions during development process.
 
 ### Build tool dependencies
@@ -120,6 +142,7 @@ The library is designed with the following platforms in mind:
  * [Raspberry Pi](https://www.raspberrypi.org/)
  * [BeagleBone](http://beagleboard.org/)
  * [NVIDIA Jetson](https://www.nvidia.com/en-us/autonomous-machines/embedded-systems/)
+ * Linux / Freebsd / Macos
 
 
 ## Design

@@ -29,7 +29,7 @@ Only exception is when return is the only statement in a method.
     int doCalculations() {
         int result = 0;
         ....
-        result += compyteAstroResult();
+        result += computeAstroResult();
 
         return result;
     }
