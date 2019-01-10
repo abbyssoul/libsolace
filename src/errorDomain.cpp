@@ -35,6 +35,13 @@ const AtomValue Solace::kAsyncErrorCatergory = atom("async");
 static Dictionary<AtomValue, ErrorDomain*> kErrorDomainMap;
 
 
+uint32 Solace::registerErrorDomain(AtomValue categoryId, ErrorDomain& domain) noexcept {
+    kErrorDomainMap.put(categoryId, &domain);
+
+    return kErrorDomainMap.size();
+}
+
+
 Optional<ErrorDomain*>
 Solace::getErrorDomain(AtomValue categoryId) noexcept {
     return kErrorDomainMap.find(categoryId);

@@ -57,5 +57,8 @@ public:
 Optional<ErrorDomain*> getErrorDomain(AtomValue categoryId) noexcept;
 
 
+uint32 registerErrorDomain(AtomValue categoryId, ErrorDomain& domain) noexcept;
+
+
 }  // End of namespace Solace
 #endif  // SOLACE_ERRORDOMAIN_HPP
