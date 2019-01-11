@@ -54,10 +54,10 @@ public:
  * @param categoryId Atom identifing error domain
  * @return An error domain if one was found.
  */
-Optional<ErrorDomain*> getErrorDomain(AtomValue categoryId) noexcept;
+Optional<const ErrorDomain*> getErrorDomain(AtomValue categoryId) noexcept;
 
 
-uint32 registerErrorDomain(AtomValue categoryId, ErrorDomain& domain) noexcept;
+uint32 registerErrorDomain(AtomValue categoryId, ErrorDomain const& domain) noexcept;
 
 
 }  // End of namespace Solace

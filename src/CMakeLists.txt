@@ -3,6 +3,7 @@ set(SOURCE_FILES
         assert.cpp
         exception.cpp
         errorDomain.cpp
+        systemErrorDomain.cpp
         error.cpp
         atom.cpp
         char.cpp

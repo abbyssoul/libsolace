@@ -333,6 +333,7 @@ constexpr Vector<T> makeVector() noexcept {
 
 /**
  * Create a new vector with a given memory resource.
+ * Capacity of the resulting container is determined by the size of the resource.
  * @return A newly constructed empty vector.
  */
 template<typename T>

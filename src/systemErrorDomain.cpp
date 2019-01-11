@@ -14,25 +14,49 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- *	@file		error.cpp
- *	@author		$LastChangedBy: $
- *	@date		$LastChangedDate: $
- *	@brief		Implementation of error type
- *	ID:			$Id: $
+ *  @file   systemErrorDomain.cpp
+ *  @brief  Globals for System Error Domain
  ******************************************************************************/
+#include "solace/errorDomain.hpp"
 #include "solace/posixErrorDomain.hpp"
+
+
+#include <cstring>
+#include <cerrno>
+
 
 
 using namespace Solace;
 
 
-StringView
-Error::toString() const {
-    auto const domain = getErrorDomain(_domain);
+const AtomValue Solace::kSystemCatergory = atom("posix");
 
-    if (!domain) {
-        return _tag;
+
+class SystemErrorDomain
+    : public ErrorDomain {
+public:
+
+    StringView getName() const noexcept override {
+        return StringLiteral{"PosixSystemError"};
     }
 
-    return (*domain)->getMessage(_code);
+    StringView getMessage(int code) const noexcept override {
+        return std::strerror(code);
+    }
+};
+
+
+static const SystemErrorDomain kSystemErrorDomain;
+static const auto rego = registerErrorDomain(kSystemCatergory, kSystemErrorDomain);
+
+
+Error
+Solace::makeErrno() noexcept {
+    return makeSystemError(errno);
+}
+
+
+Error
+Solace::makeErrno(StringLiteral tag) noexcept {
+    return makeSystemError(errno, std::move(tag));
 }

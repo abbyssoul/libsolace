@@ -113,6 +113,21 @@ constexpr Dictionary<K, T> makeDictionary() noexcept {
     return {};
 }
 
+
+/**
+ * Create a new dictionary with a given memory resources.
+ * Capacity of the resulting container is determined by the size of the resource.
+ * @return A newly constructed empty dictionary.
+ */
+template<typename K, typename T>
+[[nodiscard]]
+Dictionary<K, T> makeDictionary(MemoryResource&& keysMem, MemoryResource&& valuesMem) noexcept {
+    using DictT = Dictionary<K, T>;
+
+    return {makeVector<typename DictT::key_type>(std::move(keysMem)),
+            makeVector<typename DictT::value_type>(std::move(valuesMem))};
+}
+
 /**
  * Create a new Dictionary object with a given capacity.
  * @param size Desired dictionary capacity.

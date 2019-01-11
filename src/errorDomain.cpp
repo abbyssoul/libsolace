@@ -28,21 +28,27 @@ using namespace Solace;
 
 
 const AtomValue Solace::kDefaultCatergory = atom("defaul");
-const AtomValue Solace::kSystemCatergory = atom("posix");
 const AtomValue Solace::kAsyncErrorCatergory = atom("async");
 
 
-static Dictionary<AtomValue, ErrorDomain*> kErrorDomainMap;
+static const size_t kNbErrorCategories = 128;
+static byte kKeysBuffer[kNbErrorCategories * sizeof(AtomValue)];
+static byte kValuesBuffer[kNbErrorCategories * sizeof(ErrorDomain*)];
 
 
-uint32 Solace::registerErrorDomain(AtomValue categoryId, ErrorDomain& domain) noexcept {
+static auto kErrorDomainMap = makeDictionary<AtomValue, ErrorDomain const*>(
+    wrapMemory(kKeysBuffer), wrapMemory(kValuesBuffer)
+    );
+
+
+uint32 Solace::registerErrorDomain(AtomValue categoryId, ErrorDomain const& domain) noexcept {
     kErrorDomainMap.put(categoryId, &domain);
 
     return kErrorDomainMap.size();
 }
 
 
-Optional<ErrorDomain*>
+Optional<ErrorDomain const*>
 Solace::getErrorDomain(AtomValue categoryId) noexcept {
     return kErrorDomainMap.find(categoryId);
 }
