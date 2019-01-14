@@ -36,12 +36,15 @@ static byte kKeysBuffer[kNbErrorCategories * sizeof(AtomValue)];
 static byte kValuesBuffer[kNbErrorCategories * sizeof(ErrorDomain*)];
 
 
-static auto kErrorDomainMap = makeDictionary<AtomValue, ErrorDomain const*>(
-    wrapMemory(kKeysBuffer), wrapMemory(kValuesBuffer)
-    );
+static Dictionary<AtomValue, ErrorDomain const*> kErrorDomainMap;
 
 
 uint32 Solace::registerErrorDomain(AtomValue categoryId, ErrorDomain const& domain) noexcept {
+    if (kErrorDomainMap.capacity() == 0) {
+        kErrorDomainMap = makeDictionary<AtomValue, ErrorDomain const*>(
+            wrapMemory(kKeysBuffer), wrapMemory(kValuesBuffer));
+    }
+
     kErrorDomainMap.put(categoryId, &domain);
 
     return kErrorDomainMap.size();
