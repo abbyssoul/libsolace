@@ -50,7 +50,7 @@ public:
     ~Exception() noexcept override = default;
 
     //! Construct exception w. message
-    Exception(const std::string& message) noexcept;
+    Exception(std::string message) noexcept;
 
     Exception(Exception const& other)       = default;
     Exception(Exception&& other) noexcept   = default;
@@ -127,6 +127,19 @@ public:
 
     NoSuchElementException(const char* elementName) noexcept;
 };
+
+
+/**
+ * Raised by accessor methods to signal that requested element does not exist.
+ */
+class InvalidStateException: public Exception {
+public:
+
+    InvalidStateException() noexcept;
+
+    InvalidStateException(const char* tag) noexcept;
+};
+
 
 /**
  * Exception during IO operations

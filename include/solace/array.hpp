@@ -76,7 +76,7 @@ public:
     {
     }
 
-    /** */
+    /** Contruct an array of a given size from a memory resource */
     constexpr Array(MemoryResource&& buffer, size_type len) noexcept
         : _buffer(std::move(buffer))
         , _size(len)
@@ -201,10 +201,24 @@ public:
         return view().data();
     }
 
-    ArrayView<const T> view() const noexcept {
+    /**
+     * @brief Get view of this array.
+     * @return View of this array.
+     *
+     * @note The view does not take ownership of the storage. It is user's responsibility
+     * to make sure that the view return is not used after the array life-time.
+     */
+    ArrayView<T const> view() const noexcept {
         return arrayView<T const>(_buffer.view(), _size);
     }
 
+    /**
+     * @brief Get mutalbe view of this array.
+     * @return Mutalbe view of this array.
+     *
+     * @note The view does not take ownership of the storage. It is user's responsibility
+     * to make sure that the view return is not used after the array life-time.
+     */
     ArrayView<T> view() noexcept {
         return arrayView<T>(_buffer.view(), _size);
     }

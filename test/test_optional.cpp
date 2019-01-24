@@ -182,7 +182,7 @@ TEST_F(TestOptional, testSwap) {
         EXPECT_TRUE(v2.isNone());
 
         EXPECT_EQ(3, v1.get());
-        EXPECT_THROW(v2.get(), Solace::NoSuchElementException);
+        EXPECT_THROW(v2.get(), InvalidStateException);
     }
     {
         auto v1 = Optional<SimpleType>{};
@@ -207,7 +207,7 @@ TEST_F(TestOptional, testSwap) {
         EXPECT_TRUE(v2.isNone());
 
         EXPECT_EQ(412, v1.get().z);
-        EXPECT_THROW(v2.get(), NoSuchElementException);
+        EXPECT_THROW(v2.get(), InvalidStateException);
     }
 
     {
@@ -233,7 +233,7 @@ TEST_F(TestOptional, testSwap) {
         EXPECT_TRUE(v2.isNone());
 
         EXPECT_EQ(998, v1.get().x_);
-        EXPECT_THROW(v2.get(), NoSuchElementException);
+        EXPECT_THROW(v2.get(), InvalidStateException);
     }
 }
 
@@ -272,7 +272,7 @@ TEST_F(TestOptional, testEmpty) {
 
         EXPECT_TRUE(v.isNone());
         EXPECT_TRUE(!v.isSome());
-        EXPECT_THROW(v.get(), NoSuchElementException);
+        EXPECT_THROW(v.get(), InvalidStateException);
     }
     EXPECT_EQ(0, SimpleType::InstanceCount);
 
@@ -282,7 +282,7 @@ TEST_F(TestOptional, testEmpty) {
 
         EXPECT_TRUE(v.isNone());
         EXPECT_TRUE(!v.isSome());
-        EXPECT_THROW(v.get(), NoSuchElementException);
+        EXPECT_THROW(v.get(), InvalidStateException);
     }
     EXPECT_EQ(0, MoveOnlyType::InstanceCount);
 }
@@ -296,8 +296,8 @@ TEST_F(TestOptional, testString) {
     EXPECT_EQ(StringLiteral("hello-xyz"), v1.get());
 }
 
-TEST_F(TestOptional, testGetRaises) {
-    EXPECT_THROW(Optional<String>{}.get(), NoSuchElementException);
+TEST_F(TestOptional, testGetFromNoneRaises) {
+    EXPECT_THROW(Optional<String>{}.get(), InvalidStateException);
 }
 
 TEST_F(TestOptional, testOrElse) {

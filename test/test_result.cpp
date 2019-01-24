@@ -341,6 +341,19 @@ TEST_F(TestResult, getErrorOnOkThrows) {
     EXPECT_THROW(v.getError(), Exception);
 }
 
+TEST_F(TestResult, dereferencingOk) {
+    Result<int, char> v = Ok(32);
+
+    EXPECT_EQ(32, *v);
+}
+
+TEST_F(TestResult, dereferencingErrThrows) {
+    Result<int, char> v = Err('3');
+
+    EXPECT_THROW(*v, Exception);
+}
+
+
 TEST_F(TestResult, testVoidResult) {
     Result<void, int> v = Ok();
 

@@ -333,6 +333,9 @@ public:
         return !_engaged;
     }
 
+    V& operator* () { return unwrap(); }
+    V const& operator* () const { return unwrap(); }
+
     V const& unwrap() const& {
         if (isError()) {
             raiseInvalidStateError();

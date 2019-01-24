@@ -60,8 +60,8 @@ std::string formatErrono(int errorCode, std::string const& msgex) {
 
 
 
-Exception::Exception(const std::string& message) noexcept :
-        _message(message)
+Exception::Exception(std::string message) noexcept
+    : _message(std::move(message))
 {
     // Nothing else to do here
 }
@@ -216,6 +216,18 @@ NoSuchElementException::NoSuchElementException(const char* elementName) noexcept
     // Nothing else to do here
 }
 
+
+InvalidStateException::InvalidStateException() noexcept
+    : Exception("Invalid State")
+{
+
+}
+
+InvalidStateException::InvalidStateException(const char* tag) noexcept
+    : Exception(std::string("Invalid state: " + std::string(tag)))
+{
+
+}
 
 
 IOException::IOException(const std::string& msg) noexcept

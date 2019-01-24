@@ -76,15 +76,18 @@ uint16 Solace::assertIndexInRange(uint16 index, uint16 from, uint16 to, const ch
     return index;
 }
 
+[[noreturn]]
 void Solace::raiseInvalidStateError() {
-    Solace::raise<NoSuchElementException>("None");
+    Solace::raise<InvalidStateException>();
 }
 
-void Solace::raiseInvalidStateError(const char* message) {
-    Solace::raise<Exception>(message);
+[[noreturn]]
+void Solace::raiseInvalidStateError(const char* tag) {
+    Solace::raise<InvalidStateException>(tag);
 }
 
 
+[[noreturn]]
 void Solace::assertFail(const char* tag) {
     Solace::raise<Exception>(tag);
 }

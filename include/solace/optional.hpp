@@ -95,7 +95,7 @@ public:
 
 public:
 
-    ~Optional() {
+    inline ~Optional() {
         destroy();
     }
 
@@ -336,7 +336,7 @@ private:
 
 
 template <typename T>
-Optional<T> Optional<T>::_emptyInstance {none};
+inline Optional<T> Optional<T>::_emptyInstance {none};
 
 
 template<typename T>
