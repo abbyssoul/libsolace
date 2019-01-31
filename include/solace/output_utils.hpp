@@ -34,21 +34,22 @@
 
 #include <ostream>
 
+namespace Solace {
 
-inline std::ostream& operator<< (std::ostream& ostr, Solace::StringView const& str) {
+inline std::ostream& operator<< (std::ostream& ostr, StringView const& str) {
     return ostr.write(str.data(), str.size());
 }
 
-inline std::ostream& operator<< (std::ostream& ostr, Solace::Error const& e) {
+inline std::ostream& operator<< (std::ostream& ostr, Error const& e) {
     auto const errorDomaint = e.domain();
     auto const domain = getErrorDomain(errorDomaint);
 
     if (domain) {
         ostr << (*domain)->getName();
     } else {
-        constexpr auto N = sizeof(Solace::AtomValue);
+        constexpr auto N = sizeof(AtomValue);
         char buffer[sizeof(N) + 1];
-        Solace::detail::unwrap<std::uintmax_t>(static_cast<std::uintmax_t>(errorDomaint), buffer);
+        detail::unwrap<std::uintmax_t>(static_cast<std::uintmax_t>(errorDomaint), buffer);
         ostr.write(buffer, N);
     }
 
@@ -65,14 +66,14 @@ inline std::ostream& operator<< (std::ostream& ostr, Solace::Error const& e) {
     return ostr;
 }
 
-inline std::ostream& operator<< (std::ostream& ostr, Solace::MemoryView view) {
+inline std::ostream& operator<< (std::ostream& ostr, MemoryView view) {
     if (view.empty()) {
         return ostr << "<null>";
     }
 
     // We use custom output printing each byte as \0 bytest and \n are not printable otherwise.
-    auto i = Solace::base16Encode_begin(view);
-    auto const end = Solace::base16Encode_end(view);
+    auto i = base16Encode_begin(view);
+    auto const end = base16Encode_end(view);
     for (; i != end; ++i) {
         ostr << *i;
     }
@@ -81,13 +82,13 @@ inline std::ostream& operator<< (std::ostream& ostr, Solace::MemoryView view) {
 }
 
 
-inline std::ostream& operator<< (std::ostream& ostr, Solace::String const& str) {
+inline std::ostream& operator<< (std::ostream& ostr, String const& str) {
     return ostr << str.view();
 }
 
 
 inline std::ostream&
-operator<< (std::ostream& ostr, Solace::hashing::MessageDigest const& a) {
+operator<< (std::ostream& ostr, hashing::MessageDigest const& a) {
     ostr << '[';
 
     auto const dataView = a.view();
@@ -106,29 +107,29 @@ operator<< (std::ostream& ostr, Solace::hashing::MessageDigest const& a) {
 
 
 // FIXME: std dependence, used for Unit Testing only
-inline std::ostream& operator<< (std::ostream& ostr, Solace::Path const& v) {
+inline std::ostream& operator<< (std::ostream& ostr, Path const& v) {
     return ostr << v.toString();
 }
 
 
 // FIXME: std dependence, used for Unit Testing only
-inline std::ostream& operator<< (std::ostream& ostr, Solace::UUID const& v) {
+inline std::ostream& operator<< (std::ostream& ostr, UUID const& v) {
     return ostr << v.toString();
 }
 
 // FIXME: std dependence, used for Unit Testing only
-inline std::ostream& operator<< (std::ostream& ostr, Solace::Version const& v) {
+inline std::ostream& operator<< (std::ostream& ostr, Version const& v) {
     return ostr << v.toString();
 }
 
 
 // TODO(abbyssoul): Should be in a separate file, if at all
 template <typename T>
-std::ostream& operator<< (std::ostream& ostr, const Solace::Optional<T>& anOptional) {
+std::ostream& operator<< (std::ostream& ostr, const Optional<T>& anOptional) {
     return (anOptional.isNone())
             ? ostr.write("None", 4)
             : ostr << anOptional.get();
 }
 
-
+}  // namespace Solace
 #endif  // SOLACE_OUTPUT_UTILS_HPP
