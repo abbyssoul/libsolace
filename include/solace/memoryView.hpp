@@ -263,7 +263,8 @@ inline MemoryView wrapMemory(PodType const (&data)[N]) {
 }
 
 
-inline void swap(MemoryView& a, MemoryView& b) {
+inline
+void swap(MemoryView& a, MemoryView& b) noexcept {
     a.swap(b);
 }
 

@@ -78,7 +78,13 @@ public:  // Additional to base object operations
 
     String& operator= (String const&) = delete;
 
-    String& swap(String& rhs) noexcept;
+    String& swap(String& rhs) noexcept {
+        using std::swap;
+        swap(_size, rhs._size);
+        swap(_buffer, rhs._buffer);
+
+        return *this;
+    }
 
     String& operator= (String&& rhs) noexcept {
 		return swap(rhs);

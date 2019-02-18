@@ -109,15 +109,6 @@ Solace::makeStringReplace(StringView str, StringView what, StringView by) {
 }
 
 
-
-String& String::swap(String& rhs) noexcept {
-    using std::swap;
-    _buffer.swap(rhs._buffer);
-    swap(_size, rhs._size);
-
-    return *this;
-}
-
 bool String::equals(StringView v) const noexcept {
     return view().equals(v);
 }

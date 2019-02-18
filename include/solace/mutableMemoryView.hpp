@@ -230,7 +230,7 @@ inline MutableMemoryView wrapMemory(PodType (&data)[N]) {
 
 
 inline void
-swap(MutableMemoryView& a, MutableMemoryView& b) {
+swap(MutableMemoryView& a, MutableMemoryView& b) noexcept {
     a.swap(b);
 }
 

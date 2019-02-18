@@ -144,15 +144,6 @@ public:
     constexpr bool hasRemaining() const noexcept { return remaining() > 0; }
 
     /**
-     * Set position back to the previously saved mark
-     * @return Reference to this buffer.
-     */
-    Result<void, Error>
-    reset(size_type savedMark) noexcept {
-        return position(savedMark);
-    }
-
-    /**
      * Get current position in the buffer.
      * It can be stored to later return to it using @see reset
      * @return Current position in the buffer

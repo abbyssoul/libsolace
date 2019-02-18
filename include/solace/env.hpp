@@ -34,7 +34,7 @@
 namespace Solace {
 
 /**
- * This class incapsulates access to the running process runtime environment variables.
+ * This class incapsulates access to the process runtime environment variables.
  */
 class Env {
 public:
@@ -54,18 +54,16 @@ public:
      */
     struct Iterator {
 
-        constexpr Iterator(size_type size, size_type position) noexcept
-            : _index(position)
-            , _size(size)
+        constexpr Iterator(size_type size, size_type position/*, char** env*/) noexcept
+            : _index{position}
+            , _size{size}
+//            , _environ{env}
         {}
 
         constexpr Iterator(Iterator const& rhs) noexcept = default;
+        constexpr Iterator(Iterator&& rhs) noexcept = default;
 
-        constexpr Iterator(Iterator&& rhs) noexcept
-            : _index(rhs._index)
-            , _size(rhs._size)
-        {}
-
+        Iterator& operator= (Iterator const& rhs) noexcept = default;
         Iterator& operator= (Iterator&& rhs) noexcept {
             return swap(rhs);
         }
@@ -98,11 +96,22 @@ public:
     private:
         size_type _index;
         size_type _size;
+//        char** _environ;
     };
 
     using const_iterator = const Iterator;
 
 public:
+
+
+    /// Construct with default process environment
+    Env() noexcept;
+
+    /**
+     * @brief Construct using custom environment.
+     * @param env A null terminated array of c-strings of form "key=value"
+     */
+    /*constexpr */Env(char** env) noexcept;
 
     /**
      * Get a value of the environment variable if one exists.
@@ -157,12 +166,12 @@ public:
     size_type size() const noexcept;
 
     const_iterator begin() const noexcept {
-        return Iterator(size(), 0);
+        return {size(), 0/*, _environ*/};
     }
 
     const_iterator end() const noexcept {
         auto const pos = size();
-        return Iterator(pos, pos);
+        return {pos, pos/*, _environ*/};
     }
 
 
@@ -196,6 +205,10 @@ public:
 
         return *this;
     }
+
+private:
+    // TODO(abbyssoul): Support dup env with Vector<String> env;
+//    char** _environ;
 };
 
 

@@ -45,7 +45,7 @@ int clearenv(void) {
     return 0;
 }
 #else
-extern char **environ;
+extern char** environ;
 #endif
 
 
@@ -66,36 +66,51 @@ Env::Var
 Env::Iterator::operator-> () const {
     assertIndexInRange(_index, 0, _size, "iterator");
 
-    int i = 0;
     Env::Var var;
-    StringView(environ[_index])
-            .split('=', [&var, &i](StringView v) {
-                if (i == 0) {
-                   var.name = v;
-                } else if (i == 1) {
-                   var.value = v;
-                }
+    StringView{environ[_index]}
+        .split(StringLiteral{"="}, [&var](StringView v, StringView::size_type i, StringView::size_type) {
+            if (i == 0) {
+               var.name = v;
+            } else if (i == 1) {
+               var.value = v;
+            }
 
-                ++i;
-            });
+            ++i;
+        });
 
     return var;
 }
 
 
+Env::Env(char** env) noexcept {
+
+}
+
+Env::Env() noexcept
+//    : _environ{environ}
+{
+}
+
 
 Optional<StringView>
 Env::get(StringView name) const noexcept {
-    auto value =
-    #ifdef SOLACE_PLATFORM_LINUX
-        secure_getenv(name.data());
-    #else
-        getenv(name.data());
-    #endif
+    for (auto e : *this) {
+        if (e.name.equals(name))
+            return Optional<StringView>{e.value};
+    }
 
-    return (value != nullptr)
-            ? Optional<StringView>{value}
-            : none;
+    return none;
+
+//    auto value =
+//    #ifdef SOLACE_PLATFORM_LINUX
+//        secure_getenv(name.data());
+//    #else
+//        getenv(name.data());
+//    #endif
+
+//    return (value != nullptr)
+//            ? Optional<StringView>{value}
+//            : none;
 }
 
 
@@ -115,17 +130,19 @@ Result<void, Error> Env::unset(StringView name) noexcept {
 
 
 // cppcheck-suppress unusedFunction
-Result<void, Error> Env::clear() noexcept {
+Result<void, Error>
+Env::clear() noexcept {
     return (clearenv())
         ? none
         : Result<void, Error>{makeErrno("clearenv")};
 }
 
 
-Env::size_type Env::size() const noexcept {
+Env::size_type
+Env::size() const noexcept {
     size_type environSize = 0;
 
-    // TODO(abbyssoul): Unbounded loop OMG!
+    // NOTE: Unbounded loop OMG!
     while (environ && environ[environSize]) {
         ++environSize;
     }

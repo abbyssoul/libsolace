@@ -83,8 +83,9 @@ public:
     {}
 
     MemoryResource& swap(MemoryResource& rhs) noexcept {
-        _data.swap(rhs._data);
-        std::swap(_disposer, rhs._disposer);
+        using std::swap;
+        swap(_data, rhs._data);
+        swap(_disposer, rhs._disposer);
 
         return *this;
     }
@@ -111,6 +112,12 @@ private:
     MutableMemoryView   _data;
     Disposer const*     _disposer {nullptr};
 };
+
+
+inline void
+swap(MemoryResource& a, MemoryResource& b) noexcept {
+    a.swap(b);
+}
 
 }  // End of namespace Solace
 #endif  // SOLACE_MEMORYRESOURCE_HPP

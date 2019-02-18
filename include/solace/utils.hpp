@@ -48,7 +48,7 @@ template <typename T> using DontInfer_t = typename DontInfer<T>::value;
 template <typename T>
 T instance() noexcept;
 
-
+/*
 template<class X, class Y, class Op>
 struct op_valid_impl {
     template<class U, class L, class R>
@@ -59,8 +59,8 @@ struct op_valid_impl {
     static auto test(...) -> std::false_type;
 
     using type = decltype(test<Op, X, Y>(0));
-
 };
+*/
 
 template <typename T> struct RemoveConst_ { typedef T Type; };
 template <typename T> struct RemoveConst_<const T> { typedef T Type; };

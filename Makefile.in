@@ -40,6 +40,9 @@ else
 	BUILD_TYPE = Release
 endif
 
+ifdef CONAN_PROFILE
+    CONAN_INSTALL_PROFILE = --profile ${CONAN_PROFILE}
+endif
 
 # First tagret that starts not with '.'' - is a default target to run
 .PHONY: codecheck verify test ANALYZE_MAKE
@@ -54,7 +57,7 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(DEP_INSTALL): $(BUILD_DIR)
-	cd ${BUILD_DIR} && conan install ..
+	cd ${BUILD_DIR} && conan install .. ${CONAN_INSTALL_PROFILE}
 
 $(GENERATED_MAKE): $(DEP_INSTALL)
 	cd ${BUILD_DIR} && cmake -DSANITIZE=${SANITIZE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..

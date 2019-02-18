@@ -58,13 +58,13 @@ TEST(TestProcessEnv, testComplex) {
         EXPECT_GT(env.size(), 1);
 
         auto const var = env.get(name);
-        EXPECT_TRUE(var.isSome());
+        ASSERT_TRUE(var.isSome());
         EXPECT_EQ(uid1, *var);
     }
 
     {
         auto const uid2 = randomValue();
-        EXPECT_TRUE(env.set(name, uid2).isOk());
+        ASSERT_TRUE(env.set(name, uid2).isOk());
 
         auto const var2 = env.get(name);
         EXPECT_EQ(uid2, *var2);
