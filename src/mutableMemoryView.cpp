@@ -1,5 +1,3 @@
-#include <utility>
-
 /*
 *  Copyright 2016 Ivan Ryabov
 *

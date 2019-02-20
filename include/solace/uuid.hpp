@@ -25,7 +25,6 @@
 #define SOLACE_UUID_HPP
 
 #include "solace/types.hpp"
-#include "solace/traits/icomparable.hpp"
 
 #include "solace/memoryView.hpp"
 #include "solace/string.hpp"
@@ -39,8 +38,7 @@ namespace Solace {
  * Universally Unique Identifier - as per RFC 4122, eg. unique 128 bit number.
  * UUID is a collection of bytes or a single unique 128bit nubmer.
  */
-class UUID :
-        public IComparable<UUID> {
+class UUID {
 public:
     using size_type = MemoryView::size_type;
     using value_type = byte;
@@ -95,7 +93,7 @@ public:
         return *this;
     }
 
-    bool equals(UUID const& rhs) const noexcept override;
+    bool equals(UUID const& rhs) const noexcept;
 
     /**
      * Test if this is a 'special' case of a nil UUID
@@ -144,11 +142,13 @@ public:
     reference  operator[] (size_type index);
     value_type operator[] (size_type index) const;
 
-    MemoryView view() const noexcept {
+    [[nodiscard]]
+    constexpr MemoryView view() const noexcept {
         return wrapMemory(_bytes);
     }
 
-    MutableMemoryView view() noexcept {
+    [[nodiscard]]
+    constexpr MutableMemoryView view() noexcept {
         return wrapMemory(_bytes);
     }
 
@@ -202,7 +202,7 @@ inline void swap(UUID& lhs, UUID& rhs) noexcept {
  */
 [[nodiscard]] UUID makeUUID(MemoryView s);
 
-[[nodiscard]] UUID makeUUID(uint32 a0, uint32 a1, uint32 a2, uint32 a3);
+[[nodiscard]] UUID makeUUID(uint32 a0, uint32 a1, uint32 a2, uint32 a3) noexcept;
 
 
 /** Create random UUID

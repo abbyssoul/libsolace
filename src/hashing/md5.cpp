@@ -38,24 +38,12 @@ static const byte md5_padding[64] = {
 
 SOLACE_NO_SANITIZE("unsigned-integer-overflow")
 void md5_process(MD5::State& ctx, const byte data[64]) {
-    uint32_t X[16], A, B, C, D;
+    uint32 X[16], A, B, C, D;
 
-    getUint32_LE(X[ 0], data,  0);
-    getUint32_LE(X[ 1], data,  4);
-    getUint32_LE(X[ 2], data,  8);
-    getUint32_LE(X[ 3], data, 12);
-    getUint32_LE(X[ 4], data, 16);
-    getUint32_LE(X[ 5], data, 20);
-    getUint32_LE(X[ 6], data, 24);
-    getUint32_LE(X[ 7], data, 28);
-    getUint32_LE(X[ 8], data, 32);
-    getUint32_LE(X[ 9], data, 36);
-    getUint32_LE(X[10], data, 40);
-    getUint32_LE(X[11], data, 44);
-    getUint32_LE(X[12], data, 48);
-    getUint32_LE(X[13], data, 52);
-    getUint32_LE(X[14], data, 56);
-    getUint32_LE(X[15], data, 60);
+    ByteReader reader{wrapMemory(data, 64)};
+    for (auto& x : X) {
+        reader.readLE(x);
+    }
 
 #define S(x, n) ((x << n) | ((x & 0xFFFFFFFF) >> (32 - n)))
 #define F(x, y, z) (z ^ (x & (y ^ z)))
@@ -157,7 +145,7 @@ void md5_process(MD5::State& ctx, const byte data[64]) {
 
 void md5_update(MD5::State& ctx, const byte *input, MD5::size_type inputLen) {
     size_t fill;
-    uint32_t left;
+    uint32 left;
 
     if (inputLen == 0)
         return;
@@ -192,7 +180,7 @@ void md5_update(MD5::State& ctx, const byte *input, MD5::size_type inputLen) {
 }
 
 
-MD5::MD5() {
+MD5::MD5() noexcept {
     _state.bits[0] = 0;
     _state.bits[1] = 0;
 
@@ -222,24 +210,26 @@ HashingAlgorithm& MD5::update(MemoryView input) {
 
 MessageDigest MD5::digest() {
     byte result[16];
+    ByteWriter writer{wrapMemory(result)};
 
-    uint32 high = (_state.bits[0] >> 29) | (_state.bits[1] <<  3);
-    uint32 low  = (_state.bits[0] <<  3);
+    uint32 const high = (_state.bits[0] >> 29) | (_state.bits[1] <<  3);
+    uint32 const low  = (_state.bits[0] <<  3);
 
     byte msglen[8];
-    putUint32_LE(low,  msglen, 0);
-    putUint32_LE(high, msglen, 4);
+    ByteWriter msgLenWriter{wrapMemory(msglen)};
+    msgLenWriter.writeLE(low);
+    msgLenWriter.writeLE(high);
 
-    const uint32 last = _state.bits[0] & 0x3F;
-    const uint32 padn = (last < 56) ? (56 - last) : (120 - last);
+    uint32 const last = _state.bits[0] & 0x3F;
+    uint32 const padn = (last < 56) ? (56 - last) : (120 - last);
 
     md5_update(_state, md5_padding, padn);
     md5_update(_state, msglen, 8);
 
-    putUint32_LE(_state.state[0], result,  0);
-    putUint32_LE(_state.state[1], result,  4);
-    putUint32_LE(_state.state[2], result,  8);
-    putUint32_LE(_state.state[3], result, 12);
+    writer.writeLE(_state.state[0]);
+    writer.writeLE(_state.state[1]);
+    writer.writeLE(_state.state[2]);
+    writer.writeLE(_state.state[3]);
 
-    return MessageDigest(wrapMemory(result));
+    return MessageDigest(writer.viewWritten());
 }

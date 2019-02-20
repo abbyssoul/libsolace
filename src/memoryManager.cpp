@@ -22,28 +22,23 @@
  *	ID:			$Id$
  ******************************************************************************/
 #include "solace/memoryManager.hpp"
-#include "solace/exception.hpp"
 
 
-#include <cstring>  // memcpy
 #include <unistd.h>
-#include <cerrno>
+#include <cstdlib>
 
 
 using namespace Solace;
 
 
-MemoryManager::MemoryManager(size_type allowedCapacity) :
-    _capacity(allowedCapacity),
-    _size(0),
-    _isLocked(false),
-    _disposer(*this)
+MemoryManager::MemoryManager(size_type allowedCapacity)
+    : _capacity{allowedCapacity}
+    , _size{}
+    , _isLocked{false}
+    , _disposer(*this)
 {
-
     auto const totalAvaliableMemory = getPageSize() * getNbPages();
-    if (totalAvaliableMemory < _capacity) {
-        Solace::raise<IllegalArgumentException>("allowedCapacity can't be more then total system's memory");
-    }
+    assertTrue(_capacity < totalAvaliableMemory, "allowedCapacity can't be more then total system's memory");
 }
 
 
@@ -60,15 +55,13 @@ MemoryManager& MemoryManager::swap(MemoryManager& rhs) noexcept {
 
 MemoryManager::size_type MemoryManager::getPageSize() const {
 //    auto const res = sysconf(PAGESIZE);
-    return getpagesize();
+    return narrow_cast<size_type>(getpagesize());
 }
 
 
 MemoryManager::size_type MemoryManager::getNbPages() const {
     auto const res = sysconf(_SC_PHYS_PAGES);
-    if (res < 0) {
-        Solace::raise<IOException>(errno, "sysconf(_SC_PHYS_PAGES)");
-    }
+    assertErrno(res >= 0, "sysconf(_SC_PHYS_PAGES)");
 
     // By now it is safe to cast to unsigned type as we have checked for negative values above.
     return static_cast<MemoryManager::size_type>(res);
@@ -76,10 +69,8 @@ MemoryManager::size_type MemoryManager::getNbPages() const {
 
 MemoryManager::size_type MemoryManager::getNbAvailablePages() const {
 #ifdef SOLACE_PLATFORM_LINUX
-  auto const res = sysconf(_SC_AVPHYS_PAGES);
-    if (res < 0) {
-        Solace::raise<IOException>(errno, "sysconf(_SC_AVPHYS_PAGES)");
-    }
+    auto const res = sysconf(_SC_AVPHYS_PAGES);
+    assertErrno(res >= 0, "sysconf(_SC_AVPHYS_PAGES)");
 
     // By now it is safe to cast to unsigned type as we have checked for negative values above.
     return static_cast<MemoryManager::size_type>(res);
@@ -105,15 +96,9 @@ void MemoryManager::free(MemoryView* view) {
 
 MemoryResource
 MemoryManager::allocate(size_type dataSize) {
-    if (size() + dataSize > capacity()) {
-        raise<OverflowException>("dataSize", dataSize, 0, capacity() - size());
-    }
+    assertIndexInRange(dataSize, 0, limit() + 1, "dataSize");
+    assertTrue(!isLocked(), "Cannot allocate memory block: allocator is locked.");
 
-    if (isLocked()) {
-        raise<Exception>("Cannot allocate memory block: allocator is locked.");
-    }
-
-//    auto data = new MutableMemoryView::value_type[dataSize];
     auto data = ::malloc(dataSize);
 
     _size += dataSize;

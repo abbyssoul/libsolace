@@ -95,7 +95,7 @@ public:
 
 public:
 
-    inline ~Optional() {
+    inline ~Optional() noexcept(std::is_nothrow_destructible_v<T>) {
         destroy();
     }
 
@@ -112,17 +112,17 @@ public:
     {}
 
 
-    Optional(Optional<T>&& other) noexcept(std::is_nothrow_move_constructible<T>::value) :
-        _engaged(other.isSome()
-                 ? construct(std::move(other._payload))
-                 : false)
+    Optional(Optional<T>&& other) noexcept(std::is_nothrow_move_constructible<T>::value)
+        : _engaged(other.isSome()
+                   ? construct(std::move(other._payload))
+                   : false)
     {
     }
 
-    Optional(Optional<T> const& other) noexcept(std::is_nothrow_copy_constructible<T>::value) :
-        _engaged(other.isSome()
-                 ? construct(other._payload)
-                 : false)
+    Optional(Optional<T> const& other) noexcept(std::is_nothrow_copy_constructible<T>::value)
+        : _engaged(other.isSome()
+                   ? construct(other._payload)
+                   : false)
     {
     }
 
@@ -141,18 +141,18 @@ public:
 //    template<typename D,
 //             typename unused = std::enable_if_t<std::is_copy_assignable<T>::value, void>
 //             >
-    Optional(T const& t) noexcept(std::is_nothrow_copy_constructible<T>::value) :
-        _payload{t},
-        _engaged{true}
+    Optional(T const& t) noexcept(std::is_nothrow_copy_constructible<T>::value)
+        : _payload{t}
+        , _engaged{true}
     {}
 
 
     /**
      * Construct an non-empty optional value moving value.
      */
-    Optional(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value) :
-        _payload{std::move(t)},
-        _engaged{true}
+    Optional(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value)
+        : _payload{std::move(t)}
+        , _engaged{true}
     {}
 
     /**

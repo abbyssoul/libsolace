@@ -190,30 +190,30 @@ enum class SystemErrors : int {
 };
 
 /// Create an error object representing given system error code.
-/*constexpr*/ [[nodiscard]] inline
-Error makeSystemError(int errCode) noexcept {
+[[nodiscard]]
+constexpr Error makeSystemError(int errCode) noexcept {
     return Error{kSystemCatergory, errCode};
 }
 
 /// Create an error object representing given system error code with a tag.
-/*constexpr*/ [[nodiscard]] inline
-Error makeSystemError(int errCode, StringLiteral tag) noexcept {
+[[nodiscard]]
+constexpr Error makeSystemError(int errCode, StringLiteral tag) noexcept {
     return Error{kSystemCatergory, errCode, std::move(tag)};
 }
 
 
-/*constexpr*/ [[nodiscard]] inline
-Error makeError(BasicError errCode, StringLiteral tag) noexcept {
+[[nodiscard]]
+constexpr Error makeError(BasicError errCode, StringLiteral tag) noexcept {
     return Error{kSystemCatergory, static_cast<int>(errCode), tag};
 }
 
-/*constexpr*/ [[nodiscard]] inline
-Error makeError(GenericError errCode, StringLiteral tag) noexcept {
+[[nodiscard]]
+constexpr Error makeError(GenericError errCode, StringLiteral tag) noexcept {
     return Error{kSystemCatergory, static_cast<int>(errCode), tag};
 }
 
-/*constexpr*/ [[nodiscard]] inline
-Error makeError(SystemErrors errCode, StringLiteral tag) noexcept {
+[[nodiscard]]
+constexpr Error makeError(SystemErrors errCode, StringLiteral tag) noexcept {
     return Error{kSystemCatergory, static_cast<int>(errCode), tag};
 }
 

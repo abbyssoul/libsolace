@@ -56,12 +56,16 @@ public:
     /// Non-default destructor release memory owned using disposer.
     ~MemoryResource();
 
+
+    MemoryResource(MemoryResource const& rhs) = delete;
+    MemoryResource& operator= (MemoryResource const& rhs) = delete;
+
     /** Construct an empty memory buffer */
     constexpr MemoryResource() noexcept = default;
 
     constexpr MemoryResource(MemoryResource&& rhs) noexcept
-        : _data(std::move(rhs._data))
-        , _disposer(exchange(rhs._disposer, nullptr))
+        : _data{std::move(rhs._data)}
+        , _disposer{exchange(rhs._disposer, nullptr)}
     {
     }
 
@@ -69,17 +73,14 @@ public:
         return swap(rhs);
     }
 
-    MemoryResource(MemoryResource const& rhs) = delete;
-    MemoryResource& operator= (MemoryResource const& rhs) = delete;
-
     /**
      * Construct a memory buffer from a memory view with a given disposer.
      * @param data A memory view this buffer owns.
      * @param disposer A disposer to dispose of the memory when this memory buffer is destroyed.
      */
-    constexpr MemoryResource(MutableMemoryView data, Disposer* disposer = nullptr) noexcept :
-        _data(std::move(data)),
-        _disposer(disposer)
+    constexpr MemoryResource(MutableMemoryView data, Disposer* disposer = nullptr) noexcept
+        : _data{std::move(data)}
+        , _disposer{disposer}
     {}
 
     MemoryResource& swap(MemoryResource& rhs) noexcept {

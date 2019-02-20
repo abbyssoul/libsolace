@@ -92,6 +92,13 @@ public:
         return _capacity;
     }
 
+    /**
+     * @return Maxumum number of bytes that can be allocated
+     */
+    constexpr size_type limit() const noexcept {
+        return _capacity - _size;
+    }
+
     /** Get size of a memory page in bytes.
      * @return Size of the system's memory page in bytes.
      */

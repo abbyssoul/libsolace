@@ -54,8 +54,6 @@ public:
 
 public:
 
-    ~ArrayView() noexcept = default;
-
     /** Construct an empty array */
     constexpr ArrayView() noexcept = default;
 

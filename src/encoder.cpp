@@ -22,6 +22,7 @@
 
 using namespace Solace;
 
+// Do not remove: It's virutual base
 Encoder::~Encoder() = default;
 
 

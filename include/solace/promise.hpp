@@ -132,16 +132,16 @@ public:
     /**
      * Construct an empty promise
      */
-    Promise() :
-        _core(std::make_shared<Core<T>>())
+    Promise()
+        : _core(std::make_shared<Core<T>>())
     {}
 
-    Promise(Promise<T>&& rhs) noexcept :
-        _core(std::move(rhs._core))
+    Promise(Promise<T>&& rhs) noexcept
+        : _core(std::move(rhs._core))
     {}
 
-    Promise(std::shared_ptr<core_type>&& core) noexcept :
-        _core(std::move(core))
+    Promise(std::shared_ptr<core_type>&& core) noexcept
+        : _core(std::move(core))
     {}
 
     Promise& operator= (Promise<T>&& rhs) noexcept {
@@ -229,16 +229,16 @@ public:
     /**
      * Construct an empty promise
      */
-    Promise() :
-        _core(std::make_shared<Core<void>>())
+    Promise()
+        : _core(std::make_shared<Core<void>>())
     {}
 
-    Promise(Promise&& rhs) noexcept :
-        _core(std::move(rhs._core))
+    Promise(Promise&& rhs) noexcept
+        : _core(std::move(rhs._core))
     {}
 
-    Promise(std::shared_ptr<core_type>&& core) noexcept :
-        _core(std::move(core))
+    Promise(std::shared_ptr<core_type>&& core) noexcept
+        : _core(std::move(core))
     {}
 
     Promise& operator= (Promise&& rhs) noexcept {

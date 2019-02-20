@@ -50,7 +50,7 @@ public:
 
     using HashingAlgorithm::update;
 
-    Sha256();
+    Sha256() noexcept;
 
     /**
      * Get a string name of the hashing algorithm.

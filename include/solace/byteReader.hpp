@@ -43,8 +43,6 @@ public:
 
 public:
 
-    ~ByteReader() noexcept = default;
-
     /** Construct an empty buffer of size zero */
     constexpr ByteReader() noexcept = default;
 
@@ -58,9 +56,9 @@ public:
      * @param other Other buffer to take over from
      */
     constexpr ByteReader(ByteReader&& other) noexcept
-        : _position(exchange(other._position, 0))
-        , _limit(exchange(other._limit, 0))
-        , _storage(std::move(other._storage))
+        : _position{exchange(other._position, 0)}
+        , _limit{exchange(other._limit, 0)}
+        , _storage{std::move(other._storage)}
     {}
 
 
@@ -71,8 +69,8 @@ public:
      * @param other Other buffer to copy data from
      */
     constexpr ByteReader(MemoryResource& buffer) noexcept
-        : _limit(buffer.size())
-        , _storage(buffer.view(), nullptr)
+        : _limit{buffer.size()}
+        , _storage{buffer.view(), nullptr}
     {
     }
 
@@ -81,8 +79,8 @@ public:
      * @param other Other buffer to copy data from
      */
     constexpr ByteReader(MemoryResource&& buffer) noexcept
-        : _limit(buffer.size())
-        , _storage(std::move(buffer))
+        : _limit{buffer.size()}
+        , _storage{std::move(buffer)}
     {
     }
 
@@ -91,8 +89,8 @@ public:
      * @param other Other buffer to copy data from
      */
     ByteReader(MemoryView view) noexcept
-        : _limit(view.size())
-        , _storage(wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()), nullptr)
+        : _limit{view.size()}
+        , _storage{wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()), nullptr}
     {
     }
 
@@ -131,9 +129,9 @@ public:
      */
     constexpr size_type capacity() const noexcept { return _storage.size(); }
 
-    /** Return data read/write limit of this buffer.
-     * For write buffer this is the maximum number of bytes this buffer can hold.
-     * For read buffer this is number of bytes that can be read from this buffer.
+    /**
+     * Number of bytes available to read from this buffer.
+     *
      * @note Buffer limit is always less of equal to buffer's capacity.
      * @return Number of bytes that can be read/written to the buffer
      */

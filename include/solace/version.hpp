@@ -1,5 +1,3 @@
-#include <utility>
-
 /*
 *  Copyright 2016 Ivan Ryabov
 *
@@ -75,10 +73,10 @@ public:
      * @return Parsed object or an error.
      */
     static Result<Version, Error>
-    parse(StringView value);
+    parse(StringView value) noexcept;
 
     static Result<Version, Error>
-    parse(String const& value) {
+    parse(String const& value) noexcept {
         return parse(value.view());
     }
 
@@ -90,43 +88,57 @@ public:
 
 	/** Construct the version object by specifying only numeric components */
 	constexpr Version(value_type aMajor, value_type aMinor, value_type aPatch) noexcept
-		: majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch)
+        : majorNumber{aMajor}
+        , minorNumber{aMinor}
+        , patchNumber{aPatch}
 	{}
 
     /** Construct the version object by specifying all components */
     // cppcheck-suppress passedByValue
     Version(value_type aMajor, value_type aMinor, value_type aPatch, StringLiteral aPre)
-        : majorNumber(aMajor)
-        , minorNumber(aMinor)
-        , patchNumber(aPatch)
-        , preRelease(makeString(aPre))
-        , build()
+        : majorNumber{aMajor}
+        , minorNumber{aMinor}
+        , patchNumber{aPatch}
+        , preRelease{makeString(aPre)}
+        , build{}
     {}
 
-    Version(value_type aMajor, value_type aMinor, value_type aPatch, String aPre):
-            majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
-            preRelease(std::move(aPre)), build()
+    Version(value_type aMajor, value_type aMinor, value_type aPatch, String aPre)
+        : majorNumber{aMajor}
+        , minorNumber{aMinor}
+        , patchNumber{aPatch}
+        , preRelease{std::move(aPre)}
+        , build{}
     {}
 
 	/** Construct the version object by specifying all components */
     // cppcheck-suppress passedByValue
-    Version(value_type aMajor, value_type aMinor, value_type aPatch, String aPre, String aBuild) :
-                majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
-                preRelease(std::move(aPre)), build(std::move(aBuild))
+    Version(value_type aMajor, value_type aMinor, value_type aPatch, String aPre, String aBuild)
+        : majorNumber{aMajor}
+        , minorNumber{aMinor}
+        , patchNumber{aPatch}
+        , preRelease{std::move(aPre)}
+        , build{std::move(aBuild)}
 	{}
 
     /** Construct the version object by specifying all components */
     // cppcheck-suppress passedByValue
-    Version(value_type aMajor, value_type aMinor, value_type aPatch, StringLiteral aPre, StringLiteral aBuild) :
-                majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
-                preRelease(makeString(aPre)), build(makeString(aBuild))
+    Version(value_type aMajor, value_type aMinor, value_type aPatch, StringLiteral aPre, StringLiteral aBuild)
+        : majorNumber{aMajor}
+        , minorNumber{aMinor}
+        , patchNumber{aPatch}
+        , preRelease{makeString(aPre)}
+        , build{makeString(aBuild)}
     {}
 
     /** Construct the version object by specifying all components */
     // cppcheck-suppress passedByValue
-    Version(value_type aMajor, value_type aMinor, value_type aPatch, String const& aPre, StringLiteral aBuild) :
-                majorNumber(aMajor), minorNumber(aMinor), patchNumber(aPatch),
-                preRelease(makeString(aPre)), build(makeString(aBuild))
+    Version(value_type aMajor, value_type aMinor, value_type aPatch, String const& aPre, StringLiteral aBuild)
+        : majorNumber{aMajor}
+        , minorNumber{aMinor}
+        , patchNumber{aPatch}
+        , preRelease{makeString(aPre)}
+        , build{makeString(aBuild)}
     {}
 
 public:
@@ -137,7 +149,7 @@ public:
 		return !(operator >(rhv));
 	}
 
-    bool equals(Version const& rhv) const noexcept {
+    /*constexpr*/ bool equals(Version const& rhv) const noexcept {
         return ((majorNumber == rhv.majorNumber)
 				&& (minorNumber == rhv.minorNumber)
 				&& (patchNumber == rhv.patchNumber)
@@ -145,7 +157,7 @@ public:
 	}
 
 
-	Version& swap(Version& rhs) noexcept {
+    /*constexpr*/ Version& swap(Version& rhs) noexcept {
         using std::swap;
 
         swap(majorNumber, rhs.majorNumber);
@@ -170,7 +182,7 @@ public:
  * Get build version of the linked library.
  * @return Build version of libsolace we are linked against.
  */
-Version getBuildVersion();
+Version getBuildVersion() noexcept;
 
 
 inline

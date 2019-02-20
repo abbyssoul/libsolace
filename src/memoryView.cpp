@@ -22,12 +22,13 @@
  *	ID:			$Id$
  ******************************************************************************/
 #include "solace/memoryView.hpp"
-#include "solace/exception.hpp"
+#include "solace/assert.hpp"
 
 #include "solace/error.hpp"
 #include "solace/posixErrorDomain.hpp"
 
 #include <sys/mman.h>  // mlock/munlock
+#include <algorithm>    // std::min/max
 
 
 using namespace Solace;
@@ -37,16 +38,6 @@ constexpr int kOne = 1;
 
 bool Solace::isBigendian() noexcept {
     return *reinterpret_cast<const char*>(&kOne) == 0;
-}
-
-
-MemoryView::MemoryView(const void* data, size_type newSize) :
-    _size(newSize),
-    _dataAddress(reinterpret_cast<const value_type*>(data))
-{
-    if (!_dataAddress && _size) {
-        raise<IllegalArgumentException>("data");
-    }
 }
 
 
@@ -75,7 +66,6 @@ MemoryView::slice(size_type from, size_type to) const noexcept {
     from = std::min(from, thisSize);
     to = std::min(thisSize, std::max(to, from));
     size_type const newSize = to - from;
-//    size_type const maxSize = thisSize - from;
 
     return {_dataAddress + from, newSize};
 }
@@ -93,9 +83,11 @@ MemoryView::lock() {
 
 
 MemoryView::Lock::~Lock() {
-    if (munlock(_lockedMem.dataAddress(), _lockedMem.size()) < 0) {
-        // TODO(abbyssoul): shold use ErrnoException
-        raise<Exception>("failed to unlock the memory buffer");
-    }
+    munlock(_lockedMem.dataAddress(), _lockedMem.size());
+    // FIXME(abbyssoul): What can we do if we failed to unlock?
+//    if ( res < 0) {
+//        // TODO(abbyssoul): shold use ErrnoException
+//        raise<Exception>("failed to unlock the memory buffer");
+//    }
 }
 

@@ -91,3 +91,8 @@ void Solace::raiseInvalidStateError(const char* tag) {
 void Solace::assertFail(const char* tag) {
     Solace::raise<Exception>(tag);
 }
+
+[[noreturn]]
+void Solace::assertFailErrno(const char* tag) {
+    Solace::raise<IOException>(errno, tag);
+}

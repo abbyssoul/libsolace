@@ -52,12 +52,22 @@ namespace Solace {
 [[noreturn]]
 void assertFail(const char* tag);
 
+[[noreturn]]
+void assertFailErrno(const char* tag);
+
+
 inline void assertTrue(bool condition, const char* tag) {
     if (!condition) {
         assertFail(tag);
     }
 }
 
+inline void
+assertErrno(bool condition, const char* tag) {
+    if (!condition) {
+        assertFailErrno(tag);
+    }
+}
 
 /**
  * Check that condition is true.

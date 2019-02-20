@@ -27,7 +27,7 @@ using namespace Solace::hashing;
 static const StringLiteral SHA_3_NAME = "SHA3";
 
 
-Sha3::Sha3()
+Sha3::Sha3() noexcept
     : _state {
           {0, 0},
           {0},
@@ -60,6 +60,11 @@ Sha3::update(MemoryView SOLACE_UNUSED(input)) {
 MessageDigest
 Sha3::digest() {
     byte result[32];
+    ByteWriter writer{wrapMemory(result)};
 
-    return MessageDigest(wrapMemory(result));
+    for (auto s : _state.state) {
+        writer.writeBE(s);
+    }
+
+    return MessageDigest(writer.viewWritten());
 }

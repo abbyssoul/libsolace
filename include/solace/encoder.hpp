@@ -44,7 +44,7 @@ public:
      * @param dest Destination buffer to write transformed data to.
      */
     Encoder(ByteWriter& dest) :
-        _dest(&dest)
+        _dest{&dest}
     {}
 
     /**

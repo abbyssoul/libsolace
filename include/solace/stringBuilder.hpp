@@ -41,17 +41,18 @@ public:
     using size_type = String::size_type;
 
 public:
-
-     ~StringBuilder() = default;
+    //!< Not copy-able
+    StringBuilder(StringBuilder const&) = delete;
+    StringBuilder& operator= (const StringBuilder&) = delete;
 
     /** Initialize a new instance of StringBuilder with a given storage */
-    StringBuilder(MutableMemoryView&& buffer) :
-        _buffer(std::move(buffer))
+    StringBuilder(MutableMemoryView&& buffer) noexcept
+        : _buffer{std::move(buffer)}
     {}
 
     /** Initialize a new instance of StringBuilder with a given storage */
-    StringBuilder(MemoryResource&& buffer) :
-        _buffer(std::move(buffer))
+    StringBuilder(MemoryResource&& buffer) noexcept
+        : _buffer{std::move(buffer)}
     {}
 
     /** Initialize a new instance of StringBuilder with a given storage and initial string value.*/
@@ -60,8 +61,6 @@ public:
     /** Initialize a new instance of StringBuilder with a given storage and initial string value.*/
     StringBuilder(MemoryResource&& buffer, StringView str);
 
-    //!< Move construct string builder
-    StringBuilder(const StringBuilder&) = delete;
 
     //!< Move construct string builder instance.
     StringBuilder(StringBuilder&& s) noexcept = default;
@@ -70,7 +69,6 @@ public:
         return swap(rhs);
     }
 
-    StringBuilder& operator= (const StringBuilder&) = delete;
 
     StringBuilder& swap(StringBuilder& rhs) noexcept {
         using std::swap;

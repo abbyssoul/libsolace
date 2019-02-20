@@ -20,7 +20,8 @@
  ******************************************************************************/
 #include "solace/hashing/sha1.hpp"
 
-#include <memory.h>
+#include <memory.h>  // memcpy
+
 
 using namespace Solace;
 using namespace Solace::hashing;
@@ -37,25 +38,14 @@ static const byte sha1_padding[64] = {
 
 
 SOLACE_NO_SANITIZE("unsigned-integer-overflow")
-void sha1_process(Sha1::State& ctx, const byte data[64]) {
-    uint32_t temp, W[16], A, B, C, D, E;
+void sha1_process(Sha1::State& ctx, byte const data[64]) {
+    uint32 temp, W[16], A, B, C, D, E;
 
-    getUint32_BE(W[ 0], data,  0);
-    getUint32_BE(W[ 1], data,  4);
-    getUint32_BE(W[ 2], data,  8);
-    getUint32_BE(W[ 3], data, 12);
-    getUint32_BE(W[ 4], data, 16);
-    getUint32_BE(W[ 5], data, 20);
-    getUint32_BE(W[ 6], data, 24);
-    getUint32_BE(W[ 7], data, 28);
-    getUint32_BE(W[ 8], data, 32);
-    getUint32_BE(W[ 9], data, 36);
-    getUint32_BE(W[10], data, 40);
-    getUint32_BE(W[11], data, 44);
-    getUint32_BE(W[12], data, 48);
-    getUint32_BE(W[13], data, 52);
-    getUint32_BE(W[14], data, 56);
-    getUint32_BE(W[15], data, 60);
+    ByteReader reader{wrapMemory(data, 64)};
+    for (auto& x : W) {
+        reader.readBE(x);
+    }
+
 
 #define S(x, n) ((x << n) | ((x & 0xFFFFFFFF) >> (32 - n)))
 
@@ -228,7 +218,7 @@ void sha1_update(Sha1::State& ctx, const byte input[], Sha1::size_type ilen) {
 }
 
 
-Sha1::Sha1() {
+Sha1::Sha1() noexcept {
     /* SHA1 initialization constants */
     _state.state[0] = 0x67452301;
     _state.state[1] = 0xEFCDAB89;
@@ -260,27 +250,25 @@ HashingAlgorithm& Sha1::update(MemoryView input) {
 
 MessageDigest Sha1::digest() {
     byte result[20];
+    ByteWriter writer{wrapMemory(result)};
 
-    uint32 high, low;
+    uint32 const high = (_state.total[0] >> 29) | (_state.total[1] <<  3);
+    uint32 const low = (_state.total[0] <<  3);
 
     byte msglen[8];
-    high = (_state.total[0] >> 29) | (_state.total[1] <<  3);
-    low  = (_state.total[0] <<  3);
+    ByteWriter msgLenWriter{wrapMemory(msglen)};
+    msgLenWriter.writeBE(high);
+    msgLenWriter.writeBE(low);
 
-    putUint32_BE(high, msglen, 0);
-    putUint32_BE(low,  msglen, 4);
-
-    const uint32 last = _state.total[0] & 0x3F;
-    const uint32 padn = (last < 56) ? (56 - last) : (120 - last);
+    uint32 const last = _state.total[0] & 0x3F;
+    uint32 const padn = (last < 56) ? (56 - last) : (120 - last);
 
     sha1_update(_state, sha1_padding, padn);
     sha1_update(_state, msglen, 8);
 
-    putUint32_BE(_state.state[0], result,  0);
-    putUint32_BE(_state.state[1], result,  4);
-    putUint32_BE(_state.state[2], result,  8);
-    putUint32_BE(_state.state[3], result, 12);
-    putUint32_BE(_state.state[4], result, 16);
+    for (auto s : _state.state) {
+        writer.writeBE(s);
+    }
 
-    return MessageDigest(wrapMemory(result));
+    return MessageDigest(writer.viewWritten());
 }

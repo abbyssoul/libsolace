@@ -43,7 +43,11 @@ public:
 
     using HashingAlgorithm::update;
 
-    Murmur3_32(uint32 seed);
+    constexpr Murmur3_32(uint32 seed) noexcept
+        : _hash{0}
+        , _seed{seed}
+    {
+    }
 
     /**
      * Get a string name of the hashing algorithm.
@@ -71,8 +75,8 @@ public:
     MessageDigest digest() override;
 
 private:
-    uint32  _seed;
     uint32  _hash[1];
+    uint32  _seed;
 };
 
 
@@ -89,7 +93,10 @@ public:
 
     using HashingAlgorithm::update;
 
-    Murmur3_128(uint32 seed);
+    Murmur3_128(uint32 seed) noexcept
+        : _hash{0, 0}
+        , _seed{seed}
+    {}
 
     /**
      * Get a string name of the hashing algorithm.

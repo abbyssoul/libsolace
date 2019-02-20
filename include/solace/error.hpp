@@ -43,15 +43,15 @@ public:
 
     //! Construct error with a message
     constexpr Error(AtomValue errorDomain, int code, StringLiteral tag) noexcept
-        : _domain(errorDomain)
-        , _code(code)
-        , _tag(std::move(tag))
+        : _domain{errorDomain}
+        , _code{code}
+        , _tag{std::move(tag)}
     {}
 
     //! Construct error with a message
     constexpr Error(AtomValue errorDomain, int code) noexcept
-        : _domain(errorDomain)
-        , _code(code)
+        : _domain{errorDomain}
+        , _code{code}
     {}
 
 

@@ -52,8 +52,8 @@ public:
     constexpr Dictionary() noexcept = default;
 
     Dictionary(Vector<Key>&& lookup, Vector<T>&& values)
-        : _lookup(std::move(lookup))
-        , _values(std::move(values))
+        : _lookup{std::move(lookup)}
+        , _values{std::move(values)}
     {}
 
     constexpr auto empty() const noexcept { return _values.empty(); }

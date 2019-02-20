@@ -78,7 +78,7 @@ TEST(TestMemoryView, testWrapping) {
     void* nullB = nullptr;
     EXPECT_TRUE(wrapMemory(nullB, 0).empty());
      // Can't wrap nullptr with non-zero size
-    EXPECT_THROW(wrapMemory(nullB, 321).empty(), IllegalArgumentException);
+    EXPECT_THROW(wrapMemory(nullB, 321).empty(), Exception);
 
     {   // Wrapping constructor
         byte example[] = {0, 1, 0, 3, 2, 1};  // size = 6

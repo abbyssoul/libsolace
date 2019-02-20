@@ -317,13 +317,6 @@ void MurmurHash3_x64_128(const byte* data, const Murmur3_128::size_type len, uin
 //-----------------------------------------------------------------------------
 
 
-Murmur3_32::Murmur3_32(uint32 seed) :
-    _seed(seed),
-    _hash{0}
-{
-}
-
-
 StringView Murmur3_32::getAlgorithm() const {
     return MURMUR3_32_NAME;
 }
@@ -344,23 +337,17 @@ HashingAlgorithm& Murmur3_32::update(MemoryView input) {
 
 MessageDigest Murmur3_32::digest() {
     byte result[4];
+    ByteWriter writer{wrapMemory(result)};
 
-    putUint32_BE(_hash[0], result, 0);
+//    putUint32_BE(_hash[0], result, 0);
+    writer.writeBE(_hash[0]);
 
-    return MessageDigest(wrapMemory(result));
+    return MessageDigest(writer.viewWritten());
 }
 
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-
-
-Murmur3_128::Murmur3_128(uint32 seed)
-    : _hash{0, 0}
-    , _seed(seed)
-
-{
-}
 
 
 StringView Murmur3_128::getAlgorithm() const {

@@ -69,8 +69,8 @@ public:
 
     /** Construct a new array by moving content of a given array */
     constexpr Vector(Vector<T>&& rhs) noexcept
-        : _buffer(std::move(rhs._buffer))
-        , _position(std::exchange(rhs._position, 0))
+        : _buffer{std::move(rhs._buffer)}
+        , _position{exchange(rhs._position, 0)}
     {
     }
 
@@ -87,8 +87,8 @@ public:
 
     /** */
     constexpr Vector(MemoryResource&& buffer, size_type count) noexcept
-        : _buffer(std::move(buffer))
-        , _position(count)
+        : _buffer{std::move(buffer)}
+        , _position{count}
     {
     }
 
@@ -255,8 +255,8 @@ public:
      * Transfer content of this vector into an array
      * @return An array owning the content.
      */
-    Array<T> toArray() {
-        return {std::move(_buffer), std::exchange(_position, 0)};
+    Array<T> toArray() & noexcept {
+        return {std::move(_buffer), exchange(_position, 0)};
     }
 
 protected:

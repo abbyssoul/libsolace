@@ -31,8 +31,8 @@ using namespace Solace;
 
 
 // GCC Being dickheaded and requires it here, but not Char::max_bytes, WTF?
-constexpr UUID::size_type UUID::StaticSize;
-constexpr UUID::size_type UUID::StringSize;
+//constexpr UUID::size_type UUID::StaticSize;
+//constexpr UUID::size_type UUID::StringSize;
 
 
 UUID::UUID() noexcept
@@ -172,6 +172,19 @@ Solace::makeUUID(MemoryView view) {
     return {bytes};
 }
 
+
+UUID
+Solace::makeUUID(uint32 a0, uint32 a1, uint32 a2, uint32 a3) noexcept {
+    byte data[UUID::StaticSize];
+    ByteWriter writer{wrapMemory(data)};
+
+    writer.write(a0);
+    writer.write(a1);
+    writer.write(a2);
+    writer.write(a3);
+
+    return {data};
+}
 
 UUID
 Solace::makeRandomUUID() noexcept {

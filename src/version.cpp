@@ -29,7 +29,7 @@
 
 
 #define SOLACE_VERSION_MAJOR 0
-#define SOLACE_VERSION_MINOR 0
+#define SOLACE_VERSION_MINOR 2
 #define SOLACE_VERSION_BUILD 1
 
 
@@ -43,10 +43,10 @@ const StringView::value_type Version::BuildSeparator{'+'};
 
 
 Version
-Solace::getBuildVersion() {
-	return Version( SOLACE_VERSION_MAJOR,
+Solace::getBuildVersion() noexcept {
+    return Version{ SOLACE_VERSION_MAJOR,
 					SOLACE_VERSION_MINOR,
-					SOLACE_VERSION_BUILD);
+                    SOLACE_VERSION_BUILD};
 }
 
 
@@ -92,7 +92,7 @@ Version::toString() const {
 
 
 Result<Version, Error>
-Version::parse(StringView str) {
+Version::parse(StringView str) noexcept {
     value_type majorVersion;
     value_type minorVersion;
     value_type patchVersion;

@@ -54,7 +54,7 @@ public:
 
     using HashingAlgorithm::update;
 
-    MD5();
+    MD5() noexcept;
 
     /**
      * Get a string name of the hashing algorithm.

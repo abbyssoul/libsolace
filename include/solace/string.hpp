@@ -47,8 +47,6 @@ public:
 
 public:
 
-    ~String() = default;
-
     //!< Default constructor constructs an empty string.
     constexpr String() noexcept = default;
 
@@ -57,8 +55,8 @@ public:
 
     //!< Move-construct a string.
     constexpr String(String&& rhs) noexcept
-        : _buffer(std::move(rhs._buffer))
-        , _size(exchange(rhs._size, 0))
+        : _buffer{std::move(rhs._buffer)}
+        , _size{exchange(rhs._size, 0)}
     {
     }
 
@@ -70,8 +68,8 @@ public:
      * @note The buffer passed must be big enought to hold the string of the given size.
      */
     constexpr String(MemoryResource&& buffer, size_type stringLen) noexcept
-        : _buffer(std::move(buffer))
-        , _size(stringLen)
+        : _buffer{std::move(buffer)}
+        , _size{stringLen}
     {}
 
 public:  // Additional to base object operations
@@ -351,8 +349,8 @@ public:
     }
 
 private:
-    MemoryResource                _buffer;
-    size_type                   _size{0};
+    MemoryResource      _buffer;
+    size_type           _size{0};
 };
 
 

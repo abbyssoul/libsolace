@@ -70,23 +70,25 @@ TEST(TestMemoryManager, testNativePageCount) {
 }
 
 TEST(TestMemoryManager, testAllocation) {
-    MemoryManager test(1024);
+    MemoryManager test{512};
 
     {
-        auto memBlock = test.allocate(128);
-        EXPECT_EQ(128, test.size());
-        EXPECT_EQ(128, memBlock.size());
+        auto memBlock = test.allocate(512);
+        EXPECT_EQ(512, memBlock.size());
+        EXPECT_EQ(512, test.size());
+        EXPECT_EQ(0, test.limit());
 
         memBlock.view().fill(128);
         EXPECT_EQ(128, memBlock.view()[memBlock.size() - 1]);
     }
 
+    EXPECT_EQ(512, test.limit());
     EXPECT_EQ(0, test.size());
 }
 
 TEST(TestMemoryManager, testAllocationBeyondCapacity) {
     MemoryManager test(128);
-    EXPECT_THROW(auto memBlock = test.allocate(2048), OverflowException);
+    EXPECT_THROW(auto memBlock = test.allocate(2048), IndexOutOfRangeException);
     {
         auto memBlock0 = test.allocate(64);
         EXPECT_EQ(64, test.size());
@@ -96,9 +98,10 @@ TEST(TestMemoryManager, testAllocationBeyondCapacity) {
         EXPECT_EQ(2*64, test.size());
         EXPECT_EQ(64, memBlock1.size());
 
-        EXPECT_THROW(auto memBlock2 = test.allocate(64), OverflowException);
+        EXPECT_THROW(auto memBlock2 = test.allocate(64), IndexOutOfRangeException);
     }
 
+    EXPECT_EQ(128, test.limit());
     EXPECT_EQ(0, test.size());
 }
 

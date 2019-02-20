@@ -41,8 +41,13 @@ template<typename T>
 struct Ok {
     using value_type = T;
 
-    constexpr Ok(T const& val) noexcept(std::is_nothrow_copy_constructible<T>::value) : val_(val) { }
-    constexpr Ok(T&& val) noexcept(std::is_nothrow_move_constructible<T>::value) : val_(std::move(val)) { }
+    constexpr Ok(T const& val) noexcept(std::is_nothrow_copy_constructible<T>::value)
+        : val_(val)
+    { }
+
+    constexpr Ok(T&& val) noexcept(std::is_nothrow_move_constructible<T>::value)
+        : val_(std::move(val))
+    { }
 
     T val_;
 };
@@ -56,8 +61,13 @@ struct Ok<void> {
 
 template<typename E>
 struct Err {
-    constexpr Err(E const& val) noexcept(std::is_nothrow_copy_constructible<E>::value) : val_(val) { }
-    constexpr Err(E&& val) noexcept(std::is_nothrow_move_constructible<E>::value) : val_(std::move(val)) { }
+    constexpr Err(E const& val) noexcept(std::is_nothrow_copy_constructible<E>::value)
+        : val_(val)
+    { }
+
+    constexpr Err(E&& val) noexcept(std::is_nothrow_move_constructible<E>::value)
+        : val_(std::move(val))
+    { }
 
     E val_;
 };
@@ -598,8 +608,6 @@ public:
 
 public:
 
-//    ~Result() noexcept(std::is_nothrow_destructible<E>::value) = default;
-
     Result(Result const&) = delete;
     Result& operator= (Result const&) = delete;
 
@@ -640,7 +648,7 @@ public:
      * @param err Err value to move from
      */
     Result(types::Err<E>&& err) noexcept(std::is_nothrow_move_constructible<E>::value)
-        : _maybeError(std::move(err.val_))
+        : _maybeError{std::move(err.val_)}
     {}
 
 
@@ -649,7 +657,7 @@ public:
      * @param err Err value to move from
      */
     Result(E&& err) noexcept(std::is_nothrow_move_constructible<E>::value)
-        : _maybeError(std::move(err))
+        : _maybeError{std::move(err)}
     {}
 
 
@@ -658,7 +666,7 @@ public:
      * @param rhs Source to move values from
      */
     Result(Result&& rhs) noexcept(std::is_nothrow_move_constructible<E>::value) :
-        _maybeError(std::move(rhs._maybeError))
+        _maybeError{std::move(rhs._maybeError)}
     {}
 
 public:

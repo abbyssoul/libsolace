@@ -20,7 +20,8 @@
  ******************************************************************************/
 #include "solace/hashing/sha2.hpp"
 
-#include <memory.h>
+#include <memory.h>  // memcpy
+
 
 using namespace Solace;
 using namespace Solace::hashing;
@@ -86,18 +87,22 @@ static const uint32 K[64] = {
 
 
 SOLACE_NO_SANITIZE("unsigned-integer-overflow")
-void sha256_process(Sha256::State& ctx, const byte data[64] ) {
+void sha256_process(Sha256::State& ctx, byte const data[64]) {
     uint32 temp1, temp2, W[64];
     uint32 A[8];
     uint32 i;
 
-    for (i = 0; i < 8; ++i)
+//    memcpy(A, ctx.state, 8 * sizeof(A));
+    for (i = 0; i < 8; ++i) {
         A[i] = ctx.state[i];
+    }
+
+    ByteReader reader{wrapMemory(data, 64)};
 
 #if defined(SOLACE_SHA256_SMALLER)
     for (i = 0; i < 64; i++) {
         if (i < 16) {
-            getUint32_BE(W[i], data, 4 * i);
+            reader.readBE(W[i]);
         } else {
             R(i);
         }
@@ -108,8 +113,9 @@ void sha256_process(Sha256::State& ctx, const byte data[64] ) {
         A[3] = A[2]; A[2] = A[1]; A[1] = A[0]; A[0] = temp1;
     }
 #else /* SOLACE_SHA256_SMALLER */
+
     for (i = 0; i < 16; ++i) {
-        getUint32_BE(W[i], data, 4 * i);
+        reader.readBE(W[i]);
     }
 
     for (i = 0; i < 16; i += 8) {
@@ -179,7 +185,7 @@ void sha256_update(Sha256::State& ctx, const byte input[], Sha256::size_type ile
 
 
 
-Sha256::Sha256()
+Sha256::Sha256() noexcept
     : _state {
           {0, 0},
           {
@@ -217,29 +223,25 @@ HashingAlgorithm& Sha256::update(MemoryView input) {
 
 MessageDigest Sha256::digest() {
     byte result[32];
+    ByteWriter writer{wrapMemory(result)};
 
-    uint32 high, low;
-    high = (_state.total[0] >> 29) | (_state.total[1] <<  3);
-    low  = (_state.total[0] <<  3);
+    uint32 const high = (_state.total[0] >> 29) | (_state.total[1] <<  3);
+    uint32 const low  = (_state.total[0] <<  3);
 
     byte msglen[8];
-    putUint32_BE(high, msglen, 0);
-    putUint32_BE(low,  msglen, 4);
+    ByteWriter msgLenWriter{wrapMemory(msglen)};
+    msgLenWriter.writeBE(high);
+    msgLenWriter.writeBE(low);
 
-    const uint32 last = _state.total[0] & 0x3F;
-    const uint32 padn = (last < 56) ? (56 - last) : (120 - last);
+    uint32 const last = _state.total[0] & 0x3F;
+    uint32 const padn = (last < 56) ? (56 - last) : (120 - last);
 
     sha256_update(_state, sha256_padding, padn);
     sha256_update(_state, msglen, 8);
 
-    putUint32_BE(_state.state[0], result,  0);
-    putUint32_BE(_state.state[1], result,  4);
-    putUint32_BE(_state.state[2], result,  8);
-    putUint32_BE(_state.state[3], result, 12);
-    putUint32_BE(_state.state[4], result, 16);
-    putUint32_BE(_state.state[5], result, 20);
-    putUint32_BE(_state.state[6], result, 24);
-    putUint32_BE(_state.state[7], result, 28);
+    for (auto s : _state.state) {
+        writer.writeBE(s);
+    }
 
-    return MessageDigest(wrapMemory(result));
+    return MessageDigest(writer.viewWritten());
 }

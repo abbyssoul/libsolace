@@ -41,8 +41,6 @@ public:
 
 public:
 
-    ~ByteWriter() noexcept = default;
-
     /** Construct an empty writer that has nowhere to write too */
     constexpr ByteWriter() noexcept = default;
 
@@ -55,19 +53,19 @@ public:
      * @param other Other buffer to take over from
      */
     constexpr ByteWriter(ByteWriter&& other)  noexcept
-        : _position(exchange(other._position, 0))
-        , _limit(exchange(other._limit, 0))
-        , _storage(std::move(other._storage))
+        : _position{exchange(other._position, 0)}
+        , _limit{exchange(other._limit, 0)}
+        , _storage{std::move(other._storage)}
     {}
 
     constexpr ByteWriter(MemoryResource& buffer) noexcept
-        : _limit(buffer.size())
-        , _storage(buffer.view(), nullptr)
+        : _limit{buffer.size()}
+        , _storage{buffer.view(), nullptr}
     {}
 
     constexpr ByteWriter(MemoryResource&& buffer) noexcept
-        : _limit(buffer.size())
-        , _storage(std::move(buffer))
+        : _limit{buffer.size()}
+        , _storage{std::move(buffer)}
     {}
 
     /**
@@ -75,8 +73,8 @@ public:
      * @param other Other buffer to copy data from
      */
     constexpr ByteWriter(MutableMemoryView memView) noexcept
-        : _limit(memView.size())
-        , _storage(std::move(memView), nullptr)
+        : _limit{memView.size()}
+        , _storage{std::move(memView), nullptr}
     {}
 
 
@@ -114,9 +112,9 @@ public:
      */
     constexpr size_type capacity() const noexcept { return _storage.size(); }
 
-    /** Return data read/write limit of this buffer.
-     * For write buffer this is the maximum number of bytes this buffer can hold.
-     * For read buffer this is number of bytes that can be read from this buffer.
+    /**
+     * Maximum number of bytes that can be written in the buffer.
+     *
      * @note Buffer limit is always less of equal to buffer's capacity.
      * @return Number of bytes that can be read/written to the buffer
      */

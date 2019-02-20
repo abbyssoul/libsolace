@@ -93,15 +93,28 @@ public:
      * @param size The size of the memory block.
      * @note: it is illigal to pass null data with a non 0 size.
     */
-    MemoryView(void const* data, size_type size);
+    MemoryView(void const* data, size_type dataSize)
+        : _size{dataSize}
+        , _dataAddress{reinterpret_cast<value_type const*>(data)}
+    {
+        assertTrue(_dataAddress || _size == 0, "data");
+    }
+
+    template<typename PodType, size_t N>
+    constexpr MemoryView(PodType const (&data)[N]) noexcept
+        : _size{N * sizeof(PodType)}
+        , _dataAddress{reinterpret_cast<value_type const*>(data)}
+    {
+    }
+
 
     MemoryView(MemoryView const&) noexcept = default;
     MemoryView& operator= (MemoryView const&) noexcept = default;
 
     /** Move construct an instance of the memory view **/
-    constexpr MemoryView(MemoryView&& rhs) noexcept :
-        _size(exchange(rhs._size, 0)),
-        _dataAddress(exchange(rhs._dataAddress, nullptr))
+    constexpr MemoryView(MemoryView&& rhs) noexcept
+        : _size{exchange(rhs._size, 0)}
+        , _dataAddress{exchange(rhs._dataAddress, nullptr)}
     {
     }
 
@@ -258,8 +271,8 @@ inline MemoryView wrapMemory(char const* data, MemoryView::size_type size) { ret
 
 template<typename PodType, size_t N>
 [[nodiscard]]
-inline MemoryView wrapMemory(PodType const (&data)[N]) {
-    return wrapMemory(static_cast<void const*>(data), N * sizeof(PodType));
+constexpr MemoryView wrapMemory(PodType const (&data)[N]) noexcept {
+    return {data};
 }
 
 
