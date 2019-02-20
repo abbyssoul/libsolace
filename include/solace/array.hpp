@@ -72,7 +72,7 @@ public:
     /** Construct a new array by moving content of a given array */
     constexpr Array(Array<T>&& rhs) noexcept
         : _buffer(std::move(rhs._buffer))
-        , _size(std::exchange(rhs._size, 0))
+        , _size(exchange(rhs._size, 0))
     {
     }
 

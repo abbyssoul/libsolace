@@ -96,7 +96,7 @@ public:  // Object construction
     /** Construct an object by moving content from a given */
     Path(Path&& p) noexcept
         : _components(std::move(p._components))
-    { } // No-op
+    { }
 
 public:  // Operation
 

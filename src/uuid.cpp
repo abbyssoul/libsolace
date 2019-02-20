@@ -30,11 +30,6 @@
 using namespace Solace;
 
 
-// GCC Being dickheaded and requires it here, but not Char::max_bytes, WTF?
-//constexpr UUID::size_type UUID::StaticSize;
-//constexpr UUID::size_type UUID::StringSize;
-
-
 UUID::UUID() noexcept
     : _bytes{0}
 {

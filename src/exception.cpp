@@ -60,6 +60,7 @@ std::string formatErrono(int errorCode, std::string const& msgex) {
 
 
 
+// cppcheck-suppress passedByValue
 Exception::Exception(std::string message) noexcept
     : _message(std::move(message))
 {
