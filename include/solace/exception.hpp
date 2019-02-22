@@ -173,6 +173,7 @@ public:
 
 
 template <typename ExceptionType, typename... Args>
+[[noreturn]]
 void raise(Args&&... args) {
     throw ExceptionType(std::forward<Args>(args)...);
 }
