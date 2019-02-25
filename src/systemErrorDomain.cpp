@@ -19,6 +19,7 @@
  ******************************************************************************/
 #include "solace/errorDomain.hpp"
 #include "solace/posixErrorDomain.hpp"
+#include "solace/string.hpp"
 
 
 #include <cstring>
@@ -36,12 +37,12 @@ class SystemErrorDomain
     : public ErrorDomain {
 public:
 
-    StringView getName() const noexcept override {
+    StringLiteral getName() const noexcept override {
         return StringLiteral{"PosixSystemError"};
     }
 
-    StringView getMessage(int code) const noexcept override {
-        return std::strerror(code);
+    String getMessage(int code) const noexcept override {
+        return makeString(std::strerror(code));
     }
 };
 

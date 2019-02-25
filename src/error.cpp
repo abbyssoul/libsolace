@@ -21,17 +21,22 @@
  *	ID:			$Id: $
  ******************************************************************************/
 #include "solace/posixErrorDomain.hpp"
+#include "solace/string.hpp"
 
 
 using namespace Solace;
 
 
-StringView
+String
 Error::toString() const {
     auto const domain = getErrorDomain(_domain);
 
     if (!domain) {
-        return _tag;
+        constexpr auto N = sizeof(AtomValue);
+        char buffer[sizeof(N) + 1];
+        detail::unwrap<std::uintmax_t>(static_cast<std::uintmax_t>(_domain), buffer);
+
+        return makeString(StringView{buffer}, StringView{": "}, _tag);
     }
 
     return (*domain)->getMessage(_code);

@@ -86,7 +86,7 @@ public:
     }
 
     //! Get message description of the exception.
-    StringView toString() const;
+    String toString() const;
 
 private:
 

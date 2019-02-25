@@ -26,9 +26,9 @@
 #include "solace/optional.hpp"
 #include "solace/stringView.hpp"
 
-
 namespace Solace {
 
+class String;
 
 /**
  * Base class for error domains.
@@ -44,8 +44,14 @@ public:
     ErrorDomain& operator= (ErrorDomain const&) = delete;
     ErrorDomain& operator= (ErrorDomain&&) = default;
 
-    virtual StringView getName() const noexcept = 0;
-    virtual StringView getMessage(int code) const noexcept = 0;
+    /// Get human-readable name this error domain
+    virtual StringLiteral getName() const noexcept = 0;
+    /**
+     * @brief Error formatted message for the error code.
+     * @param code Error code from this error domain.
+     * @return A string error message.
+     */
+    virtual String getMessage(int code) const noexcept = 0;
 };
 
 

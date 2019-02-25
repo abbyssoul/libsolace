@@ -40,32 +40,6 @@ inline std::ostream& operator<< (std::ostream& ostr, StringView const& str) {
     return ostr.write(str.data(), str.size());
 }
 
-inline std::ostream& operator<< (std::ostream& ostr, Error const& e) {
-    auto const errorDomaint = e.domain();
-    auto const domain = getErrorDomain(errorDomaint);
-
-    if (domain) {
-        ostr << (*domain)->getName();
-    } else {
-        constexpr auto N = sizeof(AtomValue);
-        char buffer[sizeof(N) + 1];
-        detail::unwrap<std::uintmax_t>(static_cast<std::uintmax_t>(errorDomaint), buffer);
-        ostr.write(buffer, N);
-    }
-
-    ostr << ':' << e.value() << ':';
-    if (domain) {
-        ostr << (*domain)->getMessage(e.value());
-    }
-
-    auto const tag = e.tag();
-    if (!tag.empty()) {
-        ostr << ':' << tag;
-    }
-
-    return ostr;
-}
-
 inline std::ostream& operator<< (std::ostream& ostr, MemoryView view) {
     if (view.empty()) {
         return ostr << "<null>";
@@ -86,6 +60,32 @@ inline std::ostream& operator<< (std::ostream& ostr, String const& str) {
     return ostr << str.view();
 }
 
+
+inline std::ostream& operator<< (std::ostream& ostr, Error const& e) {
+    auto const errorDomain = e.domain();
+    auto const domain = getErrorDomain(errorDomain);
+
+    if (domain) {
+        ostr << (*domain)->getName();
+    } else {
+        constexpr auto N = sizeof(AtomValue);
+        char buffer[sizeof(N) + 1];
+        detail::unwrap<std::uintmax_t>(static_cast<std::uintmax_t>(errorDomain), buffer);
+        ostr.write(buffer, N);
+    }
+
+    ostr << ':' << e.value() << ':';
+    if (domain) {
+        ostr << (*domain)->getMessage(e.value());
+    }
+
+    auto const tag = e.tag();
+    if (!tag.empty()) {
+        ostr << ':' << tag;
+    }
+
+    return ostr;
+}
 
 inline std::ostream&
 operator<< (std::ostream& ostr, hashing::MessageDigest const& a) {
