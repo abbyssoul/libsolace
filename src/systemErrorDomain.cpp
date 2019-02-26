@@ -32,16 +32,16 @@ using namespace Solace;
 
 const AtomValue Solace::kSystemCatergory = atom("posix");
 
+namespace /*anonymous*/ {
 
-class SystemErrorDomain
-    : public ErrorDomain {
-public:
-
-    StringLiteral getName() const noexcept override {
+struct SystemErrorDomain
+        : public ErrorDomain
+{
+    StringView name() const noexcept override {
         return StringLiteral{"PosixSystemError"};
     }
 
-    String getMessage(int code) const noexcept override {
+    String message(int code) const noexcept override {
         return makeString(std::strerror(code));
     }
 };
@@ -50,6 +50,7 @@ public:
 static const SystemErrorDomain kSystemErrorDomain;
 static const auto rego = registerErrorDomain(kSystemCatergory, kSystemErrorDomain);
 
+}  // namespace
 
 Error
 Solace::makeErrno() noexcept {

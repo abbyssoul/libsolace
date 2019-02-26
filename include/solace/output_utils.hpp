@@ -66,17 +66,17 @@ inline std::ostream& operator<< (std::ostream& ostr, Error const& e) {
     auto const domain = getErrorDomain(errorDomain);
 
     if (domain) {
-        ostr << (*domain)->getName();
+        ostr << (*domain)->name();
     } else {
         constexpr auto N = sizeof(AtomValue);
         char buffer[sizeof(N) + 1];
-        detail::unwrap<std::uintmax_t>(static_cast<std::uintmax_t>(errorDomain), buffer);
+        atomToString(errorDomain, buffer);
         ostr.write(buffer, N);
     }
 
     ostr << ':' << e.value() << ':';
     if (domain) {
-        ostr << (*domain)->getMessage(e.value());
+        ostr << (*domain)->message(e.value());
     }
 
     auto const tag = e.tag();

@@ -7,6 +7,7 @@ set(TEST_SOURCE_FILES
         ci/teamcity_messages.cpp
         ci/teamcity_gtest.cpp
 
+        test_atom.cpp
         test_stringView.cpp
         test_error.cpp
         test_optional.cpp

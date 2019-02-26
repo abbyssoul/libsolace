@@ -34,8 +34,8 @@ class String;
  * Base class for error domains.
  * This is an interface that all ErrorDomain are expected to implement.
  */
-class ErrorDomain {
-public:
+struct ErrorDomain {
+
     virtual ~ErrorDomain() noexcept = default;
 
     ErrorDomain() = default;
@@ -45,13 +45,13 @@ public:
     ErrorDomain& operator= (ErrorDomain&&) = default;
 
     /// Get human-readable name this error domain
-    virtual StringLiteral getName() const noexcept = 0;
+    virtual StringView name() const noexcept = 0;
     /**
      * @brief Error formatted message for the error code.
      * @param code Error code from this error domain.
      * @return A string error message.
      */
-    virtual String getMessage(int code) const noexcept = 0;
+    virtual String message(int code) const noexcept = 0;
 };
 
 

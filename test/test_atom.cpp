@@ -1,5 +1,5 @@
 /*
-*  Copyright 2016 Ivan Ryabov
+*  Copyright 2018 Ivan Ryabov
 *
 *  Licensed under the Apache License, Version 2.0 (the "License");
 *  you may not use this file except in compliance with the License.
@@ -14,30 +14,21 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- *	@file		error.cpp
- *	@author		$LastChangedBy: $
- *	@date		$LastChangedDate: $
- *	@brief		Implementation of error type
- *	ID:			$Id: $
+ * libSolace Unit Test Suit
+ *	@file test/test_atom.cpp
+ *	@brief		Test suit for Solace::atom
  ******************************************************************************/
-#include "solace/posixErrorDomain.hpp"
-#include "solace/string.hpp"
+#include <solace/atom.hpp>    // Class being tested.
 
+#include <gtest/gtest.h>
 
 using namespace Solace;
 
+TEST(TestAtom, testEncodDecoding) {
+    char buff[16];
+    atomToString(atom("test"), buff);
+    EXPECT_STREQ("test", buff);
 
-String
-Error::toString() const {
-    auto const domain = getErrorDomain(_domain);
-
-    if (!domain) {
-        constexpr auto N = sizeof(AtomValue);
-        char buffer[sizeof(N) + 1] = {0};
-        atomToString(_domain, buffer);
-
-        return makeString(StringView{buffer}, StringView{": "}, _tag);
-    }
-
-    return (*domain)->message(_code);
+    atomToString(atom("custom"), buff);
+    EXPECT_STREQ("custom", buff);
 }
