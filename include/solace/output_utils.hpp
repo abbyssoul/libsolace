@@ -71,7 +71,7 @@ inline std::ostream& operator<< (std::ostream& ostr, Error const& e) {
         constexpr auto N = sizeof(AtomValue);
         char buffer[sizeof(N) + 1];
         atomToString(errorDomain, buffer);
-        ostr.write(buffer, N);
+        ostr << buffer;
     }
 
     ostr << ':' << e.value() << ':';
