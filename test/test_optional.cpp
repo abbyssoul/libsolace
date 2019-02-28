@@ -108,7 +108,14 @@ TEST_F(TestOptional, testMoveConstructionOf) {
     EXPECT_TRUE(v2.isSome());
     EXPECT_EQ(randomNumber, v2.get().x_);
     EXPECT_EQ(1, MoveOnlyType::InstanceCount);
+
+    auto v3 = Optional<MoveOnlyType>(std::move(v2));
+    EXPECT_TRUE(v2.isSome());  // To be std::optional complient - moved-from optional is stil considered to hold a value
+    EXPECT_TRUE(v3.isSome());
+    EXPECT_EQ(randomNumber, (*v3).x_);
+    EXPECT_EQ(2, MoveOnlyType::InstanceCount);
 }
+
 
 TEST_F(TestOptional, testConstruction) {
     {

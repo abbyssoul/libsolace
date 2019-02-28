@@ -301,8 +301,7 @@ protected:
 
     template<typename...Args>
     constexpr bool
-    construct(Args&&... args)
-    noexcept(std::is_nothrow_constructible<Stored_type, Args...>()) {
+    construct(Args&&... args) noexcept(std::is_nothrow_constructible<Stored_type, Args...>()) {
         :: new (static_cast<void *>(std::addressof(_payload))) Stored_type(std::forward<Args>(args)...);
 
         _engaged = true;
