@@ -26,6 +26,7 @@
 
 #include "solace/types.hpp"
 #include "solace/traits/callable.hpp"     // type-traits: isCallable<>
+#include "solace/utils.hpp"
 #include "solace/assert.hpp"
 
 #include <new>  // operator new

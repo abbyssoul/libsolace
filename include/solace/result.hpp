@@ -42,11 +42,11 @@ struct Ok {
     using value_type = T;
 
     constexpr Ok(T const& val) noexcept(std::is_nothrow_copy_constructible<T>::value)
-        : val_(val)
+        : val_{val}
     { }
 
     constexpr Ok(T&& val) noexcept(std::is_nothrow_move_constructible<T>::value)
-        : val_(std::move(val))
+        : val_{mv(val)}
     { }
 
     T val_;
@@ -61,12 +61,14 @@ struct Ok<void> {
 
 template<typename E>
 struct Err {
+    using value_type = E;
+
     constexpr Err(E const& val) noexcept(std::is_nothrow_copy_constructible<E>::value)
-        : val_(val)
+        : val_{val}
     { }
 
     constexpr Err(E&& val) noexcept(std::is_nothrow_move_constructible<E>::value)
-        : val_(std::move(val))
+        : val_{mv(val)}
     { }
 
     E val_;
@@ -91,7 +93,7 @@ inline types::Ok<CleanT> Ok(T&& val) {
  * A specialisation of Ok helper function to construct successful Result<Void, E>
  * @return type::Ok<T> that can be converted into a successful Result<T, E>
  */
-inline None Ok() {
+constexpr None Ok() noexcept {
     return none;
 }
 
@@ -109,8 +111,10 @@ inline types::Err<CleanE> Err(E&& val) {
 }
 
 
+// Forward declaration of Result<> type to create template helpers
 template <typename V, typename E>
 class Result;
+
 
 template <typename TV, typename TE, typename T>
 struct isResult : std::false_type {
@@ -137,7 +141,6 @@ struct isSomeResult<Result<V, E>> : std::true_type {
     using value_type = typename type::value_type;
     using error_type = typename type::error_type;
 };
-
 
 
 template <
@@ -178,6 +181,15 @@ struct isResult<OV, OE, types::Err<E>> : public std::true_type {
 };
 
 
+template<typename E>
+struct error_result_wrapper { using type = E; };
+
+template<typename V, typename E>
+struct error_result_wrapper<Result<V, E>> { using type = E; };
+
+template<typename E>
+struct error_result_wrapper<types::Err<E>> { using type = typename types::Err<E>::value_type; };
+
 
 /**
  * Result class is an 'enum' of two values V and E with V being 'expected'.
@@ -217,10 +229,10 @@ public:
     Result(Result&& rhs) noexcept(std::is_nothrow_move_constructible<V>::value
                                   && std::is_nothrow_move_constructible<E>::value) {
         if (rhs.isOk()) {
-            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(std::move(rhs._value));
+            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(mv(rhs._value));
             _engaged = true;
         } else {
-            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(std::move(rhs._error));
+            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(mv(rhs._error));
             _engaged = false;
         }
     }
@@ -228,10 +240,10 @@ public:
     template<typename DV>
     Result(Result<DV, E>&& rhs) noexcept {
         if (rhs.isOk()) {
-            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(std::move(rhs._value));
+            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(mv(rhs._value));
             _engaged = true;
         } else {
-            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(std::move(rhs._error));
+            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(mv(rhs._error));
             _engaged = false;
         }
     }
@@ -247,7 +259,7 @@ public:
      * @param value Ok value to move from
      */
     constexpr Result(types::Ok<V>&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
-        : Result(types::OkTag{}, std::move(value.val_))
+        : Result(types::OkTag{}, mv(value.val_))
     {}
 
     /**
@@ -256,7 +268,7 @@ public:
      */
     template<typename DV>
     constexpr Result(types::Ok<DV>&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
-        : Result(types::OkTag{}, std::move(value.val_))
+        : Result(types::OkTag{}, mv(value.val_))
     {}
 
     /**
@@ -264,7 +276,7 @@ public:
      * @param err Err value to move from
      */
     constexpr Result(types::Err<E>&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
-        : Result(types::ErrTag{}, std::move(value.val_))
+        : Result(types::ErrTag{}, mv(value.val_))
     {}
 
     /**
@@ -273,7 +285,7 @@ public:
      */
     template<typename DE>
     constexpr Result(types::Err<DE>&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
-        : Result(types::ErrTag{}, std::move(value.val_))
+        : Result(types::ErrTag{}, mv(value.val_))
     {}
 
 
@@ -283,7 +295,7 @@ public:
     {}
 
     constexpr Result(types::OkTag, V&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
-        : _value{std::move(value)}
+        : _value{mv(value)}
         , _engaged{true}
     {}
 
@@ -293,7 +305,7 @@ public:
     {}
 
     constexpr Result(types::ErrTag, E&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
-        : _error{std::move(value)}
+        : _error{mv(value)}
         , _engaged{false}
     {}
 
@@ -306,25 +318,25 @@ public:
             if (rhs.isOk()) {
 //                swap(_value, rhs._value);
 
-                StoredValue_type v(std::move(_value));
-                constructValue(std::move(rhs._value));
-                rhs.constructValue(std::move(v));
+                StoredValue_type v(mv(_value));
+                constructValue(mv(rhs._value));
+                rhs.constructValue(mv(v));
             } else {
-                StoredValue_type v(std::move(_value));
-                constructError(std::move(rhs._error));
-                rhs.constructValue(std::move(v));
+                StoredValue_type v(mv(_value));
+                constructError(mv(rhs._error));
+                rhs.constructValue(mv(v));
             }
 
         } else {
             if (rhs.isOk()) {
-                StoredValue_type v(std::move(rhs._value));
-                rhs.constructError(std::move(_error));
-                constructValue(std::move(v));
+                StoredValue_type v(mv(rhs._value));
+                rhs.constructError(mv(_error));
+                constructValue(mv(v));
             } else {
 //                swap(_error, rhs._error);
-                StoredError_type v(std::move(_error));
-                constructError(std::move(rhs._error));
-                rhs.constructError(std::move(v));
+                StoredError_type v(mv(_error));
+                constructError(mv(rhs._error));
+                rhs.constructError(mv(v));
             }
         }
 
@@ -367,7 +379,7 @@ public:
             raiseInvalidStateError();
         }
 
-        return std::move(_value);
+        return mv(_value);
     }
 
 
@@ -376,7 +388,7 @@ public:
             raiseInvalidStateError();
         }
 
-        return std::move(_value);
+        return mv(_value);
     }
 
     E&& moveError() {
@@ -384,7 +396,7 @@ public:
             raiseInvalidStateError();
         }
 
-        return std::move(_error);
+        return mv(_error);
     }
 
     E& getError() {
@@ -418,10 +430,10 @@ public:
     std::enable_if_t<ResT::value, typename ResT::type>
     then(F&& f) && {
         if (isOk()) {
-            return f(std::move(_value));
+            return f(mv(_value));
         }
 
-        return typename ResT::type{types::ErrTag{}, std::move(_error)};
+        return typename ResT::type{types::ErrTag{}, mv(_error)};
     }
 
     template<typename F,
@@ -455,10 +467,10 @@ public:
     std::enable_if_t<!std::is_same<R, void>::value && !isResult<V, E, R>::value,  Result<R, E>>
     then(F&& f) {
         if (isOk()) {
-            return Result<R, E>{types::OkTag{}, f(std::move(_value))};
+            return Result<R, E>{types::OkTag{}, f(mv(_value))};
         }
 
-        return Result<R, E>{types::ErrTag{}, std::move(_error)};
+        return Result<R, E>{types::ErrTag{}, mv(_error)};
     }
 
 
@@ -474,7 +486,7 @@ public:
             return Result<void, E>{none};
         }
 
-        return Result<void, E>{std::move(_error)};
+        return Result<void, E>{mv(_error)};
     }
 
 
@@ -511,17 +523,19 @@ public:
      * @param f - An error mapping function to map Err value.
      */
     template<typename F,
-             typename EE = typename std::result_of<F(E)>::type>
+             typename RE = typename std::result_of<F(E)>::type,
+             typename EE = typename error_result_wrapper<RE>::type>
     Result<V, EE> mapError(F&& f) && {
         if (isOk()) {
-            return Result<V, EE>{types::OkTag{}, std::move(_value)};
+            return Result<V, EE>{types::OkTag{}, mv(_value)};
         }
 
-        return Result<V, EE>{types::ErrTag{}, f(std::move(_error))};
+        return Result<V, EE>{types::ErrTag{}, f(mv(_error))};
     }
 
     template<typename F,
-             typename EE = typename std::result_of<F(E)>::type>
+             typename RE = typename std::result_of<F(E)>::type,
+             typename EE = typename error_result_wrapper<RE>::type>
     Result<V, EE> mapError(F&& f) & {
         if (isOk()) {
             return Result<V, EE>{types::OkTag{}, unwrap()};
@@ -531,7 +545,8 @@ public:
     }
 
     template<typename F,
-             typename EE = typename std::result_of<F(E)>::type>
+             typename RE = typename std::result_of<F(E)>::type,
+             typename EE = typename error_result_wrapper<RE>::type>
     Result<V, EE> mapError(F&& f) const& {
         if (isOk()) {
             return Result<V, EE>{types::OkTag{}, unwrap()};
@@ -560,7 +575,7 @@ private:
     void constructValue(V&& t) {
         destroy();
 
-        ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(std::move(t));
+        ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(mv(t));
         _engaged = true;
     }
 
@@ -575,7 +590,7 @@ private:
     void constructError(E&& t) {
         destroy();
 
-        ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(std::move(t));
+        ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(mv(t));
         _engaged = false;
     }
 
@@ -648,7 +663,7 @@ public:
      * @param err Err value to move from
      */
     Result(types::Err<E>&& err) noexcept(std::is_nothrow_move_constructible<E>::value)
-        : _maybeError{std::move(err.val_)}
+        : _maybeError{mv(err.val_)}
     {}
 
 
@@ -657,7 +672,7 @@ public:
      * @param err Err value to move from
      */
     Result(E&& err) noexcept(std::is_nothrow_move_constructible<E>::value)
-        : _maybeError{std::move(err)}
+        : _maybeError{mv(err)}
     {}
 
 
@@ -666,7 +681,7 @@ public:
      * @param rhs Source to move values from
      */
     Result(Result&& rhs) noexcept(std::is_nothrow_move_constructible<E>::value) :
-        _maybeError{std::move(rhs._maybeError)}
+        _maybeError{mv(rhs._maybeError)}
     {}
 
 public:
@@ -852,15 +867,15 @@ public:
      * @param f - An error mapping function to map Err value.
      */
     template<typename F,
-             typename ER = typename std::result_of<F(E)>::type>
-    Result<void, ER> mapError(F&& f) {
+             typename RE = typename std::result_of<F(E)>::type,
+             typename EE = typename error_result_wrapper<RE>::type>
+    Result<void, EE> mapError(F&& f) {
         if (isOk()) {
             return none;
         }
 
         return Err(f(moveError()));
     }
-
 
 private:
     Optional<error_type> _maybeError;

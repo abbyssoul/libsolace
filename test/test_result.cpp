@@ -525,6 +525,7 @@ TEST_F(TestResult, testMapError) {
                 }));
 }
 
+
 TEST_F(TestResult, testMoveOnlyObjects) {
     {
         Result<MoveOnlyType, SimpleType> res = Err<SimpleType>({112, 2, -1});
