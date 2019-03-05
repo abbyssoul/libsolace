@@ -523,6 +523,12 @@ TEST_F(TestResult, testMapError) {
                     ? StringLiteral{"Error is 112"}
                     : StringLiteral{"Error is unknown"};
                 }));
+
+    Result<void, PimitiveType> res2 = Err<PimitiveType>(321);
+    Result<void, SimpleType> mappedRes = Err(SimpleType{321, 1, 2});
+    EXPECT_TRUE(mappedRes == res2.mapError([](PimitiveType const& x) {
+                    return Err(SimpleType{x.x, 1, 2});
+                }));
 }
 
 

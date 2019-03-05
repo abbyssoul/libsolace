@@ -869,12 +869,27 @@ public:
     template<typename F,
              typename RE = typename std::result_of<F(E)>::type,
              typename EE = typename error_result_wrapper<RE>::type>
-    Result<void, EE> mapError(F&& f) {
+    std::enable_if_t<!isResult<void, E, RE>::value, Result<void, EE>>
+    mapError(F&& f) {
         if (isOk()) {
             return none;
         }
 
         return Err(f(moveError()));
+    }
+
+    template<typename F,
+             typename RE = typename std::result_of<F(E)>::type,
+             typename EE = typename error_result_wrapper<RE>::type,
+             typename ResT = isResult<void, E, RE>
+             >
+    std::enable_if_t<ResT::value, typename ResT::type>
+    mapError(F&& f) {
+        if (isOk()) {
+            return none;
+        }
+
+        return f(moveError());
     }
 
 private:
@@ -913,6 +928,19 @@ bool operator== (types::Err<E> const& errValue, Result<V, E> const& res) {
 template<typename V, typename E>
 bool operator== (Result<V, E> const& res, types::Err<E> const& errValue) {
     return res.isError() && (res.getError() == errValue.val_);
+}
+
+
+template<typename V, typename E>
+bool operator== (Result<V, E> const& lhs, Result<V, E> const& rhs) noexcept {
+    return ((lhs.isOk() && rhs.isOk()) && (lhs.unwrap() == rhs.unwrap())) ||
+           ((lhs.isError() && rhs.isError()) && (lhs.getError() == rhs.getError()));
+}
+
+template<typename E>
+bool operator== (Result<void, E> const& lhs, Result<void, E> const& rhs) noexcept {
+    return ((lhs.isOk() && rhs.isOk()) ||
+           ((lhs.isError() && rhs.isError()) && (lhs.getError() == rhs.getError())));
 }
 
 
