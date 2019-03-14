@@ -82,7 +82,7 @@ ByteReader::get(size_type pos) const noexcept {
 
 
 Result<void, Error>
-ByteReader::read(MutableMemoryView& dest, size_type bytesToRead) noexcept {
+ByteReader::read(MutableMemoryView dest, size_type bytesToRead) noexcept {
     if (dest.size() < bytesToRead) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
     }
@@ -106,7 +106,7 @@ ByteReader::read(void* dest, size_type bytesToRead) noexcept {
 
 
 Result<void, Error>
-ByteReader::read(size_type offset, MutableMemoryView& dest, size_type bytesToRead) const noexcept {
+ByteReader::read(size_type offset, MutableMemoryView dest, size_type bytesToRead) const noexcept {
     if (dest.size() < bytesToRead) {
         return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
     }

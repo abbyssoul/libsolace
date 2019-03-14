@@ -209,27 +209,23 @@ public:
      * @return Nothing if successfull or an error.
      */
     Result<void, Error>
-    read(MutableMemoryView& dest) noexcept {
+    read(MutableMemoryView dest) noexcept {
         return read(dest, dest.size());
     }
 
     Result<void, Error>
-    read(MutableMemoryView& dest, size_type bytesToRead) noexcept;
+    read(MutableMemoryView dest, size_type bytesToRead) noexcept;
 
     Result<void, Error>
-    read(size_type offset, MutableMemoryView& dest, size_type bytesToRead) const noexcept;
+    read(size_type offset, MutableMemoryView dest, size_type bytesToRead) const noexcept;
 
     Result<void, Error>
-    read(size_type offset, MutableMemoryView& dest) const noexcept {
+    read(size_type offset, MutableMemoryView dest) const noexcept {
         return read(offset, dest, dest.size());
     }
 
     MemoryView viewRemaining() const noexcept {
         return _storage.view().slice(position(), limit());
-    }
-
-    MemoryView viewWritten() const noexcept {
-        return _storage.view().slice(0, position());
     }
 
     Result<void, Error>  read(char*      dest) noexcept { return read(dest, sizeof(char));    }
