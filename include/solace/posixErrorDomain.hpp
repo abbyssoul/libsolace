@@ -191,29 +191,29 @@ enum class SystemErrors : int {
 
 /// Create an error object representing given system error code.
 [[nodiscard]]
-constexpr Error makeSystemError(int errCode) noexcept {
+inline Error makeSystemError(int errCode) noexcept {
     return Error{kSystemCatergory, errCode};
 }
 
 /// Create an error object representing given system error code with a tag.
 [[nodiscard]]
-constexpr Error makeSystemError(int errCode, StringLiteral tag) noexcept {
+inline Error makeSystemError(int errCode, StringLiteral tag) noexcept {
     return Error{kSystemCatergory, errCode, std::move(tag)};
 }
 
 
 [[nodiscard]]
-constexpr Error makeError(BasicError errCode, StringLiteral tag) noexcept {
+inline Error makeError(BasicError errCode, StringLiteral tag) noexcept {
     return Error{kSystemCatergory, static_cast<int>(errCode), tag};
 }
 
 [[nodiscard]]
-constexpr Error makeError(GenericError errCode, StringLiteral tag) noexcept {
+inline Error makeError(GenericError errCode, StringLiteral tag) noexcept {
     return Error{kSystemCatergory, static_cast<int>(errCode), tag};
 }
 
 [[nodiscard]]
-constexpr Error makeError(SystemErrors errCode, StringLiteral tag) noexcept {
+inline Error makeError(SystemErrors errCode, StringLiteral tag) noexcept {
     return Error{kSystemCatergory, static_cast<int>(errCode), tag};
 }
 
