@@ -515,6 +515,19 @@ TEST_F(TestResult, testThenComposition_cv) {
 }
 
 
+TEST_F(TestResult, testThenToVoid) {
+    Result<int, SimpleType> initialResult = Ok<int>(112);
+
+    auto fmap =[](int) -> Result<void, SimpleType> { return Ok(); };
+
+    Result<void, SimpleType> finalResult = initialResult
+            .then([&fmap](int x) { return fmap(x); });
+
+    EXPECT_TRUE(finalResult.isOk());
+}
+
+
+
 TEST_F(TestResult, testMapError) {
     Result<int, PimitiveType> res = Err<PimitiveType>(112);
 

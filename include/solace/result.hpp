@@ -680,8 +680,21 @@ public:
      * Move-Construct Result of the same type
      * @param rhs Source to move values from
      */
-    Result(Result&& rhs) noexcept(std::is_nothrow_move_constructible<E>::value) :
-        _maybeError{mv(rhs._maybeError)}
+    Result(Result&& rhs) noexcept(std::is_nothrow_move_constructible<E>::value)
+        : _maybeError{mv(rhs._maybeError)}
+    {}
+
+
+    constexpr Result(types::OkTag) noexcept
+        : _maybeError{}
+    {}
+
+    constexpr Result(types::ErrTag, E const& value) noexcept(std::is_nothrow_copy_constructible<E>::value)
+        : _maybeError{value}
+    {}
+
+    constexpr Result(types::ErrTag, E&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
+        : _maybeError{mv(value)}
     {}
 
 public:
