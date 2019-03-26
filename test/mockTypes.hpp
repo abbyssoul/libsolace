@@ -135,11 +135,15 @@ struct SimpleType {
         return *this;
     }
 
-    friend bool operator== (const SimpleType& a, const SimpleType& b) {
+    friend bool operator== (const SimpleType& a, const SimpleType& b) noexcept {
         return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
     }
 
+    friend bool operator!= (const SimpleType& a, const SimpleType& b) noexcept {
+        return !(a == b);
+    }
 };
+
 
 
 struct MoveOnlyType {

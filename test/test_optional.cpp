@@ -259,11 +259,33 @@ TEST_F(TestOptional, testMoveAssignemnt) {
     EXPECT_EQ(StringLiteral("something different"), v1.get());
 }
 
-TEST_F(TestOptional, testEquals) {
+TEST_F(TestOptional, testEqualStrings) {
     const Optional<String> v1(moveOptionalString(makeString("hello")));
     const Optional<String> v3(moveOptionalString(makeString("hello")));
 
     EXPECT_EQ(v1, v3);
+}
+
+
+TEST_F(TestOptional, testEquals) {
+    const Optional<SimpleType> o1{SimpleType{1,2,3}};
+    const Optional<SimpleType> o2{SimpleType{3,1,1}};
+    const Optional<SimpleType> o3{SimpleType{1,2,3}};
+
+    EXPECT_TRUE(none == none);
+    EXPECT_TRUE(Optional<SimpleType>{} == none);
+    EXPECT_TRUE(none == Optional<SimpleType>{});
+
+    EXPECT_TRUE(o1 == o1);  // Self equality
+    EXPECT_TRUE(o1 == o3);  // A == B
+    EXPECT_TRUE(o3 == o1);  // B == A
+
+    EXPECT_TRUE(o1 != none);
+    EXPECT_TRUE(o1 != Optional<SimpleType>{});
+    EXPECT_TRUE(none != o1);
+
+    EXPECT_TRUE(o1 != o2);  // A != B
+    EXPECT_TRUE(o2 != o1);  // B != A
 }
 
 

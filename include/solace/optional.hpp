@@ -338,17 +338,20 @@ private:
 template <typename T>
 inline Optional<T> Optional<T>::_emptyInstance {none};
 
+constexpr bool operator== (None, None) { return true; }
+constexpr bool operator!= (None, None) { return false; }
 
 template<typename T>
-bool operator== (Optional<T> const& a, None) {
-    return a.isNone();
-}
+bool operator== (Optional<T> const& a, None) { return a.isNone(); }
 
 template<typename T>
-bool operator== (None, Optional<T> const& a) {
-    return a.isNone();
-}
+bool operator== (None, Optional<T> const& a) { return a.isNone(); }
 
+template<typename T>
+bool operator!= (Optional<T> const& a, None) { return a.isSome(); }
+
+template<typename T>
+bool operator!= (None, Optional<T> const& a) { return a.isSome(); }
 
 template<typename T>
 bool operator== (Optional<T> const& a, Optional<T> const& b) {
@@ -366,6 +369,24 @@ bool operator== (Optional<T> const& a, Optional<T> const& b) {
 
     return false;
 }
+
+template<typename T>
+bool operator!= (Optional<T> const& a, Optional<T> const& b) {
+    if (&a == &b) {
+        return false;
+    }
+
+    if (a.isNone() && b.isNone()) {
+        return false;
+    }
+
+    if (a.isSome() && b.isSome()) {
+        return (*a != *b);
+    }
+
+    return true;
+}
+
 
 template<typename T>
 void swap(Optional<T>& lhs, Optional<T>& rhs) noexcept {
