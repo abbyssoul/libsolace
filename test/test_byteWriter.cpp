@@ -71,9 +71,6 @@ TEST(TestByteWriter, testWrite) {
         auto writer = ByteWriter{wrapMemory(destMem)};
         // Attempt to write more bytes then fit into the dest buffer
         EXPECT_TRUE(writer.write(viewBytes).isError());
-
-        // Attempt to write more bytes then availible in the source buffer
-        EXPECT_TRUE(writer.write(viewBytes, 128).isError());
     }
 }
 

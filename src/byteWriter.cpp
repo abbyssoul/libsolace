@@ -65,7 +65,7 @@ ByteWriter::advance(size_type increment) noexcept {
 
 Result<void, Error>
 ByteWriter::write(void const* data, size_type count) noexcept {
-    if (count == 0) {
+    if (count == 0) {  // It's always ok to write 0 bytes :)
         return Ok();
     }
 

@@ -52,7 +52,7 @@ public:
      * Construct the byte buffer by moving content from the other buffer
      * @param other Other buffer to take over from
      */
-    constexpr ByteWriter(ByteWriter&& other)  noexcept
+    constexpr ByteWriter(ByteWriter&& other) noexcept
         : _position{exchange(other._position, 0)}
         , _limit{exchange(other._limit, 0)}
         , _storage{std::move(other._storage)}
@@ -202,26 +202,6 @@ public:
     }
 
 
-    /**
-     * Write given data buffer into this writer.
-     * @param data Raw byte data to write.
-     * @return Result of write operation. An error is raised if data buffer exceed this writer's capacity.
-     */
-    Result<void, Error> write(MemoryView data) noexcept {
-        return write(data.dataAddress(), data.size());
-    }
-
-    /**
-     * Write given raw bytes into this buffer.
-     * @param data Raw bytes data to write.
-     * @param bytesToWrite Number of bytes to write from data into this buffer.
-     * @return Refernce to this for luency.
-     * @note Exception is thrown if bytesToWrite exceed buffer capacity.
-     */
-    Result<void, Error> write(MemoryView data, size_type bytesToWrite) {
-        return write(data.slice(0, bytesToWrite));
-    }
-
     Result<void, Error> write(char value)    noexcept { return write(&value, sizeof(value)); }
     Result<void, Error> write(int8 value)    noexcept { return write(&value, sizeof(value)); }
     Result<void, Error> write(uint8 value)   noexcept { return write(&value, sizeof(value)); }
@@ -233,6 +213,16 @@ public:
     Result<void, Error> write(uint64 value)  noexcept { return write(&value, sizeof(value)); }
     Result<void, Error> write(float32 value) noexcept { return write(&value, sizeof(value)); }
     Result<void, Error> write(float64 value) noexcept { return write(&value, sizeof(value)); }
+
+    /**
+     * Write given data buffer into this writer.
+     * @param data Raw byte data to write.
+     * @return Result of write operation. An error is raised if data buffer exceed this writer's capacity.
+     */
+    Result<void, Error> write(MemoryView data) noexcept {
+        return write(data.dataAddress(), data.size());
+    }
+
 
     // Endianess aware write methods
     Result<void, Error> writeLE(int8 value)  noexcept { return write(&value, sizeof(value)); }

@@ -360,11 +360,38 @@ TEST(TestMemoryView, testSlice) {
     EXPECT_EQ(32, slice[0]);
     EXPECT_EQ(63, slice[31]);
 
+
     EXPECT_EQ(buffer, buffer.slice(0, buffer.size()));
     EXPECT_TRUE(buffer.slice(3, 3).empty());
     EXPECT_TRUE(buffer.slice(128, 256).empty());
     EXPECT_TRUE(buffer.slice(128, 2).empty());
     EXPECT_TRUE(buffer.slice(32, 2).empty());
+}
+
+
+TEST(TestMemoryView, testGreadySlice) {
+    byte src[64];
+    byte i = 0;
+    for (auto& a : src) { a = i++; }
+
+    // Overslicing
+    {
+        MutableMemoryView buffer = wrapMemory(src);
+        auto slice = buffer.slice(0, 256);
+        EXPECT_EQ(64, slice.size());
+        EXPECT_EQ(0, slice[0]);
+        EXPECT_EQ(31, slice[31]);
+        EXPECT_EQ(63, slice[63]);
+    }
+
+    {
+        MemoryView buffer = wrapMemory(src);
+        auto slice = buffer.slice(0, 256);
+        EXPECT_EQ(64, slice.size());
+        EXPECT_EQ(0, slice[0]);
+        EXPECT_EQ(31, slice[31]);
+        EXPECT_EQ(63, slice[63]);
+    }
 }
 
 
