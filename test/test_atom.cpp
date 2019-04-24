@@ -24,11 +24,30 @@
 
 using namespace Solace;
 
-TEST(TestAtom, testEncodDecoding) {
+
+TEST(TestAtom, testStaticEncodDecoding) {
     char buff[16];
     atomToString(atom("test"), buff);
     EXPECT_STREQ("test", buff);
 
     atomToString(atom("custom"), buff);
     EXPECT_STREQ("custom", buff);
+}
+
+
+TEST(TestAtom, testEncodDecoding) {
+	auto parseResult = tryParseAtom("test");
+	ASSERT_TRUE(parseResult);
+
+	EXPECT_EQ(atom("test"), *parseResult);
+
+	char buff[16];
+	atomToString(*parseResult, buff);
+	EXPECT_STREQ("test", buff);
+}
+
+
+TEST(TestAtom, testParsingFailure) {
+	auto parseResult = tryParseAtom("long-ass-atom");
+	ASSERT_FALSE(parseResult);
 }

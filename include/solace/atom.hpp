@@ -22,6 +22,10 @@
 #define SOLACE_ATOM_HPP
 
 #include "solace/types.hpp"
+#include "solace/stringView.hpp"
+#include "solace/result.hpp"
+//#include "solace/error.hpp"
+
 
 #include <type_traits>
 #include <climits>
@@ -45,11 +49,11 @@ namespace detail {
 
 template <typename T = std::uintmax_t>
 constexpr std::enable_if_t<std::is_integral<T>::value, T>
-wrap(char const* const str) noexcept {
-    constexpr auto N = sizeof(T);
+wrap(char const* const str, std::size_t len = sizeof(T)) noexcept {
+	constexpr auto N = sizeof(T);
     T n {};
-    std::size_t i {};
-    while (i < N && str[i]) {
+	std::size_t i{};
+	while (i < N && i < len && str[i]) {
         n = (n << CHAR_BIT) | str[i++];
     }
 
@@ -87,6 +91,11 @@ void atomToString(AtomValue a, char *const buffer) noexcept {
     detail::unwrap<std::uintmax_t>(static_cast<std::uintmax_t>(a), buffer);
 }
 
+
+struct ParseError {};
+
+Result<AtomValue, ParseError>
+tryParseAtom(StringView str) noexcept;
 
 }  // End of namespace Solace
 #endif  // SOLACE_ATOM_HPP
