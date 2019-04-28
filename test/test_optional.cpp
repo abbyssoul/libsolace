@@ -288,6 +288,21 @@ TEST_F(TestOptional, testEquals) {
     EXPECT_TRUE(o2 != o1);  // B != A
 }
 
+TEST_F(TestOptional, testEqualsValues) {
+	EXPECT_TRUE(Optional<int>(in_place, 4) == 4);
+	EXPECT_TRUE(Optional<int>(in_place, 3) != 4);
+
+	EXPECT_TRUE(33 == Optional<int>(in_place, 33));
+	EXPECT_TRUE(18 != Optional<int>(in_place, 27));
+
+
+	EXPECT_TRUE(Optional<SimpleType>(in_place, 1, 2, 3) == SimpleType(1,2,3));
+	EXPECT_TRUE(Optional<SimpleType>(in_place, 3, 1, 2) != SimpleType(1,2,3));
+
+	EXPECT_TRUE(SimpleType(3,1,2) == Optional<SimpleType>(in_place, 3, 1, 2));
+	EXPECT_TRUE(SimpleType(2,3,9) != Optional<SimpleType>(in_place, 2, 3, 3));
+}
+
 
 TEST_F(TestOptional, testEmpty) {
     auto v1 = Optional<int>{};

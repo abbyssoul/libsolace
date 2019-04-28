@@ -389,6 +389,19 @@ bool operator!= (Optional<T> const& a, Optional<T> const& b) {
 
 
 template<typename T>
+bool operator== (Optional<T> const& a, T const& value) { return a.isSome() && (*a == value); }
+
+template<typename T>
+bool operator== (T const& value, Optional<T> const& a) { return a.isSome() && (*a == value); }
+
+template<typename T>
+bool operator!= (Optional<T> const& a, T const& value) { return a.isNone() || (*a != value); }
+
+template<typename T>
+bool operator!= (T const& value, Optional<T> const& a) { return a.isNone() || (*a != value); }
+
+
+template<typename T>
 void swap(Optional<T>& lhs, Optional<T>& rhs) noexcept {
     lhs.swap(rhs);
 }
