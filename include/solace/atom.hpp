@@ -57,7 +57,9 @@ wrap(char const* const str, std::size_t len = sizeof(T)) noexcept {
         n = (n << CHAR_BIT) | str[i++];
     }
 
-    return (n << (N - i) * CHAR_BIT);
+	return (i == 0)
+			? 0
+			: (n << (N - i) * CHAR_BIT);
 }
 
 template <typename T>
