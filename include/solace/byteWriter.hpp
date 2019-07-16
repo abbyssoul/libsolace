@@ -47,7 +47,6 @@ public:
     ByteWriter(ByteWriter const& other) = delete;
     ByteWriter& operator= (ByteWriter const&) = delete;
 
-
     /**
      * Construct the byte buffer by moving content from the other buffer
      * @param other Other buffer to take over from

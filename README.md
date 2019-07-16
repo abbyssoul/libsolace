@@ -4,6 +4,8 @@
 [![Codecov][codecov-shield]][codecov-link]
 [![Coverity][coverity-shield]][coverity-link]
 [![Coverage Status][coveralls-shield]][coveralls-link]
+[![LGTM][LGTM-shield]][LGTM-link]
+
 
 [c++-standard-shield]: https://img.shields.io/badge/c%2B%2B-14/17/20-blue.svg
 [c++-standard-link]: https://en.wikipedia.org/wiki/C%2B%2B#Standardization
@@ -17,6 +19,9 @@
 [coverity-link]: https://scan.coverity.com/projects/abbyssoul-libsolace
 [coveralls-shield]: https://coveralls.io/repos/github/abbyssoul/libsolace/badge.svg?branch=master
 [coveralls-link]: https://coveralls.io/github/abbyssoul/libsolace?branch=master
+[LGTM-shield]: https://img.shields.io/lgtm/grade/cpp/github/abbyssoul/libsolace.svg
+[LGTM-link]: https://lgtm.com/projects/g/abbyssoul/libsolace/alerts/
+
 
 libSolace is a _library_ to help building mission critical application.
 > library: a collection of types, functions, classes, etc. implementing a set of facilities (abstractions) meant to be potentially used as part of more that one program. From [Cpp Code guidelines gloassay](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#glossary)
