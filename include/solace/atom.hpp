@@ -24,8 +24,6 @@
 #include "solace/types.hpp"
 #include "solace/stringView.hpp"
 #include "solace/result.hpp"
-//#include "solace/error.hpp"
-
 
 #include <type_traits>
 #include <climits>
