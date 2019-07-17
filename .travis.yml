@@ -35,7 +35,7 @@ addons:
  coverity_scan:
   project:
       name: "abbyssoul/libsolace"
-      description: "Foundation of High Reliability/High Performance Applications"
+      description: "Library for High Reliability/High Performance Applications"
   notification_email: abbyssoul@gmail.com
   build_command: make
   branch_pattern: coverity_scan
@@ -53,6 +53,9 @@ install:
   - echo $CXX
   - $CXX --version
   - ld --version
+  - conan --version
+  - conan profile new default --detect
+  - conan profile update settings.compiler.libcxx=libstdc++11 default
   - conan remote add abbyssoul https://api.bintray.com/conan/abbyssoul/public-conan
 
 script:

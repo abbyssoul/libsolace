@@ -27,6 +27,7 @@ DOC_DIR = docs
 DOC_TARGET_HTML = $(DOC_DIR)/html
 
 COVERAGE_REPORT = coverage.info
+CPPCHECK_VERSION = '1.89'
 
 ifdef sanitize
 	SANITIZE = ON
@@ -125,7 +126,7 @@ ANALYZE_MAKE: ${ANALYZE_DIR}
 tools/cppcheck:
 	# Getting latest cppcheck
 	# Fix cppcheck version to 1.85 as master is borked
-	git clone -b '1.85' --single-branch --depth 1 https://github.com/danmar/cppcheck.git tools/cppcheck
+	git clone -b ${CPPCHECK_VERSION} --single-branch --depth 1 https://github.com/danmar/cppcheck.git tools/cppcheck
 
 tools/cppcheck/cppcheck: tools/cppcheck
 	git -C tools/cppcheck pull
@@ -133,11 +134,11 @@ tools/cppcheck/cppcheck: tools/cppcheck
 
 
 # TODO: Extra cppcheck options to consider: --enable=style,unusedFunction --inconclusive
-# not --enable=all, cause style is too verbose
+# note: don't use --enable=all, 'cause `style` is too verbose
 .PHONY: cppcheck
 cppcheck: $(MODULE_HEADERS) $(MODULE_SRC) tools/cppcheck/cppcheck
-	tools/cppcheck/cppcheck --std=c++14 --std=posix -D __linux__ -D __x86_64__ --inline-suppr -q --error-exitcode=2 \
-	--enable=warning,performance,portability,missingInclude,information \
+	tools/cppcheck/cppcheck --std=c++20 -D __linux__ -D __x86_64__ --inline-suppr -q --error-exitcode=2 \
+	--enable=warning,performance,portability,information,missingInclude \
 	--report-progress \
 	-I include -i test/ci ${SRC_DIR} ${TEST_DIR} examples
 
