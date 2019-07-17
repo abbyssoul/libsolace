@@ -42,9 +42,10 @@ addons:
   branch_pattern: coverity_scan
 
 before_install:
+  - sudo -H pip3 install --upgrade pip
   - sudo pip3 install cpplint cpp-coveralls
-  #- sudo pip3 install conan --upgrade
-  - sudo pip3 install conan
+  - sudo pip3 install conan --upgrade
+  #- sudo pip3 install conan
   - gem install coveralls-lcov
 
 install:
