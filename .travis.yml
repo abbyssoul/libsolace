@@ -43,7 +43,8 @@ addons:
 
 before_install:
   - sudo pip3 install cpplint cpp-coveralls
-  - sudo pip3 install conan --upgrade
+  #- sudo pip3 install conan --upgrade
+  - sudo pip3 install conan
   - gem install coveralls-lcov
 
 install:

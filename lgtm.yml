@@ -12,7 +12,7 @@ extraction:
                 - "python3-cryptography"
         after_prepare:
             - "pip3 install --user conan"
-            - "pip3 install --user conan --upgrade"
+            #- "pip3 install --user conan --upgrade"
             - "ls ~/.local/bin"
             - "export PATH=$PATH:~/.local/bin"
             - "conan --version"
