@@ -10,6 +10,7 @@ extraction:
                 - "python3-setuptools"
                 - "python3-pip"
                 - "python3-cryptography"
+                - "python3-mccabe"
         after_prepare:
             - "pip3 install --user conan"
             #- "pip3 install --user conan --upgrade"
