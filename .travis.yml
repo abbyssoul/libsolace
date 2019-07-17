@@ -13,16 +13,20 @@ addons:
  apt:
    update: true
    sources:
-   - ubuntu-toolchain-r-test
-   - llvm-toolchain-trusty-6.0
+     - ubuntu-toolchain-r-test
    packages:
-   - clang-6.0
+   #- binutils-2.26
+   - "pkg-config"
+   - "python3"
+   - "python3-dev"
+   - "python3-yaml"
+   - "python3-wheel"
+   - "python3-setuptools"
+   - "python3-pip"
    - gcc-7
    - g++-7
-   - binutils-2.26
    - cmake
    - doxygen
-   - python-pip
    - libc6-dbg  # needed by Valgrind
    - valgrind
    - ggcov
@@ -37,8 +41,8 @@ addons:
   branch_pattern: coverity_scan
 
 before_install:
-  - sudo pip install cpplint cpp-coveralls
-  - sudo pip install conan --upgrade
+  - sudo pip3 install cpplint cpp-coveralls
+  - sudo pip3 install conan --upgrade
   - gem install coveralls-lcov
 
 install:
@@ -46,7 +50,6 @@ install:
   - lcov --version
   - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 90 --slave /usr/bin/g++ g++ /usr/bin/g++-7
   - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-7 90
-  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-6.0" CC="clang-6.0"; fi
   - echo $CXX
   - $CXX --version
   - ld --version
