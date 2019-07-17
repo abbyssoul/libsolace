@@ -27,7 +27,7 @@ DOC_DIR = docs
 DOC_TARGET_HTML = $(DOC_DIR)/html
 
 COVERAGE_REPORT = coverage.info
-CPPCHECK_VERSION = '1.89'
+CPPCHECK_VERSION = '1.88'
 
 ifdef sanitize
 	SANITIZE = ON
@@ -125,7 +125,7 @@ ANALYZE_MAKE: ${ANALYZE_DIR}
 
 tools/cppcheck:
 	# Getting latest cppcheck
-	# Fix cppcheck version to 1.85 as master is borked
+	# Fix cppcheck version to as master is borked
 	git clone -b ${CPPCHECK_VERSION} --single-branch --depth 1 https://github.com/danmar/cppcheck.git tools/cppcheck
 
 tools/cppcheck/cppcheck: tools/cppcheck

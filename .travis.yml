@@ -22,6 +22,7 @@ addons:
    - "python3-yaml"
    - "python3-wheel"
    - "python3-setuptools"
+   - "python3-cryptography"
    - "python3-pip"
    - gcc-7
    - g++-7
