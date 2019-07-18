@@ -15,7 +15,6 @@ addons:
    sources:
      - ubuntu-toolchain-r-test
    packages:
-   #- binutils-2.26
    - "pkg-config"
    - "python3"
    - "python3-dev"
@@ -35,17 +34,17 @@ addons:
    - curl
  coverity_scan:
   project:
-      name: "abbyssoul/libsolace"
-      description: "Library for High Reliability/High Performance Applications"
+    name: "abbyssoul/libsolace"
+    description: "Library for High Reliability/High Performance Applications"
   notification_email: abbyssoul@gmail.com
   build_command: make
   branch_pattern: coverity_scan
 
 before_install:
+  - echo -n | openssl s_client -connect https://scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-
   - sudo -H pip3 install --upgrade pip
-  - sudo pip3 install cpplint cpp-coveralls
-  - sudo pip3 install conan --upgrade
-  #- sudo pip3 install conan
+  - sudo -H pip3 install cpplint cpp-coveralls
+  - sudo -H pip3 install conan --upgrade
   - gem install coveralls-lcov
 
 install:
