@@ -171,13 +171,13 @@ TEST(TestBase16, testDecodingIterator) {
 TEST(TestBase16, testDecodingIterator_InvalidInputLenght) {
     {
         auto const encodedText1 = wrapMemory("F");
-        EXPECT_TRUE(base16Decode_end(encodedText1) == base16Decode_begin(encodedText1));
+		EXPECT_EQ(base16Decode_end(encodedText1), base16Decode_begin(encodedText1));
     }
 
     {
         auto const encodedText2 = wrapMemory("F65");
         auto i = base16Decode_begin(encodedText2);
-        EXPECT_TRUE(i != base16Decode_end(encodedText2));
+		EXPECT_NE(i, base16Decode_end(encodedText2));
         EXPECT_EQ(246, *i);
         EXPECT_EQ(base16Decode_end(encodedText2), ++i);
     }
@@ -186,15 +186,15 @@ TEST(TestBase16, testDecodingIterator_InvalidInputLenght) {
 TEST(TestBase16, testDecodingIterator_InvalidData) {
     {
         auto const encodedText = wrapMemory("pX");
-        EXPECT_TRUE(base16Decode_end(encodedText) == base16Decode_begin(encodedText));
+		EXPECT_EQ(base16Decode_end(encodedText), base16Decode_begin(encodedText));
     }
 
     {
         auto const encodedText = wrapMemory("F6k");
         auto i = base16Decode_begin(encodedText);
-        EXPECT_TRUE(i != base16Decode_end(encodedText));
+		EXPECT_NE(i, base16Decode_end(encodedText));
         EXPECT_EQ(246, *i);
-        EXPECT_TRUE(base16Decode_end(encodedText) == ++i);
+		EXPECT_EQ(base16Decode_end(encodedText), ++i);
     }
 }
 

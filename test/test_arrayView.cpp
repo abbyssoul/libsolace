@@ -214,8 +214,8 @@ TEST_F(TestArrayView, testEmpty) {
 
         EXPECT_TRUE(empty_array.empty());
         EXPECT_EQ(ZERO, empty_array.size());
-        EXPECT_TRUE(empty_array.begin() == empty_array.end());
-        EXPECT_TRUE(empty_array == nullptr);
+		EXPECT_EQ(empty_array.begin(), empty_array.end());
+		EXPECT_EQ(nullptr, empty_array);
     }
 
     {
@@ -223,8 +223,8 @@ TEST_F(TestArrayView, testEmpty) {
 
         EXPECT_TRUE(empty_array.empty());
         EXPECT_EQ(ZERO, empty_array.size());
-        EXPECT_TRUE(empty_array.begin() == empty_array.end());
-        EXPECT_TRUE(empty_array == nullptr);
+		EXPECT_EQ(empty_array.begin(), empty_array.end());
+		EXPECT_EQ(nullptr, empty_array);
     }
 
     {
@@ -232,8 +232,8 @@ TEST_F(TestArrayView, testEmpty) {
 
         EXPECT_TRUE(empty_array.empty());
         EXPECT_EQ(ZERO, empty_array.size());
-        EXPECT_TRUE(empty_array.begin() == empty_array.end());
-        EXPECT_TRUE(empty_array == nullptr);
+		EXPECT_EQ(empty_array.begin(), empty_array.end());
+		EXPECT_EQ(nullptr, empty_array);
     }
 }
 

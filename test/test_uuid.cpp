@@ -46,7 +46,7 @@ TEST(TestUUID, testRandom) {
 
     for (uint i = 0; i < RandomSampleSize; ++i) {
         for (uint j = i + 1; j < RandomSampleSize; ++j) {
-            EXPECT_TRUE(ids[i] != ids[j]);
+			EXPECT_NE(ids[i], ids[j]);
         }
     }
 }
@@ -84,10 +84,10 @@ TEST(TestUUID, testConstruction) {
 
 TEST(TestUUID, testMakeUUIDwithInsufficientData) {
     byte const fewBytes[] = {1, 0, 3, 4, 5, 6, 7, 8};
-    EXPECT_THROW(auto unused = makeUUID(wrapMemory(fewBytes)), Exception);
+	EXPECT_THROW([[maybe_unused]] auto unused = makeUUID(wrapMemory(fewBytes)), Exception);
 
     byte const bytes[] = {1, 0, 3, 4, 5, 6, 7, 8, 1, 0, 3, 4, 5, 6, 7, 8};
-    EXPECT_THROW(auto const x = makeUUID(wrapMemory(bytes, 7)), Exception);
+	EXPECT_THROW([[maybe_unused]] auto const x = makeUUID(wrapMemory(bytes, 7)), Exception);
 }
 
 

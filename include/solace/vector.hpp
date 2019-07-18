@@ -425,7 +425,7 @@ Vector<T> makeVectorOf(Args&&...args) {
     auto buffer = getSystemHeapMemoryManager().allocate(vectorSize*sizeof(T));           // May throw
     auto values = arrayView<T>(buffer.view());
 
-	values.emplaceAll(fwd<Args>(args)...);
+	values.emplaceAll(std::forward<Args>(args)...);
 
 	return {mv(buffer), vectorSize};                                 // No except
 }

@@ -128,9 +128,6 @@ public:
         return true;
     }
 
-    bool operator== (decltype(nullptr)) const noexcept { return empty(); }
-    bool operator!= (decltype(nullptr)) const noexcept { return !empty(); }
-
     bool operator== (const ArrayView& other) const noexcept {
         return equals(other);
     }
@@ -415,6 +412,18 @@ template<typename T>
 void swap(ArrayView<T>& lhs, ArrayView<T>& rhs) noexcept {
     lhs.swap(rhs);
 }
+
+template<typename T>
+inline bool operator== (decltype(nullptr), ArrayView<T> const& value) noexcept { return value.empty(); }
+
+template<typename T>
+inline bool operator!= (decltype(nullptr), ArrayView<T> const& value) noexcept { return !value.empty(); }
+
+template<typename T>
+inline bool operator== (ArrayView<T> const& value, decltype(nullptr)) noexcept { return value.empty(); }
+
+template<typename T>
+inline bool operator!= (ArrayView<T> const& value, decltype(nullptr)) noexcept { return !value.empty(); }
 
 
 /** ArrayView factory */

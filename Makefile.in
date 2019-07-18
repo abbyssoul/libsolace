@@ -76,7 +76,7 @@ $(LIB_TAGRET): $(GENERATED_MAKE)
 lib: $(LIB_TAGRET)
 
 
-$(BUILD_DIR)/build_coverage: $(GENERATED_MAKE_WITH_COVERAGE) $(LIB_TAGRET)
+$(BUILD_DIR)/build_coverage: $(GENERATED_MAKE_WITH_COVERAGE) $(TEST_TAGRET)
 	$(shell touch ${BUILD_DIR}/build_coverage)
 
 # Build the project with coverage
@@ -182,6 +182,7 @@ $(COVERAGE_REPORT): $(BUILD_DIR)/build_coverage
 	lcov --directory . --capture --output-file $@
 	# filter out system and test code
 	lcov --remove coverage.info 'test/*' '/usr/*' 'external/*' --output-file $@
+
 
 coverage: $(COVERAGE_REPORT)
 

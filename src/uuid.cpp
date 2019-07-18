@@ -21,7 +21,7 @@
 #include "solace/base16.hpp"
 #include "solace/posixErrorDomain.hpp"
 
-
+#include <random>
 #include <cstring>  // memcmp (should review)
 #include <cstdlib>  // rand
 #include <ctime>    // time
@@ -183,11 +183,13 @@ Solace::makeUUID(uint32 a0, uint32 a1, uint32 a2, uint32 a3) noexcept {
 
 UUID
 Solace::makeRandomUUID() noexcept {
-	unsigned int rndSeed = static_cast<unsigned int>(time(nullptr));
-    byte bytes[UUID::StaticSize];
+	std::random_device rd;
+	std::default_random_engine e1(rd());
+
+	byte bytes[UUID::StaticSize];
 
 	for (UUID::size_type i = 0; i < UUID::StaticSize; ++i) {
-		auto const rndValue = rand_r(&rndSeed);
+		auto const rndValue = e1();
 		auto const stride = (sizeof(rndValue) + i <  UUID::StaticSize) ? sizeof(rndValue) : UUID::StaticSize - i;
 		memcpy(bytes + i, &rndValue, stride);
 		i += stride;
