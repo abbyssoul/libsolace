@@ -183,10 +183,14 @@ Solace::makeUUID(uint32 a0, uint32 a1, uint32 a2, uint32 a3) noexcept {
 
 UUID
 Solace::makeRandomUUID() noexcept {
+	unsigned int rndSeed = static_cast<unsigned int>(time(nullptr));
     byte bytes[UUID::StaticSize];
 
-    for (auto& b : bytes) {
-        b = static_cast<byte>(rand() % 255);
+	for (UUID::size_type i = 0; i < UUID::StaticSize; ++i) {
+		auto const rndValue = rand_r(&rndSeed);
+		auto const stride = (sizeof(rndValue) + i <  UUID::StaticSize) ? sizeof(rndValue) : UUID::StaticSize - i;
+		memcpy(bytes + i, &rndValue, stride);
+		i += stride;
     }
 
     return {bytes};

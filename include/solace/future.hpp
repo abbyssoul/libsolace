@@ -26,6 +26,8 @@
 
 #include "solace/promise.hpp"
 
+#include <memory>  // shared_ptr<>
+
 
 namespace Solace {
 

@@ -31,6 +31,7 @@
 #include <atomic>
 #include <vector>
 #include <algorithm>
+#include <memory>  // make_shared<>
 
 
 namespace Solace { namespace details {

@@ -31,7 +31,7 @@
 
 
 #include <atomic>
-#include <memory>
+#include <memory>  // std::shared_ptr<>, std::make_shared<>
 
 
 namespace Solace {

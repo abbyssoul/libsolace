@@ -69,7 +69,7 @@ public:
 
     /** Construct a new array by moving content of a given array */
     constexpr Vector(Vector<T>&& rhs) noexcept
-        : _buffer{std::move(rhs._buffer)}
+		: _buffer{mv(rhs._buffer)}
         , _position{exchange(rhs._position, 0)}
     {
     }
@@ -87,7 +87,7 @@ public:
 
     /** */
     constexpr Vector(MemoryResource&& buffer, size_type count) noexcept
-        : _buffer{std::move(buffer)}
+		: _buffer{mv(buffer)}
         , _position{count}
     {
     }
@@ -256,7 +256,7 @@ public:
      * @return An array owning the content.
      */
     Array<T> toArray() & noexcept {
-        return {std::move(_buffer), exchange(_position, 0)};
+		return {mv(_buffer), exchange(_position, 0)};
     }
 
 protected:
@@ -339,7 +339,7 @@ constexpr Vector<T> makeVector() noexcept {
 template<typename T>
 [[nodiscard]]
 constexpr Vector<T> makeVector(MemoryResource&& memory) noexcept {
-    return { std::move(memory), 0 };
+	return { mv(memory), 0 };
 }
 
 /**
@@ -361,7 +361,7 @@ Vector<T> makeVector(ArrayView<T const> array) {
 
     CopyConstructArray_<RemoveConst<T>, Decay<T*>, false>::apply(dest, array);    // May throw if copy-ctor throws
 
-    return { std::move(buffer), array.size() };                                 // No except
+	return { mv(buffer), array.size() };                                 // No except
 }
 
 
@@ -408,7 +408,7 @@ Vector<T> makeVectorOf(std::initializer_list<T> list) {
         guard.release();
     }
 
-    return {std::move(buffer), vectorSize};                                 // No except
+	return {mv(buffer), vectorSize};                                 // No except
 }
 
 
@@ -425,9 +425,9 @@ Vector<T> makeVectorOf(Args&&...args) {
     auto buffer = getSystemHeapMemoryManager().allocate(vectorSize*sizeof(T));           // May throw
     auto values = arrayView<T>(buffer.view());
 
-    values.emplaceAll(std::forward<Args>(args)...);
+	values.emplaceAll(fwd<Args>(args)...);
 
-    return {std::move(buffer), vectorSize};                                 // No except
+	return {mv(buffer), vectorSize};                                 // No except
 }
 
 
