@@ -53,8 +53,12 @@ public:
 
 public:
 
-    /// Non-default destructor release memory owned using disposer.
-    ~MemoryResource();
+	/// Non-default destructor to release memory owned using disposer if any were given.
+	inline ~MemoryResource() {
+		if (auto const disposer = exchange(_disposer, nullptr)) {
+			disposer->dispose(&_data);
+		}
+	}
 
 
     MemoryResource(MemoryResource const& rhs) = delete;

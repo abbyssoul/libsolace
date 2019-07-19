@@ -25,11 +25,3 @@ using namespace Solace;
 
 // No-op but needed in .cpp file to keep compiler virtual table happy.
 MemoryResource::Disposer::~Disposer() = default;
-
-
-MemoryResource::~MemoryResource() {
-    auto const disposer = exchange(_disposer, nullptr);
-    if (disposer != nullptr) {
-        disposer->dispose(&_data);
-    }
-}
