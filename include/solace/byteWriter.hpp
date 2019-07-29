@@ -51,18 +51,18 @@ public:
      * Construct the byte buffer by moving content from the other buffer
      * @param other Other buffer to take over from
      */
-    constexpr ByteWriter(ByteWriter&& other) noexcept
+	ByteWriter(ByteWriter&& other) noexcept
         : _position{exchange(other._position, 0)}
         , _limit{exchange(other._limit, 0)}
         , _storage{std::move(other._storage)}
     {}
 
-    constexpr ByteWriter(MemoryResource& buffer) noexcept
+	ByteWriter(MemoryResource& buffer) noexcept
         : _limit{buffer.size()}
         , _storage{buffer.view(), nullptr}
     {}
 
-    constexpr ByteWriter(MemoryResource&& buffer) noexcept
+	ByteWriter(MemoryResource&& buffer) noexcept
         : _limit{buffer.size()}
         , _storage{std::move(buffer)}
     {}
@@ -71,7 +71,7 @@ public:
      * Construct the byte buffer from the memory view object
      * @param other Other buffer to copy data from
      */
-    constexpr ByteWriter(MutableMemoryView memView) noexcept
+	ByteWriter(MutableMemoryView memView) noexcept
         : _limit{memView.size()}
         , _storage{std::move(memView), nullptr}
     {}

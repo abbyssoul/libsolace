@@ -55,7 +55,7 @@ public:
      * Construct the byte buffer by moving content from the other buffer
      * @param other Other buffer to take over from
      */
-    constexpr ByteReader(ByteReader&& other) noexcept
+	/*gcc7.2 bug: constexpr*/ ByteReader(ByteReader&& other) noexcept
         : _position{exchange(other._position, 0)}
         , _limit{exchange(other._limit, 0)}
         , _storage{std::move(other._storage)}
@@ -68,7 +68,7 @@ public:
      * Use move constructor if you want to delegate life-time management to the instance of the reader.
      * @param other Other buffer to copy data from
      */
-    constexpr ByteReader(MemoryResource& buffer) noexcept
+	/*gcc7.2 bug: constexpr*/ ByteReader(MemoryResource& buffer) noexcept
         : _limit{buffer.size()}
         , _storage{buffer.view(), nullptr}
     {
@@ -78,7 +78,7 @@ public:
      * Construct the byte buffer from the memory buffer object
      * @param other Other buffer to copy data from
      */
-    constexpr ByteReader(MemoryResource&& buffer) noexcept
+	/*gcc7.2 bug: constexpr*/ ByteReader(MemoryResource&& buffer) noexcept
         : _limit{buffer.size()}
         , _storage{std::move(buffer)}
     {

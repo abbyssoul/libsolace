@@ -54,7 +54,7 @@ public:
     String(String const&) = delete;
 
     //!< Move-construct a string.
-    constexpr String(String&& rhs) noexcept
+	/*gcc7.2 bug: constexpr*/ String(String&& rhs) noexcept
         : _buffer{std::move(rhs._buffer)}
         , _size{exchange(rhs._size, 0)}
     {
@@ -67,7 +67,7 @@ public:
      * @param stringLen Lenght of the string in writtein into the buffer.
      * @note The buffer passed must be big enought to hold the string of the given size.
      */
-    constexpr String(MemoryResource&& buffer, size_type stringLen) noexcept
+	/*gcc7.2 bug: constexpr*/ String(MemoryResource&& buffer, size_type stringLen) noexcept
         : _buffer{std::move(buffer)}
         , _size{stringLen}
     {}
