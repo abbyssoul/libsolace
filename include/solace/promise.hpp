@@ -52,8 +52,8 @@ template<typename T>
 class Core {
 public:
 
-    Core() :
-        _completionHandler()
+	Core() noexcept
+		: _completionHandler{}
     {}
 
     Core(const Core&) = delete;
