@@ -3,11 +3,10 @@ project(solace)
 set(PROJECT_DESCRIPTION "library of High Reliability and HPC components")
 
 
-# Custom build target to generate code coverage:
-# Don't want this to run on every build.
 option(SOLACE_GTEST_SUPPORT "Build without GTEST" ON)
-option(COVERALLS "Generate coveralls data" OFF)
+option(COVERAGE "Generate coverage data" OFF)
 option(SANITIZE "Enable 'sanitize' compiler flag" OFF)
+option(PROFILE "Enable profile information" OFF)
 
 # Include common compile flag
 include(cmake/compile_flags.cmake)
@@ -43,4 +42,4 @@ install(FILES ${CMAKE_BINARY_DIR}/lib${PROJECT_NAME}.pc
 message(STATUS, "BUILD_TYPE: ${CMAKE_BUILD_TYPE}")
 message(STATUS, "CXXFLAGS: ${CMAKE_CXX_FLAGS}")
 message(STATUS, "SANITIZE: ${SANITIZE}")
-message(STATUS, "COVERALLS: ${COVERALLS}")
+message(STATUS, "COVERAGE: ${COVERAGE}")

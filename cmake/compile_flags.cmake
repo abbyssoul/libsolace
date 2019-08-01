@@ -128,12 +128,26 @@ endif()
 # ---------------------------------
 # Debug build with test coverage
 # ---------------------------------
-if (COVERALLS)
+if (COVERAGE)
     if (CMAKE_BUILD_TYPE STREQUAL "Debug")
         set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} --coverage") # enabling coverage
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} --coverage")
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
     else()
         message(FATAL_ERROR "Coverage can only be enabled in Debug mode")
+    endif()
+endif()
+
+
+# ---------------------------------
+# Include profile information
+# ---------------------------------
+if (PROFILE)
+    if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
+        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -pg")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+    else()
+        message(FATAL_ERROR "Profiling requires non optimized build")
     endif()
 endif()

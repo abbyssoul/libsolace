@@ -37,7 +37,8 @@ addons:
     name: "abbyssoul/libsolace"
     description: "Library for High Reliability/High Performance Applications"
   notification_email: abbyssoul@gmail.com
-  build_command: make
+  build_command_prepend: "./configure  --enable-coverage --disable-sanitizer"
+  build_command: make coverage_report
   branch_pattern: coverity_scan
 
 before_install:
@@ -57,7 +58,7 @@ install:
   - ld --version
   - conan --version
   - conan profile new default --detect
-  - conan profile update settings.compiler.libcxx=libstdc++11 default
+  - if [ "${TRAVIS_COMPILER}" != "clang" ]; then conan profile update settings.compiler.libcxx=libstdc++11 default; fi
   - conan remote add abbyssoul https://api.bintray.com/conan/abbyssoul/public-conan
 
 script:
@@ -68,6 +69,6 @@ script:
   #- if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./configure --disable-sanitizer --enable-debug && make clean && make verify ; fi
 
 after_success:
-  - make clean coverage_report
+  - make clean && make coverage_report
   - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
   - coveralls-lcov --repo-token ${COVERALLS_TOKEN} coverage.info  # uploads to coveralls

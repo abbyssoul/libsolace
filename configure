@@ -1,9 +1,15 @@
 #!/usr/bin/env sh
 
 DIR="$( cd "$( dirname "${0}" )" && pwd )"
+TMP_TARGET_FILE_NAME=Makefile.tmp
+TARGET_FILE_NAME=Makefile
+
+# Configurable options
 prefix=/usr/local
 debugsym=true
 sanitizer=true
+coverage=false
+profile=false
 
 # Figure out project name:
 project_name=$(basename $DIR)
@@ -38,6 +44,20 @@ for arg in "$@"; do
         sanitizer=false
         ;;
 
+    --enable-coverage )
+        coverage=true
+        ;;
+    --disable-coverage )
+        coverage=false
+        ;;
+
+    --enable-profile )
+        profile=true
+        ;;
+    --disable-profile )
+        profile=true
+        ;;
+
     --help)
         echo 'usage: ./configure [options]'
         echo 'options:'
@@ -47,6 +67,10 @@ for arg in "$@"; do
         echo '  --disable-debug do not include debug symbols'
         echo '  --enable-sanitizer To enable -fsanitize compiler option'
         echo '  --disable-sanitizer To disable -fsanitize compiler option'
+        echo '  --enable-coverage To enable compiler coverage option'
+        echo '  --disable-coverage To disable compiler coverage option'
+        echo '  --enable-profile To enable compiler profiler info generation'
+        echo '  --disable-profile To disable compiler profiler info generation'
         echo ''
         echo 'all invalid options are silently ignored'
         exit 0
@@ -60,36 +84,48 @@ for arg in "$@"; do
 done
 
 echo "Generating Makefile for ${project_name}..."
-echo "# Generated Makefile for ${project_name}: $(date)" > Makefile
-echo "PREFIX ?= ${prefix}" >> Makefile
-echo "PROJECT ?= ${project_name}" >> Makefile
+echo "# Generated Makefile for ${project_name}: $(date)" > $TMP_TARGET_FILE_NAME
+echo "PREFIX ?= ${prefix}" >> $TMP_TARGET_FILE_NAME
+echo "PROJECT ?= ${project_name}" >> $TMP_TARGET_FILE_NAME
 
 
 if $debugsym; then
-    echo 'dbg = -g' >> Makefile
+    echo 'dbg = -g' >> $TMP_TARGET_FILE_NAME
 fi
 
 if $sanitizer; then
-    echo 'sanitize = address,undefined,leak' >> Makefile
+    echo 'sanitize = address,undefined,leak' >> $TMP_TARGET_FILE_NAME
+fi
+
+if $coverage; then
+    echo 'coverage = -coverage' >> $TMP_TARGET_FILE_NAME
+fi
+
+if $profile; then
+    echo 'profile = -pg' >> $TMP_TARGET_FILE_NAME
 fi
 
 if [ ! -z "$conan_profile" ] ; then
-    echo "CONAN_PROFILE ?= ${conan_profile}" >> Makefile
+    echo "CONAN_PROFILE ?= ${conan_profile}" >> $TMP_TARGET_FILE_NAME
 fi
 
 if [ ! -z "${CXX}" ] || [ ! -z "${CC}" ] ; then
     echo "Using custom copiler: CXX=$CXX CC=$CC"
-    printf "\n# Compiler config\n" >> Makefile
+    printf "\n# Compiler config\n" >> $TMP_TARGET_FILE_NAME
 
     if [ ! -z "${CXX}" ] ; then
-        echo "CXX ?= ${CXX}" >> Makefile
+        echo "CXX ?= ${CXX}" >> $TMP_TARGET_FILE_NAME
     fi
 
     if [ ! -z "${CC}" ]; then
-        echo "CC ?= ${CC}" >> Makefile
+        echo "CC ?= ${CC}" >> $TMP_TARGET_FILE_NAME
     fi
 fi
 
-echo '' >> Makefile
-cat Makefile.in >> Makefile
+echo '' >> $TMP_TARGET_FILE_NAME
+cat Makefile.in >> $TMP_TARGET_FILE_NAME
+
+# Atomic move if above was successful
+mv $TMP_TARGET_FILE_NAME $TARGET_FILE_NAME
+# Congrats
 echo "Configuration complete, type 'make' to build ${project_name}."

@@ -15,7 +15,6 @@ MODULE_SRC = ${SRC_DIR}/*
 
 DEP_INSTALL = ${BUILD_DIR}/conaninfo.txt
 GENERATED_MAKE = ${BUILD_DIR}/Makefile
-GENERATED_MAKE_WITH_COVERAGE = ${BUILD_DIR}/Makefile.coverage
 
 LIBNAME = lib$(PROJECT).a
 LIB_TAGRET = $(BUILD_DIR)/$(SRC_DIR)/$(LIBNAME)
@@ -41,6 +40,18 @@ else
 	BUILD_TYPE = Release
 endif
 
+ifdef coverage
+	COVERAGE = ON
+else
+	COVERAGE = OFF
+endif
+
+ifdef profile
+    ENABLE_PROFILE = ON
+else
+    ENABLE_PROFILE = OFF
+endif
+
 ifdef CONAN_PROFILE
     CONAN_INSTALL_PROFILE = --profile ${CONAN_PROFILE}
 endif
@@ -61,11 +72,7 @@ $(DEP_INSTALL): $(BUILD_DIR)
 	cd ${BUILD_DIR} && conan install .. ${CONAN_INSTALL_PROFILE}
 
 $(GENERATED_MAKE): $(DEP_INSTALL)
-	cd ${BUILD_DIR} && cmake -DSANITIZE=${SANITIZE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
-
-$(GENERATED_MAKE_WITH_COVERAGE): $(DEP_INSTALL)
-	cd ${BUILD_DIR} && cmake -DCOVERALLS=ON -DCMAKE_BUILD_TYPE=Debug ..
-	$(shell touch $(GENERATED_MAKE_WITH_COVERAGE))
+	cd ${BUILD_DIR} && cmake -DPROFILE=${ENABLE_PROFILE} -DCOVERAGE=${COVERAGE} -DSANITIZE=${SANITIZE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
 
 #-------------------------------------------------------------------------------
 # Build the project
@@ -75,12 +82,6 @@ $(LIB_TAGRET): $(GENERATED_MAKE)
 
 lib: $(LIB_TAGRET)
 
-
-$(BUILD_DIR)/build_coverage: $(GENERATED_MAKE_WITH_COVERAGE) $(TEST_TAGRET)
-	$(shell touch ${BUILD_DIR}/build_coverage)
-
-# Build the project with coverage
-build_coverage: $(BUILD_DIR)/build_coverage
 
 #-------------------------------------------------------------------------------
 # Build unit tests
@@ -175,14 +176,17 @@ valgrind-memcheck: $(TEST_TAGRET)
 verify: valgrind-memcheck
 
 
-$(COVERAGE_REPORT): $(BUILD_DIR)/build_coverage
+$(COVERAGE_REPORT): $(TEST_TAGRET)
+ifeq ($(COVERAGE), OFF)
+	$(error Coverage info generation is not configured. Run ./configure --enable-coverage to enable)
+else
 	./$(TEST_TAGRET)
 
 	# capture coverage info
 	lcov --directory . --capture --output-file $@
 	# filter out system and test code
 	lcov --remove coverage.info 'test/*' '/usr/*' 'external/*' --output-file $@
-
+endif
 
 coverage: $(COVERAGE_REPORT)
 
