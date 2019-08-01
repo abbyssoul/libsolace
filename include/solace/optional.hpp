@@ -402,6 +402,13 @@ bool operator!= (T const& value, Optional<T> const& a) { return a.isNone() || (*
 
 
 template<typename T>
+T operator|| (Optional<T>& maybaValue, T& value) { return maybaValue.orElse(value); }
+
+template<typename T>
+const T operator|| (Optional<T> const& maybaValue, T const& value) { return maybaValue.orElse(value); }
+
+
+template<typename T>
 void swap(Optional<T>& lhs, Optional<T>& rhs) noexcept {
     lhs.swap(rhs);
 }

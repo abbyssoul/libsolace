@@ -357,6 +357,16 @@ TEST_F(TestOptional, testOrElse) {
     EXPECT_EQ(testElse, v2.orElse(testElse));
 }
 
+
+TEST_F(TestOptional, testOrElseOPerator) {
+	SimpleType value(7762, 2, -21);
+	SimpleType testElse(321, -1, 5);
+
+	EXPECT_EQ(Optional<SimpleType>{} || testElse, testElse);
+	EXPECT_EQ(Optional<SimpleType>{value} || testElse, value);
+}
+
+
 static int my_atoi(const char* c) {
     return atoi(c);
 }
