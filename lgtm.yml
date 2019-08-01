@@ -2,7 +2,6 @@ extraction:
     cpp:
         prepare:
             packages:
-                #- "pkg-config"
                 - "python3"
                 - "python3-dev"
                 - "python3-yaml"
@@ -13,14 +12,13 @@ extraction:
                 - "python3-mccabe"
         after_prepare:
             - "pip3 install --user conan"
-            #- "pip3 install --user conan --upgrade"
             - "ls ~/.local/bin"
             - "export PATH=$PATH:~/.local/bin"
             - "conan --version"
             - "conan profile new default --detect"
             - "conan profile update settings.compiler.version=8 default"
             - "conan profile update settings.compiler.libcxx=libstdc++11 default"
-            - "conan remote add abbyssoul https://api.bintray.com/conan/abbyssoul/public-conan"
+            - "conan remote add -i 0 abbyssoul https://api.bintray.com/conan/abbyssoul/public-conan False"
 
         configure:
             command:
