@@ -130,7 +130,7 @@ charToBin(byte c);
 Result<UUID, Error>
 UUID::parse(StringView const& str) {
     if (str.size() != StringSize) {
-        return Err(makeError(SystemErrors::NODATA, "UUID::parse()"));
+		return makeError(SystemErrors::NODATA, "UUID::parse()");
     }
 
     byte data[StaticSize];
@@ -142,9 +142,9 @@ UUID::parse(StringView const& str) {
             auto low =  charToBin(src[i + 1]);
 
             if (!high)
-                return Err(Error(high.moveError()));
+				return high.moveError();
             if (!low)
-                return Err(Error(low.moveError()));
+				return low.moveError();
 
             *(dest++) = static_cast<byte>(high.unwrap() << 4) + static_cast<byte>(low.unwrap());
             i += 1;

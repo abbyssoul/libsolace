@@ -37,42 +37,32 @@ namespace types {
 struct OkTag {};
 struct ErrTag {};
 
-template<typename T>
-struct Ok {
+template<typename T, typename Tag>
+struct ValueWrapper {
     using value_type = T;
 
-    constexpr Ok(T const& val) noexcept(std::is_nothrow_copy_constructible<T>::value)
+	constexpr ValueWrapper(value_type const& val) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
         : val_{val}
-    { }
+	{ }
 
-    constexpr Ok(T&& val) noexcept(std::is_nothrow_move_constructible<T>::value)
+	constexpr ValueWrapper(value_type&& val) noexcept(std::is_nothrow_move_constructible<value_type>::value)
         : val_{mv(val)}
-    { }
+	{ }
 
-    T val_;
+	value_type val_;
 };
 
 template<>
-struct Ok<void> {
-    using value_type = void;
+struct ValueWrapper<void, OkTag> {
+	using value_type = void;
 };
 
 
+template<typename T>
+using Ok = ValueWrapper<T, OkTag>;
 
-template<typename E>
-struct Err {
-    using value_type = E;
-
-    constexpr Err(E const& val) noexcept(std::is_nothrow_copy_constructible<E>::value)
-        : val_{val}
-    { }
-
-    constexpr Err(E&& val) noexcept(std::is_nothrow_move_constructible<E>::value)
-        : val_{mv(val)}
-    { }
-
-    E val_;
-};
+template<typename T>
+using Err = ValueWrapper<T, ErrTag>;
 
 }  // End of namespace types
 
@@ -86,7 +76,7 @@ struct Err {
 template<typename T,
          typename CleanT = typename std::decay<T>::type >
 inline types::Ok<CleanT> Ok(T&& val) {
-    return types::Ok<CleanT>(std::forward<T>(val));
+	return types::Ok<CleanT>{std::forward<T>(val)};
 }
 
 /**
@@ -107,7 +97,7 @@ constexpr None Ok() noexcept {
 template<typename E,
          typename CleanE = typename std::decay<E>::type >
 inline types::Err<CleanE> Err(E&& val) {
-    return types::Err<CleanE>(std::forward<E>(val));
+	return types::Err<CleanE>{std::forward<E>(val)};
 }
 
 
@@ -237,7 +227,9 @@ public:
         }
     }
 
-    template<typename DV>
+	template<typename DV,
+			 typename x = typename std::enable_if_t<std::is_constructible_v<V, DV>, DV>
+			 >
     Result(Result<DV, E>&& rhs) noexcept {
         if (rhs.isOk()) {
             ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(mv(rhs._value));
@@ -253,39 +245,30 @@ public:
     }
 
 
-
     /**
      * Move-Construct Ok result
      * @param value Ok value to move from
      */
     constexpr Result(types::Ok<V>&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
-        : Result(types::OkTag{}, mv(value.val_))
+		: Result{types::OkTag{}, mv(value.val_)}
     {}
 
-    /**
-     * Type convertion Copy-Construct Ok result
-     * @param value Ok value to move value from
-     */
-    template<typename DV>
-    constexpr Result(types::Ok<DV>&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
-        : Result(types::OkTag{}, mv(value.val_))
-    {}
 
     /**
      * Move-Construct Err result by moving error value
      * @param err Err value to move from
      */
     constexpr Result(types::Err<E>&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
-        : Result(types::ErrTag{}, mv(value.val_))
+		: Result{types::ErrTag{}, mv(value.val_)}
     {}
 
     /**
      * Move-Construct Err result from a compatible error type by moving error value
      * @param err Err value to move from
      */
-    template<typename DE>
-    constexpr Result(types::Err<DE>&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
-        : Result(types::ErrTag{}, mv(value.val_))
+	template<typename VW, typename Tag>
+	constexpr Result(types::ValueWrapper<VW, Tag>&& value)  // Can't say much about noexcept
+		: Result{Tag{}, mv(value.val_)}
     {}
 
 
@@ -311,9 +294,12 @@ public:
 
 
 	template<typename TE,
-			 typename x = typename std::enable_if_t<!std::is_same_v<V, E>, TE>>
-	constexpr Result(TE&& errValue)
-		: _error{std::forward<TE>(errValue)}
+			 typename T = typename std::enable_if_t<!std::is_same_v<V, E>
+													&& std::is_constructible_v<E, TE>,
+													TE>
+			 >
+	constexpr Result(TE&& value)
+		: _error{std::forward<TE>(value)}
 		, _engaged{false}
 	{}
 
@@ -324,8 +310,6 @@ public:
 
         if (isOk()) {
             if (rhs.isOk()) {
-//                swap(_value, rhs._value);
-
                 StoredValue_type v(mv(_value));
                 constructValue(mv(rhs._value));
                 rhs.constructValue(mv(v));
@@ -341,7 +325,6 @@ public:
                 rhs.constructError(mv(_error));
                 constructValue(mv(v));
             } else {
-//                swap(_error, rhs._error);
                 StoredError_type v(mv(_error));
                 constructError(mv(rhs._error));
                 rhs.constructError(mv(v));

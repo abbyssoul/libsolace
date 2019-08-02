@@ -45,7 +45,7 @@ base64encode(ByteWriter& dest, MemoryView const& src, byte const alphabet[65]) {
 
         auto res = dest.write(wrapMemory(encoded));
         if (!res)
-            return Err(res.moveError());
+			return res.moveError();
     }
 
 
@@ -63,7 +63,7 @@ base64encode(ByteWriter& dest, MemoryView const& src, byte const alphabet[65]) {
         encoded[3] = '=';
         auto res = dest.write(wrapMemory(encoded));
         if (!res)
-            return Err(res.moveError());
+			return res.moveError();
     }
 
     return Ok();
@@ -121,7 +121,7 @@ Result<void, Error>
 base64decode(ByteWriter& dest, MemoryView const& src, byte const* decodingTable) {
     byte const* bufin = src.dataAddress();
     if (!bufin || src.size() == 0) {
-        return Err(makeError(SystemErrors::NODATA, "base64decode"));
+		return makeError(SystemErrors::NODATA, "base64decode");
     }
 
     while (decodingTable[*(bufin++)] <= 63)
@@ -139,7 +139,7 @@ base64decode(ByteWriter& dest, MemoryView const& src, byte const* decodingTable)
 
         auto res = dest.write(wrapMemory(encoded));
         if (!res)
-            return Err(res.moveError());
+			return res.moveError();
 
         bufin += 4;
         nprbytes -= 4;
@@ -149,17 +149,17 @@ base64decode(ByteWriter& dest, MemoryView const& src, byte const* decodingTable)
     if (nprbytes > 1) {
         auto res = dest.write(static_cast<byte>(decodingTable[bufin[0]] << 2 | decodingTable[bufin[1]] >> 4));
         if (!res)
-            return Err(res.moveError());
+			return res.moveError();
     }
     if (nprbytes > 2) {
         auto res = dest.write(static_cast<byte>(decodingTable[bufin[1]] << 4 | decodingTable[bufin[2]] >> 2));
         if (!res)
-            return Err(res.moveError());
+			return res.moveError();
     }
     if (nprbytes > 3) {
         auto res = dest.write(static_cast<byte>(decodingTable[bufin[2]] << 6 | decodingTable[bufin[3]]));
         if (!res)
-            return Err(res.moveError());
+			return res.moveError();
     }
 
     return Ok();

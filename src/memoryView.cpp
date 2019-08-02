@@ -74,11 +74,10 @@ MemoryView::slice(size_type from, size_type to) const noexcept {
 Result<MemoryView::Lock, Error>
 MemoryView::lock() {
     if (mlock(dataAddress(), size()) < 0) {
-        return Err(makeErrno("mlock"));
+		return makeErrno("mlock");
     }
 
-
-    return Ok<Lock>(Lock{*this});
+	return {types::OkTag{}, Lock{*this}};
 }
 
 

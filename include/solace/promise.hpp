@@ -171,7 +171,7 @@ public:
     */
     template <typename V>
     void setValue(V&& value) {
-        _core->setResult(Ok<V>(std::forward<V>(value)));
+		_core->setResult(Ok<V>(std::forward<V>(value)));
     }
 
 
@@ -181,7 +181,7 @@ public:
     */
     template <typename E>
     void setError(E&& e) {
-        _core->setResult(Err<E>(std::forward<E>(e)));
+		_core->setResult(std::forward<E>(e));
     }
 
 
@@ -276,7 +276,7 @@ public:
     */
     template <typename E>
     void setError(E&& e) {
-        _core->setResult(Err<E>(std::forward<E>(e)));
+		_core->setResult(std::forward<E>(e));
     }
 
     /**

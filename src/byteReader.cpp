@@ -29,7 +29,7 @@ using namespace Solace;
 Result<void, Error>
 ByteReader::limit(size_type newLimit) noexcept {
     if (capacity() < newLimit) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::limit()"));
+		return makeError(SystemErrors::Overflow, "ByteReader::limit()");
     }
 
     _limit = newLimit;
@@ -41,7 +41,7 @@ ByteReader::limit(size_type newLimit) noexcept {
 Result<void, Error>
 ByteReader::position(size_type newPosition) noexcept {
     if (limit() < newPosition) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::position()"));
+		return makeError(SystemErrors::Overflow, "ByteReader::position()");
     }
 
     _position = newPosition;
@@ -53,7 +53,7 @@ ByteReader::position(size_type newPosition) noexcept {
 Result<void, Error>
 ByteReader::advance(size_type increment) noexcept {
     if (remaining() < increment) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::advance()"));
+		return makeError(SystemErrors::Overflow, "ByteReader::advance()");
     }
 
     _position += increment;
@@ -65,7 +65,7 @@ ByteReader::advance(size_type increment) noexcept {
 Result<byte, Error>
 ByteReader::get() noexcept {
     if (remaining() < 1) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::get()"));
+		return makeError(SystemErrors::Overflow, "ByteReader::get()");
     }
 
     return Ok(_storage.view()[_position++]);
@@ -74,7 +74,7 @@ ByteReader::get() noexcept {
 Result<byte, Error>
 ByteReader::get(size_type pos) const noexcept {
     if (limit() <= pos) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::get(position)"));
+		return makeError(SystemErrors::Overflow, "ByteReader::get(position)");
     }
 
     return Ok(_storage.view()[pos]);
@@ -84,7 +84,7 @@ ByteReader::get(size_type pos) const noexcept {
 Result<void, Error>
 ByteReader::read(MutableMemoryView dest, size_type bytesToRead) noexcept {
     if (dest.size() < bytesToRead) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
+		return makeError(SystemErrors::Overflow, "ByteReader::read()");
     }
 
     return read(dest.dataAddress(), bytesToRead);
@@ -94,7 +94,7 @@ ByteReader::read(MutableMemoryView dest, size_type bytesToRead) noexcept {
 Result<void, Error>
 ByteReader::read(void* dest, size_type bytesToRead) noexcept {
     if (remaining() < bytesToRead) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
+		return makeError(SystemErrors::Overflow, "ByteReader::read()");
     }
 
     const void* srcAddr = _storage.view().dataAddress(_position);
@@ -108,11 +108,11 @@ ByteReader::read(void* dest, size_type bytesToRead) noexcept {
 Result<void, Error>
 ByteReader::read(size_type offset, MutableMemoryView dest, size_type bytesToRead) const noexcept {
     if (dest.size() < bytesToRead) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
+		return makeError(SystemErrors::Overflow, "ByteReader::read()");
     }
 
     if (limit() < (offset + bytesToRead)) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteReader::read()"));
+		return makeError(SystemErrors::Overflow, "ByteReader::read()");
     }
 
     const void* srcAddr = _storage.view().dataAddress(offset);

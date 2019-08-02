@@ -301,7 +301,7 @@ TEST(TestFuture, structFutureErrorResultErrors) {
     .onError([&resolved2](Error&& e) -> Result<SimpleType, Error> {
         resolved2 = (e.value() == 5355);
 
-        return Err(makeFutureError(-8152, "structFutureErrorResultErrors-1"));
+		return makeFutureError(-8152, "structFutureErrorResultErrors-1");
     })
     .then([&resolved3](SimpleType&& ) {
         resolved3 = true;
@@ -334,7 +334,7 @@ TEST(TestFuture, integralFutureErrorResultErrors) {
     .onError([&resolved2](Error&& e) -> Result<int, Error> {
         resolved2 = (e.value() == 5355);
 
-        return Err(makeFutureError(-8152, "integralFutureErrorResultErrors-1"));
+		return makeFutureError(-8152, "integralFutureErrorResultErrors-1");
     })
     .then([&resolved3](int ) {
         resolved3 = true;
@@ -365,7 +365,7 @@ TEST(TestFuture, voidFutureErrorResultErrors) {
     .onError([&resolved2](Error&& e) -> Result<void, Error> {
         resolved2 = (e.value() == 7744);
 
-        return Err(makeFutureError(-4424, "voidFutureErrorResultErrors-1"));
+		return makeFutureError(-4424, "voidFutureErrorResultErrors-1");
     })
     .then([&resolved3]() {
         resolved3 = true;
@@ -731,7 +731,7 @@ TEST(TestFuture, integralFutureIntegralResultErrorsContinuation) {
     f.then([&resolved1](char x) -> Result<int, Error> {
         resolved1 = (x == 'n');
 
-        return Err(makeFutureError(-525, "integralFutureIntegralResultErrorsContinuation"));
+		return makeFutureError(-525, "integralFutureIntegralResultErrorsContinuation");
     })
     .then([&resolved2](int ) {
         resolved2 = true;
@@ -757,7 +757,7 @@ TEST(TestFuture, voidFutureIntegralResultErrorsContinuation) {
     f.then([&resolved1]() -> Result<int, Error> {
         resolved1 = true;
 
-        return Err(makeFutureError(-525, "voidFutureIntegralResultErrorsContinuation"));
+		return makeFutureError(-525, "voidFutureIntegralResultErrorsContinuation");
     })
     .then([&resolved2](int x) {
         resolved2 = (x == 6568);
@@ -783,7 +783,7 @@ TEST(TestFuture, integralFutureVoidResultErrorsContinuation) {
     f.then([&resolved1](char x) -> Result<void, Error> {
         resolved1 = (x == 'n');
 
-        return Err(makeFutureError(-525, "integralFutureVoidResultErrorsContinuation"));
+		return makeFutureError(-525, "integralFutureVoidResultErrorsContinuation");
     })
     .then([&resolved2]() {
         resolved2 = true;
@@ -809,7 +809,7 @@ TEST(TestFuture, voidFutureVoidResultErrorsContinuation) {
     f.then([&resolved1](void) -> Result<void, Error> {
         resolved1 = true;
 
-        return Err(makeFutureError(95546, "voidFutureVoidResultErrorsContinuation"));
+		return makeFutureError(95546, "voidFutureVoidResultErrorsContinuation");
     })
     .then([&resolved2]() {
         resolved2 = true;

@@ -54,10 +54,9 @@ public:
      */
     struct Iterator {
 
-        constexpr Iterator(size_type size, size_type position/*, char** env*/) noexcept
+		constexpr Iterator(size_type size, size_type position) noexcept
             : _index{position}
             , _size{size}
-//            , _environ{env}
         {}
 
         constexpr Iterator(Iterator const& rhs) noexcept = default;
@@ -96,22 +95,14 @@ public:
     private:
         size_type _index;
         size_type _size;
-//        char** _environ;
     };
 
     using const_iterator = const Iterator;
 
 public:
 
-
     /// Construct with default process environment
     Env() noexcept;
-
-    /**
-     * @brief Construct using custom environment.
-     * @param env A null terminated array of c-strings of form "key=value"
-     */
-    /*constexpr */Env(char** env) noexcept;
 
     /**
      * Get a value of the environment variable if one exists.
@@ -166,12 +157,12 @@ public:
     size_type size() const noexcept;
 
     const_iterator begin() const noexcept {
-        return {size(), 0/*, _environ*/};
+		return {size(), 0};
     }
 
     const_iterator end() const noexcept {
         auto const pos = size();
-        return {pos, pos/*, _environ*/};
+		return {pos, pos};
     }
 
 
@@ -205,13 +196,7 @@ public:
 
         return *this;
     }
-
-private:
-    // TODO(abbyssoul): Support dup env with Vector<String> env;
-//    char** _environ;
 };
-
-
 
 }  // End of namespace Solace
 #endif  // SOLACE_PROCESS_ENV

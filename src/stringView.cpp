@@ -104,27 +104,32 @@ StringView::indexOf(StringView str, size_type fromIndex) const noexcept {
     auto const thisSize = size();
     auto const strSize = str.size();
 
+	Optional<size_type> result{};
+
     if (thisSize < fromIndex) {
-        return none;
+		return result;
     }
 
     if (thisSize < strSize) {
-        return none;
+		return result;
     }
 
     if (thisSize < fromIndex + strSize) {
-        return none;
+		return result;
     }
 
-    for (; fromIndex + strSize < thisSize + 1; ++fromIndex) {
+	auto const rem = thisSize - strSize + 1;
+	for (; fromIndex < rem; ++fromIndex) {
         if (_data[fromIndex] == str._data[0] &&
             str.equals(substring(fromIndex, fromIndex + strSize))) {
 
-            return Optional<size_type>(fromIndex);
+			result = fromIndex;
+			break;
+//            return Optional<size_type>(fromIndex);
         }
     }
 
-    return none;
+	return result;
 }
 
 
@@ -154,12 +159,13 @@ StringView::lastIndexOf(StringView str, size_type fromIndex) const noexcept {
     if ((thisSize < fromIndex) || (thisSize < strSize) || (thisSize < fromIndex + strSize)) {
         return none;
     }
+	auto const rem = thisSize - strSize + 1;
 
     Optional<size_type> result;
-    for (; fromIndex + strSize < thisSize + 1; ++fromIndex) {
+	for (; fromIndex < rem; ++fromIndex) {
         if (_data[fromIndex] == str._data[0] &&
             str.equals(substring(fromIndex, fromIndex + strSize))) {
-            result = Optional<size_type>(fromIndex);
+			result = fromIndex;
         }
     }
 

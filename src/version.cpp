@@ -121,7 +121,7 @@ Version::parse(StringView str) noexcept {
     });
 
     if (splitIndex < 3) {
-        return Err(makeError(BasicError::InvalidInput, "Version::parse()"));
+		return makeError(BasicError::InvalidInput, "Version::parse()");
     }
 
 
@@ -141,10 +141,10 @@ Version::parse(StringView str) noexcept {
         });
 
         if (splitIndex > 2) {
-            return Err(makeError(BasicError::InvalidInput, "Version::parse()"));
+			return makeError(BasicError::InvalidInput, "Version::parse()");
         }
     }
 
-    return Ok<Version>({majorVersion, minorVersion, patchVersion,
-                        std::move(preRelease), std::move(build)});
+	return Ok<Version>({majorVersion, minorVersion, patchVersion,
+						std::move(preRelease), std::move(build)});
 }

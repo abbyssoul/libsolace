@@ -115,22 +115,56 @@ public:
     fail(StringLiteral message) {
         return Err(makeError(BasicError::InvalidInput, message));
     }
+
+	Result<int, SimpleType>
+	failSimple(int x, int y, int z) {
+		SimpleType result{x, y, z};
+
+		return std::move(result);
+	}
+
+	Result<int, MoveOnlyType>
+	failMoveonly(int x) {
+		MoveOnlyType result{x};
+
+		return std::move(result);
+	}
 };
 
 TEST_F(TestResult, testErrfactoryProducesErrorFromCopy) {
     SimpleType value;
     Result<int, SimpleType> r = Err(value);
-    EXPECT_TRUE(r.isError());
+
+	EXPECT_TRUE(r.isError());
+	EXPECT_EQ(2, SimpleType::InstanceCount);
 }
 
 TEST_F(TestResult, testErrfactoryProducesErrorFromMovedValue) {
     SimpleType value;
     Result<int, SimpleType> r = Err(std::move(value));
-    EXPECT_TRUE(r.isError());
+
+	EXPECT_TRUE(r.isError());
+	EXPECT_EQ(2, SimpleType::InstanceCount);
 }
 
 
-TEST_F(TestResult, testFailure) {
+TEST_F(TestResult, testErrorByCopy) {
+	Result<int, SimpleType> r = failSimple(33, 222, 1);
+
+	EXPECT_TRUE(r.isError());
+	EXPECT_EQ(r.getError().y, 222);
+	EXPECT_EQ(1, SimpleType::InstanceCount);
+}
+
+TEST_F(TestResult, testErrorByMove) {
+	Result<int, MoveOnlyType> r = failMoveonly(-7276);
+
+	EXPECT_TRUE(r.isError());
+	EXPECT_EQ(r.getError().x_, -7276);
+	EXPECT_EQ(1, MoveOnlyType::InstanceCount);
+}
+
+TEST_F(TestResult, testVoidFailure) {
     {
         Result<void, Error> r = fail("Bad errors 432 about to happen");
 
@@ -201,12 +235,22 @@ TEST_F(TestResult, testConstructionIntegrals) {
 }
 
 
+TEST_F(TestResult, testErrorTypeCoersion) {
+	SimpleType errValue{3, 2, 1};
+	Result<Unit, SimpleType> v{ errValue };
+	EXPECT_TRUE(v.isError());
+	EXPECT_EQ(v.getError().y, 2);
+}
+
+TEST_F(TestResult, testValueTypeCoersion) {
+	SimpleType value{3, 2, 1};
+	Result<SimpleType, Unit> v{ value };
+	EXPECT_TRUE(v.isOk());
+	EXPECT_EQ(v.unwrap().y, 2);
+}
+
+
 TEST_F(TestResult, testConstruction) {
-	{
-		SimpleType errValue{3, 2, 1};
-		Result<Unit, SimpleType> v{ errValue };
-		EXPECT_TRUE(v.isError());
-	}
 
     {  // Unit result
         {

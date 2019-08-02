@@ -84,7 +84,7 @@ charToBin(byte c) {
     auto const value = kHexToBin[c];
 
     if (value < 0) {
-        return Err(makeError(SystemErrors::ILSEQ, "charToBin"));
+		return makeError(SystemErrors::ILSEQ, "charToBin");
     }
 
     return Ok(static_cast<byte>(value));
@@ -111,7 +111,7 @@ Base16Encoder::encode(MemoryView const& src) {
     for (auto value : src) {
         auto res = dest.write(wrapMemory(kBase16Alphabet_l[value], 2));
         if (!res) {
-            return Err(res.moveError());
+			return res.moveError();
         }
     }
 
@@ -136,7 +136,7 @@ Base16Decoder::encodedSize(MemoryView const& data) const {
 Result<void, Error>
 Base16Decoder::encode(MemoryView const& src) {
     if (src.size() % 2 != 0) {
-        return Err(makeError(GenericError::DOM, "encode(): Input data size must be even"));
+		return makeError(GenericError::DOM, "encode(): Input data size must be even");
     }
 
     auto& dest = *getDestBuffer();
@@ -146,14 +146,14 @@ Base16Decoder::encode(MemoryView const& src) {
         auto low =  charToBin(src[i + 1]);
 
         if (!high)
-            return Err(high.moveError());
+			return high.moveError();
         if (!low)
-            return Err(low.moveError());
+			return low.moveError();
 
         byte const value = static_cast<byte>(high.unwrap() << 4) + static_cast<byte>(low.unwrap());
         auto res = dest.write(value);
         if (!res)
-            return Err(res.moveError());
+			return res.moveError();
     }
 
     return Ok();
@@ -172,13 +172,13 @@ decode16(MemoryView::const_iterator i, MemoryView::const_iterator j) {
     auto low =  charToBin(*j);
 
     if (!high) {
-        return Err(high.moveError());
+		return high.moveError();
     }
     if (!low) {
-        return Err(low.moveError());
+		return low.moveError();
     }
 
-    return Ok(static_cast<byte>(high.unwrap() << 4) + static_cast<byte>(low.unwrap()));
+	return Ok(static_cast<byte>((high.unwrap() << 4) + static_cast<byte>(low.unwrap())));
 }
 
 

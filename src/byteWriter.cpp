@@ -30,7 +30,7 @@ using namespace Solace;
 Result<void, Error>
 ByteWriter::limit(size_type newLimit) noexcept {
     if (capacity() < newLimit) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::limit()"));
+		return makeError(SystemErrors::Overflow, "ByteWriter::limit()");
     }
 
     _limit = newLimit;
@@ -42,7 +42,7 @@ ByteWriter::limit(size_type newLimit) noexcept {
 Result<void, Error>
 ByteWriter::position(size_type newPosition) noexcept {
     if (limit() < newPosition) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::position()"));
+		return makeError(SystemErrors::Overflow, "ByteWriter::position()");
     }
 
     _position = newPosition;
@@ -54,7 +54,7 @@ ByteWriter::position(size_type newPosition) noexcept {
 Result<void, Error>
 ByteWriter::advance(size_type increment) noexcept {
     if (remaining() < increment) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::advance()"));
+		return makeError(SystemErrors::Overflow, "ByteWriter::advance()");
     }
 
     _position += increment;
@@ -70,7 +70,7 @@ ByteWriter::write(void const* data, size_type count) noexcept {
     }
 
     if (remaining() < count) {
-        return Err<Error>(makeError(SystemErrors::Overflow, "ByteWriter::write()"));
+		return makeError(SystemErrors::Overflow, "ByteWriter::write()");
     }
 
     auto const pos = position();

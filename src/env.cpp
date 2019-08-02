@@ -82,12 +82,7 @@ Env::Iterator::operator-> () const {
 }
 
 
-Env::Env(char** env) noexcept {
-
-}
-
 Env::Env() noexcept
-//    : _environ{environ}
 {
 }
 

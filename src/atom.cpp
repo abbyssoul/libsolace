@@ -64,8 +64,9 @@ Result<AtomValue, ParseError>
 Solace::tryParseAtom(StringView str) noexcept {
 	// last character is the NULL terminator
 	constexpr auto kMaxLiteralSize = sizeof(std::uintmax_t);
-	if (str.size() > kMaxLiteralSize)
-		return Err(ParseError{});
+	if (str.size() > kMaxLiteralSize) {
+		return ParseError{};
+	}
 
 	return Ok(static_cast<AtomValue>(detail::wrap(str.data(), str.size())));
 }
