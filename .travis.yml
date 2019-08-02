@@ -37,7 +37,7 @@ addons:
     name: "abbyssoul/libsolace"
     description: "Library for High Reliability/High Performance Applications"
   notification_email: abbyssoul@gmail.com
-  build_command_prepend: "./configure  --enable-coverage --disable-sanitizer"
+  build_command_prepend: "./configure --enable-coverage --disable-sanitizer"
   build_command: make coverage_report
   branch_pattern: coverity_scan
 
@@ -62,13 +62,13 @@ install:
   - conan remote add abbyssoul https://api.bintray.com/conan/abbyssoul/public-conan
 
 script:
-  - ./configure --enable-sanitizer
-  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make clean codecheck; fi
+  - ./configure --enable-coverage --enable-sanitizer && make clean;
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make codecheck; fi
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make test; fi
   # Disabled valgrind build as std::random_device causes failure on Valgrind-3.11.0 avaliable in travisCI
   #- if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./configure --disable-sanitizer --enable-debug && make clean && make verify ; fi
 
 after_success:
-  - make clean && make coverage_report
+  - make coverage_report
   - bash <(curl -s https://codecov.io/bash) || echo "Codecov did not collect coverage reports"
   - coveralls-lcov --repo-token ${COVERALLS_TOKEN} coverage.info  # uploads to coveralls
