@@ -584,6 +584,27 @@ TEST_F(TestResult, testThenMovesObjects) {
     EXPECT_TRUE(movedOut);
 }
 
+TEST_F(TestResult, testErrorCoersion) {
+	auto l1 =[] () -> Result<void, SimpleType> {
+		return SimpleType{1, 2, 3};
+	};
+
+	auto l2 = [&]() -> Result<int, SimpleType> {
+		auto x = l1();
+		if (!x) {
+			return x.getError();
+		} else {
+			return Ok<int>(321);
+		}
+	};
+
+	auto result = l2();
+	EXPECT_TRUE(result.isError());
+
+	auto const expectedErrorValue = SimpleType{1, 2, 3};
+	EXPECT_EQ(result.getError(), expectedErrorValue);
+}
+
 std::ostream& operator<<(std::ostream& ostr, const TestResult::SomeTestType& t) {
     return ostr << "SomeTestType(" << t.x << ", " << t.f << ", \"" << t.somethingElse << "\"";
 }

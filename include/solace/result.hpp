@@ -309,6 +309,14 @@ public:
         , _engaged{false}
     {}
 
+
+	template<typename TE,
+			 typename = std::enable_if_t<!std::is_same_v<V, E>>>
+	constexpr Result(TE&& value)
+		: _error{std::forward<TE>(value)}
+		, _engaged{false}
+	{}
+
 public:
 
     Result& swap(Result& rhs) noexcept {
