@@ -311,9 +311,9 @@ public:
 
 
 	template<typename TE,
-			 typename = std::enable_if_t<!std::is_same_v<V, E>>>
-	constexpr Result(TE&& value)
-		: _error{std::forward<TE>(value)}
+			 typename x = typename std::enable_if_t<!std::is_same_v<V, E>, TE>>
+	constexpr Result(TE&& errValue)
+		: _error{std::forward<TE>(errValue)}
 		, _engaged{false}
 	{}
 

@@ -202,6 +202,12 @@ TEST_F(TestResult, testConstructionIntegrals) {
 
 
 TEST_F(TestResult, testConstruction) {
+	{
+		SimpleType errValue{3, 2, 1};
+		Result<Unit, SimpleType> v{ errValue };
+		EXPECT_TRUE(v.isError());
+	}
+
     {  // Unit result
         {
             auto const v = []() -> Result<Unit, int> {
