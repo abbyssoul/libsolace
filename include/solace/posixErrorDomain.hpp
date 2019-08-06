@@ -32,7 +32,9 @@ namespace Solace {
  * Errors in this category represent 'implementation' errors,
  * not related to underlaying operating system or hardware the process is running on.
  */
-extern const AtomValue kDefaultCatergory;
+inline constexpr AtomValue kDefaultCatergory = atom("defaul");
+
+
 
 /** Category of system errors.
  * System error are error originating from operating system calls.
