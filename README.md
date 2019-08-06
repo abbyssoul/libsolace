@@ -172,8 +172,6 @@ Design of the library is inspired by various functional language elements that c
     - Encoding
 - Path – immutable hierarchy of string elements.
 - PathBuilder – a builder object for path.
-- [Promise / Future](docs/future.md) – convenience for async programming.
-
 
 
 

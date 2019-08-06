@@ -12,7 +12,6 @@ set(TEST_SOURCE_FILES
         test_error.cpp
         test_optional.cpp
         test_result.cpp
-        test_future.cpp
 
         test_memoryView.cpp
         test_memoryResource.cpp

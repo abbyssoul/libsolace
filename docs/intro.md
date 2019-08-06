@@ -33,9 +33,6 @@ TDB
 ### Error
 TDB
 
-### Future
-TDB
-
 ## Operating system interface
 Implementation most programs requires management of resources - which is the function of an operating system
 a program is executed by. That is why the library includes an interface for the underlaying OS calls.

@@ -19,16 +19,10 @@
  ******************************************************************************/
 #include "solace/errorDomain.hpp"
 #include "solace/posixErrorDomain.hpp"
-#include "solace/asyncErrorDomain.hpp"
-
 #include "solace/dictionary.hpp"
 
 
 using namespace Solace;
-
-
-const AtomValue Solace::kDefaultCatergory = atom("defaul");
-const AtomValue Solace::kAsyncErrorCatergory = atom("async");
 
 
 static const size_t kNbErrorCategories = 128;

@@ -182,15 +182,16 @@ struct error_result_wrapper<types::Err<E>> { using type = typename types::Err<E>
 
 
 /**
- * Result class is an 'enum' of two values V and E with V being 'expected'.
- * It is very similar to Either<> monad in some functional languages and
- * is ispired by std::Result<> class from Rust lang.
+ * Result class is a sum type of two values V and E.
+ * Type V represents expected value produced by a computation while type E represnts error type produced in case
+ * of an error to compute.
+ * This concept is known as Either<> monad in some functional languages and
+ * is inspired by std::Result<> class from Rust lang.
  *
- * Result class is similar in concept to Future in the sense that it can represent result of the computition or an error
- * with the difference that it is not design for async use case.
- * That is why result is always 'set'.
+ * Result is desinged to represent a syncronious computation result and in that sense it is always 'set'.
+ * Please see Futute types provided by other libraries to represent asynchronious computation result.
  *
- * Note: Result<void, Error> is technically equivalent of Optional<Error>
+ * Note: A specialisation of Result<void, Error> is technically equivalent of Optional<Error>
  */
 template <typename V, typename E>
 class /*[[nodiscard]] */Result {
@@ -206,7 +207,6 @@ public:
     inline ~Result() {
         destroy();
     }
-
 
     /** Copy construct of Result is disabled */
     Result(Result const& rhs) = delete;
