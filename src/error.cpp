@@ -15,10 +15,7 @@
 */
 /*******************************************************************************
  *	@file		error.cpp
- *	@author		$LastChangedBy: $
- *	@date		$LastChangedDate: $
- *	@brief		Implementation of error type
- *	ID:			$Id: $
+ *	@brief		Implementation of an error type
  ******************************************************************************/
 #include "solace/posixErrorDomain.hpp"
 #include "solace/string.hpp"

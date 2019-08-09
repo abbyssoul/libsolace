@@ -16,10 +16,7 @@
 /*******************************************************************************
  * libSolace: MemoryManager
  *	@file		solace/memoryManager.hpp
- *	@author		$LastChangedBy: $
- *	@date		$LastChangedDate: $
  *	@brief		Platform memory manager interface
- *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_MEMORYMANAGER_HPP

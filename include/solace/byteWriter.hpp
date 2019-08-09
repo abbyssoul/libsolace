@@ -119,12 +119,11 @@ public:
      */
     constexpr size_type limit() const noexcept { return _limit; }
 
-    /** Limit number of bytes that can be read/written to this buffer.
-
+	/** Set limit to the number of bytes that can be written to the buffer.
+	 *
+	 * @param newLimit Maximum number of bypes that can be written.
      * @note Buffer limit is always less of equal to buffer's capacity.
-     * @return A reference to this this buffer.
-     *
-     * @throws IllegalArgumentException if attempt is made to set limit to more then this buffer capacity.
+	 * @return Result void if Ok, error otherwise.
      */
     Result<void, Error> limit(size_type newLimit) noexcept;
 

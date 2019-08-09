@@ -16,8 +16,6 @@
 /*******************************************************************************
  * libSolace: A base class for message digest algorithms
  *	@file		solace/hashing/messageDigest.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_HASHING_MESSAGEDIGEST_HPP

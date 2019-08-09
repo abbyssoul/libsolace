@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/test_path.cpp
- * @author: soultaker
- *
- * Created on: 21 Jan 2016
 *******************************************************************************/
 #include <solace/path.hpp>			// Class being tested
 #include <solace/exception.hpp>     // Checked expcetions
@@ -86,7 +83,7 @@ TEST(TestPath, testLength) {
 }
 
 /**
-    * Test implementation and contract of IComparable
+	* Test implementation and contract of comparable
     */
 TEST(TestPath, testComparable) {
     auto const p1 = makePath("1", "2", "3", "4", "file");

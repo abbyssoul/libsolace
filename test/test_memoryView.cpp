@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/test_memoryView.cpp
- * @author: soultaker
- *
- * Created on: 20 Jun 2016
 *******************************************************************************/
 #include <solace/mutableMemoryView.hpp>  // Class being tested
 
@@ -172,17 +169,17 @@ TEST(TestMemoryView, testRead) {
 
     {  // Safety checks
         // Reading more then bytes in the buffer
-        EXPECT_THROW(buffer.read(dest, 2*buffer.size()), Exception);
+		EXPECT_TRUE(buffer.read(dest, 2*buffer.size()).isError());
 
         // Reading more then fits into the dest
-        EXPECT_THROW(dest.read(buffer), Exception);
-        EXPECT_THROW(buffer.read(dest, 2*dest.size()), Exception);
+		EXPECT_TRUE(dest.read(buffer).isError());
+		EXPECT_TRUE(buffer.read(dest, 2*dest.size()).isError());
 
         // Reading from invalid offset
-        EXPECT_THROW(buffer.read(dest, 1, buffer.size() + 10), Exception);
+		EXPECT_TRUE(buffer.read(dest, 1, buffer.size() + 10).isError());
 
         // Reading from invalid offset and too much
-        EXPECT_THROW(buffer.read(dest, 2*dest.size(), buffer.size() + 10), Exception);
+		EXPECT_TRUE(buffer.read(dest, 2*dest.size(), buffer.size() + 10).isError());
     }
 
     {  // Test reading from an offset
@@ -292,13 +289,13 @@ TEST(TestMemoryView, testWrite) {
     {  // Safety checks
 
         // Writing more then fits into the buffer
-        EXPECT_THROW(src.write(buffer), Exception);
+		EXPECT_TRUE(src.write(buffer).isError());
 
         // Reading from invalid offset
-        EXPECT_THROW(buffer.write(src, buffer.size() + 10), Exception);
+		EXPECT_TRUE(buffer.write(src, buffer.size() + 10).isError());
 
         // Reading from invalid offset and too much
-        EXPECT_THROW(buffer.write(src, buffer.size() - src.size() + 2), Exception);
+		EXPECT_TRUE(buffer.write(src, buffer.size() - src.size() + 2).isError());
     }
 
     {  // Test reading from an offset

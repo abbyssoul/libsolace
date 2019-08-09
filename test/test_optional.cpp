@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/test_optional.cpp
- * @author: soultaker
- *
- * Created on: 29 Feb 2016
 *******************************************************************************/
 #include <solace/optional.hpp>			// Class being tested
 #include <solace/string.hpp>

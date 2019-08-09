@@ -16,10 +16,7 @@
 /*******************************************************************************
  * libSolace
  *	@file		stringBuilder.cpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
  *	@brief		Implementation of StringBuilder
- *	ID:			$Id$
  ******************************************************************************/
 #include "solace/stringBuilder.hpp"
 #include "solace/byteReader.hpp"
@@ -47,7 +44,7 @@ StringBuilder& StringBuilder::append(char c) {
 }
 
 StringBuilder& StringBuilder::append(Char c) {
-    return append(StringView(c.c_str(), c.getBytesCount()));
+	return append(StringView{c.c_str(), c.getBytesCount()});
 }
 
 StringBuilder& StringBuilder::append(StringView cstr) {

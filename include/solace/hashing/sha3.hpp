@@ -16,9 +16,7 @@
 /*******************************************************************************
  * libSolace: Secure Hash Algorithm 3, a subset of the cryptographic primitive family Keccak
  *	@file		solace/hashing/sha3.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	@brief		Defines a family of cryptographic hash functions SHA-3
+ *	@brief		Defines a family of cryptographic hash algorithm SHA-3
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_HASHING_SHA3_HPP

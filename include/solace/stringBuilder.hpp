@@ -16,10 +16,6 @@
 /*******************************************************************************
  * libSolace: StringBuilder class
  *	@file		solace/stringBuilder.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	@brief		Defines StringBuilder
- *	ID:			$Id$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_STRINGBUILDER_HPP

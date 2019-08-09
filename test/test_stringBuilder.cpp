@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/test_stringBuilder.cpp
- * @author: soultaker
- *
- * Created on: 1 Jan 2015
 *******************************************************************************/
 #include <solace/stringBuilder.hpp>	 // Class being tested
 #include <solace/memoryManager.hpp>

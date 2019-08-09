@@ -16,9 +16,7 @@
 /*******************************************************************************
  * libSolace: Secure Hash Algorithm 1
  *	@file		solace/hashing/sha1.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	@brief		Defines a family of cryptographic hash functions SHA-1
+ *	@brief		Defines a family of cryptographic hash algorithm SHA-1
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_HASHING_SHA1_HPP

@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/test_memoryManager.cpp
- * @author: soultaker
- *
- * Created on: 20 Jun 2016
 *******************************************************************************/
 #include <solace/memoryManager.hpp>  // Class being tested
 

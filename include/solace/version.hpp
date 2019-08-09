@@ -16,10 +16,7 @@
 /*******************************************************************************
  * libSolace: Semantic versioning version class
  *	@file		solace/version.hpp
- *	@author		$LastChangedBy: $
- *	@date		$LastChangedDate: $
  *	@brief		Semantic Version class implementation
- *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_VERSION_HPP

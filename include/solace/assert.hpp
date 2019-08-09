@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace: Assertion helpers
  *	@file		solace/assert.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	ID:			$Id$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_ASSERT_HPP

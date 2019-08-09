@@ -15,7 +15,7 @@
 */
 /*******************************************************************************
  * libSolace
- *	@file		process/env.cpp
+ *	@file		env.cpp
  *	@brief		Implementation of Env class
  ******************************************************************************/
 #include "solace/env.hpp"

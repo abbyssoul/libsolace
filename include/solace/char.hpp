@@ -14,19 +14,15 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Unicode character type / code point
+ * libSolace
  *	@file		solace/char.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
  *	@brief		Basic Unicode character type / code point
- *	ID:			$Id$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_CHAR_HPP
 #define SOLACE_CHAR_HPP
 
 #include "solace/types.hpp"
-#include "solace/traits/icomparable.hpp"
 #include "solace/memoryView.hpp"
 
 
@@ -36,45 +32,55 @@ namespace Solace {
  * Immutable UTF Character.
  *
  */
-class Char: public IComparable<Char> {
-public:
+struct Char {
 
     // Widest code point is 4 bytes width.
-    typedef uint32 	value_type;
-    typedef uint32	size_type;
+	using value_type = uint32;
+	using size_type = uint16;
 
     // Max bytes used for a representation
     static constexpr size_type max_bytes = sizeof(uint32);
 
 public:
     /** Default constructor for <empty> character. */
-    Char() noexcept : _value()
+	constexpr Char() noexcept
+		: _value{}
     {}
 
     /** Construct new character from a byte value */
-    Char(byte c);
+	constexpr Char(byte c) noexcept
+		: _value{0}
+	{
+		_bytes[0] = c;
+		_bytes[1] = 0;
+	}
 
     /** Construct new character from an ASCII char */
     Char(char c);
 
     /** Construct new character from Unicode code-point value */
-    Char(const value_type codePoint) noexcept;
+	Char(value_type codePoint) noexcept;
 
     /** Copy-Construct character. */
-    Char(const Char& c) noexcept : _value(c._value) {
+	Char(Char const& c) noexcept
+		: _value(c._value)
+	{
     }
 
     /** Move-Construct character. */
-    Char(Char&& c) noexcept;
+	Char(Char&& c) noexcept
+		: _value{mv(c._value)}
+	{
+	}
 
     /** Construct new character from array of UTF-8 bytes (octets)
      *
      * @note: Size of array should be no more than <imp. def.> bytes
      */
-    Char(const MemoryView& bytes);
+	Char(MemoryView bytes);
 
     /** Returns the code-point value of the character. */
-    value_type getValue() const noexcept {
+	constexpr value_type getValue() const noexcept {
         return _value;
     }
 
@@ -86,71 +92,71 @@ public:
     const char* c_str() const noexcept;
 
     /** Get raw bytes representation of the code-point */
-    const MemoryView getBytes() const;
+	MemoryView getBytes() const;
 
     /** Returns true if this character is equal to given. */
-    bool equals(const Char& rhs) const noexcept override {
+	constexpr bool equals(Char const& rhs) const noexcept {
         return (getValue() == rhs.getValue());
     }
 
     /** Returns true if this character is not equal to given. */
-    bool operator< (const Char& rhs) const noexcept {
+	bool operator< (Char const& rhs) const noexcept {
         return (getValue() < rhs.getValue());
     }
     /** Returns true if this character is not equal to given. */
-    bool operator<= (const Char& rhs) const noexcept {
+	bool operator<= (Char const& rhs) const noexcept {
         return (getValue() <= rhs.getValue());
     }
     /** Returns true if this character is not equal to given. */
-    bool operator> (const Char& rhs) const noexcept {
+	bool operator> (Char const& rhs) const noexcept {
         return (getValue() > rhs.getValue());
     }
     /** Returns true if this character is not equal to given. */
-    bool operator>= (const Char& rhs) const noexcept {
+	bool operator>= (Char const& rhs) const noexcept {
         return (getValue() >= rhs.getValue());
     }
 
     //!< True is given character is a digit.
-    bool isDigit() const;
+	bool isDigit() const noexcept;
 
     //!< True is given character is hex digit.
-    bool isXDigit() const;
+	bool isXDigit() const noexcept;
 
     //!< True is given character is a letter.
-    bool isLetter() const;
+	bool isLetter() const noexcept;
 
     //!< True is given character is digit or letter.
-    bool isLetterOrDigit() const;
+	bool isLetterOrDigit() const noexcept;
 
     //!< True is given character is in upper case.
-    bool isUpperCase() const;
+	bool isUpperCase() const noexcept;
 
     //!< True is given character is in lower case.
-    bool isLowerCase() const;
+	bool isLowerCase() const noexcept;
 
     //!< True is given character is space.
-    bool isWhitespace() const;
+	bool isWhitespace() const noexcept;
 
     //!< True if given character might be used as identifier.
-    bool isSymbol() const;
+	bool isSymbol() const noexcept;
 
     //!< True if given character might be used as first symbol of an identifier.
-    bool isFirstSymbol() const;
+	bool isFirstSymbol() const noexcept;
 
     //!< True if given character is a new line character
-    bool isNewLine() const;
+	bool isNewLine() const noexcept;
 
     //!< Check if character is a control character
-    bool isCntrl() const;
+	bool isCntrl() const noexcept;
 
     //!< Check if character has graphical representation
-    bool isGraphical() const;
+	bool isGraphical() const noexcept;
 
     //!< Check if character is printable
-    bool isPrintable() const;
+	bool isPrintable() const noexcept;
 
     //!< Check if character is a punctuation character
-    bool isPunctuation() const;
+	bool isPunctuation() const noexcept;
 
     /** Converts the character argument to lower case.
      *
@@ -170,7 +176,7 @@ public:	 // The only acceptable mutations:
     Char& swap(Char& rhs) noexcept;
 
     /** Copy assignment */
-    Char& operator= (const Char& rhs) noexcept {
+	Char& operator= (Char const& rhs) noexcept {
         Char(rhs).swap(*this);
 
         return *this;
@@ -188,72 +194,72 @@ public:
 public:
 
     //!< True if two given characters are equal.
-    static bool equals(const Char& a, const Char& b) {
+	static bool equals(Char const& a, Char const& b) {
         return a.equals(b);
     }
 
     //!< True is given character is a digit.
-    static bool isDigit(const Char& c) { return c.isDigit(); }
+	static bool isDigit(Char const& c) noexcept { return c.isDigit(); }
 
     //!< True is given character is hex digit.
-    static bool isXDigit(const Char& c) { return c.isXDigit(); }
+	static bool isXDigit(Char const& c) noexcept { return c.isXDigit(); }
 
     //!< True is given character is a letter.
-    static bool isLetter(const Char& c) { return c.isLetter(); }
+	static bool isLetter(Char const& c) noexcept { return c.isLetter(); }
 
     //!< True is given character is digit or letter.
-    static bool isLetterOrDigit(const Char& c) { return c.isLetterOrDigit(); }
+	static bool isLetterOrDigit(Char const& c) noexcept { return c.isLetterOrDigit(); }
 
     //!< True is given character is in upper case.
-    static bool isUpperCase(const Char& c) { return c.isUpperCase(); }
+	static bool isUpperCase(Char const& c) noexcept { return c.isUpperCase(); }
 
     //!< True is given character is in lower case.
-    static bool isLowerCase(const Char& c) { return c.isLowerCase(); }
+	static bool isLowerCase(Char const& c) noexcept { return c.isLowerCase(); }
 
     //!< True is given character is space.
-    static bool isWhitespace(const Char& c) { return c.isWhitespace(); }
+	static bool isWhitespace(Char const& c) noexcept { return c.isWhitespace(); }
 
     /** Determine if a character may be used in an identifier.
      *
      * @return True if given character might be used as identifier.
      */
-    static bool isSymbol(const Char& c) { return c.isSymbol(); }
+	static bool isSymbol(Char const& c) noexcept { return c.isSymbol(); }
 
     /** Determine if a character may be used in an identifier.
      *
      * @return True if given character might be used as first symbol of an identifier.
      */
-    static bool isFirstSymbol(const Char& c) { return c.isFirstSymbol(); }
+	static bool isFirstSymbol(Char const& c) noexcept { return c.isFirstSymbol(); }
 
     /** Determine if a character is a new line character
      *
      * @return True if given character is a new line character
      */
-    static bool isNewLine(const Char& c) { return c.isNewLine(); }
+	static bool isNewLine(Char const& c) noexcept { return c.isNewLine(); }
 
     //!< Check if character is a control character
-    static bool isCntrl(const Char& c) { return c.isCntrl(); }
+	static bool isCntrl(Char const& c) noexcept { return c.isCntrl(); }
 
     //!< Check if character has graphical representation
-    static bool isGraphical(const Char& c) { return c.isGraphical(); }
+	static bool isGraphical(Char const& c) noexcept { return c.isGraphical(); }
 
     //!< Check if character is printable
-    static bool isPrintable(const Char& c) { return c.isPrintable(); }
+	static bool isPrintable(Char const& c) noexcept { return c.isPrintable(); }
 
     //!< Check if character is a punctuation character
-    static bool isPunctuation(const Char& c) { return c.isPunctuation(); }
+	static bool isPunctuation(Char const& c) noexcept { return c.isPunctuation(); }
 
     /** Converts the character argument to lower case.
      *
      * @return Lower case of the character or argument if conversion is N/A
      */
-    static Char toLower(const Char& c) { return c.toLower(); }
+	static Char toLower(Char const& c) noexcept { return c.toLower(); }
 
     /** Converts the character argument to upper case.
      *
      * @return Upper case of the character or argument if conversion is N/A
      */
-    static Char toUpper(const Char& c) { return c.toUpper(); }
+	static Char toUpper(Char const& c) noexcept { return c.toUpper(); }
 
 private:
 

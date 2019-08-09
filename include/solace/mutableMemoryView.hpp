@@ -23,6 +23,7 @@
 #define SOLACE_MUTABLEMEMORYVIEW_HPP
 
 #include "solace/memoryView.hpp"
+#include "solace/error.hpp"
 
 
 namespace Solace {
@@ -151,13 +152,15 @@ public:
      * @param source Source of data to be written into this location.
      * @param offset Offset location into this buffer to copy data to.
      */
-    void write(MemoryView const& source, size_type offset = 0);
+	[[nodiscard]]
+	Result<void, Error> write(MemoryView const& source, size_type offset = 0);
 
     /**
      * Copy data from this buffer into the given one.
      * @param data Data destinatio to transer data into.
      */
-    void read(MutableMemoryView& dest);
+	[[nodiscard]]
+	Result<void, Error> read(MutableMemoryView& dest);
 
     /**
      * Copy data from this buffer into the given one.
@@ -165,7 +168,7 @@ public:
      * @param bytesToRead Number of bytes to copy from this bufer into the destanation.
      * @param offset Offset location into this buffer to start reading from.
      */
-    void read(MutableMemoryView& dest, size_type bytesToRead, size_type offset = 0);
+	Result<void, Error> read(MutableMemoryView& dest, size_type bytesToRead, size_type offset = 0);
 
     /** Fill memory block with the given value.
      *

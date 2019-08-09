@@ -16,8 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  *	@file		test/test_stringView.cpp
- *	@author		abbyssoul
- *
  ******************************************************************************/
 #include <solace/stringView.hpp>  // Class being tested
 #include <solace/exception.hpp>

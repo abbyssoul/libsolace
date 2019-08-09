@@ -16,8 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/hashing/test_sha1.cpp
- * @author: soultaker
- *
 *******************************************************************************/
 #include <solace/hashing/sha1.hpp>  // Class being tested
 #include <solace/output_utils.hpp>

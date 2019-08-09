@@ -16,7 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/test_base64.cpp
- * @author: soultaker
  ********************************************************************************/
 #include <solace/base64.hpp>  // Class being tested
 

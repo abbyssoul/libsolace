@@ -16,9 +16,7 @@
 /*******************************************************************************
  * libSolace: Secure Hash Algorithm 2
  *	@file		solace/hashing/sha2.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	@brief		Defines a family of cryptographic hash functions SHA-2
+ *	@brief		Defines a family of cryptographic hash algorithm SHA-2
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_HASHING_SHA2_HPP

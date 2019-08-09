@@ -16,8 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  *	@file		test/test_string.cpp
- *	@author		abbyssoul
- *
  ******************************************************************************/
 #include <solace/string.hpp>  // Class being tested
 #include <solace/exception.hpp>

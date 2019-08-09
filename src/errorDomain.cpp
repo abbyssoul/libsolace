@@ -15,7 +15,7 @@
 */
 /*******************************************************************************
  *	@file		errorDomain.cpp
- *	@brief		Implementation of Error domain
+ *	@brief		Implementation of Error omain
  ******************************************************************************/
 #include "solace/errorDomain.hpp"
 #include "solace/posixErrorDomain.hpp"

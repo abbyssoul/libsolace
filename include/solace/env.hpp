@@ -14,12 +14,9 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Process runtime environment variables
+ * libSolace: Runtime process environment variables
  *	@file		solace/env.hpp
- *	@author		$LastChangedBy: $
- *	@date		$LastChangedDate: $
  *	@brief		Runtime environment variables
- *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_PROCESS_ENV

@@ -99,13 +99,13 @@ Base16Encoder::encodedSize(size_type len) {
 
 
 Base16Encoder::size_type
-Base16Encoder::encodedSize(MemoryView const& data) const {
+Base16Encoder::encodedSize(MemoryView data) const {
     return encodedSize(data.size());
 }
 
 
 Result<void, Error>
-Base16Encoder::encode(MemoryView const& src) {
+Base16Encoder::encode(MemoryView src) {
     auto& dest = *getDestBuffer();
 
     for (auto value : src) {
@@ -126,7 +126,7 @@ Base16Decoder::encodedSize(size_type len) {
 
 
 Base16Decoder::size_type
-Base16Decoder::encodedSize(MemoryView const& data) const {
+Base16Decoder::encodedSize(MemoryView data) const {
     return encodedSize(data.size());
 }
 
@@ -134,7 +134,7 @@ Base16Decoder::encodedSize(MemoryView const& data) const {
 
 
 Result<void, Error>
-Base16Decoder::encode(MemoryView const& src) {
+Base16Decoder::encode(MemoryView src) {
     if (src.size() % 2 != 0) {
 		return makeError(GenericError::DOM, "encode(): Input data size must be even");
     }

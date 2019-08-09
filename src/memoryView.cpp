@@ -16,10 +16,7 @@
 /*******************************************************************************
  * libSolace
  *	@file		memoryView.cpp
- *	@author		$LastChangedBy: soultaker $
- *	@date		$LastChangedDate$
  *	@brief		Implementation of ImmutableMemoryView
- *	ID:			$Id$
  ******************************************************************************/
 #include "solace/memoryView.hpp"
 #include "solace/assert.hpp"
@@ -27,7 +24,7 @@
 #include "solace/error.hpp"
 #include "solace/posixErrorDomain.hpp"
 
-#include <sys/mman.h>  // mlock/munlock
+#include <sys/mman.h>   // mlock/munlock
 #include <algorithm>    // std::min/max
 
 
@@ -49,7 +46,7 @@ MemoryView::operator[] (size_type index) const {
 }
 
 
-const MemoryView::value_type*
+MemoryView::value_type const*
 MemoryView::dataAddress(size_type offset) const {
     if (offset != 0) {
         assertIndexInRange(offset, 0, _size + 1, "offset");
@@ -83,7 +80,7 @@ MemoryView::lock() {
 
 MemoryView::Lock::~Lock() {
     munlock(_lockedMem.dataAddress(), _lockedMem.size());
-    // FIXME(abbyssoul): What can we do if we failed to unlock?
+	// NOTE(abbyssoul): What can we do if we failed to unlock?
 //    if ( res < 0) {
 //        // TODO(abbyssoul): shold use ErrnoException
 //        raise<Exception>("failed to unlock the memory buffer");

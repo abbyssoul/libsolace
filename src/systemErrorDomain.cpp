@@ -26,7 +26,6 @@
 #include <cerrno>
 
 
-
 using namespace Solace;
 
 

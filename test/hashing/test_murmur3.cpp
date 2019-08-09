@@ -16,8 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/hashing/test_murmur3.cpp
- * @author: soultaker
- *
 *******************************************************************************/
 #include <solace/hashing/murmur3.hpp>  // Class being tested
 #include <solace/output_utils.hpp>

@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/test_char.cpp
- * @author: soultaker
- *
- * Created on: 18 Apr 2015
 *******************************************************************************/
 #include <solace/char.hpp>  // Class being tested.
 

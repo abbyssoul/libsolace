@@ -16,7 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/test_readBuffer.cpp
- * @author: soultaker
  ********************************************************************************/
 #include <solace/byteReader.hpp>  // Class being tested
 
@@ -78,7 +77,7 @@ TEST(TestReadBuffer, testPositioning) {
     EXPECT_EQ(size_type(5), buffer.position());
 
     // It's ok to got to the end of the world... err the end of the buffer.
-    EXPECT_NO_THROW(buffer.position(buffer.limit()));
+	EXPECT_TRUE(buffer.position(buffer.limit()).isOk());
     // ..but not beyond
     EXPECT_TRUE(buffer.advance(1).isError());
 }

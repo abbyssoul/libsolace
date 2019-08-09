@@ -15,10 +15,7 @@
 */
 /*******************************************************************************
  *	@file		exception.cpp
- *	@author		$LastChangedBy: $
- *	@date		$LastChangedDate: $
  *	@brief		Implementation of exception types
- *	ID:			$Id: $
  ******************************************************************************/
 #include "solace/exception.hpp"
 #include "solace/string.hpp"

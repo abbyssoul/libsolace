@@ -42,12 +42,12 @@ public:
         Encoder(dest)
     {}
 
-    size_type encodedSize(MemoryView const& data) const override;
+	size_type encodedSize(MemoryView data) const override;
 
     using Encoder::encode;
 
     Result<void, Error>
-    encode(MemoryView const& src) override;
+	encode(MemoryView src) override;
 };
 
 class Base16Encoded_Iterator {
@@ -102,12 +102,12 @@ public:
         Encoder(dest)
     {}
 
-    size_type encodedSize(const MemoryView& data) const override;
+	size_type encodedSize(MemoryView data) const override;
 
     using Encoder::encode;
 
     Result<void, Error>
-    encode(const MemoryView& src) override;
+	encode(MemoryView src) override;
 };
 
 

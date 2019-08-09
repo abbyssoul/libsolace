@@ -16,17 +16,12 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/test_version.cpp
- * @author: soultaker
- *
- * Created on: 22 Apr 2015
 *******************************************************************************/
 #include <solace/version.hpp>			// Class being tested
 #include <solace/exception.hpp>
 #include <solace/vector.hpp>                    // For container req. test
 
 #include <gtest/gtest.h>
-
-
 
 
 using namespace Solace;

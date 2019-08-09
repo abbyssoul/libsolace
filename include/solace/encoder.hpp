@@ -60,7 +60,7 @@ public:
      * @param data Source data to transform.
      * @return Size in bytes of storage necessery for transformed data.
      */
-    virtual size_type encodedSize(MemoryView const& data) const = 0;
+	virtual size_type encodedSize(MemoryView data) const = 0;
 
     /**
      * Transform given data and write transformed output into the dest buffer.
@@ -74,7 +74,7 @@ public:
      * @param src Memory view to read data from.
      */
     virtual Result<void, Error>
-    encode(MemoryView const& src) = 0;
+	encode(MemoryView src) = 0;
 
 private:
 

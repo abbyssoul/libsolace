@@ -16,10 +16,7 @@
 /*******************************************************************************
  * libSolace: Primitive integral type definitions
  *	@file		solace/types.hpp
- *	@author		$LastChangedBy: $
- *	@date		$LastChangedDate: $
  *	@brief		Defines integral types used by library to ensure portability
- *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_TYPES_HPP

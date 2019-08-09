@@ -16,9 +16,7 @@
 /*******************************************************************************
  * libSolace: Secure Hash Algorithm 2
  *	@file		solace/hashing/murmur3.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	@brief		Defines cryptographic hash function MURMUR3
+ *	@brief		Defines cryptographic hash algorithm MURMUR3
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_HASHING_MURMUR3_HPP

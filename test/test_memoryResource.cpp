@@ -15,8 +15,7 @@
 */
 /*******************************************************************************
  * libSolace Unit Test Suit
- * @file: test/test_MemoryResource.cpp
- * @author: soultaker
+ * @file: test/test_memoryResource.cpp
 *******************************************************************************/
 #include <solace/memoryResource.hpp>  // Class being tested
 

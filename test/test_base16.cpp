@@ -16,7 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/test_base16.cpp
- * @author: soultaker
  ********************************************************************************/
 #include <solace/base16.hpp>  // Class being tested
 

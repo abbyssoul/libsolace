@@ -14,10 +14,9 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * @file: char.cpp
- *      @author: soultaker
- *
- * Created on: 21 Jul 2014
+ * libSolace
+ *	@file		char.cpp
+ *	@brief		Implementation of Unicode character type
 *******************************************************************************/
 #include <solace/char.hpp>
 
@@ -35,18 +34,11 @@ using Solace::MemoryView;
 const Char Char::Eof {static_cast<value_type>(EOF)};
 
 
-Char::Char(const value_type codePoint) noexcept :
-        _value(codePoint)
+Char::Char(value_type codePoint) noexcept
+	: _value{codePoint}
 {
 // TODO(abbyssoul): Encoding::Utf8::encode(_bytes, codePoint);
 }
-
-
-Char::Char(byte c) {
-    memset(_bytes, 0, sizeof(_bytes));
-    _bytes[0] = c;
-}
-
 
 Char::Char(char c) {
     memset(_bytes, 0, sizeof(_bytes));
@@ -54,7 +46,7 @@ Char::Char(char c) {
 }
 
 
-Char::Char(const MemoryView& bytes) {
+Char::Char(MemoryView bytes) {
     // TODO(abbyssoul): Assert::notNull(bytes);
     // TODO(abbyssoul): Assert::indexInRange(count, 0, max_bytes);
 
@@ -62,10 +54,6 @@ Char::Char(const MemoryView& bytes) {
     for (size_t i = 0; i < bytes.size(); ++i) {
         _bytes[i] = bytes[i];
     }
-}
-
-
-Char::Char(Char&& c) noexcept : _value(std::move(c._value)) {
 }
 
 
@@ -92,77 +80,77 @@ const char* Char::c_str() const noexcept {
 }
 
 
-const MemoryView Char::getBytes() const {
+MemoryView Char::getBytes() const {
     return wrapMemory(_bytes, getBytesCount());
 }
 
 
-bool Char::isDigit() const {
+bool Char::isDigit() const noexcept {
     return isdigit(_value);
 }
 
 
-bool Char::isXDigit() const {
+bool Char::isXDigit() const noexcept {
     return isxdigit(_value);
 }
 
 
-bool Char::isLetter() const {
+bool Char::isLetter() const noexcept {
     return isalpha(_value);
 }
 
 
-bool Char::isLetterOrDigit() const {
+bool Char::isLetterOrDigit() const noexcept {
     return isalnum(_value);
 }
 
 
-bool Char::isUpperCase() const {
+bool Char::isUpperCase() const noexcept {
     return isupper(_value);
 }
 
 
-bool Char::isLowerCase() const {
+bool Char::isLowerCase() const noexcept {
     return islower(_value);
 }
 
 
-bool Char::isWhitespace() const {
+bool Char::isWhitespace() const noexcept {
     return isspace(_value);
 }
 
 
-bool Char::isSymbol() const {
+bool Char::isSymbol() const noexcept {
     return (isLetterOrDigit() || ((_bytes[0] == '_') && (_bytes[1] == 0)));
 }
 
 
-bool Char::isFirstSymbol() const {
+bool Char::isFirstSymbol() const noexcept {
     return (isLetter() || ((_bytes[0] == '_') && (_bytes[1] == 0)));
 }
 
 
-bool Char::isNewLine() const {
+bool Char::isNewLine() const noexcept {
     return ((_bytes[0] == '\n') && (_bytes[1] == 0));
 }
 
 
-bool Char::isCntrl() const {
+bool Char::isCntrl() const noexcept {
     return iscntrl(_value);
 }
 
 
-bool Char::isGraphical() const {
+bool Char::isGraphical() const noexcept {
     return isgraph(_value);
 }
 
 
-bool Char::isPrintable() const {
+bool Char::isPrintable() const noexcept {
     return isprint(_value);
 }
 
 
-bool Char::isPunctuation() const {
+bool Char::isPunctuation() const noexcept {
     return ispunct(_value);
 }
 

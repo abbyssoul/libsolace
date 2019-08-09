@@ -15,9 +15,7 @@
 */
 /*******************************************************************************
  * libSolace: MD5 hash algorithm producing a 128-bit hash value
- *	@file		solace/hashing/MD5.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
+ *	@file		solace/hashing/md5.hpp
  *	@brief		Defines a hash functions MD5
  ******************************************************************************/
 #pragma once

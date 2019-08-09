@@ -16,10 +16,7 @@
 /*******************************************************************************
  * libSolace
  *	@file		array.cpp
- *	@author		$LastChangedBy: soultaker $
- *	@date		$LastChangedDate$
  *	@brief		Helper functions for fixed size arrays
- *	ID:			$Id$
  ******************************************************************************/
 #include "solace/array.hpp"
 

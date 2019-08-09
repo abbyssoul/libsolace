@@ -17,11 +17,11 @@
  * libSolace
  *	@file		solace/details/array_utils.hpp
  *  @brief		Implemenetation details for collections.
- * Not to be included directly.
+ * Note: Not to be included directly.
  ******************************************************************************/
 #pragma once
-#ifndef SOLACE_ARRAY_UTILS_HPP
-#define SOLACE_ARRAY_UTILS_HPP
+#ifndef SOLACE_DETAILS_ARRAY_UTILS_HPP
+#define SOLACE_DETAILS_ARRAY_UTILS_HPP
 
 #include "solace/utils.hpp"
 #include "solace/arrayView.hpp"
@@ -148,4 +148,4 @@ static_assert(canMemcpy<char>(), "canMemcpy<>() is broken");
 
 
 }  // End of namespace Solace
-#endif  // SOLACE_ARRAY_UTILS_HPP
+#endif  // SOLACE_DETAILS_ARRAY_UTILS_HPP

@@ -16,10 +16,7 @@
 /*******************************************************************************
  * libSolace: Compile time config
  *	@file		solace/libsolace_config.h
- *	@author		$LastChangedBy: $
- *	@date		$LastChangedDate: $
  *	@brief		Platform and compiler specific configuraion.
- *	ID:			$Id: $
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_COMPILER_CONFIG_HPP

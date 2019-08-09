@@ -173,7 +173,7 @@ Base64Encoder::encodedSize(size_type len) {
 
 
 Base64Decoder::size_type
-Base64Decoder::decodedSize(MemoryView const& data) {
+Base64Decoder::decodedSize(MemoryView data) {
     if (data.empty()) {
         return 0;
     }
@@ -196,27 +196,27 @@ Base64Decoder::decodedSize(MemoryView const& data) {
 
 
 Base64Decoder::size_type
-Base64Decoder::encodedSize(MemoryView const& data) const {
+Base64Decoder::encodedSize(MemoryView data) const {
     return decodedSize(data);
 }
 
 
 Result<void, Error>
-Base64Encoder::encode(MemoryView const& src) {
+Base64Encoder::encode(MemoryView src) {
    return base64encode(*getDestBuffer(), src, kBase64Alphabet);
 }
 
 Result<void, Error>
-Base64UrlEncoder::encode(MemoryView const& src) {
+Base64UrlEncoder::encode(MemoryView src) {
     return base64encode(*getDestBuffer(), src, kBase64UrlAlphabet);
 }
 
 Result<void, Error>
-Base64Decoder::encode(MemoryView const& src) {
+Base64Decoder::encode(MemoryView src) {
     return base64decode(*getDestBuffer(), src, pr2six);
 }
 
 Result<void, Error>
-Base64UrlDecoder::encode(MemoryView const& src) {
+Base64UrlDecoder::encode(MemoryView src) {
     return base64decode(*getDestBuffer(), src, prUrl2six);
 }

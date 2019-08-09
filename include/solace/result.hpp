@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace: Functional alternative to exeption throwing
  *	@file		solace/result.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	ID:			$Id$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_RESULT_HPP

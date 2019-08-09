@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace: Primitive type to represent optional value
  *	@file		solace/optional.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	ID:			$Id$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_OPTIONAL_HPP
@@ -31,7 +28,7 @@
 
 #include <new>  // operator new
 
-// Note: with C++17 can use std::optional
+// Note: with C++17 can use std::optional to interop
 // #include <optional>
 
 

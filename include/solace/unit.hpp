@@ -39,6 +39,7 @@ namespace Solace {
 struct Unit {
 };
 
+
 inline bool operator== (Unit const& /*rhs*/, Unit const& /*lhs*/) noexcept { return true; }
 inline bool operator!= (Unit const& /*rhs*/, Unit const& /*lhs*/) noexcept { return false; }
 

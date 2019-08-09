@@ -14,12 +14,9 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Basic non-throwable error
+ * libSolace: Basic error type
  *	@file		solace/error.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
  *	@brief		Basic class of errors
- *	ID:			$Id$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_ERROR_HPP_

@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace: Universally unique identifier (UUID)
  *	@file		solace/uuid.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	ID:			$Id$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_UUID_HPP

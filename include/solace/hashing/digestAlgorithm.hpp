@@ -16,8 +16,6 @@
 /*******************************************************************************
  * libSolace: A base class for message digest algorithms
  *	@file		solace/hashing/hashingAlgorithm.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_HASHING_HASINGALGORITHM_HPP
@@ -27,8 +25,7 @@
 #include "solace/byteReader.hpp"
 
 
-namespace Solace {
-namespace hashing {
+namespace Solace { namespace hashing {
 
 /**
  * This is an interface for message digest algorithms.

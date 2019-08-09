@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/process/test_env.cpp
- * @author: soultaker
- *
- * Created on: 20/06/2016
 *******************************************************************************/
 #include <solace/env.hpp>  // Class being tested
 

@@ -14,7 +14,7 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: atom
+ * libSolace: atom type
  *	@file		solace/atom.hpp
  ******************************************************************************/
 #pragma once

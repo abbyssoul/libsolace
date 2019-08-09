@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace
  *	@file		version.cpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
- *	ID:			$Id$
  ******************************************************************************/
 #include "solace/version.hpp"
 #include "solace/posixErrorDomain.hpp"
@@ -29,7 +26,7 @@
 
 
 #define SOLACE_VERSION_MAJOR 0
-#define SOLACE_VERSION_MINOR 2
+#define SOLACE_VERSION_MINOR 3
 #define SOLACE_VERSION_BUILD 1
 
 

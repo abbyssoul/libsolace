@@ -16,10 +16,7 @@
 /*******************************************************************************
  * libSolace: Base interface for all classes with collection semantic
  *	@file		solace/traits/iterable.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
  *	@brief		Defines interface tag for all iterable types
- *	ID:			$Id$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_TRAITS_ITERABLE_HPP

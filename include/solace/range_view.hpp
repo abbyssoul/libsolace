@@ -22,6 +22,7 @@
 #ifndef SOLACE_RANGE_VIEW_HPP
 #define SOLACE_RANGE_VIEW_HPP
 
+
 namespace Solace {
 
 /// Until the time there is an implementation of ranges shipped with c++ - this is a trivial substitute for a filter

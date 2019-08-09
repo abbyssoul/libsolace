@@ -16,10 +16,7 @@
 /*******************************************************************************
  * libSolace
  *	@file		memoryManger.cpp
- *	@author		$LastChangedBy: soultaker $
- *	@date		$LastChangedDate$
  *	@brief		Implementation of MemoryManger
- *	ID:			$Id$
  ******************************************************************************/
 #include "solace/memoryManager.hpp"
 

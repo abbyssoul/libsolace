@@ -16,9 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/test_uuid.cpp
- * @author: soultaker
- *
- * Created on: 23 May 2016
 *******************************************************************************/
 #include <solace/uuid.hpp>			// Class being tested
 #include <solace/array.hpp>

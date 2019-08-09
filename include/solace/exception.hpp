@@ -16,10 +16,7 @@
 /*******************************************************************************
  * libSolace: Base of exception hierarchy
  *	@file		solace/exception.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
  *	@brief		Base exectpion types used by core library
- *	ID:			$Id$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_EXCEPTION_HPP

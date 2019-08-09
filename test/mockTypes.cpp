@@ -16,8 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  *	@file test/mockTypes.cpp
- *	@author		soultaker
- *	@date		$LastChangedDate$
  ******************************************************************************/
 
 #include "mockTypes.hpp"

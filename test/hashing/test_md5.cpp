@@ -16,8 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/hashing/test_md5.cpp
- * @author: soultaker
- *
 *******************************************************************************/
 #include <solace/hashing/md5.hpp>  // Class being tested
 #include <solace/output_utils.hpp>

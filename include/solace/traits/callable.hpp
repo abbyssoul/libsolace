@@ -14,18 +14,15 @@
 *  limitations under the License.
 */
 /*******************************************************************************
- * libSolace: Base class for all classes with comparable semantic
- *	@file		solace/traits/icomparable.hpp
- *	@author		soultaker
- *	@date		Created on: 22 Apr 2015
- *	@brief		Base exectpion types used by core library
- *	ID:			$Id$
+ * libSolace: A trait to test if a type is callable
+ *	@file		solace/traits/callable.hpp
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_TRAITS_CALLABLE_HPP
 #define SOLACE_TRAITS_CALLABLE_HPP
 
 #include "solace/utils.hpp"
+
 
 namespace Solace {
 

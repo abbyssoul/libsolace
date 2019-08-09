@@ -20,8 +20,6 @@
 #include "solace/string.hpp"
 
 
-
-
 using namespace Solace;
 
 
@@ -29,22 +27,21 @@ const String String::Empty{};
 
 
 String
-Solace::makeString(StringView view) {
-    auto buffer = getSystemHeapMemoryManager().allocate(view.size() * sizeof(StringView::value_type));    // May throw
+Solace::makeString(StringView str) {
+	auto buffer = getSystemHeapMemoryManager().allocate(str.size() * sizeof(StringView::value_type));    // May throw
 
     // Copy string view content into a new buffer
-    buffer.view().write(view.view());
+	buffer.view().write(str.view());
 
-    return { std::move(buffer), view.size() };
+	return { std::move(buffer), str.size() };
 }
 
 
 String
 Solace::makeString(StringLiteral literal) noexcept {
     auto view = literal.view();
-    auto buffer = MemoryResource(wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()),
-                                 nullptr);
-//    MemoryResource(literal.view(), nullptr);
+	auto buffer = MemoryResource{wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()),
+								 nullptr};
 
     return { std::move(buffer), literal.size() };
 }

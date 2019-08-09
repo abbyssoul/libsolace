@@ -16,8 +16,6 @@
 /*******************************************************************************
  * libSolace: Meta progamming utilities.
  *	@file		solace/utils.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_UTILS_HPP

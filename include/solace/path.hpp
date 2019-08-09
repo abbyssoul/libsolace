@@ -16,10 +16,7 @@
 /*******************************************************************************
  * libSolace: Hierarchical path object
  *	@file		solace/path.hpp
- *	@author		$LastChangedBy$
- *	@date		$LastChangedDate$
  *	@brief		Immutable hierarchical Path class
- *	ID:			$Id$
  ******************************************************************************/
 #pragma once
 #ifndef SOLACE_PATH_HPP

@@ -16,7 +16,6 @@
 /*******************************************************************************
  * libSolace Unit Test Suit
  * @file: test/test_writeBuffer.cpp
- * @author: soultaker
 *******************************************************************************/
 #include <solace/byteWriter.hpp>  // Class being tested
 
@@ -60,7 +59,7 @@ TEST(TestByteWriter, testWrite) {
         byte bytes[] = {'a', 'b', 'c', 0, 'd', 'f', 'g'};
 
         auto writer = ByteWriter{wrapMemory(destMem)};
-        EXPECT_NO_THROW(writer.write(wrapMemory(bytes)));
+		EXPECT_TRUE(writer.write(wrapMemory(bytes)).isOk());
         EXPECT_EQ(writer.limit(), writer.position());
     }
 
