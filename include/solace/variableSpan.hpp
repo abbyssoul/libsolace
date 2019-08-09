@@ -31,6 +31,7 @@ namespace Solace {
 template<typename T,
 		 typename DatumSizeType = uint16>
 struct VariableSpan {
+	static_assert (std::is_constructible_v<T, MemoryView>, "Type must be contructable from MemoryView");
 
 	using value_type = T;
 	using size_type = uint16;
