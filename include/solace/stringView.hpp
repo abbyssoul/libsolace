@@ -85,6 +85,10 @@ public:
      */
     StringView(char const* s) noexcept;
 
+	StringView(MemoryView data) noexcept
+		: _size{narrow_cast<size_type>(data.size())}
+		, _data{data.dataAs<char>()}
+	{}
 
     StringView& swap(StringView& rhs) noexcept {
         using std::swap;
@@ -404,7 +408,7 @@ protected:
 
 private:
     size_type   _size = 0;
-    char const* _data = nullptr;
+	char const* _data = nullptr;
 };
 
 

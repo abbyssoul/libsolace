@@ -9,6 +9,7 @@ set(TEST_SOURCE_FILES
 
         test_atom.cpp
         test_stringView.cpp
+        test_variableSpan.cpp
         test_error.cpp
         test_optional.cpp
         test_result.cpp
