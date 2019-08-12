@@ -105,6 +105,7 @@ struct VariableSpan {
 
 	using const_iterator = Iterator const;
 
+	constexpr VariableSpan() noexcept = default;
 
 	VariableSpan(size_type nElements, MemoryView data) noexcept
 		: _nElements{nElements}

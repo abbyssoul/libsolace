@@ -29,6 +29,15 @@
 using namespace Solace;
 
 
+TEST(VariableSpan, dafaultConstructedSpanEmpty) {
+	VariableSpan<StringView> v{};
+
+	ASSERT_EQ(v.size(), 0);
+	ASSERT_EQ(v.empty(), true);
+	ASSERT_EQ(v.begin(), v.end());
+}
+
+
 TEST(VariableSpan, emptySpan) {
 
 	byte buffer[1];
