@@ -53,7 +53,7 @@ template<typename DatumSizeType>
 struct TypedChunkReader<DatumSizeType, EncoderType::BigEndian> {
 	static MemoryView readChunk(MemoryView src, DatumSizeType& chunkSize) {
 		ByteReader reader{src};
-		reader.readBE(&chunkSize);
+		reader.readBE(chunkSize);
 
 		return reader.viewRemaining();
 	}
@@ -63,7 +63,7 @@ template<typename DatumSizeType>
 struct TypedChunkReader<DatumSizeType, EncoderType::LittleEndian> {
 	static MemoryView readChunk(MemoryView src, DatumSizeType& chunkSize) {
 		ByteReader reader{src};
-		reader.readLE(&chunkSize);
+		reader.readLE(chunkSize);
 
 		return reader.viewRemaining();
 	}
@@ -73,7 +73,7 @@ struct TypedChunkReader<DatumSizeType, EncoderType::LittleEndian> {
 
 template<typename T,
 		 typename DatumSizeType = uint16,
-		 EncoderType E = EncoderType::Natural>
+		 EncoderType EncType = EncoderType::Natural>
 struct VariableSpan {
 
 	static_assert(std::is_constructible_v<T, MemoryView>, "Type must be contructable from MemoryView");
@@ -118,7 +118,7 @@ struct VariableSpan {
 
 			datum_size datumSize = 0;
 
-			auto tail = TypedChunkReader<datum_size, E>::readChunk(_data, datumSize);
+			auto tail = TypedChunkReader<datum_size, EncType>::readChunk(_data, datumSize);
 			_data = tail.slice(datumSize, tail.size());  // skip datumSize
 			_nElements -= 1;
 
@@ -130,7 +130,7 @@ struct VariableSpan {
 
 			datum_size datumSize = 0;
 
-			auto tail = TypedChunkReader<datum_size, E>::readChunk(_data, datumSize);
+			auto tail = TypedChunkReader<datum_size, EncType>::readChunk(_data, datumSize);
 			auto data = tail.slice(0, datumSize);
 
 			return value_type{data};
