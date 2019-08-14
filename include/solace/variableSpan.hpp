@@ -71,12 +71,12 @@ struct TypedChunkReader<DatumSizeType, EncoderType::LittleEndian> {
 
 
 
-
 template<typename T,
 		 typename DatumSizeType = uint16,
 		 EncoderType E = EncoderType::Natural>
 struct VariableSpan {
-	static_assert (std::is_constructible_v<T, MemoryView>, "Type must be contructable from MemoryView");
+
+	static_assert(std::is_constructible_v<T, MemoryView>, "Type must be contructable from MemoryView");
 
 	using value_type = T;
 	using size_type = uint16;
@@ -109,12 +109,12 @@ struct VariableSpan {
 
 		constexpr bool operator== (Iterator const& other) const noexcept {
 			return (_nElements == other._nElements);
-//			return (_data.dataAddress() == other._data.dataAddress()) && (_nElements == other._nElements);
 		}
 
 		Iterator& operator++ () {
-			if (0 == _nElements)
-				return *this; // No where to go
+			if (0 == _nElements) {
+				return *this;  // Nowhere to go
+			}
 
 			datum_size datumSize = 0;
 
