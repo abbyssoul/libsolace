@@ -65,6 +65,13 @@ std::ostream& operator<< (std::ostream& ostr, const Solace::ArrayView<T>& a) {
 }
 
 
+struct MisalignedType {
+	byte	b;
+	uint32	u32;
+	uint64  u64;
+};
+
+
 
 class TestArrayView : public ::testing::Test {
 
@@ -915,6 +922,13 @@ TEST_F(TestArrayView, testForEachIndexed) {
     });
 
     EXPECT_EQ(true, allEq);
+}
+
+TEST_F(TestArrayView, sizeNarrowing) {
+	byte buffer[sizeof (MisalignedType) * 3 + sizeof (MisalignedType) / 2];
+
+	auto value = arrayView<MisalignedType>(wrapMemory(buffer), 4);
+	ASSERT_EQ(value.size(), 3);  // FIXME: Maybe we should return Err() in this case as it is a narrowing
 }
 
 /*

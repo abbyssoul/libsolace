@@ -28,8 +28,53 @@
 
 namespace Solace {
 
+enum class EncoderType {
+	Natural,
+	LittleEndian,
+	BigEndian
+};
+
+template<typename DatumSizeType, EncoderType E>
+struct TypedChunkReader;
+
+
+template<typename DatumSizeType, EncoderType E>
+struct TypedChunkReader {
+	static MemoryView readChunk(MemoryView src, DatumSizeType& chunkSize) {
+		ByteReader reader{src};
+		reader.read(&chunkSize);
+
+		return reader.viewRemaining();
+	}
+};
+
+
+template<typename DatumSizeType>
+struct TypedChunkReader<DatumSizeType, EncoderType::BigEndian> {
+	static MemoryView readChunk(MemoryView src, DatumSizeType& chunkSize) {
+		ByteReader reader{src};
+		reader.readBE(&chunkSize);
+
+		return reader.viewRemaining();
+	}
+};
+
+template<typename DatumSizeType>
+struct TypedChunkReader<DatumSizeType, EncoderType::LittleEndian> {
+	static MemoryView readChunk(MemoryView src, DatumSizeType& chunkSize) {
+		ByteReader reader{src};
+		reader.readLE(&chunkSize);
+
+		return reader.viewRemaining();
+	}
+};
+
+
+
+
 template<typename T,
-		 typename DatumSizeType = uint16>
+		 typename DatumSizeType = uint16,
+		 EncoderType E = EncoderType::Natural>
 struct VariableSpan {
 	static_assert (std::is_constructible_v<T, MemoryView>, "Type must be contructable from MemoryView");
 
@@ -71,11 +116,9 @@ struct VariableSpan {
 			if (0 == _nElements)
 				return *this; // No where to go
 
-			ByteReader reader{_data};
 			datum_size datumSize = 0;
-			reader.read(&datumSize);
 
-			auto tail = reader.viewRemaining();
+			auto tail = TypedChunkReader<datum_size, E>::readChunk(_data, datumSize);
 			_data = tail.slice(datumSize, tail.size());  // skip datumSize
 			_nElements -= 1;
 
@@ -85,11 +128,10 @@ struct VariableSpan {
 		value_type operator-> () const {
 			assertTrue(0 < _nElements, "Index out of bounds");
 
-			ByteReader reader{_data};
 			datum_size datumSize = 0;
-			reader.read(&datumSize);
 
-			auto data = reader.viewRemaining().slice(0, datumSize);
+			auto tail = TypedChunkReader<datum_size, E>::readChunk(_data, datumSize);
+			auto data = tail.slice(0, datumSize);
 
 			return value_type{data};
 		}
@@ -154,6 +196,8 @@ private:
 	MemoryView	_data;
 
 };
+
+
 
 }  // namespace Solace
 
