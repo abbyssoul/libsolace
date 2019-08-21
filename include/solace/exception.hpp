@@ -24,6 +24,7 @@
 
 #include "solace/types.hpp"
 #include "solace/stringView.hpp"
+#include "solace/details/string_utils.hpp"
 
 /* TODO(abbyssoul):
 #if defined(SOLACE_DEBUG)
@@ -32,7 +33,6 @@
 */
 
 #include <exception>
-#include <string>       // std::string (duh!)
 
 
 namespace Solace {
@@ -47,7 +47,7 @@ public:
     ~Exception() noexcept override = default;
 
     //! Construct exception w. message
-    Exception(std::string message) noexcept;
+	Exception(StringView message) noexcept;
 
     Exception(Exception const& other)       = default;
     Exception(Exception&& other) noexcept   = default;
@@ -60,9 +60,15 @@ public:
     //! Get message description of the exception.
     StringView toString() const;
 
+protected:
+
+	/*constexpr */Exception(details::ErrorString&& msg) noexcept
+		: _message{std::move(msg)}
+	{}
+
 private:
 
-    std::string	_message;		//!< Message of the exception.
+	details::ErrorString	_message;		//!< Message of the exception.
 
 #ifdef SOLACE_DEBUG
 //  const Debug::Trace 	_trace;			//!< Stack trace
@@ -78,9 +84,7 @@ class IllegalArgumentException: public Exception {
 public:
     IllegalArgumentException() noexcept;
 
-    IllegalArgumentException(const char* argumentName) noexcept;
-
-    explicit IllegalArgumentException(const std::string& msg) noexcept;
+	IllegalArgumentException(StringLiteral msg) noexcept;
 };
 
 
@@ -96,7 +100,7 @@ public:
     IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue) noexcept;
 
     //! Construct exception with index name
-    IndexOutOfRangeException(const char* indexName, size_t index, size_t minValue, size_t maxValue) noexcept;
+	IndexOutOfRangeException(StringLiteral indexName, size_t index, size_t minValue, size_t maxValue) noexcept;
 
     //! Construct exception with custom message
     IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue, const char* messagePrefix) noexcept;
@@ -108,7 +112,7 @@ public:
 class OverflowException : public Exception {
 public:
 
-    OverflowException(const char* indexName, size_t index, size_t minValue, size_t maxValue) noexcept;
+	OverflowException(StringLiteral indexName, size_t index, size_t minValue, size_t maxValue) noexcept;
 
     OverflowException(size_t index, size_t minValue, size_t maxValue) noexcept;
 };
@@ -122,7 +126,7 @@ public:
 
     NoSuchElementException() noexcept;
 
-    NoSuchElementException(const char* elementName) noexcept;
+	NoSuchElementException(StringLiteral elementName) noexcept;
 };
 
 
@@ -146,9 +150,9 @@ public:
 
     IOException(int errorCode) noexcept;
 
-    IOException(int errorCode, const std::string& msg) noexcept;
+	IOException(int errorCode, StringView msg) noexcept;
 
-    IOException(const std::string& msg) noexcept;
+	IOException(StringView msg) noexcept;
 
 
     int getErrorCode() const noexcept {

@@ -28,9 +28,6 @@
 
 #include <new>  // operator new
 
-// Note: with C++17 can use std::optional to interop
-// #include <optional>
-
 
 namespace Solace {
 

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.12)
 project(solace)
 set(PROJECT_DESCRIPTION "library of High Reliability and HPC components")
 

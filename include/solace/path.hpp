@@ -316,13 +316,16 @@ public:  // Operation
     }
 
 protected:
-    friend Path makePath(Array<String>&& array);
+
+	friend Path makePath(Array<String>&& array);
 
     /** FIXME(abbyssoul): Only temporary here. to be removed
      * Move-Construct the path object from a collection of String components
      * @param array A collection of string components forming the path
      */
-    Path(Array<String>&& array): _components(std::move(array)) {
+	Path(Array<String>&& array) noexcept
+		: _components(std::move(array))
+	{
         // No-op
     }
 

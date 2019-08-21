@@ -286,6 +286,10 @@ public:
         return substring(from, to);
     }
 
+	constexpr explicit operator bool() const noexcept {
+	  return !empty();
+	}
+
     /** Splits the string around matches of expr
      * @param delim A delimeter to split the string by.
      * @return A total number of splits.

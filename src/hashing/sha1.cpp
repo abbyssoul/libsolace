@@ -20,7 +20,7 @@
  ******************************************************************************/
 #include "solace/hashing/sha1.hpp"
 
-#include <memory.h>  // memcpy
+#include <cstring>  // memcpy
 
 
 using namespace Solace;
@@ -182,14 +182,12 @@ void sha1_process(Sha1::State& ctx, byte const data[64]) {
 
 
 void sha1_update(Sha1::State& ctx, const byte input[], Sha1::size_type ilen) {
-    Sha1::size_type fill;
-    uint32 left;
-
-    if (ilen == 0)
+	if (ilen == 0) {
         return;
+	}
 
-    left = ctx.total[0] & 0x3F;
-    fill = 64 - left;
+	uint32 left = ctx.total[0] & 0x3F;
+	Sha1::size_type const fill = 64 - left;
 
     ctx.total[0] += ilen;
     ctx.total[0] &= 0xFFFFFFFF;

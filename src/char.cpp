@@ -18,7 +18,7 @@
  *	@file		char.cpp
  *	@brief		Implementation of Unicode character type
 *******************************************************************************/
-#include <solace/char.hpp>
+#include "solace/char.hpp"
 
 #include <cstdio>
 #include <cctype>

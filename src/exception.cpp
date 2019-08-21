@@ -18,55 +18,136 @@
  *	@brief		Implementation of exception types
  ******************************************************************************/
 #include "solace/exception.hpp"
-#include "solace/string.hpp"
 
-#include <cstring>
+#include <cstring>  // strerror
 
 
 using namespace Solace;
 
 
 static constexpr StringLiteral IOExceptionType{"IOException"};
+static constexpr StringLiteral kIllegalArgumentExceptionName{"IllegalArgumentException"};
+
+static constexpr StringLiteral kNoSuchElementMessage{"No such element"};
+static constexpr StringLiteral kInvalidStateMessage{"Invalid State"};
+static constexpr StringLiteral kIndexOutOfRangeMessage{"Index out of range"};
 
 
 
-std::string formatErrono(int errorCode) {
-    std::string msg{IOExceptionType.data(), IOExceptionType.size()};
+namespace /*anonymous*/ {
 
-    msg.append("[");
-    msg.append(std::to_string(errorCode));
-    msg.append("]: ");
-    msg.append(strerror(errorCode));
+using details::StringWriter;
 
-    return msg;
+details::ErrorString formatErrorStringJoin(StringView lhs, StringView rhs, StringView delim = " ") {
+	auto const jointSize = lhs.size() + rhs.size() + delim.size();
+
+	return details::StringWriter{narrow_cast<StringWriter::size_type>(jointSize)}
+			.append(lhs)
+			.append(delim)
+			.append(rhs)
+			.build();
 }
 
-std::string formatErrono(int errorCode, std::string const& msgex) {
-    std::string msg{IOExceptionType.data(), IOExceptionType.size()};
+details::ErrorString formatErrono(int errorCode, StringView msgex) {
+	auto const errorString = StringView{strerror(errorCode)};
+	auto const bufferSize = StringWriter::measure(msgex)
+			+ StringWriter::measure("[")
+			+ StringWriter::measure(errorCode)
+			+ StringWriter::measure("]: ")
+			+ StringWriter::measure(errorString);
 
-    msg.append("[");
-    msg.append(std::to_string(errorCode));
-    msg.append("]: ");
-    msg.append(msgex);
-    msg.append(" - ");
-    msg.append(strerror(errorCode));
-
-    return msg;
+	return StringWriter{narrow_cast<StringWriter::size_type>(bufferSize)}
+			.append(msgex)
+			.append("[")
+			.appendFormated(errorCode)
+			.append("]: ")
+			.append(strerror(errorCode))
+			.build();
 }
 
+
+details::ErrorString formatErrono(int errorCode) {
+	return formatErrono(errorCode, IOExceptionType);
+}
+
+
+details::ErrorString formatIlligalArgName(StringLiteral argName) {
+	auto const bufferSize = StringWriter::measure("Illegal argument '")
+			+ StringWriter::measure(argName)
+			+ StringWriter::measure("'");
+
+	return StringWriter{narrow_cast<StringWriter::size_type>(bufferSize)}
+			.append("Illegal argument '")
+			.append(argName)
+			.append("'")
+			.build();
+}
+
+details::ErrorString formatIndexOutOfRangeError(StringView messagePrefix, StringLiteral indexName, StringView reason,
+									   size_t index, size_t minValue, size_t maxValue) {
+	auto const bufferSize = StringWriter::measure(messagePrefix)
+			+ StringWriter::measure(" '")
+			+ StringWriter::measure(indexName)
+			+ StringWriter::measure("'=")
+			+ StringWriter::measure(index)
+			+ StringWriter::measure(" ")
+			+ StringWriter::measure(reason)
+			+ StringWriter::measure(" [")
+			+ StringWriter::measure(minValue)
+			+ StringWriter::measure(", ")
+			+ StringWriter::measure(maxValue)
+			+ StringWriter::measure(")");
+
+
+	StringWriter writer{narrow_cast<StringWriter::size_type>(bufferSize)};
+
+	writer.append(messagePrefix);
+	if (indexName) {
+		writer.append(" '");
+		writer.append(indexName);
+		writer.append("'=");
+	} else {
+		writer.append(": ");
+	}
+
+	writer.appendFormated(index);
+	writer.append(" ");
+	writer.append(reason);
+	writer.append(" [");
+	writer.appendFormated(minValue);
+	writer.append(", ");
+	writer.appendFormated(maxValue);
+	writer.append(")");
+
+	return writer.build();
+}
+
+
+details::ErrorString formatIndexOutOfRangeError(StringView messagePrefix, StringLiteral indexName,
+									   size_t index, size_t minValue, size_t maxValue) {
+	return formatIndexOutOfRangeError(messagePrefix, indexName, "is out of range", index, minValue, maxValue);
+}
+
+
+details::ErrorString formatOverflowError(StringLiteral indexName, size_t index, size_t minValue, size_t maxValue) {
+	return formatIndexOutOfRangeError("Value", indexName, "overflows range", index, minValue, maxValue);
+}
+
+
+}  // namespace anonymous
 
 
 
 // cppcheck-suppress passedByValue
-Exception::Exception(std::string message) noexcept
-    : _message(std::move(message))
+Exception::Exception(StringView message) noexcept
+	: _message{std::move(message)}
 {
     // Nothing else to do here
 }
 
 
 StringView Exception::getMessage() const noexcept {
-    return StringView{_message.c_str(), static_cast<StringView::size_type>(_message.size())};
+	return _message.view(); //StringView{_message.c_str(), static_cast<StringView::size_type>(_message.size())};
 }
 
 
@@ -75,182 +156,120 @@ const char* Exception::what() const noexcept {
 }
 
 StringView Exception::toString() const {
-    return StringView{_message.c_str(), static_cast<StringView::size_type>(_message.size())};
+	return _message.view();
 }
 
 
 
 
-IllegalArgumentException::IllegalArgumentException() noexcept:
-    Exception("IllegalArgumentException")
+IllegalArgumentException::IllegalArgumentException() noexcept
+	: Exception{kIllegalArgumentExceptionName}
 {
 
 }
 
-std::string formatIlligalArgName(const char* argName) {
-    std::string msg{"Illegal argument '"};
-    msg.append(argName);
-    msg.append("'");
 
-    return msg;
-}
-
-IllegalArgumentException::IllegalArgumentException(const char* argumentName) noexcept:
-    Exception(formatIlligalArgName(argumentName))
+IllegalArgumentException::IllegalArgumentException(StringLiteral argumentName) noexcept
+	: Exception{formatIlligalArgName(argumentName)}
 {
     // Nothing to do here
 }
 
 
-IllegalArgumentException::IllegalArgumentException(const std::string& msg) noexcept:
-    Exception(msg)
-{
-
-}
-
-
-IndexOutOfRangeException::IndexOutOfRangeException() noexcept:
-    Exception("Index out of range")
+IndexOutOfRangeException::IndexOutOfRangeException() noexcept
+	: Exception{kIndexOutOfRangeMessage}
 {
     // No-op
 }
 
 
-std::string formatIndexOutOfRangeError(const char* messagePrefix, const char* indexName,
-                                       size_t index, size_t minValue, size_t maxValue) {
-    std::string msg{messagePrefix};
-
-    if (indexName) {
-        msg.append(" '");
-        msg.append(indexName);
-        msg.append("'=");
-    } else {
-        msg.append(": ");
-    }
-
-    msg.append(std::to_string(index));
-    msg.append(" is out of range [");
-    msg.append(std::to_string(minValue));
-    msg.append(", ");
-    msg.append(std::to_string(maxValue));
-    msg.append(")");
-
-    return msg;
-}
-
-
-IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue) noexcept :
-    Exception(formatIndexOutOfRangeError("Error", nullptr, index, minValue, maxValue))
+IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue) noexcept
+	: Exception{formatIndexOutOfRangeError(kIndexOutOfRangeMessage, "", index, minValue, maxValue)}
 {
     // No-op
 }
 
 
-IndexOutOfRangeException::IndexOutOfRangeException(const char* indexName,
-                                                   size_t index, size_t minValue, size_t maxValue) noexcept :
-    Exception(formatIndexOutOfRangeError("Index", indexName, index, minValue, maxValue))
+IndexOutOfRangeException::IndexOutOfRangeException(StringLiteral indexName,
+												   size_t index, size_t minValue, size_t maxValue) noexcept
+	: Exception{formatIndexOutOfRangeError(kIndexOutOfRangeMessage, indexName, index, minValue, maxValue)}
 {
     // No-op
 }
 
 
 IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue,
-                                                   const char* messagePrefix) noexcept :
-    Exception(formatIndexOutOfRangeError(messagePrefix, nullptr, index, minValue, maxValue))
+												   const char* messagePrefix) noexcept
+	: Exception{formatIndexOutOfRangeError(messagePrefix, "", index, minValue, maxValue)}
 {
     // No-op
 }
 
 
-
-std::string formatOverflowError(const char* indexName,
-                                size_t index, size_t minValue, size_t maxValue) {
-    std::string msg{"Value"};
-
-    if (indexName) {
-        msg.append(" '");
-        msg.append(indexName);
-        msg.append("'=");
-    } else {
-        msg.append(" ");
-    }
-
-    msg.append(std::to_string(index));
-    msg.append(" overflows range [");
-    msg.append(std::to_string(minValue));
-    msg.append(", ");
-    msg.append(std::to_string(maxValue));
-    msg.append(")");
-
-    return msg;
-
-}
-
-
-OverflowException::OverflowException(const char* indexName,
-                                     size_t index, size_t minValue, size_t maxValue) noexcept :
-    Exception(formatOverflowError(indexName, index, minValue, maxValue))
+OverflowException::OverflowException(StringLiteral indexName,
+									 size_t index, size_t minValue, size_t maxValue) noexcept
+	: Exception{formatOverflowError(indexName, index, minValue, maxValue)}
 {
     // Nothing else to do here
 }
 
 
-OverflowException::OverflowException(size_t index, size_t minValue, size_t maxValue) noexcept :
-    Exception(formatOverflowError(nullptr, index, minValue, maxValue))
+OverflowException::OverflowException(size_t index, size_t minValue, size_t maxValue) noexcept
+	: Exception(formatOverflowError("", index, minValue, maxValue))
 {
 }
 
 
-NoSuchElementException::NoSuchElementException() noexcept:
-        Exception("No such element")
+NoSuchElementException::NoSuchElementException() noexcept
+	: Exception{kNoSuchElementMessage}
 {
     // No-op
 }
 
 
-NoSuchElementException::NoSuchElementException(const char* elementName) noexcept:
-    Exception(std::string("No such element: " + std::string(elementName)))
+NoSuchElementException::NoSuchElementException(StringLiteral elementName) noexcept
+	: Exception{formatErrorStringJoin(kNoSuchElementMessage, elementName)}
 {
     // Nothing else to do here
 }
 
 
 InvalidStateException::InvalidStateException() noexcept
-    : Exception("Invalid State")
+	: Exception{kInvalidStateMessage}
 {
 
 }
 
 InvalidStateException::InvalidStateException(const char* tag) noexcept
-    : Exception(std::string("Invalid state: " + std::string(tag)))
+	: Exception{formatErrorStringJoin(kInvalidStateMessage, tag)}
 {
 
 }
 
 
-IOException::IOException(const std::string& msg) noexcept
-    : Exception(msg)
-    , _errorCode(-1)
+IOException::IOException(StringView msg) noexcept
+	: Exception{msg}
+	, _errorCode{-1}
 {
 }
 
 
 IOException::IOException(int errorCode) noexcept
-    : Exception(formatErrono(errorCode))
-    , _errorCode(errorCode)
+	: Exception{formatErrono(errorCode)}
+	, _errorCode{errorCode}
 {
 }
 
 
-IOException::IOException(int errorCode, const std::string& msg) noexcept
-    : Exception(formatErrono(errorCode, msg))
-    , _errorCode(errorCode)
+IOException::IOException(int errorCode, StringView msg) noexcept
+	: Exception{formatErrono(errorCode, msg)}
+	, _errorCode{errorCode}
 {
 }
 
 
 NotOpen::NotOpen() noexcept
-    : IOException("File descriptor not opened")
+	: IOException{"File descriptor not opened"}
 {
     // No-op
 }

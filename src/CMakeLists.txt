@@ -5,6 +5,7 @@ set(SOURCE_FILES
         errorDomain.cpp
         systemErrorDomain.cpp
         error.cpp
+        errorString.cpp
         atom.cpp
         char.cpp
 
