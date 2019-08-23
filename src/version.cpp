@@ -19,10 +19,11 @@
  ******************************************************************************/
 #include "solace/version.hpp"
 #include "solace/posixErrorDomain.hpp"
+#include "solace/stringBuilder.hpp"
 
 #include "solace/libsolace_config.hpp"		// Defines compile time version
 
-#include <string>       // std::to_string
+#include <cstdlib>
 
 
 #define SOLACE_VERSION_MAJOR 0
@@ -67,24 +68,33 @@ Version::operator > (Version const& rhv) const noexcept {
 
 String
 Version::toString() const {
-    auto const majorString = std::to_string(majorNumber);
-    auto const minorString = std::to_string(minorNumber);
-    auto const patchString = std::to_string(patchNumber);
+	auto const versionSize = StringBuilder::measureFormatted(majorNumber)
+			+ StringBuilder::measureFormatted(minorNumber)
+			+ StringBuilder::measureFormatted(patchNumber)
+			+ 2 * StringBuilder::measure(NumberSeparator);
 
-    auto s1 = makeStringJoin(NumberSeparator,
-                               StringView(majorString.data(), majorString.size()),
-                               StringView(minorString.data(), minorString.size()),
-                               StringView(patchString.data(), patchString.size()));
+	auto const releaseStringSize = (preRelease.empty() ?  0: StringBuilder::measure(ReleaseSeparator) + preRelease.size());
+	auto const buildStringSize = (build.empty() ? 0: StringBuilder::measure(BuildSeparator) + build.size());
 
-    auto s2 = (preRelease.empty())
-              ? makeString(StringLiteral{""})
-              : makeString(ReleaseSeparator, preRelease);
+	auto const bufferSize = versionSize + releaseStringSize + buildStringSize + 1;
+	auto sb = StringBuilder{getSystemHeapMemoryManager().allocate(bufferSize)};
+	sb.append(majorNumber)
+			.append(NumberSeparator)
+			.append(minorNumber)
+			.append(NumberSeparator)
+			.append(patchNumber);
 
-    auto s3 = build.empty()
-        ? makeString(StringLiteral{""})
-        : makeString(BuildSeparator, build);
+	if (!preRelease.empty()) {
+		sb.append(ReleaseSeparator)
+				.append(preRelease);
+	}
 
-    return makeString(s1, s2, s3);
+	if (!build.empty()) {
+		sb.append(BuildSeparator)
+				.append(build);
+	}
+
+	return sb.build();
 }
 
 

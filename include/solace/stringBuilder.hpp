@@ -36,6 +36,22 @@ class StringBuilder {
 public:
     using size_type = String::size_type;
 
+	static size_type measure(StringView::value_type) noexcept { return 1; }
+	static size_type measure(StringView value) noexcept { return value.size(); }
+
+	static size_type measureFormatted(uint16) noexcept;
+	static size_type measureFormatted(uint32) noexcept;
+	static size_type measureFormatted(uint64) noexcept;
+	static size_type measureFormatted(int16) noexcept;
+	static size_type measureFormatted(int32) noexcept;
+	static size_type measureFormatted(int64) noexcept;
+
+	template<size_t N>
+	static constexpr size_type measure(char const (&SOLACE_UNUSED(str))[N]) noexcept {
+		return N;
+	}
+
+
 public:
     //!< Not copy-able
     StringBuilder(StringBuilder const&) = delete;
@@ -79,53 +95,17 @@ public:
 
 	StringBuilder& append(char c);
     StringBuilder& append(Char c);
-    StringBuilder& append(StringView str);
+	StringBuilder& append(uint16 value);
+	StringBuilder& append(uint32 value);
+	StringBuilder& append(uint64 value);
 
+	StringBuilder& append(StringView str);
     StringBuilder& append(String const& str) {
         return append(str.view());
     }
 
     StringBuilder& appendFormat(StringView fmt) { return append(fmt); }
 
-//        template<typename T>
-//        StringBuilder& appendFormat(const String& fmt, T&& value) {
-//            return append(Format(fmt).formatArg(std::forward<T>(value)));
-//        }
-
-//        template<typename T>
-//        StringBuilder& appendFormat(char* fmt, T&& value) {
-//            return append(Format(fmt).formatArg(std::forward<T>(value)));
-//        }
-
-//        template<typename T>
-//        StringBuilder& appendFormat(char16_t* fmt, T&& value) {
-//            return append(Format(fmt).formatArg(std::forward<T>(value)));
-//        }
-
-//        template<typename T>
-//        StringBuilder& appendFormat(char32_t* fmt, T&& value) {
-//            return append(Format(fmt).formatArg(std::forward<T>(value)));
-//        }
-
-//        template<typename T, typename... Args>
-//        StringBuilder& appendFormat(const String& fmt, T&& value, Args... args) {
-//            return append(Format(fmt).formatArg(std::forward<T>(value), args...));
-//        }
-
-//        template<typename T, typename... Args>
-//        StringBuilder& appendFormat(const char* fmt, T&& value, Args... args) {
-//            return append(Format(fmt).formatArg(std::forward<T>(value), args...));
-//        }
-
-//        template<typename T, typename... Args>
-//        StringBuilder& appendFormat(const char16_t* fmt, T&& value, Args... args) {
-//            return append(Format(fmt).formatArg(std::forward<T>(value), args...));
-//        }
-
-//        template<typename T, typename... Args>
-//        StringBuilder& appendFormat(const char32_t* fmt, T&& value, Args... args) {
-//            return append(Format(fmt).formatArg(std::forward<T>(value), args...));
-//        }
 
 	StringView substring(size_type from, size_type to) const;
 	StringBuilder& clear();
@@ -143,13 +123,20 @@ public:
     size_type replace(const Char& what, const Char& with);
 	size_type replace(const String& what, const String& by);
 
-    size_type length() const noexcept;
 	bool empty() const;
+    size_type length() const noexcept;
+	size_type remaining() const noexcept {
+		return narrow_cast<size_type>(_buffer.remaining());
+	}
 
     StringView view() const noexcept;
 
-    /** Get resulting string */
-    StringView toString() const;
+	/** View resulting string */
+	StringView toString() const {
+		return view();
+	}
+
+	String build();
 
 private:
 

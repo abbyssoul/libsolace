@@ -86,15 +86,16 @@ struct StringWriter {
 	}
 
 
-	StringWriter(size_type memSize);
+	StringWriter(size_type memSize) noexcept;
 
-	StringWriter& append(StringView data);
+	StringWriter& append(StringView data) noexcept;
 
-	StringWriter& appendFormated(size_t value);
+	StringWriter& appendFormated(size_t value) noexcept;
 
-	StringWriter& appendFormated(int32 value);
+	StringWriter& appendFormated(uint32 value) noexcept;
+	StringWriter& appendFormated(int32 value) noexcept;
 
-	StringWriter& append(const char* value);
+	StringWriter& append(const char* value) noexcept;
 
 
 	size_type remaining() const noexcept { return _size - _offset; }

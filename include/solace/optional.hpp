@@ -26,8 +26,6 @@
 #include "solace/utils.hpp"
 #include "solace/assert.hpp"
 
-#include <new>  // operator new
-
 
 namespace Solace {
 

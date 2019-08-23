@@ -21,8 +21,47 @@
 #include "solace/stringBuilder.hpp"
 #include "solace/byteReader.hpp"
 
+#include <cstdio>  // snprintf etc
+
 
 using namespace Solace;
+
+template <typename T>
+StringBuilder::size_type
+safeMeasure(const char* fmt, T value) {
+	auto const size = snprintf(nullptr, 0, fmt, value);
+	return (size > 0)
+			? narrow_cast<StringBuilder::size_type>(size)
+			: 0;
+}
+
+template<typename T>
+void safeFormat(ByteWriter& dest, const char* fmt, T value) {
+	auto buffer = dest.viewRemaining();
+	auto const capacity = buffer.size();
+	auto const bytesWritten = snprintf(buffer.dataAs<char>(), capacity, fmt, value);
+
+	if (bytesWritten > 0 &&
+		bytesWritten < capacity) {
+		dest.advance(static_cast<ByteWriter::size_type>(bytesWritten));
+	}
+}
+
+StringBuilder::size_type
+StringBuilder::measureFormatted(uint16 value) noexcept { return safeMeasure("%u", value); }
+
+StringBuilder::size_type
+StringBuilder::measureFormatted(uint32 value) noexcept { return safeMeasure("%u", value); }
+
+StringBuilder::size_type
+StringBuilder::measureFormatted(uint64 value) noexcept { return safeMeasure("%u", value); }
+StringBuilder::size_type
+StringBuilder::measureFormatted(int16 value) noexcept { return safeMeasure("%d", value); }
+StringBuilder::size_type
+StringBuilder::measureFormatted(int32 value) noexcept { return safeMeasure("%d", value); }
+StringBuilder::size_type
+StringBuilder::measureFormatted(int64 value) noexcept { return safeMeasure("%d", value); }
+
 
 
 StringBuilder::StringBuilder(MutableMemoryView&& buffer, StringView str)
@@ -53,17 +92,34 @@ StringBuilder& StringBuilder::append(StringView cstr) {
 	return *this;
 }
 
+
+StringBuilder&
+StringBuilder::append(uint16 value) {
+	safeFormat(_buffer, "%u", value);
+
+	return *this;
+}
+
+StringBuilder&
+StringBuilder::append(uint32 value) {
+	safeFormat(_buffer, "%u", value);
+
+	return *this;
+}
+
+StringBuilder&
+StringBuilder::append(uint64 value) {
+	safeFormat(_buffer, "%u", value);
+
+	return *this;
+}
+
+
 StringView
 StringBuilder::view() const noexcept {
     return StringView(_buffer.viewWritten().dataAs<const char>(), _buffer.position());
 }
 
-
-StringView
-StringBuilder::toString() const {
-    auto const written = _buffer.viewWritten();
-    return StringView{written.dataAs<char>(), static_cast<size_type>(written.size())};
-}
 
 bool StringBuilder::empty() const {
     return (_buffer.position() == 0);
@@ -102,4 +158,11 @@ StringBuilder::indexOf(const Char& ch, size_type fromIndex) const {
     }
 
     return none;
+}
+
+
+String
+StringBuilder::build() {
+	auto const resultStringSize = length();  // Note we need to store size temporerely as buffer gets moved out.
+	return { _buffer.moveResource(), resultStringSize };
 }

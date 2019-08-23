@@ -36,6 +36,10 @@
 
 namespace Solace {
 
+inline std::ostream& operator<< (std::ostream& ostr, StringLiteral const& str) {
+	return ostr.write(str.data(), str.size());
+}
+
 inline std::ostream& operator<< (std::ostream& ostr, StringView const& str) {
     return ostr.write(str.data(), str.size());
 }

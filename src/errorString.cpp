@@ -2,7 +2,7 @@
 
 #include <cstdlib>
 #include <cstring>
-#include <cstdio>
+#include <cstdio>  // snprintf etc
 
 #include <algorithm>  // std::min
 
@@ -33,7 +33,7 @@ StringWriter::measure(size_t value) noexcept {
 	return narrow_cast<size_type>(snprintf(nullptr, 0, "%lu", value));
 }
 
-StringWriter::StringWriter(size_type memSize)
+StringWriter::StringWriter(size_type memSize) noexcept
 	: _size{memSize}
 	, _offset{0}
 	, _buffer{static_cast<details::ErrorString::value_type*>(calloc(memSize + 1, 1))}
@@ -44,7 +44,7 @@ StringWriter::StringWriter(size_type memSize)
 }
 
 StringWriter&
-StringWriter::append(StringView data) {
+StringWriter::append(StringView data) noexcept {
 	size_type const dataCopied = std::min(data.size(), remaining());
 	memcpy(currentBuffer(), data.data(), dataCopied);
 	_offset += dataCopied;
@@ -53,17 +53,22 @@ StringWriter::append(StringView data) {
 }
 
 StringWriter&
-StringWriter::appendFormated(size_t value) {
+StringWriter::appendFormated(size_t value) noexcept {
 	_offset += snprintf(currentBuffer(), remaining(), "%lu", value); return *this;
 }
 
 StringWriter&
-StringWriter::appendFormated(int32 value) {
+StringWriter::appendFormated(uint32 value) noexcept {
+	_offset += snprintf(currentBuffer(), remaining(), "%u", value); return *this;
+}
+
+StringWriter&
+StringWriter::appendFormated(int32 value) noexcept {
 	_offset += snprintf(currentBuffer(), remaining(), "%d", value); return *this;
 }
 
 StringWriter&
-StringWriter::append(const char* value) {
+StringWriter::append(const char* value) noexcept {
 	_offset += snprintf(currentBuffer(), remaining(), "%s", value); return *this;
 }
 

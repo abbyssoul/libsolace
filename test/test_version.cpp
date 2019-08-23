@@ -21,6 +21,9 @@
 #include <solace/exception.hpp>
 #include <solace/vector.hpp>                    // For container req. test
 
+#include <solace/output_utils.hpp>
+
+
 #include <gtest/gtest.h>
 
 

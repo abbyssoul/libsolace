@@ -54,7 +54,7 @@ public:
 	ByteWriter(ByteWriter&& other) noexcept
         : _position{exchange(other._position, 0)}
         , _limit{exchange(other._limit, 0)}
-        , _storage{std::move(other._storage)}
+		, _storage{mv(other._storage)}
     {}
 
 	ByteWriter(MemoryResource& buffer) noexcept
@@ -73,7 +73,7 @@ public:
      */
 	ByteWriter(MutableMemoryView memView) noexcept
         : _limit{memView.size()}
-        , _storage{std::move(memView), nullptr}
+		, _storage{mv(memView), nullptr}
     {}
 
 
@@ -91,6 +91,18 @@ public:
         return swap(rhs);
     }
 
+
+	/**
+	 * Move taget buffer/resource out of the writer
+	 * Note that writer will not be useful after this call
+	 * @return Moved underlying memory resource
+	 */
+	MemoryResource moveResource() {
+		_position = 0;
+		_limit = 0;
+
+		return mv(_storage);
+	}
 
     /**
      * Leave the limit unchanged and sets the position to zero.
