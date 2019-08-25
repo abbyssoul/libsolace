@@ -52,13 +52,17 @@ public:
     Exception(Exception const& other)       = default;
     Exception(Exception&& other) noexcept   = default;
 
-    virtual StringView getMessage() const noexcept;
+	virtual StringView getMessage() const noexcept {
+		return _message.view();
+	}
 
     //! STD compatible message:
     const char* what() const noexcept override;
 
     //! Get message description of the exception.
-    StringView toString() const;
+	StringView toString() const noexcept {
+		return _message.view();
+	}
 
 protected:
 

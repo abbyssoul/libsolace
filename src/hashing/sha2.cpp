@@ -152,7 +152,7 @@ void sha256_update(Sha256::State& ctx, const byte input[], Sha256::size_type ile
 		return;
 
 	uint32 left = ctx.total[0] & 0x3F;
-	Sha256::size_type const fill= 64 - left;
+	Sha256::size_type const fill = 64 - left;
 
     ctx.total[0] += ilen;
     ctx.total[0] &= 0xFFFFFFFF;

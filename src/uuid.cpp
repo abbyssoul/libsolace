@@ -181,19 +181,26 @@ Solace::makeUUID(uint32 a0, uint32 a1, uint32 a2, uint32 a3) noexcept {
     return {data};
 }
 
+
 UUID
 Solace::makeRandomUUID() noexcept {
 	std::random_device rd;
-	std::default_random_engine e1(rd());
+	std::default_random_engine randomGen{rd()};
 
 	byte bytes[UUID::StaticSize];
 
-	for (UUID::size_type i = 0; i < UUID::StaticSize; ++i) {
-		auto const rndValue = e1();
-		auto const stride = (sizeof(rndValue) + i <  UUID::StaticSize) ? sizeof(rndValue) : UUID::StaticSize - i;
-		memcpy(bytes + i, &rndValue, stride);
-		i += stride;
+	auto const step = sizeof(decltype(randomGen()));
+
+	UUID::size_type i = 0;
+	for (; i < UUID::StaticSize; i += step) {
+		auto const rndValue = randomGen();
+		memcpy(bytes + i, &rndValue, step);
     }
+
+	if (i < UUID::StaticSize) {
+		auto const rndValue = randomGen();
+		memcpy(bytes + i, &rndValue, UUID::StaticSize - i);
+	}
 
     return {bytes};
 }

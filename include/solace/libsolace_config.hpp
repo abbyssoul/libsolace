@@ -44,6 +44,10 @@
 #   define SOLACE_DEBUG
 #endif
 
+#if defined(SOLACE_MEMORY_DEBUG)
+#	define GLIBCXX_FORCE_NEW
+#endif  // SOLACE_DEBUG_MEMORY
+
 /*-----------------------------------------------------------------------
  * Next switch will define our platform identifying macro SOLACE_PLATFORM_*
  *-----------------------------------------------------------------------*/
@@ -54,8 +58,10 @@
 #elif defined(__APPLE__)
     #define SOLACE_PLATFORM_APPLE
 
-    #include "TargetConditionals.h"
-    #if TARGET_OS_IPHONE && TARGET_IPHONE_SIMULATOR
+	#include <AvailabilityMacros.h>
+	#include <TargetConditionals.h>
+
+	#if TARGET_OS_IPHONE && TARGET_IPHONE_SIMULATOR
         #define SOLACE_PLATFORM_IPHONE
     #elif TARGET_OS_IPHONE
         #define SOLACE_PLATFORM_IPHONE
@@ -94,10 +100,6 @@
 
 //! No throwing specification, for compilers that supports it
 #define SOLACE_NO_THROW noexcept
-
-#if defined(SOLACE_MEMORY_DEBUG)
-#define GLIBCXX_FORCE_NEW
-#endif  // SOLACE_DEBUG_MEMORY
 
 
 

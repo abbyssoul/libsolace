@@ -134,11 +134,10 @@ details::ErrorString formatOverflowError(StringLiteral indexName, size_t index, 
 }
 
 
-}  // namespace anonymous
+}  // anonymous namespace
 
 
 
-// cppcheck-suppress passedByValue
 Exception::Exception(StringView message) noexcept
 	: _message{std::move(message)}
 {
@@ -146,20 +145,10 @@ Exception::Exception(StringView message) noexcept
 }
 
 
-StringView Exception::getMessage() const noexcept {
-	return _message.view(); //StringView{_message.c_str(), static_cast<StringView::size_type>(_message.size())};
-}
-
 
 const char* Exception::what() const noexcept {
     return _message.c_str();
 }
-
-StringView Exception::toString() const {
-	return _message.view();
-}
-
-
 
 
 IllegalArgumentException::IllegalArgumentException() noexcept

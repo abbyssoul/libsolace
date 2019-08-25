@@ -3,6 +3,26 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>  // snprintf etc
+/*
+*  Copyright 2016 Ivan Ryabov
+*
+*  Licensed under the Apache License, Version 2.0 (the "License");
+*  you may not use this file except in compliance with the License.
+*  You may obtain a copy of the License at
+*
+*      http://www.apache.org/licenses/LICENSE-2.0
+*
+*  Unless required by applicable law or agreed to in writing, software
+*  distributed under the License is distributed on an "AS IS" BASIS,
+*  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+*  See the License for the specific language governing permissions and
+*  limitations under the License.
+*/
+/*******************************************************************************
+ * libSolace
+ *	@file		errorString.cpp
+ *	@brief		Implementation details of ErrorString
+ ******************************************************************************/
 
 #include <algorithm>  // std::min
 
@@ -30,8 +50,10 @@ ErrorString::ErrorString(StringView view)
 
 StringWriter::size_type
 StringWriter::measure(size_t value) noexcept {
+	// cppcheck-suppress invalidPrintfArgType_uint
 	return narrow_cast<size_type>(snprintf(nullptr, 0, "%lu", value));
 }
+
 
 StringWriter::StringWriter(size_type memSize) noexcept
 	: _size{memSize}
@@ -54,6 +76,7 @@ StringWriter::append(StringView data) noexcept {
 
 StringWriter&
 StringWriter::appendFormated(size_t value) noexcept {
+	// cppcheck-suppress invalidPrintfArgType_uint
 	_offset += snprintf(currentBuffer(), remaining(), "%lu", value); return *this;
 }
 

@@ -81,7 +81,7 @@ struct StringWriter {
 	static size_type measure(size_t value) noexcept;
 
 	template<size_t N>
-	static constexpr size_type measure(char const (&SOLACE_UNUSED(str))[N]) noexcept {
+	static constexpr size_type measure(char const (&SOLACE_UNUSED(str))[N]) noexcept {  // NOLINT(whitespace/parens)
 		return N;
 	}
 

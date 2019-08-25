@@ -39,15 +39,15 @@ public:
 	static size_type measure(StringView::value_type) noexcept { return 1; }
 	static size_type measure(StringView value) noexcept { return value.size(); }
 
-	static size_type measureFormatted(uint16) noexcept;
-	static size_type measureFormatted(uint32) noexcept;
-	static size_type measureFormatted(uint64) noexcept;
-	static size_type measureFormatted(int16) noexcept;
-	static size_type measureFormatted(int32) noexcept;
-	static size_type measureFormatted(int64) noexcept;
+	static size_type measureFormatted(uint16 value) noexcept;
+	static size_type measureFormatted(uint32 value) noexcept;
+	static size_type measureFormatted(uint64 value) noexcept;
+	static size_type measureFormatted(int16 value) noexcept;
+	static size_type measureFormatted(int32 value) noexcept;
+	static size_type measureFormatted(int64 value) noexcept;
 
 	template<size_t N>
-	static constexpr size_type measure(char const (&SOLACE_UNUSED(str))[N]) noexcept {
+	static constexpr size_type measure(char const (&SOLACE_UNUSED(str))[N]) noexcept {  // NOLINT(whitespace/parens)
 		return N;
 	}
 
