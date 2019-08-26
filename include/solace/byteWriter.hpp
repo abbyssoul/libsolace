@@ -64,7 +64,7 @@ public:
 
 	ByteWriter(MemoryResource&& buffer) noexcept
         : _limit{buffer.size()}
-        , _storage{std::move(buffer)}
+		, _storage{mv(buffer)}
     {}
 
     /**

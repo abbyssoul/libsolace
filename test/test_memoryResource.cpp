@@ -53,7 +53,7 @@ TEST_F(TestMemoryResource, moveAssignment) {
     EXPECT_EQ(1u, disposer.count());
 
     {
-        MemoryResource otherBuff = std::move(buff);
+		MemoryResource otherBuff = mv(buff);
         EXPECT_EQ(1u, disposer.count());
     }
 

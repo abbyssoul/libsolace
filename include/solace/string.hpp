@@ -55,7 +55,7 @@ public:
 
     //!< Move-construct a string.
 	/*gcc7.2 bug: constexpr*/ String(String&& rhs) noexcept
-        : _buffer{std::move(rhs._buffer)}
+		: _buffer{mv(rhs._buffer)}
         , _size{exchange(rhs._size, 0)}
     {
     }
@@ -68,7 +68,7 @@ public:
      * @note The buffer passed must be big enought to hold the string of the given size.
      */
 	/*gcc7.2 bug: constexpr*/ String(MemoryResource&& buffer, size_type stringLen) noexcept
-        : _buffer{std::move(buffer)}
+		: _buffer{mv(buffer)}
         , _size{stringLen}
     {}
 
@@ -198,12 +198,12 @@ public:  // Basic collection operations:
      */
     template<typename Callable>
     void split(StringView delim, Callable&& f) const {
-        view().split(delim, std::forward<Callable>(f));
+		view().split(delim, fwd<Callable>(f));
     }
 
     template<typename Callable>
     void split(value_type delim, Callable&& f) const {
-        view().split(delim, std::forward<Callable>(f));
+		view().split(delim, fwd<Callable>(f));
     }
 
 	/**
@@ -497,7 +497,7 @@ StringView::size_type totalSize(String const& arg) noexcept {
 
 template<typename T, typename K, typename...Args>
 StringView::size_type totalSize(T&& a, K&& b, Args&&... args) noexcept {
-    return totalSize(a) + totalSize(std::forward<K>(b), std::forward<Args>(args)...);
+	return totalSize(a) + totalSize(fwd<K>(b), fwd<Args>(args)...);
 }
 
 inline
@@ -523,7 +523,7 @@ bool writeAllArgs(ByteWriter& dest, T&& arg, Args&&...args) {
     writeArg(dest, arg);
     // FIXME: Check return value!
 
-    return writeAllArgs(dest, std::forward<Args>(args)...);
+	return writeAllArgs(dest, fwd<Args>(args)...);
 }
 
 /**
@@ -533,49 +533,49 @@ bool writeAllArgs(ByteWriter& dest, T&& arg, Args&&...args) {
  */
 template<typename... StringViews>
 String makeString(StringView lhs, StringView rhs, StringViews&&... args) {
-    auto const totalStrLen = totalSize(lhs, rhs, std::forward<StringViews>(args)...);
+	auto const totalStrLen = totalSize(lhs, rhs, fwd<StringViews>(args)...);
     auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
     auto writer = ByteWriter(buffer.view());
 
     // Copy string view content into a new buffer
     // FIXME: WriteAllArgs returns Result<> thus makeString should return -> Result<String, Error>
-    /*auto r = */writeAllArgs(writer, lhs, rhs, std::forward<StringViews>(args)...);
+	/*auto r = */writeAllArgs(writer, lhs, rhs, fwd<StringViews>(args)...);
 
-    return { std::move(buffer), totalStrLen };
+	return { mv(buffer), totalStrLen };
 }
 
 template<typename... StringViews>
 String makeString(StringView::value_type lhs, StringView rhs, StringViews&&... args) {
-    auto const totalStrLen = totalSize(lhs, rhs, std::forward<StringViews>(args)...);
+	auto const totalStrLen = totalSize(lhs, rhs, fwd<StringViews>(args)...);
     auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
     auto writer = ByteWriter(buffer.view());
 
     // Copy string view content into a new buffer
     // FIXME: WriteAllArgs returns Result<> thus makeString should return -> Result<String, Error>
-    /*auto r = */writeAllArgs(writer, lhs, rhs, std::forward<StringViews>(args)...);
+	/*auto r = */writeAllArgs(writer, lhs, rhs, fwd<StringViews>(args)...);
 
-    return { std::move(buffer), totalStrLen };
+	return { mv(buffer), totalStrLen };
 }
 
 
 template<typename... StringViews>
 String makeString(String const& lhs, StringView rhs, StringViews&&... args) {
-    return makeString(lhs.view(), rhs, std::forward<StringViews>(args)...);
+	return makeString(lhs.view(), rhs, fwd<StringViews>(args)...);
 }
 
 template<typename... StringViews>
 String makeString(StringView lhs, String const& rhs, StringViews&&... args) {
-    return makeString(lhs, rhs.view(), std::forward<StringViews>(args)...);
+	return makeString(lhs, rhs.view(), fwd<StringViews>(args)...);
 }
 
 template<typename... StringViews>
 String makeString(String const& lhs, String const& rhs, StringViews&&... args) {
-    return makeString(lhs.view(), rhs.view(), std::forward<StringViews>(args)...);
+	return makeString(lhs.view(), rhs.view(), fwd<StringViews>(args)...);
 }
 
 template<typename... StringViews>
 String makeString(StringView::value_type lhs, String const& rhs, StringViews&&... args) {
-    return makeString(lhs, rhs.view(), std::forward<StringViews>(args)...);
+	return makeString(lhs, rhs.view(), fwd<StringViews>(args)...);
 }
 
 /**
@@ -674,8 +674,8 @@ Result<void, Error> writeJointArgs(ByteWriter& dest, StringView by, StringView a
             });
 
     return r
-            ? writeJointArgs(dest, by, std::forward<Args>(args)...)
-            : std::move(r);
+			? writeJointArgs(dest, by, fwd<Args>(args)...)
+			: mv(r);
 }
 
 template<typename...Args>
@@ -686,8 +686,8 @@ Result<void, Error> writeJointArgs(ByteWriter& dest, StringView by, String const
             });
 
     return r
-            ? writeJointArgs(dest, by, std::forward<Args>(args)...)
-            : std::move(r);
+			? writeJointArgs(dest, by, fwd<Args>(args)...)
+			: mv(r);
 }
 
 template<typename...Args>
@@ -698,8 +698,8 @@ Result<void, Error> writeJointArgs(ByteWriter& dest, StringView::value_type by, 
             });
 
     return r
-            ? writeJointArgs(dest, by, std::forward<Args>(args)...)
-            : std::move(r);
+			? writeJointArgs(dest, by, fwd<Args>(args)...)
+			: mv(r);
 }
 
 template<typename...Args>
@@ -710,44 +710,44 @@ Result<void, Error> writeJointArgs(ByteWriter& dest, StringView::value_type by, 
             });
 
     return r
-            ? writeJointArgs(dest, by, std::forward<Args>(args)...)
-            : std::move(r);
+			? writeJointArgs(dest, by, fwd<Args>(args)...)
+			: mv(r);
 }
 
 
 
 template<typename...Args>
 String makeStringJoin(StringView by, Args&&... args) {
-    auto const len = totalSize(std::forward<Args>(args)...);
+	auto const len = totalSize(fwd<Args>(args)...);
     auto const totalStrLen = narrow_cast<StringView::size_type>(totalSize(by) * (sizeof...(args) - 1) + len);
     auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
     auto writer = ByteWriter(buffer.view());
 
     // Copy string view content into a new buffer
     // FIXME: writeJointArgs returns Result<> thus makeString should return -> Result<String, Error>
-    writeJointArgs(writer, by, std::forward<Args>(args)...);
+	writeJointArgs(writer, by, fwd<Args>(args)...);
 
-    return {std::move(buffer), totalStrLen};
+	return {mv(buffer), totalStrLen};
 }
 
 template<typename...Args>
 String makeStringJoin(StringView::value_type by, Args&&... args) {
-    auto const len = totalSize(std::forward<Args>(args)...);
+	auto const len = totalSize(fwd<Args>(args)...);
     auto const totalStrLen = narrow_cast<StringView::size_type>(totalSize(by) * (sizeof...(args) - 1) + len);
     auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
     auto writer = ByteWriter(buffer.view());
 
     // Copy string view content into a new buffer
     // FIXME: writeJointArgs returns Result<> thus makeString should return -> Result<String, Error>
-    writeJointArgs(writer, by, std::forward<Args>(args)...);
+	writeJointArgs(writer, by, fwd<Args>(args)...);
 
-    return {std::move(buffer), totalStrLen};
+	return {mv(buffer), totalStrLen};
 }
 
 
 template<typename...Args>
 String makeStringJoin(String const& by, Args&&... args) {
-    return makeStringJoin(by.view(), std::forward<Args>(args)...);
+	return makeStringJoin(by.view(), fwd<Args>(args)...);
 }
 
 /**

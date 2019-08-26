@@ -66,7 +66,7 @@ public:
     {}
 
     constexpr ArrayView(ArrayView&& other) noexcept
-        : _memory(std::move(other._memory))
+		: _memory(mv(other._memory))
     {}
 
     /** Construct an array from C-style array with the given size */
@@ -84,7 +84,7 @@ public:
     {}
 
     constexpr ArrayView(ViewType memview) noexcept :
-        _memory(std::move(memview))
+		_memory(mv(memview))
     {}
 
 public:
@@ -233,7 +233,7 @@ public:
 
         auto memBlock = _memory.template sliceFor<T>(index);
         memBlock.template destruct<T>();
-        memBlock.template construct<T>(std::forward<Args>(args)...);
+		memBlock.template construct<T>(fwd<Args>(args)...);
     }
 
     /**
@@ -247,7 +247,7 @@ public:
         index = assertIndexInRange(index, 0, size(), "ArrayView.emplace()");
 
         _memory .template sliceFor<T>(index)
-                .template construct<T>(std::forward<Args>(args)...);
+				.template construct<T>(fwd<Args>(args)...);
     }
 
 
@@ -392,7 +392,7 @@ struct ArrayExceptionGuard {
 
     template <typename V>
     void emplace(V&& v) {
-        ctor(*pos, std::forward<V>(v));
+		ctor(*pos, fwd<V>(v));
         ++pos;
     }
 };
@@ -402,7 +402,7 @@ template<typename...Args>
 void ArrayView<T>::emplaceAll(Args&&... args) {
     ArrayExceptionGuard<T> valuesGuard(*this);
 
-    (valuesGuard.emplace(std::forward<Args>(args)), ...);
+	(valuesGuard.emplace(fwd<Args>(args)), ...);
 
     valuesGuard.release();
 }

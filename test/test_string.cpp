@@ -84,7 +84,7 @@ TEST(TestString, testMoveConstruction) {
     auto cstr = makeString(kSomeConstString);
     EXPECT_TRUE(cstr.equals(kSomeConstString));
 
-    String const moved = std::move(cstr);
+	String const moved = mv(cstr);
     EXPECT_TRUE(cstr.empty());
     EXPECT_FALSE(cstr.equals(kSomeConstString));
     EXPECT_TRUE(moved.equals(kSomeConstString));
@@ -104,7 +104,7 @@ TEST(TestString, testMoveAssignment) {
 
     {
         String str2 = makeString("some string");
-        str1 = std::move(str2);
+		str1 = mv(str2);
         substr = makeString(str1.substring(5, 8));
     }
 

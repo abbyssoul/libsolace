@@ -71,14 +71,14 @@ public:
 
     /** Construct a new array by moving content of a given array */
     constexpr Array(Array<T>&& rhs) noexcept
-        : _buffer(std::move(rhs._buffer))
+		: _buffer(mv(rhs._buffer))
         , _size(exchange(rhs._size, 0))
     {
     }
 
     /** Contruct an array of a given size from a memory resource */
     constexpr Array(MemoryResource&& buffer, size_type len) noexcept
-        : _buffer(std::move(buffer))
+		: _buffer(mv(buffer))
         , _size(len)
     {
     }
@@ -155,7 +155,7 @@ public:
 
     template<typename F>
     Array& set(size_type index, F&& f) {
-        view().set(index, std::forward<F>(f));
+		view().set(index, fwd<F>(f));
 
         return *this;
     }
@@ -243,7 +243,7 @@ public:
                 isCallable<F, T&>::value,
     Array<T>& >
     forEach(F&& f) {
-        view().forEach(std::forward<F>(f));
+		view().forEach(fwd<F>(f));
 
         return *this;
     }
@@ -251,7 +251,7 @@ public:
     template<typename F>
     std::enable_if_t<isCallable<F, const T&>::value, const Array<T>& >
     forEach(F&& f) const {
-        view().forEach(std::forward<F>(f));
+		view().forEach(fwd<F>(f));
 
         return *this;
     }
@@ -261,7 +261,7 @@ public:
             isCallable<F, size_type, const T&>::value,
     const Array<T>& >
     forEach(F&& f) const {
-        view().forEach(std::forward<F>(f));
+		view().forEach(fwd<F>(f));
 
         return *this;
     }
@@ -273,7 +273,7 @@ public:
             isCallable<F, size_type, T&>::value,
     Array<T>& >
     forEach(F&& f) {
-        view().forEach(std::forward<F>(f));
+		view().forEach(fwd<F>(f));
 
         return *this;
     }
@@ -370,7 +370,7 @@ Array<T> makeArray(typename Array<T>::size_type initialSize) {
 
     initArray<T>(buffer.view(), initialSize);
 
-    return {std::move(buffer), initialSize};  // No except c-tor
+	return {mv(buffer), initialSize};  // No except c-tor
 }
 
 
@@ -386,7 +386,7 @@ Array<T> makeArray(typename Array<T>::size_type initialSize, T const* carray) {
 
     CopyConstructArray_<RemoveConst<T>, Decay<T*>, false>::apply(dest, src);    // May throw if copy-ctor throws
 
-    return {std::move(buffer), arraySize};                                 // No except
+	return {mv(buffer), arraySize};                                 // No except
 }
 
 
@@ -414,9 +414,9 @@ Array<T> makeArrayOf(Args&&...args) {
     auto buffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
     auto values = arrayView<T>(buffer.view());
 
-    values.emplaceAll(std::forward<Args>(args)...);
+	values.emplaceAll(fwd<Args>(args)...);
 
-    return {std::move(buffer), arraySize};                                 // No except
+	return {mv(buffer), arraySize};                                 // No except
 }
 
 

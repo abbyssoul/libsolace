@@ -50,7 +50,7 @@ public:
     MessageDigest(MessageDigest&& rhs) = default;
 
     MessageDigest(Storage&& bytes)
-        : _storage{std::move(bytes)}
+		: _storage{mv(bytes)}
     { }
 
     MessageDigest(MemoryView viewBytes);

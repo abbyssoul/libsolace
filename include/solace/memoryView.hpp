@@ -236,7 +236,7 @@ public:
     ~Lock();
 
     Lock(MemoryView lockedMem) noexcept
-        : _lockedMem(std::move(lockedMem))
+		: _lockedMem(mv(lockedMem))
     {
         // No-op
     }

@@ -30,7 +30,7 @@ namespace Solace {
 
 template <typename T, typename... Params>
 inline T* ctor(T& location, Params&&... params) {
-    return new (_::PlacementNew(), &location) T(std::forward<Params>(params)...);
+	return new (_::PlacementNew(), &location) T(fwd<Params>(params)...);
 }
 
 template <typename T>
@@ -203,7 +203,7 @@ public:
     template<typename T, typename... Args>
     /*[[nodiscard]]*/ T* construct(Args&&... args) {
         // Note: dataAs<> does assertion for the storage size
-        return ctor(*dataAs<T>(), std::forward<Args>(args)...);
+		return ctor(*dataAs<T>(), fwd<Args>(args)...);
     }
 
     template<typename T>

@@ -223,7 +223,7 @@ TEST(TestPath, testGetParent) {
         EXPECT_TRUE(p.empty());
 
         auto somePath = makePath("abc");
-        root = std::move(somePath);
+		root = mv(somePath);
         EXPECT_TRUE(somePath.empty());
         EXPECT_TRUE(!root.empty());
     }

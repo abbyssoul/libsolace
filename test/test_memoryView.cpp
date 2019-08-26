@@ -126,7 +126,7 @@ TEST(TestMemoryView, testConstruction) {
         const MutableMemoryView::size_type exampleSize = sizeof(example);
         auto b1 = wrapMemory(example);
         {
-            MutableMemoryView b2(std::move(b1));
+			MutableMemoryView b2(mv(b1));
 
             EXPECT_EQ(0, b1.size());
             EXPECT_EQ(exampleSize, b2.size());

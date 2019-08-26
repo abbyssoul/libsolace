@@ -58,7 +58,7 @@ public:
 	/*gcc7.2 bug: constexpr*/ ByteReader(ByteReader&& other) noexcept
         : _position{exchange(other._position, 0)}
         , _limit{exchange(other._limit, 0)}
-        , _storage{std::move(other._storage)}
+		, _storage{mv(other._storage)}
     {}
 
 
@@ -80,7 +80,7 @@ public:
      */
 	/*gcc7.2 bug: constexpr*/ ByteReader(MemoryResource&& buffer) noexcept
         : _limit{buffer.size()}
-        , _storage{std::move(buffer)}
+		, _storage{mv(buffer)}
     {
     }
 

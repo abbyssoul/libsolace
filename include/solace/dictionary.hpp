@@ -52,8 +52,8 @@ public:
     constexpr Dictionary() noexcept = default;
 
     Dictionary(Vector<Key>&& lookup, Vector<T>&& values)
-        : _lookup{std::move(lookup)}
-        , _values{std::move(values)}
+		: _lookup{mv(lookup)}
+		, _values{mv(values)}
     {}
 
     constexpr auto empty() const noexcept { return _values.empty(); }
@@ -74,14 +74,14 @@ public:
 */
 
     void put(Key key, T&& value) {
-        _values.emplace_back(std::move(value));
-        _lookup.emplace_back(std::move(key));
+		_values.emplace_back(mv(value));
+		_lookup.emplace_back(mv(key));
     }
 
     template<typename... Args>
     void put(Key key, Args&&...args) {
-        _values.emplace_back(std::forward<Args>(args)...);
-        _lookup.emplace_back(std::move(key));
+		_values.emplace_back(fwd<Args>(args)...);
+		_lookup.emplace_back(mv(key));
     }
 
 
@@ -124,8 +124,8 @@ template<typename K, typename T>
 Dictionary<K, T> makeDictionary(MemoryResource&& keysMem, MemoryResource&& valuesMem) noexcept {
     using DictT = Dictionary<K, T>;
 
-    return {makeVector<typename DictT::key_type>(std::move(keysMem)),
-            makeVector<typename DictT::value_type>(std::move(valuesMem))};
+	return {makeVector<typename DictT::key_type>(mv(keysMem)),
+			makeVector<typename DictT::value_type>(mv(valuesMem))};
 }
 
 /**
@@ -159,14 +159,14 @@ Dictionary<K, T> makeDictionaryOf(Args&&...args) {
     ArrayExceptionGuard<K> keysGuard(posKeys);
     ArrayExceptionGuard<T> valuesGuard(posValues);
 
-    (keysGuard.emplace(std::move(args.key)), ...);
-    (valuesGuard.emplace(std::move(args.value)), ...);
+	(keysGuard.emplace(mv(args.key)), ...);
+	(valuesGuard.emplace(mv(args.value)), ...);
 
     keysGuard.release();
     valuesGuard.release();
 
-    return {{std::move(keysBuffer),     arraySize},
-            {std::move(valuesBuffer),   arraySize}};  // No except c-tor
+	return {{mv(keysBuffer),     arraySize},
+			{mv(valuesBuffer),   arraySize}};  // No except c-tor
 }
 
 

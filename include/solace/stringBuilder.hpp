@@ -59,12 +59,12 @@ public:
 
     /** Initialize a new instance of StringBuilder with a given storage */
     StringBuilder(MutableMemoryView&& buffer) noexcept
-        : _buffer{std::move(buffer)}
+		: _buffer{mv(buffer)}
     {}
 
     /** Initialize a new instance of StringBuilder with a given storage */
     StringBuilder(MemoryResource&& buffer) noexcept
-        : _buffer{std::move(buffer)}
+		: _buffer{mv(buffer)}
     {}
 
     /** Initialize a new instance of StringBuilder with a given storage and initial string value.*/

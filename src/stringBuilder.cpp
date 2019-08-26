@@ -65,13 +65,13 @@ StringBuilder::measureFormatted(int64 value) noexcept { return safeMeasure("%d",
 
 
 StringBuilder::StringBuilder(MutableMemoryView&& buffer, StringView str)
-    : StringBuilder(std::move(buffer))
+	: StringBuilder{mv(buffer)}
 {
     _buffer.write(str.view());
 }
 
 StringBuilder::StringBuilder(MemoryResource&& buffer, StringView str)
-    : StringBuilder(std::move(buffer))
+	: StringBuilder{mv(buffer)}
 {
     _buffer.write(str.view());
 }

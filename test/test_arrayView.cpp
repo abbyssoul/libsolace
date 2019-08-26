@@ -103,7 +103,7 @@ protected:
         }
 
         NonPodStruct(int i, std::string&& inStr) :
-            iValue(i), str(std::move(inStr))
+			iValue(i), str(mv(inStr))
         {
             ++TotalCount;
         }
@@ -114,7 +114,7 @@ protected:
             ++TotalCount;
         }
 
-        NonPodStruct(NonPodStruct&& other) : iValue(other.iValue), str(std::move(other.str))
+		NonPodStruct(NonPodStruct&& other) : iValue(other.iValue), str(mv(other.str))
         {
             ++TotalCount;
         }
@@ -132,8 +132,8 @@ protected:
         }
 
         NonPodStruct& operator= (NonPodStruct&& rhs) {
-            iValue = std::move(rhs.iValue);
-            str = std::move(rhs.str);
+			iValue = mv(rhs.iValue);
+			str = mv(rhs.str);
 
             return (*this);
         }
@@ -165,14 +165,14 @@ protected:
         auto const index = static_cast<int>(i)*2 - 1;
         auto str = std::string("Some Odd string: ") + std::to_string(index);
 
-        return NonPodStruct(index, std::move(str));
+		return NonPodStruct(index, mv(str));
     }
 
     static NonPodStruct fillEvenNonPods(size_t i) {
         auto const index = static_cast<int>(i)*2 + 1;
         auto str = std::string("Some Event string: ") + std::to_string(index);
 
-        return NonPodStruct(index, std::move(str));
+		return NonPodStruct(index, mv(str));
     }
 
 

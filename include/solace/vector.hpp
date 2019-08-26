@@ -203,7 +203,7 @@ public:
 
         _buffer.view()
                 .template sliceFor<value_type>(_position)
-                .template construct<value_type>(std::forward<Args>(args)...);
+				.template construct<value_type>(fwd<Args>(args)...);
 
         _position += 1;
     }
@@ -425,7 +425,7 @@ Vector<T> makeVectorOf(Args&&...args) {
     auto buffer = getSystemHeapMemoryManager().allocate(vectorSize*sizeof(T));           // May throw
     auto values = arrayView<T>(buffer.view());
 
-	values.emplaceAll(std::forward<Args>(args)...);
+	values.emplaceAll(fwd<Args>(args)...);
 
 	return {mv(buffer), vectorSize};                                 // No except
 }

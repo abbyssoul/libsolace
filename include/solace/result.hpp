@@ -73,7 +73,7 @@ using Err = ValueWrapper<T, ErrTag>;
 template<typename T,
          typename CleanT = typename std::decay<T>::type >
 inline types::Ok<CleanT> Ok(T&& val) {
-	return types::Ok<CleanT>{std::forward<T>(val)};
+	return types::Ok<CleanT>{fwd<T>(val)};
 }
 
 /**
@@ -94,7 +94,7 @@ constexpr None Ok() noexcept {
 template<typename E,
          typename CleanE = typename std::decay<E>::type >
 inline types::Err<CleanE> Err(E&& val) {
-	return types::Err<CleanE>{std::forward<E>(val)};
+	return types::Err<CleanE>{fwd<E>(val)};
 }
 
 
@@ -296,7 +296,7 @@ public:
 													TE>
 			 >
 	constexpr Result(TE&& value)
-		: _error{std::forward<TE>(value)}
+		: _error{fwd<TE>(value)}
 		, _engaged{false}
 	{}
 

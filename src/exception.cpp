@@ -139,7 +139,7 @@ details::ErrorString formatOverflowError(StringLiteral indexName, size_t index, 
 
 
 Exception::Exception(StringView message) noexcept
-	: _message{std::move(message)}
+	: _message{mv(message)}
 {
     // Nothing else to do here
 }

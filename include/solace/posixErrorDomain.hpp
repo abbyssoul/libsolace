@@ -200,7 +200,7 @@ inline Error makeSystemError(int errCode) noexcept {
 /// Create an error object representing given system error code with a tag.
 [[nodiscard]]
 inline Error makeSystemError(int errCode, StringLiteral tag) noexcept {
-    return Error{kSystemCatergory, errCode, std::move(tag)};
+	return Error{kSystemCatergory, errCode, mv(tag)};
 }
 
 

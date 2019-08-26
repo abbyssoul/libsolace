@@ -33,7 +33,7 @@ Solace::makeString(StringView str) {
     // Copy string view content into a new buffer
 	buffer.view().write(str.view());
 
-	return { std::move(buffer), str.size() };
+	return { mv(buffer), str.size() };
 }
 
 
@@ -43,7 +43,7 @@ Solace::makeString(StringLiteral literal) noexcept {
 	auto buffer = MemoryResource{wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()),
 								 nullptr};
 
-    return { std::move(buffer), literal.size() };
+	return { mv(buffer), literal.size() };
 }
 
 
@@ -62,7 +62,7 @@ Solace::makeStringReplace(StringView str, String::value_type what, String::value
         }
     }
 
-    return { std::move(buffer), totalStrLen };
+	return { mv(buffer), totalStrLen };
 }
 
 
@@ -102,7 +102,7 @@ Solace::makeStringReplace(StringView str, StringView what, StringView by) {
 
     writer.write(str.substring(from).view());
 
-    return { std::move(buffer), newStrLen };
+	return { mv(buffer), newStrLen };
 }
 
 
@@ -193,7 +193,7 @@ Solace::makeStringJoin(StringView by, ArrayView<const String> list) {
         }
     }
 
-    return { std::move(buffer), totalStrLen };
+	return { mv(buffer), totalStrLen };
 }
 
 

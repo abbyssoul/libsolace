@@ -183,9 +183,9 @@ decode16(MemoryView::const_iterator i, MemoryView::const_iterator j) {
 
 
 Base16Decoded_Iterator::Base16Decoded_Iterator(MemoryView::const_iterator rangeBegin,
-                                               MemoryView::const_iterator rangeEnd) :
-    _i(std::move(rangeBegin)),
-    _end(std::move(rangeEnd))
+											   MemoryView::const_iterator rangeEnd)
+	: _i(mv(rangeBegin))
+	, _end(mv(rangeEnd))
 {
 
     MemoryView::const_iterator next = _i;

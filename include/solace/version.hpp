@@ -104,7 +104,7 @@ public:
         : majorNumber{aMajor}
         , minorNumber{aMinor}
         , patchNumber{aPatch}
-        , preRelease{std::move(aPre)}
+		, preRelease{mv(aPre)}
         , build{}
     {}
 
@@ -114,8 +114,8 @@ public:
         : majorNumber{aMajor}
         , minorNumber{aMinor}
         , patchNumber{aPatch}
-        , preRelease{std::move(aPre)}
-        , build{std::move(aBuild)}
+		, preRelease{mv(aPre)}
+		, build{mv(aBuild)}
 	{}
 
     /** Construct the version object by specifying all components */

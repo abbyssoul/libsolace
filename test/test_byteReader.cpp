@@ -52,7 +52,7 @@ TEST(TestReadBuffer, constructFromMutableMemory) {
 
     MutableMemoryView memView = wrapMemory(bytes);
 
-    ByteReader buffer(std::move(memView));
+	ByteReader buffer(mv(memView));
     EXPECT_EQ(testSize, buffer.capacity());
     EXPECT_EQ(testSize, buffer.limit());
     EXPECT_EQ(0, buffer.position());

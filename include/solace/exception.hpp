@@ -67,7 +67,7 @@ public:
 protected:
 
 	/*constexpr */Exception(details::ErrorString&& msg) noexcept
-		: _message{std::move(msg)}
+		: _message{mv(msg)}
 	{}
 
 private:
@@ -180,7 +180,7 @@ public:
 template <typename ExceptionType, typename... Args>
 [[noreturn]]
 void raise(Args&&... args) {
-    throw ExceptionType(std::forward<Args>(args)...);
+	throw ExceptionType(fwd<Args>(args)...);
 }
 
 }  // End of namespace Solace

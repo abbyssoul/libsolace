@@ -156,7 +156,7 @@ public:
      */
     template<typename ...ARGS>
     explicit Optional(InPlace, ARGS&&... args) noexcept(std::is_nothrow_move_constructible<T>::value)
-        : _payload{std::forward<ARGS>(args)...}
+		: _payload{fwd<ARGS>(args)...}
         , _engaged{true}
     {}
 
@@ -298,7 +298,7 @@ protected:
     template<typename...Args>
     constexpr bool
     construct(Args&&... args) noexcept(std::is_nothrow_constructible<Stored_type, Args...>()) {
-        :: new (static_cast<void *>(std::addressof(_payload))) Stored_type(std::forward<Args>(args)...);
+		:: new (static_cast<void *>(std::addressof(_payload))) Stored_type(fwd<Args>(args)...);
 
         _engaged = true;
 

@@ -119,14 +119,14 @@ public:
 	failSimple(int x, int y, int z) {
 		SimpleType result{x, y, z};
 
-		return std::move(result);
+		return mv(result);
 	}
 
 	Result<int, MoveOnlyType>
 	failMoveonly(int x) {
 		MoveOnlyType result{x};
 
-		return std::move(result);
+		return mv(result);
 	}
 };
 
@@ -140,7 +140,7 @@ TEST_F(TestResult, testErrfactoryProducesErrorFromCopy) {
 
 TEST_F(TestResult, testErrfactoryProducesErrorFromMovedValue) {
     SimpleType value;
-    Result<int, SimpleType> r = Err(std::move(value));
+	Result<int, SimpleType> r = Err(mv(value));
 
 	EXPECT_TRUE(r.isError());
 	EXPECT_EQ(2, SimpleType::InstanceCount);
@@ -208,7 +208,7 @@ TEST_F(TestResult, testConstructionIntegrals) {
     }
     {
         Unit x;
-        Result<Unit, int> v = Ok(std::move(x));
+		Result<Unit, int> v = Ok(mv(x));
         EXPECT_TRUE(v.isOk());
     }
     {
@@ -220,7 +220,7 @@ TEST_F(TestResult, testConstructionIntegrals) {
 
     {
         int x = 8832;
-        Result<int, Unit> v = Ok(std::move(x));
+		Result<int, Unit> v = Ok(mv(x));
         EXPECT_TRUE(v.isOk());
         EXPECT_EQ(x, v.unwrap());
     }
@@ -274,7 +274,7 @@ TEST_F(TestResult, testConstruction) {
             int x = 321;
             const auto& v = [](int y) -> Result<int, float> {
 
-                return Ok(std::move(y));
+				return Ok(mv(y));
             } (x);
 
             EXPECT_TRUE(v.isOk());
@@ -284,7 +284,7 @@ TEST_F(TestResult, testConstruction) {
         {
             const char x = 'x';
             const auto& v = [](char t) -> Result<int, char> {
-                return Err(std::move(t));
+				return Err(mv(t));
             } (x);
 
             EXPECT_TRUE(v.isError());
@@ -298,7 +298,7 @@ TEST_F(TestResult, testConstruction) {
             const auto& v = []() -> Result<SomeTestType, int> {
                 auto r = SomeTestType{321, 3.1415f, "Somethere"};
 
-                return Ok(std::move(r));
+				return Ok(mv(r));
             } ();
 
             EXPECT_TRUE(v.isOk());
@@ -329,7 +329,7 @@ TEST_F(TestResult, testMoveAssignment) {
         EXPECT_EQ(3, v2.unwrap().x);
         EXPECT_EQ(1, SomeTestType::InstanceCount);
 
-        v1 = std::move(v2);
+		v1 = mv(v2);
         EXPECT_EQ(1, SomeTestType::InstanceCount);
         EXPECT_TRUE(v1.isOk());
         EXPECT_TRUE(v2.isError());
@@ -604,7 +604,7 @@ TEST_F(TestResult, testMoveOnlyObjects) {
         Result<MoveOnlyType, SimpleType> res = [] () {
             MoveOnlyType t(123);
 
-            return Ok(std::move(t));
+			return Ok(mv(t));
         } ();
 
         EXPECT_TRUE(res.isOk());
@@ -614,7 +614,7 @@ TEST_F(TestResult, testMoveOnlyObjects) {
         Result<int, MoveOnlyType> res = [] () {
             MoveOnlyType t(123);
 
-            return Err(std::move(t));
+			return Err(mv(t));
         } ();
 
         EXPECT_TRUE(res.isError());

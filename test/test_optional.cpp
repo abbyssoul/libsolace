@@ -34,7 +34,7 @@ class TestOptional : public testing::Test  {
 public:
 
     Optional<String> moveOptionalString(String&& value) {
-        return Optional<String>(std::move(value));
+		return Optional<String>(mv(value));
     }
 
     SimpleType moveSimpleType(int x, int y, int z) {
@@ -106,7 +106,7 @@ TEST_F(TestOptional, testMoveConstructionOf) {
     EXPECT_EQ(randomNumber, v2.get().x_);
     EXPECT_EQ(1, MoveOnlyType::InstanceCount);
 
-    auto v3 = Optional<MoveOnlyType>(std::move(v2));
+	auto v3 = Optional<MoveOnlyType>(mv(v2));
     EXPECT_TRUE(v2.isSome());  // To be std::optional complient - moved-from optional is stil considered to hold a value
     EXPECT_TRUE(v3.isSome());
     EXPECT_EQ(randomNumber, (*v3).x_);

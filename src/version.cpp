@@ -153,5 +153,5 @@ Version::parse(StringView str) noexcept {
     }
 
 	return Ok<Version>({majorVersion, minorVersion, patchVersion,
-						std::move(preRelease), std::move(build)});
+						mv(preRelease), mv(build)});
 }

@@ -92,7 +92,7 @@ public:  // Object construction
 
     /** Construct an object by moving content from a given */
     Path(Path&& p) noexcept
-        : _components(std::move(p._components))
+		: _components(mv(p._components))
     { }
 
 public:  // Operation
@@ -297,7 +297,7 @@ public:  // Operation
     std::enable_if_t<isCallable<F, value_type&&>::value, Path& >
     forEach(F&& f) && {
         for (auto& i : _components) {
-            f(std::move(i));
+			f(mv(i));
         }
 
         return *this;
@@ -324,7 +324,7 @@ protected:
      * @param array A collection of string components forming the path
      */
 	Path(Array<String>&& array) noexcept
-		: _components(std::move(array))
+		: _components(mv(array))
 	{
         // No-op
     }
@@ -371,7 +371,7 @@ Path makePath(char const* str) {
 
 [[nodiscard]] inline
 Path makePath(Array<String>&& array) {
-    return {std::move(array)};
+	return {mv(array)};
 }
 
 [[nodiscard]] inline
@@ -393,7 +393,7 @@ constexpr Path::size_type countPathComponents(Path& path)       noexcept { retur
 
 template<typename T, typename...Args>
 Path::size_type countPathComponents(T&& base, Args&&...args) {
-    return (countPathComponents(base) + countPathComponents(std::forward<Args>(args)...));
+	return (countPathComponents(base) + countPathComponents(fwd<Args>(args)...));
 }
 
 
@@ -402,7 +402,7 @@ inline void joinComponents(Vector<String>& base, StringView view) {
 }
 
 inline void joinComponents(Vector<String>& base, String&& str) {
-    base.emplace_back(std::move(str));
+	base.emplace_back(mv(str));
 }
 
 inline void joinComponents(Vector<String>& base, String const& str) {
@@ -410,8 +410,8 @@ inline void joinComponents(Vector<String>& base, String const& str) {
 }
 
 inline void joinComponents(Vector<String>& base, Path&& path) {
-    std::move(path).forEach([&base](Path::value_type&& component) {
-        base.emplace_back(std::move(component));
+	mv(path).forEach([&base](Path::value_type&& component) {
+		base.emplace_back(mv(component));
     });
 }
 
@@ -425,20 +425,20 @@ inline void joinComponents(Vector<String>& base, Path const& path) {
 template <typename...Args>
 void joinComponents(Vector<String>& base, StringView view, Args&&...args) {
     joinComponents(base, view);
-    joinComponents(base, std::forward<Args>(args)...);
+	joinComponents(base, fwd<Args>(args)...);
 }
 
 template <typename...Args>
 void joinComponents(Vector<String>& base, String const& view, Args&&...args) {
     joinComponents(base, view);
-    joinComponents(base, std::forward<Args>(args)...);
+	joinComponents(base, fwd<Args>(args)...);
 }
 
 
 template <typename...Args>
 void joinComponents(Vector<String>& base, Path const& path, Args&&...args) {
     joinComponents(base, path);
-    joinComponents(base, std::forward<Args>(args)...);
+	joinComponents(base, fwd<Args>(args)...);
 }
 
 }  // namespace details
@@ -447,10 +447,10 @@ void joinComponents(Vector<String>& base, Path const& path, Args&&...args) {
 template<typename...Args>
 [[nodiscard]]
 Path makePath(Args&&...args) {
-    auto components = makeVector<Path::value_type>(details::countPathComponents(std::forward<Args>(args)...));
-    details::joinComponents(components, std::forward<Args>(args)...);
+	auto components = makeVector<Path::value_type>(details::countPathComponents(fwd<Args>(args)...));
+	details::joinComponents(components, fwd<Args>(args)...);
 
-    return makePath(std::move(components));
+	return makePath(mv(components));
 }
 
 }  // namespace Solace

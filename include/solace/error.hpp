@@ -42,7 +42,7 @@ public:
     constexpr Error(AtomValue errorDomain, int code, StringLiteral tag) noexcept
         : _domain{errorDomain}
         , _code{code}
-        , _tag{std::move(tag)}
+		, _tag{mv(tag)}
     {}
 
     //! Construct error with a message

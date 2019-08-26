@@ -130,12 +130,12 @@ struct CopyConstructArray_<T, Iterator, true, false> {
         if constexpr(std::is_nothrow_move_constructible<T>::value) {
             auto pos = dest.begin();
             while (start != end) {
-                ctor(*pos++, std::move(*start++));
+				ctor(*pos++, mv(*start++));
             }
         } else {
             ExceptionGuard<T> guard(dest.begin());
             while (start != end) {
-                ctor(*guard.pos, std::move(*start++));
+				ctor(*guard.pos, mv(*start++));
                 ++guard.pos;
             }
             guard.release();

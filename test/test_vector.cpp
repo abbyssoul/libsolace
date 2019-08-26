@@ -125,7 +125,7 @@ TEST(TestVector, movedFromVectorIsEmpty) {
         EXPECT_EQ(3, v.size());
         EXPECT_EQ(3, SimpleType::InstanceCount);
 
-        auto other = std::move(v);
+		auto other = mv(v);
         EXPECT_EQ(0, v.capacity());
         EXPECT_TRUE(v.empty());
 
@@ -152,7 +152,7 @@ TEST(TestVector, movingWhenCopyConstructorThrowsIsSafe) {
     EXPECT_EQ(10, v.capacity());
     EXPECT_EQ(0, SometimesConstructable::InstanceCount);
 
-    Vector<SometimesConstructable> const movedInto = std::move(v);
+	Vector<SometimesConstructable> const movedInto = mv(v);
 
     EXPECT_TRUE(v.empty());
     EXPECT_EQ(0, v.size());

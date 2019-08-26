@@ -68,7 +68,7 @@ public:
     constexpr MemoryResource() noexcept = default;
 
     constexpr MemoryResource(MemoryResource&& rhs) noexcept
-        : _data{std::move(rhs._data)}
+		: _data{mv(rhs._data)}
         , _disposer{exchange(rhs._disposer, nullptr)}
     {
     }
@@ -83,7 +83,7 @@ public:
      * @param disposer A disposer to dispose of the memory when this memory buffer is destroyed.
      */
     constexpr MemoryResource(MutableMemoryView data, Disposer* disposer = nullptr) noexcept
-        : _data{std::move(data)}
+		: _data{mv(data)}
         , _disposer{disposer}
     {}
 

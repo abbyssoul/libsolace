@@ -59,5 +59,5 @@ Solace::makeErrno() noexcept {
 
 Error
 Solace::makeErrno(StringLiteral tag) noexcept {
-    return makeSystemError(errno, std::move(tag));
+	return makeSystemError(errno, mv(tag));
 }

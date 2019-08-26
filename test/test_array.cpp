@@ -55,7 +55,7 @@ protected:
             }
 
             NonPodStruct(int i, std::string inStr) :
-                    iValue(i), str(std::move(inStr))
+					iValue(i), str(mv(inStr))
             {
                     ++TotalCount;
             }
@@ -69,7 +69,7 @@ protected:
 
             NonPodStruct(NonPodStruct&& other)
                 : iValue(other.iValue)
-                , str(std::move(other.str))
+				, str(mv(other.str))
             {
                 ++TotalCount;
             }
@@ -101,7 +101,7 @@ protected:
             }
 
             DerivedNonPodStruct(int x, float f, std::string inStr)
-                : NonPodStruct(x, std::move(inStr))
+				: NonPodStruct(x, mv(inStr))
                 , fValue(f)
             {
             }
@@ -171,7 +171,7 @@ TEST_F(TestArray, testMove) {
         a2[i] = static_cast<int>(2*i) - 1;
     }
 
-    a1 = std::move(a2);
+	a1 = mv(a2);
 
     EXPECT_TRUE(!a1.empty());
     EXPECT_TRUE(a2.empty());
