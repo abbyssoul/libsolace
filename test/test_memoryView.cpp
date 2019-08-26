@@ -154,7 +154,7 @@ TEST(TestMemoryView, testRead) {
 
     {
         // Test simple read
-        buffer.read(dest);
+		ASSERT_TRUE(buffer.read(dest));
         for (auto b : dest) {
             EXPECT_EQ(64, b);
         }
@@ -222,24 +222,24 @@ TEST(TestMemoryView, testDataAs) {
     int tx, ty, tz;
 
     tx = 1; ty = 3; tz = 2;
-    buffer.write(wrapMemory(&tx, sizeof(tx)));
-    buffer.write(wrapMemory(&ty, sizeof(tx)), sizeof(tx));
-    buffer.write(wrapMemory(&tz, sizeof(tx)), 2*sizeof(ty));
+	ASSERT_TRUE(buffer.write(wrapMemory(&tx, sizeof(tx))));
+	ASSERT_TRUE(buffer.write(wrapMemory(&ty, sizeof(tx)), sizeof(tx)));
+	ASSERT_TRUE(buffer.write(wrapMemory(&tz, sizeof(tx)), 2*sizeof(ty)));
 
     SimpleType* uuid1 = buffer.dataAs<SimpleType>();
     EXPECT_EQ(SimpleType(1, 3, 2), *uuid1);
 
     tx = 7; ty = 44; tz = -32;
-    buffer.write(wrapMemory(&tx, sizeof(tx)));
-    buffer.write(wrapMemory(&ty, sizeof(tx)), sizeof(tx));
-    buffer.write(wrapMemory(&tz, sizeof(tx)), 2*sizeof(ty));
+	ASSERT_TRUE(buffer.write(wrapMemory(&tx, sizeof(tx))));
+	ASSERT_TRUE(buffer.write(wrapMemory(&ty, sizeof(tx)), sizeof(tx)));
+	ASSERT_TRUE(buffer.write(wrapMemory(&tz, sizeof(tx)), 2*sizeof(ty)));
     EXPECT_EQ(SimpleType(7, 44, -32), *uuid1);
 
     SimpleType* uuid2 = buffer.dataAs<SimpleType>(4);
     tx = -91; ty = 12; tz = 0;
-    buffer.write(wrapMemory(&tx, sizeof(tx)), 4);
-    buffer.write(wrapMemory(&ty, sizeof(tx)), 4 + sizeof(tx));
-    buffer.write(wrapMemory(&tz, sizeof(tx)), 4 + 2*sizeof(ty));
+	ASSERT_TRUE(buffer.write(wrapMemory(&tx, sizeof(tx)), 4));
+	ASSERT_TRUE(buffer.write(wrapMemory(&ty, sizeof(tx)), 4 + sizeof(tx)));
+	ASSERT_TRUE(buffer.write(wrapMemory(&tz, sizeof(tx)), 4 + 2*sizeof(ty)));
     EXPECT_EQ(SimpleType(-91, 12, 0), *uuid2);
 
     EXPECT_THROW(buffer.dataAs<SimpleType>(6), IndexOutOfRangeException);
@@ -261,14 +261,14 @@ TEST(TestMemoryView, testWrite) {
     buffer.fill(0);
 
     {  // Identity writing:
-        buffer.write(buffer);
+		ASSERT_TRUE(buffer.write(buffer));
         for (MutableMemoryView::size_type i = 0; i < buffer.size(); ++i) {
             EXPECT_EQ(0, buffer[i]);
         }
     }
     {
         // Test simple read
-        buffer.write(src);
+		ASSERT_TRUE(buffer.write(src));
         for (MutableMemoryView::size_type i = 0; i < src.size(); ++i) {
             EXPECT_EQ(32, buffer[i]);
         }
@@ -303,7 +303,7 @@ TEST(TestMemoryView, testWrite) {
         buffer.fill(67, 0, 24);
         buffer.fill(76, 24, buffer.size());
 
-        buffer.write(src, 24);
+		ASSERT_TRUE(buffer.write(src, 24));
         for (MutableMemoryView::size_type i = 0; i < 24; ++i) {
             EXPECT_EQ(67, buffer[i]);
         }
@@ -315,7 +315,7 @@ TEST(TestMemoryView, testWrite) {
         }
 
         src.fill(71);
-        buffer.write(src, 14);
+		ASSERT_TRUE(buffer.write(src, 14));
         for (MutableMemoryView::size_type i = 0; i < 14; ++i) {
             EXPECT_EQ(67, buffer[i]);
         }
