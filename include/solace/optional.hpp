@@ -27,6 +27,9 @@
 #include "solace/assert.hpp"
 
 
+#include <memory>  // std::addressof
+
+
 namespace Solace {
 
 struct InPlace {
@@ -107,7 +110,7 @@ public:
 
     Optional(Optional<T>&& other) noexcept(std::is_nothrow_move_constructible<T>::value)
         : _engaged(other.isSome()
-                   ? construct(std::move(other._payload))
+				   ? construct(mv(other._payload))
                    : false)
     {
     }
@@ -122,7 +125,7 @@ public:
     template<typename D>
     Optional(Optional<D>&& other) noexcept(std::is_nothrow_move_constructible<T>::value) :
         _engaged(other.isSome()
-                 ? construct(std::move(other._payload))
+				 ? construct(mv(other._payload))
                  : false)
     {
     }
@@ -144,7 +147,7 @@ public:
      * Construct an non-empty optional value moving value.
      */
     Optional(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value)
-        : _payload{std::move(t)}
+		: _payload{mv(t)}
         , _engaged{true}
     {}
 
@@ -163,7 +166,7 @@ public:
 
         if (isSome()) {  // This has something inside:
             if (rhs.isNone()) {
-                rhs.construct(std::move(_payload));
+				rhs.construct(mv(_payload));
                 destroy();
             } else {
                 swap(rhs._payload, _payload);
@@ -173,7 +176,7 @@ public:
                 return *this;
             }
 
-            construct(std::move(rhs._payload));
+			construct(mv(rhs._payload));
             rhs.destroy();
         }
 
@@ -194,7 +197,7 @@ public:
 
     Optional<T>& operator= (T&& rhs) noexcept(std::is_nothrow_move_constructible<T>::value) {
         destroy();
-        construct(std::move(rhs));
+		construct(mv(rhs));
 
         return *this;
     }
@@ -232,7 +235,7 @@ public:
             raiseInvalidStateError();
         }
 
-        return std::move(_payload);
+		return mv(_payload);
     }
 
     T const& orElse(T const& t) const noexcept {
@@ -277,7 +280,7 @@ public:
     U >
     flatMap(F&& f) && {
         return (isSome())
-                ? f(std::move(_payload))
+				? f(mv(_payload))
                 : none;
     }
 

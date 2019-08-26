@@ -23,7 +23,8 @@
 
 #include "solace/types.hpp"  // size_t
 
-#include <utility>  // FIXME(later): remove after removal of std::true_type/false_type
+#include <type_traits>
+
 
 namespace Solace {
 
@@ -36,8 +37,8 @@ struct PlacementNew {};
  * Use DontInfer<T>::value in place of T for a template function parameter to prevent inference of
  * the type based on the parameter value.
  */
-template <typename T> struct DontInfer { using value = T; };
-template <typename T> using DontInfer_t = typename DontInfer<T>::value;
+template <typename T> struct DontInfer_ { using value_type = T; };
+template <typename T> using DontInfer_v = typename DontInfer_<T>::value_type;
 
 /**
  * A version of std::declval<> that doesn't transform T into an rvalue reference.
@@ -85,7 +86,7 @@ T&& mv(T& t) noexcept {
 }
 
 template<typename T> constexpr
-T&& fwd(DontInfer<T>& t) noexcept {
+T&& fwd(DontInfer_v<T>& t) noexcept {
     return static_cast<T&&>(t);
 }
 
@@ -93,7 +94,7 @@ T&& fwd(DontInfer<T>& t) noexcept {
 template<class T, class U = T>
 constexpr T exchange(T& obj, U&& newValue) {
     T old_value{mv(obj)};
-    obj = std::forward<U>(newValue);
+	obj = fwd<U>(newValue);
 
     return old_value;
 }
@@ -102,7 +103,7 @@ constexpr T exchange(T& obj, U&& newValue) {
 /// An expressive way to do narrowing casts
 template <typename T, typename U>
 constexpr T narrow_cast(U&& u) noexcept {
-    return static_cast<T>(std::forward<U>(u));
+	return static_cast<T>(fwd<U>(u));
 }
 
 /**
