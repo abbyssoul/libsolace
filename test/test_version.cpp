@@ -110,10 +110,10 @@ TEST(TestVersion, testSpecs) {
 
 TEST(TestVersion, testSpecs_ignoringMeta) {
     {  // 1.0.0 < 2.0.0 < 2.1.0 < 2.1.1
-        const Version v1(1, 0, 0, String::Empty, "Something");
-        const Version v2(2, 0, 0, String::Empty, "3.2.1");
-        const Version v21(2, 1, 0, String::Empty, "3333");
-        const Version v211(2, 1, 1, String::Empty, "180.213");
+		const Version v1{1, 0, 0, StringLiteral{}, "Something"};
+		const Version v2{2, 0, 0, StringLiteral{}, "3.2.1"};
+		const Version v21{2, 1, 0, StringLiteral{}, "3333"};
+		const Version v211{2, 1, 1, StringLiteral{}, "180.213"};
 
         EXPECT_TRUE(v1 < v2);
         EXPECT_TRUE(v2 < v21);
@@ -170,13 +170,13 @@ TEST(TestVersion, testToString) {
               Version(41, 7, 5, "alpha1.something-awesome.31").toString());
 
     EXPECT_EQ(StringLiteral("33.1.8+20130313144700"),
-              Version(33, 1, 8, String::Empty, "20130313144700").toString());
+			  Version(33, 1, 8, StringLiteral{}, "20130313144700").toString());
 
     EXPECT_EQ(StringLiteral("6.12.77+the.best.version-1"),
-              Version(6, 12, 77, String::Empty, "the.best.version-1").toString());
+			  Version(6, 12, 77, StringLiteral{}, "the.best.version-1").toString());
 
     EXPECT_EQ(StringLiteral("1.13.7+the.best.version"),
-              Version(1, 13, 7, String::Empty, "the.best.version").toString());
+			  Version(1, 13, 7, StringLiteral{}, "the.best.version").toString());
 
     EXPECT_EQ(StringLiteral("1.4.99-beta+exp.sha.5114f85"),
               Version(1, 4, 99, "beta", "exp.sha.5114f85").toString());
@@ -210,13 +210,13 @@ TEST(TestVersion, testParsing) {
     {
         auto parseResult = Version::parse("33.1.8+20130313144700");
         EXPECT_TRUE(parseResult.isOk());
-        EXPECT_EQ(Version(33, 1, 8, String::Empty, "20130313144700"), parseResult.unwrap());
+		EXPECT_EQ(Version(33, 1, 8, StringLiteral{}, "20130313144700"), parseResult.unwrap());
     }
 
     {
         auto parseResult = Version::parse("6.12.77+the.best.version-rc1");
         EXPECT_TRUE(parseResult.isOk());
-        EXPECT_EQ(Version(6, 12, 77, String::Empty, "the.best.version-rc1"), parseResult.unwrap());
+		EXPECT_EQ(Version(6, 12, 77, StringLiteral{}, "the.best.version-rc1"), parseResult.unwrap());
     }
 
     {
@@ -282,10 +282,10 @@ TEST(TestVersion, testContainerReq) {
 
     versions.clear();
     for (uint i = 0; i < kTestSetSize; ++i) {
-        versions.emplace_back(2*i + 1, i, i % 3, String::Empty, "Some-tags");
+		versions.emplace_back(2*i + 1, i, i % 3, StringLiteral{}, "Some-tags");
     }
 
     for (uint i = 0; i < kTestSetSize; ++i) {
-        EXPECT_EQ(Version(2*i + 1, i, i % 3, String::Empty, "Some-tags"), versions[i]);
+		EXPECT_EQ(Version(2*i + 1, i, i % 3, StringLiteral{}, "Some-tags"), versions[i]);
     }
 }

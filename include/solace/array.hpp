@@ -379,14 +379,14 @@ template <typename T>
 [[nodiscard]]
 Array<T> makeArray(typename Array<T>::size_type initialSize, T const* carray) {
     auto const arraySize = initialSize;
-    auto buffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
+	auto buffer = getSystemHeapMemoryManager().allocate(arraySize * sizeof(T));           // May throw
 
-    ArrayView<const T> src = arrayView(carray, arraySize);                                  // No except
-    ArrayView<T> dest = arrayView<T>(buffer.view());       // May throw
+	auto src = arrayView(carray, arraySize);					// No except
+	auto dest = arrayView<T>(buffer.view());					// No except
 
     CopyConstructArray_<RemoveConst<T>, Decay<T*>, false>::apply(dest, src);    // May throw if copy-ctor throws
 
-	return {mv(buffer), arraySize};                                 // No except
+	return {mv(buffer), arraySize};							    // No except
 }
 
 

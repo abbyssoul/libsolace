@@ -26,14 +26,16 @@ using namespace Solace;
 const String String::Empty{};
 
 
-String
+Result<String, Error>
 Solace::makeString(StringView str) {
 	auto buffer = getSystemHeapMemoryManager().allocate(str.size() * sizeof(StringView::value_type));    // May throw
 
     // Copy string view content into a new buffer
-	buffer.view().write(str.view());
+	auto writeResult = buffer.view().write(str.view());
+	if (!writeResult)
+		return writeResult.getError();
 
-	return { mv(buffer), str.size() };
+	return Ok(String{mv(buffer), str.size()});
 }
 
 
@@ -47,13 +49,15 @@ Solace::makeString(StringLiteral literal) noexcept {
 }
 
 
-String
+Result<String, Error>
 Solace::makeStringReplace(StringView str, String::value_type what, String::value_type with) {
     auto const totalStrLen = str.size();
     auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
     auto bufferView = buffer.view();
 
-    bufferView.write(str.view());
+	auto writeResult = buffer.view().write(str.view());
+	if (!writeResult)
+		return writeResult.getError();
 
     for (StringView::size_type to = 0; to < totalStrLen; ++to) {
         auto offsetValue = bufferView.dataAs<StringView::value_type>(to);
@@ -62,12 +66,11 @@ Solace::makeStringReplace(StringView str, String::value_type what, String::value
         }
     }
 
-	return { mv(buffer), totalStrLen };
+	return Ok(String{ mv(buffer), totalStrLen });
 }
 
 
-String
-Solace::makeStringReplace(StringView str, StringView what, StringView by) {
+Result<String, Error> Solace::makeStringReplace(StringView str, StringView what, StringView by) {
     auto const srcStrLen = str.size();
     auto const delimLength = what.size();
     StringView::size_type delimCount = 0;
@@ -100,9 +103,12 @@ Solace::makeStringReplace(StringView str, StringView what, StringView by) {
         }
     }
 
-    writer.write(str.substring(from).view());
+	auto result = writer.write(str.substring(from).view());
+	if (!result) {
+		return result.moveError();
+	}
 
-	return { mv(buffer), newStrLen };
+	return Ok(String{ mv(buffer), newStrLen });
 }
 
 
@@ -171,8 +177,7 @@ String::trim() const noexcept {
 
 
 /** Return jointed string from the given collection */
-String
-Solace::makeStringJoin(StringView by, ArrayView<const String> list) {
+Result<String, Error> Solace::makeStringJoin(StringView by, ArrayView<const String> list) {
     auto totalStrLen = narrow_cast<StringView::size_type>(by.size() * (list.size() - 1));
     for (auto const& i : list) {
         totalStrLen += i.size();
@@ -185,15 +190,20 @@ Solace::makeStringJoin(StringView by, ArrayView<const String> list) {
     auto count = list.size();
     for (auto const& i : list) {
         auto const iView = i.view();
-        writer.write(iView.view());
+		auto r = writer.write(iView.view());
+		if (!r)
+			return r.moveError();
+
         count -= 1;
 
         if (count > 0) {
-            writer.write(by.view());
-        }
+			r = writer.write(by.view());
+			if (!r)
+				return r.moveError();
+		}
     }
 
-	return { mv(buffer), totalStrLen };
+	return Ok(String{ mv(buffer), totalStrLen });
 }
 
 

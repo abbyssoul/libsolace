@@ -137,15 +137,35 @@ Version::parse(StringView str) noexcept {
 
     if (!afterPatch.empty()) {
         splitIndex = 0;
-        afterPatch.split(BuildSeparator, [&](StringView split) {
+
+		Optional<Error> maybeError;
+		afterPatch.split(BuildSeparator, [&](StringView split) {
+			if (maybeError)  // Short-circuit in case of an error
+				return;
+
             if (splitIndex == 0) {
-                preRelease = makeString(split.trim(ReleaseSeparator));
+				auto maybePrerelease = makeString(split.trim(ReleaseSeparator));
+				if (!maybePrerelease) {
+					maybeError = maybePrerelease.moveError();
+				} else {
+					preRelease = maybePrerelease.moveResult();
+				}
             } else if (splitIndex == 1) {
-                build = makeString(split);
+				auto maybeBuild = makeString(split);
+				if (!maybeBuild) {
+					maybeError = maybeBuild.moveError();
+				} else {
+					build = maybeBuild.moveResult();
+				}
+
             }
 
             ++splitIndex;
         });
+
+		if (maybeError) {
+			return maybeError.move();
+		}
 
         if (splitIndex > 2) {
 			return makeError(BasicError::InvalidInput, "Version::parse()");

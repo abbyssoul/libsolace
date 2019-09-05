@@ -429,50 +429,50 @@ inline bool operator!= (ArrayView<T> const& value, decltype(nullptr)) noexcept {
 /** ArrayView factory */
 template <typename T>
 [[nodiscard]] constexpr ArrayView<T const> arrayView(MemoryView memView) noexcept {
-  return ArrayView<T const>(memView);
+  return {memView};
 }
 
 template <typename T>
 [[nodiscard]]
 constexpr ArrayView<T const> arrayView(MemoryView memView, typename ArrayView<T const>::size_type len) noexcept {
-  return ArrayView<T const>(memView.slice(0, len * sizeof(T)));
+  return (memView.slice(0, len * sizeof(T)));
 }
 
 template <typename T>
 [[nodiscard]] constexpr ArrayView<T> arrayView(MutableMemoryView memView) noexcept {
-  return ArrayView<T>(memView);
+  return {memView};
 }
 
 template <typename T>
 [[nodiscard]]
 constexpr ArrayView<T> arrayView(MutableMemoryView memView, typename ArrayView<T>::size_type len) noexcept {
-  return ArrayView<T>(memView.slice(0, len * sizeof(T)));
+  return {memView.slice(0, len * sizeof(T))};
 }
 
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
 [[nodiscard]] constexpr ArrayView<T> arrayView(T* ptr, size_t size) noexcept {
-  return ArrayView<T>(ptr, size);
+  return {ptr, narrow_cast<typename ArrayView<const T>::size_type>(size)};
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
 [[nodiscard]] constexpr ArrayView<const T> arrayView(T const* ptr, size_t size) noexcept {
-  return ArrayView<const T>(ptr, size);
+  return {ptr, narrow_cast<typename ArrayView<const T>::size_type>(size)};
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T, size_t N>
 [[nodiscard]] constexpr ArrayView<T> arrayView(T (&carray)[N]) noexcept {
-  return ArrayView<T>(carray);
+  return {carray};
 }
 
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
 [[nodiscard]] constexpr ArrayView<T> arrayView(T* begin, T* end) noexcept {
-  return ArrayView<T>(begin, end);
+  return {begin, end};
 }
 
 

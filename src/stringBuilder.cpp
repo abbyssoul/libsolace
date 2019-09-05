@@ -26,13 +26,18 @@
 
 using namespace Solace;
 
-template <typename T>
 StringBuilder::size_type
-safeMeasure(const char* fmt, T value) {
-	auto const size = snprintf(nullptr, 0, fmt, value);
-	return (size > 0)
-			? narrow_cast<StringBuilder::size_type>(size)
+nonNegative(int bytesWritten) noexcept {
+	return (bytesWritten > 0)
+			? narrow_cast<StringBuilder::size_type>(bytesWritten)
 			: 0;
+}
+
+void maybeAdvance(ByteWriter& dest, MemoryView::size_type capacity, int bytesWritten) {
+	if (bytesWritten > 0 &&
+		static_cast<MemoryView::size_type>(bytesWritten) < capacity) {
+		dest.advance(static_cast<ByteWriter::size_type>(bytesWritten));
+	}
 }
 
 template<typename T>
@@ -48,19 +53,17 @@ void safeFormat(ByteWriter& dest, const char* fmt, T value) {
 }
 
 StringBuilder::size_type
-StringBuilder::measureFormatted(uint16 value) noexcept { return safeMeasure("%u", value); }
-
+StringBuilder::measureFormatted(uint16 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%u", value)); }
 StringBuilder::size_type
-StringBuilder::measureFormatted(uint32 value) noexcept { return safeMeasure("%u", value); }
-
+StringBuilder::measureFormatted(uint32 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%u", value)); }
 StringBuilder::size_type
-StringBuilder::measureFormatted(uint64 value) noexcept { return safeMeasure("%u", value); }
+StringBuilder::measureFormatted(uint64 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%lu", value)); }
 StringBuilder::size_type
-StringBuilder::measureFormatted(int16 value) noexcept { return safeMeasure("%d", value); }
+StringBuilder::measureFormatted(int16 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%d", value)); }
 StringBuilder::size_type
-StringBuilder::measureFormatted(int32 value) noexcept { return safeMeasure("%d", value); }
+StringBuilder::measureFormatted(int32 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%d", value)); }
 StringBuilder::size_type
-StringBuilder::measureFormatted(int64 value) noexcept { return safeMeasure("%d", value); }
+StringBuilder::measureFormatted(int64 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%ld", value)); }
 
 
 
@@ -95,21 +98,30 @@ StringBuilder& StringBuilder::append(StringView cstr) {
 
 StringBuilder&
 StringBuilder::append(uint16 value) {
-	safeFormat(_buffer, "%u", value);
+//	safeFormat(_buffer, "%u", value);
+	auto buffer = _buffer.viewRemaining();
+	auto const capacity = buffer.size();
+	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%u", value));
 
 	return *this;
 }
 
 StringBuilder&
 StringBuilder::append(uint32 value) {
-	safeFormat(_buffer, "%u", value);
+//	safeFormat(_buffer, "%u", value);
+	auto buffer = _buffer.viewRemaining();
+	auto const capacity = buffer.size();
+	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%u", value));
 
 	return *this;
 }
 
 StringBuilder&
 StringBuilder::append(uint64 value) {
-	safeFormat(_buffer, "%u", value);
+//	safeFormat(_buffer, "%u", value);
+	auto buffer = _buffer.viewRemaining();
+	auto const capacity = buffer.size();
+	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%lu", value));
 
 	return *this;
 }

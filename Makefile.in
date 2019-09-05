@@ -130,7 +130,6 @@ tools/cppcheck:
 	git clone -b ${CPPCHECK_VERSION} --single-branch --depth 1 https://github.com/danmar/cppcheck.git tools/cppcheck
 
 tools/cppcheck/cppcheck: tools/cppcheck
-	git -C tools/cppcheck pull
 	$(MAKE) -j2 -C tools/cppcheck cppcheck
 
 

@@ -944,6 +944,19 @@ bool operator== (Result<void, E> const& lhs, Result<void, E> const& rhs) noexcep
            ((lhs.isError() && rhs.isError()) && (lhs.getError() == rhs.getError())));
 }
 
+template<typename V, typename E>
+std::enable_if_t<!std::is_same_v<V, E>, bool>
+operator== (V const& okValue, Result<V, E> const& res) {
+	return res.isOk() && (res.unwrap() == okValue);
+}
+
+template<typename V, typename E>
+std::enable_if_t<!std::is_same_v<V, E>, bool>
+operator!= (V const& okValue, Result<V, E> const& res) {
+	return res.isError() || (res.unwrap() != okValue);
+}
+
+
 
 }  // End of namespace Solace
 #endif  // SOLACE_RESULT_HPP

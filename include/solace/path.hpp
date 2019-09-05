@@ -317,14 +317,14 @@ public:  // Operation
 
 protected:
 
-	friend Path makePath(Array<String>&& array);
+	friend Path makePath(Array<String>&& array) noexcept;
 
     /** FIXME(abbyssoul): Only temporary here. to be removed
      * Move-Construct the path object from a collection of String components
      * @param array A collection of string components forming the path
      */
 	Path(Array<String>&& array) noexcept
-		: _components(mv(array))
+		: _components{mv(array)}
 	{
         // No-op
     }
@@ -357,25 +357,25 @@ void swap(Path& lhs, Path& rhs) noexcept {
  * @note The string is is parsed into component, please use Path::parse
  */
 [[nodiscard]]
-Path makePath(StringView str);
+Result<Path, Error> makePath(StringView str);
 
 [[nodiscard]] inline
-Path makePath(String const& str) {
+auto makePath(String const& str) {
     return makePath(str.view());
 }
 
 [[nodiscard]] inline
-Path makePath(char const* str) {
+auto makePath(char const* str) {
     return makePath(StringView{str});
 }
 
 [[nodiscard]] inline
-Path makePath(Array<String>&& array) {
+Path makePath(Array<String>&& array) noexcept {
 	return {mv(array)};
 }
 
 [[nodiscard]] inline
-Path makePath(Vector<String>&& vec) {
+Path makePath(Vector<String>&& vec) noexcept {
     return makePath(vec.toArray());
 }
 
@@ -397,48 +397,76 @@ Path::size_type countPathComponents(T&& base, Args&&...args) {
 }
 
 
-inline void joinComponents(Vector<String>& base, StringView view) {
-    base.emplace_back(makeString(view));
+inline Result<void, Error> joinComponents(Vector<String>& base, StringView view) {
+	auto r = makeString(view);
+	if (!r)
+		return r.moveError();
+
+	base.emplace_back(r.moveResult());
+	return Ok();
 }
 
-inline void joinComponents(Vector<String>& base, String&& str) {
+inline Result<void, Error> joinComponents(Vector<String>& base, String&& str) {
 	base.emplace_back(mv(str));
+	return Ok();
 }
 
-inline void joinComponents(Vector<String>& base, String const& str) {
-    base.emplace_back(makeString(str));
+inline Result<void, Error> joinComponents(Vector<String>& base, String const& str) {
+	auto maybeDup = makeString(str);
+	if (!maybeDup)
+		return maybeDup.moveError();
+
+	base.emplace_back(maybeDup.moveResult());
+	return Ok();
 }
 
-inline void joinComponents(Vector<String>& base, Path&& path) {
+inline Result<void, Error> joinComponents(Vector<String>& base, Path&& path) {
 	mv(path).forEach([&base](Path::value_type&& component) {
 		base.emplace_back(mv(component));
     });
+
+	return Ok();
 }
 
-inline void joinComponents(Vector<String>& base, Path const& path) {
+inline Result<void, Error> joinComponents(Vector<String>& base, Path const& path) {
     for (auto const& component : path) {
-        base.emplace_back(makeString(component));
+		auto maybeDup = makeString(component);
+		if (!maybeDup)
+			return maybeDup.moveError();
+
+		base.emplace_back(maybeDup.moveResult());
     }
+
+	return Ok();
 }
 
 
 template <typename...Args>
-void joinComponents(Vector<String>& base, StringView view, Args&&...args) {
-    joinComponents(base, view);
-	joinComponents(base, fwd<Args>(args)...);
+Result<void, Error> joinComponents(Vector<String>& base, StringView view, Args&&...args) {
+	auto r = joinComponents(base, view);
+	if (!r)
+		return r;
+
+	return joinComponents(base, fwd<Args>(args)...);
 }
 
 template <typename...Args>
-void joinComponents(Vector<String>& base, String const& view, Args&&...args) {
-    joinComponents(base, view);
-	joinComponents(base, fwd<Args>(args)...);
+Result<void, Error> joinComponents(Vector<String>& base, String const& view, Args&&...args) {
+	auto r = joinComponents(base, view);
+	if (!r)
+		return r;
+
+	return joinComponents(base, fwd<Args>(args)...);
 }
 
 
 template <typename...Args>
-void joinComponents(Vector<String>& base, Path const& path, Args&&...args) {
-    joinComponents(base, path);
-	joinComponents(base, fwd<Args>(args)...);
+Result<void, Error> joinComponents(Vector<String>& base, Path const& path, Args&&...args) {
+	auto r = joinComponents(base, path);
+	if (!r)
+		return r;
+
+	return joinComponents(base, fwd<Args>(args)...);
 }
 
 }  // namespace details
@@ -446,11 +474,15 @@ void joinComponents(Vector<String>& base, Path const& path, Args&&...args) {
 
 template<typename...Args>
 [[nodiscard]]
-Path makePath(Args&&...args) {
+Result<Path, Error> makePath(Args&&...args) {
 	auto components = makeVector<Path::value_type>(details::countPathComponents(fwd<Args>(args)...));
-	details::joinComponents(components, fwd<Args>(args)...);
 
-	return makePath(mv(components));
+	auto maybeComponents = details::joinComponents(components, fwd<Args>(args)...);
+	if (!maybeComponents) {
+		return maybeComponents.moveError();
+	}
+
+	return Ok(makePath(mv(components)));
 }
 
 }  // namespace Solace

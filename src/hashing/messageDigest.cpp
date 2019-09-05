@@ -46,5 +46,8 @@ MessageDigest::toString() const {
         dest.write((*i).view());
     }
 
-    return makeString(stringBuffer.data(), narrow_cast<String::size_type>(stringBuffer.size()));
+	auto result = makeString(stringBuffer.data(), narrow_cast<String::size_type>(stringBuffer.size()));
+	return result
+			? result.moveResult()
+			: String{};
 }

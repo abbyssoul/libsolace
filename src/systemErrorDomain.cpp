@@ -41,7 +41,11 @@ struct SystemErrorDomain
     }
 
     String message(int code) const noexcept override {
-        return makeString(std::strerror(code));
+		auto errorMessage = makeString(std::strerror(code));
+
+		return (errorMessage)
+				? errorMessage.moveResult()
+				: makeString(StringLiteral{"PosixSystemError: Failed to get error string"});
     }
 };
 

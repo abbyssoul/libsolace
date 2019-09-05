@@ -70,7 +70,7 @@ template <typename T, bool move>
 struct CopyConstructArray_<T, T*, move, true> {
     static inline void apply(ArrayView<T> dest, ArrayView<const T> src) {
         if (!src.empty()) {
-            dest.view().write(src.view());
+			static_cast<void>(dest.view().write(src.view()));
         }
     }
 };

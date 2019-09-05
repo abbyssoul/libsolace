@@ -37,6 +37,13 @@ public:
 		return Optional<String>(mv(value));
     }
 
+	Optional<String> moveOptionalString(Result<String, Error>&& value) {
+
+		return value
+				? Optional<String>(value.moveResult())
+				: none;
+	}
+
     SimpleType moveSimpleType(int x, int y, int z) {
         return SimpleType{x, y, z};
     }
@@ -251,7 +258,8 @@ TEST_F(TestOptional, testMoveAssignemnt) {
     EXPECT_EQ(StringLiteral("hello"), v1.get());
 
 
-    v1 = makeString("something different");
+	auto maybeString = makeString("something different");
+	v1 = maybeString ? maybeString.moveResult() : String{};
     EXPECT_TRUE(v1.isSome());
     EXPECT_EQ(StringLiteral("something different"), v1.get());
 }
@@ -328,7 +336,8 @@ TEST_F(TestOptional, testEmpty) {
 }
 
 TEST_F(TestOptional, testString) {
-    auto const v1 = Optional<String>(makeString("hello-xyz"));
+	auto maybeString = makeString("hello-xyz");
+	auto const v1 = Optional<String>{maybeString ? maybeString.moveResult() : String{}};
 
     EXPECT_TRUE(v1.isSome());
     EXPECT_TRUE(!v1.isNone());

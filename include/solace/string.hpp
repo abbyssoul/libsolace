@@ -376,6 +376,16 @@ bool operator== (StringView lhv, String const& rhv) noexcept {
 }
 
 inline
+bool operator== (String const& lhv, StringLiteral rhv) noexcept {
+	return lhv.equals(rhv);
+}
+
+inline
+bool operator== (StringLiteral lhv, String const& rhv) noexcept {
+	return rhv.equals(lhv);
+}
+
+inline
 bool operator== (String const& lhv, const char* rhv) noexcept {
     return lhv.equals(rhv);
 }
@@ -423,7 +433,8 @@ inline void swap(String& lhs, String& rhs) noexcept {
  * @param view A string view to copy data from.
  * @return A new string object that owns the memory where the data is kept.
  */
-[[nodiscard]] String makeString(StringView view);
+[[nodiscard]]
+Result<String, Error> makeString(StringView view);
 
 
 /**
@@ -436,12 +447,12 @@ String makeString(StringLiteral literal) noexcept;
 
 
 //!< Construct a string from a raw null-terminated (C-style) string.
-[[nodiscard]] inline String makeString(const char* data) {
+[[nodiscard]] inline auto makeString(const char* data) {
     return makeString(StringView(data));
 }
 
 //!< Construct a string from a raw byte buffer of a given size
-[[nodiscard]] inline String makeString(const char* data, String::size_type dataLength)  {
+[[nodiscard]] inline auto makeString(const char* data, String::size_type dataLength)  {
     return makeString(StringView(data, dataLength));
 }
 
@@ -450,13 +461,13 @@ String makeString(StringLiteral literal) noexcept;
 // TODO(one day): String makeString(std::string&& buffer);
 
 //!< Copy string content from another string.
-[[nodiscard]] inline String makeString(String const& s) {
+[[nodiscard]] inline auto makeString(String const& s) {
     return makeString(s.view());
 }
 
 template <>
 inline String* ctor(String& location, String const& s) {
-  return new (_::PlacementNew(), &location) String(makeString(s));
+  return new (_::PlacementNew(), &location) String{makeString(s).unwrap()};
 }
 
 inline constexpr
@@ -520,8 +531,9 @@ bool writeAllArgs(ByteWriter&) { return true; }
 
 template<typename T, typename...Args>
 bool writeAllArgs(ByteWriter& dest, T&& arg, Args&&...args) {
-    writeArg(dest, arg);
-    // FIXME: Check return value!
+	if (!writeArg(dest, arg)) {
+		return false;
+	}
 
 	return writeAllArgs(dest, fwd<Args>(args)...);
 }
@@ -584,7 +596,7 @@ String makeString(StringView::value_type lhs, String const& rhs, StringViews&&..
  * @param with A replacement character that will replace all occurrences of the given one in the source string.
  * @return A new string with all occurrences of 'what' replaced with 'with'.
  */
-String makeStringReplace(StringView str, String::value_type what, String::value_type with);
+Result<String, Error> makeStringReplace(StringView str, String::value_type what, String::value_type with);
 
 /**
  * Returns a new string with all occurrences of substring 'what' replaced with given one.
@@ -592,24 +604,24 @@ String makeStringReplace(StringView str, String::value_type what, String::value_
  * @param with A replacement string that will replace all occurrences of the given one in the source string.
  * @return A new string with all occurrences of 'what' replaced with 'with'.
  */
-String makeStringReplace(StringView str, StringView what, StringView with);
+Result<String, Error> makeStringReplace(StringView str, StringView what, StringView with);
 
-inline String makeStringReplace(String const& str, String::value_type what, String::value_type with) {
+inline auto makeStringReplace(String const& str, String::value_type what, String::value_type with) {
     return makeStringReplace(str.view(), what, with);
 }
-inline String makeStringReplace(String const& str, StringView what, StringView with) {
+inline auto makeStringReplace(String const& str, StringView what, StringView with) {
     return makeStringReplace(str.view(), what, with);
 }
 
-inline String makeStringReplace(String const& str, String const& what, String const& with) {
+inline auto makeStringReplace(String const& str, String const& what, String const& with) {
     return makeStringReplace(str.view(), what.view(), with.view());
 }
 
-inline String makeStringReplace(String const& str, String const& what, StringView with) {
+inline auto makeStringReplace(String const& str, String const& what, StringView with) {
     return makeStringReplace(str.view(), what.view(), with);
 }
 
-inline String makeStringReplace(String const& str, StringView what, String const& with) {
+inline auto makeStringReplace(String const& str, StringView what, String const& with) {
     return makeStringReplace(str.view(), what, with.view());
 }
 
@@ -625,22 +637,22 @@ String makeStringJoin(StringView::value_type SOLACE_UNUSED(by)) {
 }
 
 inline
-String makeStringJoin(StringView SOLACE_UNUSED(by), StringView str) {
+auto makeStringJoin(StringView SOLACE_UNUSED(by), StringView str) {
     return makeString(str);
 }
 
 inline
-String makeStringJoin(StringView::value_type SOLACE_UNUSED(by), StringView str) {
+auto makeStringJoin(StringView::value_type SOLACE_UNUSED(by), StringView str) {
     return makeString(str);
 }
 
 inline
-String makeStringJoin(StringView SOLACE_UNUSED(by), String const& str) {
+auto makeStringJoin(StringView SOLACE_UNUSED(by), String const& str) {
     return makeString(str);
 }
 
 inline
-String makeStringJoin(StringView::value_type SOLACE_UNUSED(by), String const& str) {
+auto makeStringJoin(StringView::value_type SOLACE_UNUSED(by), String const& str) {
     return makeString(str);
 }
 
@@ -669,9 +681,9 @@ auto writeJointArgs(ByteWriter& dest, StringView::value_type SOLACE_UNUSED(by), 
 template<typename...Args>
 Result<void, Error> writeJointArgs(ByteWriter& dest, StringView by, StringView arg, Args&&...args) {
     auto r = dest.write(arg.view())
-            .then([&dest, &by]() {
-                return dest.write(by.view());
-            });
+				.then([&dest, &by]() {
+					return dest.write(by.view());
+				});
 
     return r
 			? writeJointArgs(dest, by, fwd<Args>(args)...)
@@ -681,9 +693,9 @@ Result<void, Error> writeJointArgs(ByteWriter& dest, StringView by, StringView a
 template<typename...Args>
 Result<void, Error> writeJointArgs(ByteWriter& dest, StringView by, String const& arg, Args&&...args) {
     auto r = dest.write(arg.view().view())
-            .then([&dest, &by]() {
-                dest.write(by.view());
-            });
+				.then([&dest, &by]() {
+					dest.write(by.view());
+				});
 
     return r
 			? writeJointArgs(dest, by, fwd<Args>(args)...)
@@ -717,7 +729,22 @@ Result<void, Error> writeJointArgs(ByteWriter& dest, StringView::value_type by, 
 
 
 template<typename...Args>
-String makeStringJoin(StringView by, Args&&... args) {
+Result<String, Error> makeStringJoin(StringView by, Args&&... args) {
+	auto const len = totalSize(fwd<Args>(args)...);
+    auto const totalStrLen = narrow_cast<StringView::size_type>(totalSize(by) * (sizeof...(args) - 1) + len);
+    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
+    auto writer = ByteWriter(buffer.view());
+
+    // Copy string view content into a new buffer
+	auto res = writeJointArgs(writer, by, fwd<Args>(args)...);
+	if (!res)
+		return res.moveError();
+
+	return Ok(String{mv(buffer), totalStrLen});
+}
+
+template<typename...Args>
+Result<String, Error> makeStringJoin(StringView::value_type by, Args&&... args) {
 	auto const len = totalSize(fwd<Args>(args)...);
     auto const totalStrLen = narrow_cast<StringView::size_type>(totalSize(by) * (sizeof...(args) - 1) + len);
     auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
@@ -725,28 +752,16 @@ String makeStringJoin(StringView by, Args&&... args) {
 
     // Copy string view content into a new buffer
     // FIXME: writeJointArgs returns Result<> thus makeString should return -> Result<String, Error>
-	writeJointArgs(writer, by, fwd<Args>(args)...);
+	auto res = writeJointArgs(writer, by, fwd<Args>(args)...);
+	if (!res)
+		return res.moveError();
 
-	return {mv(buffer), totalStrLen};
-}
-
-template<typename...Args>
-String makeStringJoin(StringView::value_type by, Args&&... args) {
-	auto const len = totalSize(fwd<Args>(args)...);
-    auto const totalStrLen = narrow_cast<StringView::size_type>(totalSize(by) * (sizeof...(args) - 1) + len);
-    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
-    auto writer = ByteWriter(buffer.view());
-
-    // Copy string view content into a new buffer
-    // FIXME: writeJointArgs returns Result<> thus makeString should return -> Result<String, Error>
-	writeJointArgs(writer, by, fwd<Args>(args)...);
-
-	return {mv(buffer), totalStrLen};
+	return Ok(String{mv(buffer), totalStrLen});
 }
 
 
 template<typename...Args>
-String makeStringJoin(String const& by, Args&&... args) {
+auto makeStringJoin(String const& by, Args&&... args) {
 	return makeStringJoin(by.view(), fwd<Args>(args)...);
 }
 
@@ -757,7 +772,7 @@ String makeStringJoin(String const& by, Args&&... args) {
  *
  * @return The resulting string
  */
-String makeStringJoin(StringView by, ArrayView<const String> list);
+Result<String, Error> makeStringJoin(StringView by, ArrayView<const String> list);
 
 
 

@@ -29,12 +29,22 @@ const StringView SelfRef(".");
 const StringView ParentRef("..");
 
 
-const Path Path::Root = makePath(StringLiteral{""});
+Path makeRoot() {
+	auto root = makePath(StringLiteral{""});
+	return root.isOk()
+			? root.moveResult()
+			: Path{};
+}
+
+const Path Path::Root = makeRoot();
 
 
-Path
-Solace::makePath(StringView str) {
-    return makePath(makeArrayOf<String>(makeString(str)));
+Result<Path, Error> Solace::makePath(StringView str) {
+	auto maybeString = makeString(str);
+	if (maybeString)
+		return Ok(makePath(makeArrayOf<String>(maybeString.moveResult())));
+
+	return maybeString.moveError();
 }
 
 
@@ -50,11 +60,13 @@ Path::parse(StringView str, StringView delim) {
             return;
         }
 
-        nonEmptyComponents.emplace_back(makeString(c));
+		auto r = makeString(c);
+		if (r)
+			nonEmptyComponents.emplace_back(r.moveResult());
     });
 
     if (nonEmptyComponents.empty()) {
-        nonEmptyComponents.emplace_back(makeString(String::Empty));
+		nonEmptyComponents.emplace_back(String{});
     }
 
     return Ok(Path(nonEmptyComponents.toArray()));
@@ -210,7 +222,9 @@ Path::normalize() const {
         } else if (c.equals(ParentRef) && components.size() > 0) {   // Skip '..' entries
             components.pop_back();
         } else {
-            components.emplace_back(makeString(c));
+			auto r = makeString(c);
+			if (r)
+				components.emplace_back(r.moveResult());
         }
     }
 
@@ -229,7 +243,9 @@ Path::getParent() const {
     auto basePath = makeVector<String>(nbBaseComponents);
     // TODO(abbyssoul): Should use array copy
     for (size_type i = 0; i < nbBaseComponents; ++i) {
-        basePath.emplace_back(makeString(_components[i]));
+		auto r = makeString(_components[i]);
+		if (r)
+			basePath.emplace_back(r.moveResult());
     }
 
     return Path(basePath.toArray());
@@ -262,7 +278,9 @@ Path::subpath(size_type from, size_type to) const noexcept {
 
     auto components = makeVector<String>(to - from);
     for (size_type i = from; i < to; ++i) {
-        components.emplace_back(makeString(_components[i]));
+		auto r = makeString(_components[i]);
+		if (r)
+			components.emplace_back(r.moveResult());
     }
 
     return {components.toArray()};
@@ -277,7 +295,16 @@ Path::equals(Path const& rhv) const noexcept {
 
 String
 Path::toString(StringView delim) const {
-    return (isAbsolute() && _components.size() == 1)
-            ? makeString(delim)
-            : makeStringJoin(delim, _components.view());
+	if (isAbsolute() && _components.size() == 1) {
+		auto delimString = makeString(delim);
+		return (delimString)
+				? delimString.moveResult()
+				: String{};
+	}
+
+
+	auto maybePath = makeStringJoin(delim, _components.view());
+	return (maybePath)
+			? maybePath.moveResult()
+			: String{};
 }

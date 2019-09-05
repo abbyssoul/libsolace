@@ -29,6 +29,13 @@ using namespace Solace;
 using array_size_t = ArrayView<String>::size_type;
 const char* kSomeConstString = "Some static string";
 
+namespace Solace {
+bool
+operator== (StringLiteral const& lhs, Result<String, Error> const& rhs) {
+	return rhs.isOk() && rhs.unwrap() == lhs;
+}
+}
+
 
 TEST(TestString, testConstruction_null) {
     {   // NullPointer smoke test
@@ -73,24 +80,30 @@ TEST(TestString, testDefaultConstruction) {
     EXPECT_TRUE(String{}.empty());
 }
 
-TEST(TestString, testCStrConstruction) {
+TEST(TestString, makeStringFromCString) {
     const char* source = "some cstr source";
-    auto const  cstrFromTo = makeString(source + 5, 4);
-    EXPECT_TRUE(cstrFromTo.equals("cstr"));
+	auto const cstrFromTo = makeString(source + 5, 4);
+	ASSERT_TRUE(cstrFromTo.isOk());
+	EXPECT_TRUE(cstrFromTo.unwrap().equals("cstr"));
 }
 
 
 TEST(TestString, testMoveConstruction) {
-    auto cstr = makeString(kSomeConstString);
-    EXPECT_TRUE(cstr.equals(kSomeConstString));
+	auto maybeCstr = makeString(kSomeConstString);
+	ASSERT_TRUE(maybeCstr.isOk());
+	EXPECT_TRUE(maybeCstr.unwrap().equals(kSomeConstString));
 
+	String cstr{maybeCstr.moveResult()};
 	String const moved = mv(cstr);
     EXPECT_TRUE(cstr.empty());
     EXPECT_FALSE(cstr.equals(kSomeConstString));
     EXPECT_TRUE(moved.equals(kSomeConstString));
 
-    auto const  strCopy = makeString(moved);
-    EXPECT_TRUE(strCopy.equals(kSomeConstString));
+	auto const maybeStrCopy = makeString(moved);
+	ASSERT_TRUE(maybeStrCopy.isOk());
+
+	auto const& strCopy = maybeStrCopy.unwrap();
+	EXPECT_TRUE(strCopy.equals(kSomeConstString));
     EXPECT_TRUE(moved.equals(kSomeConstString));
 }
 
@@ -103,9 +116,13 @@ TEST(TestString, testMoveAssignment) {
     EXPECT_TRUE(str1.empty());
 
     {
-        String str2 = makeString("some string");
-		str1 = mv(str2);
-        substr = makeString(str1.substring(5, 8));
+		auto maybeStr = makeString("some string");
+		ASSERT_TRUE(maybeStr.isOk());
+		str1 = maybeStr.moveResult();
+
+		auto maybeSub = makeString(str1.substring(5, 8));
+		ASSERT_TRUE(maybeSub.isOk());
+		substr = maybeSub.moveResult();
     }
 
     EXPECT_EQ(StringLiteral("some string"), str1);
@@ -116,14 +133,17 @@ TEST(TestString, testMoveAssignment) {
     * @brief Test string equality functions.
     */
 TEST(TestString, testEquality) {
-    static const char* source1 = "some test string";
-    static const char* source2 = "some other test string";
-    static const char* source3 = "some test string";
+	auto const source1 = StringLiteral{"some test string"};
+	auto const source2 = StringLiteral{"some other test string"};
+	auto const source3 = StringLiteral{"some test string"};
 
     auto const str1 = makeString(source1);
     auto const str2 = makeString(source2);
     auto const str3 = makeString(source3);
-    auto const str4 = makeString(str3);
+
+	auto maybeDup3 = makeString(str3);
+	ASSERT_TRUE(maybeDup3.isOk());
+	auto const& dup3 = *maybeDup3;
 
     // Test if It is reflexive
     EXPECT_TRUE(String::Empty.equals(String::Empty));
@@ -147,8 +167,8 @@ TEST(TestString, testEquality) {
 
     // Test if It is transitive
     EXPECT_TRUE(str1.equals(str3));
-    EXPECT_TRUE(str3.equals(str4));
-    EXPECT_TRUE(str4.equals(str1));
+	EXPECT_TRUE(str3.equals(dup3));
+	EXPECT_TRUE(dup3.equals(str1));
 
     EXPECT_TRUE(str1 == source3);
     EXPECT_TRUE(str3 == source1);
@@ -161,8 +181,8 @@ TEST(TestString, testEquality) {
 }
 
 TEST(TestString, testContains) {
-    String const source = makeString("Hello, world!  ");
-    String const world = makeString("world");
+	String const source = makeString(StringLiteral{"Hello, world!  "});
+	String const world = makeString(StringLiteral{"world"});
 
     EXPECT_TRUE(source.contains(world));
     EXPECT_TRUE(source.contains('!'));
@@ -170,8 +190,8 @@ TEST(TestString, testContains) {
 }
 
 TEST(TestString, testLength) {
-    String const source = makeString("");
-    String const world = makeString("world");
+	String const source = makeString(StringLiteral{""});
+	String const world = makeString(StringLiteral{"world"});
     // FIXME: Add utf9 example
 
     EXPECT_EQ(0, source.length());
@@ -180,8 +200,8 @@ TEST(TestString, testLength) {
 
 
 TEST(TestString, testReplace) {
-    String const source = makeString("attraction{holder}");
-    String const value = makeString("VALUE");
+	String const source = makeString(StringLiteral{"attraction{holder}"});
+	String const value = makeString(StringLiteral{"VALUE"});
 
     EXPECT_EQ(source,                                   makeStringReplace(source, value, "{holder}"));
     EXPECT_EQ(StringLiteral("aXXracXion{holder}"),      makeStringReplace(source, 't', 'X'));
@@ -191,17 +211,19 @@ TEST(TestString, testReplace) {
 
 
 TEST(TestString, testSplit) {
-    String const dest0 = makeString("boo");
-    String const dest1 = makeString("and");
-    String const dest2 = makeString("foo");
-    String const source = makeString("boo:and:foo");
+	String const dest0 = makeString(StringLiteral{"boo"});
+	String const dest1 = makeString(StringLiteral{"and"});
+	String const dest2 = makeString(StringLiteral{"foo"});
+	String const source = makeString(StringLiteral{"boo:and:foo"});
 
     {   // Normal split
         std::vector<String> result;
         result.reserve(3);
 
         source.split(":", [&result](StringView bit) {
-            result.emplace_back(makeString(bit));
+			auto maybeString = makeString(bit);
+			if (maybeString)
+				result.emplace_back(maybeString.moveResult());
         });
 
         EXPECT_EQ(3, result.size());
@@ -213,8 +235,10 @@ TEST(TestString, testSplit) {
     {   // No splitting token in the string
         std::vector<String> result;
         dest0.split(':', [&result](StringView bit) {
-            result.emplace_back(makeString(bit));
-        });
+			auto maybeString = makeString(bit);
+			if (maybeString)
+				result.emplace_back(maybeString.moveResult());
+		});
 
         EXPECT_EQ(1, result.size());
         EXPECT_EQ(dest0, result[0]);
@@ -223,18 +247,25 @@ TEST(TestString, testSplit) {
     {   // No splitting token in the string
         std::vector<String> result;
         source.split("/", [&result](StringView bit) {
-            result.emplace_back(makeString(bit));
-        });
+			auto maybeString = makeString(bit);
+			if (maybeString)
+				result.emplace_back(maybeString.moveResult());
+		});
 
         EXPECT_EQ(1, result.size());
         EXPECT_EQ(source, result[0]);
     }
 
     {   // Split with empty token
-        std::vector<String> result;
-        makeString(":foo").split(":", [&result](StringView bit) {
-            result.emplace_back(makeString(bit));
-        });
+		auto maybeStr = makeString(":foo");
+		ASSERT_TRUE(maybeStr.isOk());
+		std::vector<String> result;
+
+		maybeStr.unwrap().split(":", [&result](StringView bit) {
+			auto maybeString = makeString(bit);
+			if (maybeString)
+				result.emplace_back(maybeString.moveResult());
+		});
 
         EXPECT_EQ(2, result.size());
         EXPECT_EQ(String::Empty, result[0]);
@@ -243,8 +274,8 @@ TEST(TestString, testSplit) {
 }
 
 TEST(TestString, testIndexOf) {
-    String const source = makeString("Hello, World! Good bye, World ");
-    String const world = makeString("World");
+	String const source = makeString(StringLiteral{"Hello, World! Good bye, World "});
+	String const world = makeString(StringLiteral{"World"});
 
     // Happy case:
     EXPECT_EQ(7, source.indexOf(world).get());
@@ -271,8 +302,8 @@ TEST(TestString, testIndexOf) {
 }
 
 TEST(TestString, testLastIndexOf) {
-    String const source = makeString("Hello, World! Good bye, World - and again!");
-    String const world = makeString("World");
+	String const source = makeString(StringLiteral{"Hello, World! Good bye, World - and again!"});
+	String const world = makeString(StringLiteral{"World"});
 
     EXPECT_EQ(24, source.lastIndexOf(world).get());
     EXPECT_EQ(41, source.lastIndexOf('!').get());
@@ -291,10 +322,10 @@ TEST(TestString, testLastIndexOf) {
 }
 
 TEST(TestString, testConcat) {
-    String const hello = makeString("Hello");
-    String const space = makeString(", ");
-    String const world = makeString("world!");
-    String const target = makeString("Hello, world!");
+	String const hello = makeString(StringLiteral{"Hello"});
+	String const space = makeString(StringLiteral{", "});
+	String const world = makeString(StringLiteral{"world!"});
+	String const target = makeString(StringLiteral{"Hello, world!"});
 
     EXPECT_EQ(hello, makeString(String::Empty, hello));
     EXPECT_EQ(hello, makeString(hello, String::Empty));
@@ -307,10 +338,10 @@ TEST(TestString, testConcat) {
     * @see String::substring
     */
 TEST(TestString, testSubstring) {
-    String const source = makeString("Hello, World! Good bye, World - and again!");
-    String const world = makeString("World");
-    String const bye = makeString("bye");
-    String const and_again = makeString("and again!");
+	String const source = makeString(StringLiteral{"Hello, World! Good bye, World - and again!"});
+	String const world = makeString(StringLiteral{"World"});
+	String const bye = makeString(StringLiteral{"bye"});
+	String const and_again = makeString(StringLiteral{"and again!"});
 
     // Identity
     EXPECT_EQ(world, world.substring(0));
@@ -342,13 +373,16 @@ TEST(TestString, testTrim) {
     EXPECT_TRUE(testString.trim().empty());
 
     // Total trim
-    EXPECT_TRUE(makeString("   ").trim().empty());
+	EXPECT_TRUE(makeString(StringLiteral{"   "}).trim().empty());
 
     // Trim identity
     {
         const StringLiteral trimmed("Hello, world!");
-        String const toTrim = makeString("Hello, world!");
-        testString = makeString(toTrim.trim());
+		String const toTrim = makeString(StringLiteral{"Hello, world!"});
+		auto maybeStr = makeString(toTrim.trim());
+		ASSERT_TRUE(maybeStr.isOk());
+
+		testString = maybeStr.moveResult();
         EXPECT_TRUE(testString == toTrim);
         EXPECT_EQ(trimmed, testString);
     }
@@ -356,27 +390,36 @@ TEST(TestString, testTrim) {
     // Trim start
     {
         const StringLiteral trimmed("Hello, world!");
-        String const toTrim = makeString(" Hello, world!");
-        testString = makeString(toTrim.trim());
-        EXPECT_TRUE(testString != toTrim);
+		String const toTrim = makeString(StringLiteral{" Hello, world!"});
+		auto maybeStr = makeString(toTrim.trim());
+		ASSERT_TRUE(maybeStr.isOk());
+
+		testString = maybeStr.moveResult();
+		EXPECT_TRUE(testString != toTrim);
         EXPECT_EQ(trimmed, testString);
     }
 
     // Trim both
     {
         const StringLiteral trimmed("Hello, world!");
-        String const toTrim = makeString("  Hello, world!  ");
-        testString = makeString(toTrim.trim());
-        EXPECT_TRUE(testString != toTrim);
+		String const toTrim = makeString(StringLiteral{"  Hello, world!  "});
+		auto maybeStr = makeString(toTrim.trim());
+		ASSERT_TRUE(maybeStr.isOk());
+
+		testString = maybeStr.moveResult();
+		EXPECT_TRUE(testString != toTrim);
         EXPECT_EQ(trimmed, testString);
     }
 
     // Trim End
     {
         const StringLiteral trimmed("Hello, world !");
-        String const toTrim = makeString("Hello, world !  ");
-        testString = makeString(toTrim.trim());
-        EXPECT_TRUE(testString != toTrim);
+		String const toTrim = makeString(StringLiteral{"Hello, world !  "});
+		auto maybeStr = makeString(toTrim.trim());
+		ASSERT_TRUE(maybeStr.isOk());
+
+		testString = maybeStr.moveResult();
+		EXPECT_TRUE(testString != toTrim);
         EXPECT_EQ(trimmed, testString);
     }
 }
@@ -450,10 +493,10 @@ TEST(TestString, testToUpperCase) {
     * Test string's 'startsWith'
     */
 TEST(TestString, testStartsWith) {
-    String const source = makeString("Hello, world out there!");
-    String const hello = makeString("Hello");
-    String const there = makeString("there!");
-    String const overlong = makeString("Hello, world out there! And here!");
+	String const source = makeString(StringLiteral{"Hello, world out there!"});
+	String const hello = makeString(StringLiteral{"Hello"});
+	String const there = makeString(StringLiteral{"there!"});
+	String const overlong = makeString(StringLiteral{"Hello, world out there! And here!"});
 
     EXPECT_FALSE(String::Empty.startsWith('H'));
     EXPECT_FALSE(String::Empty.startsWith("Something"));
@@ -471,10 +514,10 @@ TEST(TestString, testStartsWith) {
     * Test string's 'endsWith'
     */
 TEST(TestString, testEndsWith) {
-    String const source = makeString("Hello, world out there !");
-    String const hello = makeString("Hello");
-    String const there = makeString("there !");
-    String const overlong = makeString("Hello, world out there ! And here!");
+	String const source = makeString(StringLiteral{"Hello, world out there !"});
+	String const hello = makeString(StringLiteral{"Hello"});
+	String const there = makeString(StringLiteral{"there !"});
+	String const overlong = makeString(StringLiteral{"Hello, world out there ! And here!"});
 
     EXPECT_TRUE(!String::Empty.endsWith('x'));
     EXPECT_TRUE(!String::Empty.endsWith("Something"));
@@ -491,12 +534,13 @@ TEST(TestString, testEndsWith) {
     * Test string's 'hashCode' method.
     */
 TEST(TestString, testHashCode) {
-    String const testString1 = makeString("Hello otu there");
-    String const testString2 = makeString("Hello out there");
+	String const testString1 = makeString(StringLiteral{"Hello otu there"});
+	String const testString2 = makeString(StringLiteral{"Hello out there"});
 
     EXPECT_NE(testString1.hashCode(), 0);
     EXPECT_NE(testString2.hashCode(), 0);
-    EXPECT_NE(testString1, testString2);
+
+	EXPECT_NE(testString1, testString2);
     EXPECT_NE(testString1.hashCode(), testString2.hashCode());
 }
 
@@ -547,9 +591,12 @@ void testFormat() {
 */
 
 TEST(TestString, testToString) {
-    String const ident = makeString(kSomeConstString);
+	auto maybeStr = makeString(kSomeConstString);
+	String const& ident = maybeStr.unwrap();
 
-    EXPECT_EQ(ident,  ident.toString());
+	EXPECT_EQ(ident, ident.toString());
+
+	EXPECT_EQ(StringLiteral{"identity"}, makeString(StringLiteral{"identity"}).toString());
 }
 
 

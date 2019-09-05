@@ -95,7 +95,10 @@ String
 UUID::toString() const {
     char buffer[StringSize];
 
-    return makeString(toString(wrapMemory(buffer)));
+	auto result = makeString(toString(wrapMemory(buffer)));
+	return (result)
+		? result.moveResult()
+		: String{};
 }
 
 
