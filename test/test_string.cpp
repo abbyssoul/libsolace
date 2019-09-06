@@ -222,8 +222,9 @@ TEST(TestString, testSplit) {
 
         source.split(":", [&result](StringView bit) {
 			auto maybeString = makeString(bit);
-			if (maybeString)
+			if (maybeString) {
 				result.emplace_back(maybeString.moveResult());
+			}
         });
 
         EXPECT_EQ(3, result.size());

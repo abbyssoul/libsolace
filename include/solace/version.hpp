@@ -91,7 +91,6 @@ public:
 	{}
 
     /** Construct the version object by specifying all components */
-    // cppcheck-suppress passedByValue
     Version(value_type aMajor, value_type aMinor, value_type aPatch, StringLiteral aPre)
         : majorNumber{aMajor}
         , minorNumber{aMinor}

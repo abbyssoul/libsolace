@@ -54,29 +54,31 @@ protected:
                 --TotalCount;
             }
 
-            NonPodStruct(int i, std::string inStr) :
-					iValue(i), str(mv(inStr))
-            {
-                    ++TotalCount;
+			// cppcheck-suppress passedByValue
+			NonPodStruct(int i, std::string inStr) noexcept
+				: iValue{i}
+				, str{mv(inStr)}
+			{
+				++TotalCount;
             }
 
             NonPodStruct()
-                    : iValue(IVALUE_DEFAULT)
-                    , str(STR_DEFAULT)
-            {
-                    ++TotalCount;
+					: iValue{IVALUE_DEFAULT}
+					, str{STR_DEFAULT}
+			{
+				++TotalCount;
             }
 
             NonPodStruct(NonPodStruct&& other)
-                : iValue(other.iValue)
-				, str(mv(other.str))
+				: iValue{other.iValue}
+				, str{mv(other.str)}
             {
                 ++TotalCount;
             }
 
             NonPodStruct(NonPodStruct const& other)
-                : iValue(other.iValue)
-                , str(other.str)
+				: iValue{other.iValue}
+				, str{other.str}
             {
                 ++TotalCount;
             }
@@ -96,13 +98,14 @@ protected:
             float fValue{3.1415f};
 
             DerivedNonPodStruct()
-                : NonPodStruct(312, "Derived String")
+				: NonPodStruct{312, "Derived String"}
             {
             }
 
-            DerivedNonPodStruct(int x, float f, std::string inStr)
-				: NonPodStruct(x, mv(inStr))
-                , fValue(f)
+			// cppcheck-suppress passedByValue
+			DerivedNonPodStruct(int x, float f, std::string inStr)
+				: NonPodStruct{x, mv(inStr)}
+				, fValue{f}
             {
             }
 

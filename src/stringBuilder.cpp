@@ -98,7 +98,6 @@ StringBuilder& StringBuilder::append(StringView cstr) {
 
 StringBuilder&
 StringBuilder::append(uint16 value) {
-//	safeFormat(_buffer, "%u", value);
 	auto buffer = _buffer.viewRemaining();
 	auto const capacity = buffer.size();
 	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%u", value));
@@ -108,7 +107,6 @@ StringBuilder::append(uint16 value) {
 
 StringBuilder&
 StringBuilder::append(uint32 value) {
-//	safeFormat(_buffer, "%u", value);
 	auto buffer = _buffer.viewRemaining();
 	auto const capacity = buffer.size();
 	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%u", value));
@@ -118,7 +116,6 @@ StringBuilder::append(uint32 value) {
 
 StringBuilder&
 StringBuilder::append(uint64 value) {
-//	safeFormat(_buffer, "%u", value);
 	auto buffer = _buffer.viewRemaining();
 	auto const capacity = buffer.size();
 	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%lu", value));

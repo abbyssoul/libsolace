@@ -61,8 +61,9 @@ Path::parse(StringView str, StringView delim) {
         }
 
 		auto r = makeString(c);
-		if (r)
+		if (r) {
 			nonEmptyComponents.emplace_back(r.moveResult());
+		}
     });
 
     if (nonEmptyComponents.empty()) {
@@ -223,8 +224,9 @@ Path::normalize() const {
             components.pop_back();
         } else {
 			auto r = makeString(c);
-			if (r)
+			if (r) {
 				components.emplace_back(r.moveResult());
+			}
         }
     }
 
@@ -244,8 +246,9 @@ Path::getParent() const {
     // TODO(abbyssoul): Should use array copy
     for (size_type i = 0; i < nbBaseComponents; ++i) {
 		auto r = makeString(_components[i]);
-		if (r)
+		if (r) {
 			basePath.emplace_back(r.moveResult());
+		}
     }
 
     return Path(basePath.toArray());
@@ -279,8 +282,9 @@ Path::subpath(size_type from, size_type to) const noexcept {
     auto components = makeVector<String>(to - from);
     for (size_type i = from; i < to; ++i) {
 		auto r = makeString(_components[i]);
-		if (r)
+		if (r) {
 			components.emplace_back(r.moveResult());
+		}
     }
 
     return {components.toArray()};
