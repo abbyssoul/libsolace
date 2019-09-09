@@ -195,7 +195,7 @@ Solace::makeRandomUUID() noexcept {
 	auto const step = sizeof(decltype(randomGen()));
 
 	UUID::size_type i = 0;
-	for (; i < UUID::StaticSize; i += step) {
+	for (; i + step <= UUID::StaticSize; i += step) {
 		auto const rndValue = randomGen();
 		memcpy(bytes + i, &rndValue, step);
     }

@@ -164,20 +164,20 @@ public:
     Optional<T>& swap(Optional<T>& rhs) noexcept {
         using std::swap;
 
+		auto const rhsSome = rhs.isSome();
         if (isSome()) {  // This has something inside:
-            if (rhs.isNone()) {
-				rhs.construct(mv(_payload));
-                destroy();
+			if (rhsSome) {
+				swap(rhs._payload, _payload);
             } else {
-                swap(rhs._payload, _payload);
-            }
+				rhs.construct(mv(_payload));
+				destroy();
+			}
         } else {  // We got nothing:
-            if (rhs.isNone()) {
-                return *this;
-            }
-
-			construct(mv(rhs._payload));
-            rhs.destroy();
+			if (rhsSome) {
+				construct(mv(rhs._payload));
+				rhs.destroy();
+			}
+			// Note: this.isNone() and rhs.isNone - no-op
         }
 
         return (*this);
@@ -192,7 +192,9 @@ public:
 
 
     Optional<T>& operator= (Optional<T>&& rhs) noexcept(std::is_nothrow_move_constructible<T>::value) {
-        return swap(rhs);
+		swap(rhs);
+
+		return (*this);
     }
 
     Optional<T>& operator= (T&& rhs) noexcept(std::is_nothrow_move_constructible<T>::value) {

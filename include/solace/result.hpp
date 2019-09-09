@@ -722,8 +722,10 @@ public:
     }
 
     Result& operator= (Result&& rhs) noexcept {
-        return swap(rhs);
-    }
+		swap(rhs);
+
+		return (*this);
+	}
 
     explicit operator bool () const noexcept {
         return isOk();

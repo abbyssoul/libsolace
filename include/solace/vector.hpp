@@ -75,7 +75,9 @@ public:
     }
 
     Vector<T>& operator= (Vector<T>&& rhs) noexcept {
-        return swap(rhs);
+		swap(rhs);
+
+		return (*this);
     }
 
     /**
