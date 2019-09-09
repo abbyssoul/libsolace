@@ -144,7 +144,7 @@ void md5_process(MD5::State& ctx, const byte data[64]) {
 
 
 void md5_update(MD5::State& ctx, const byte *input, MD5::size_type inputLen) {
-    size_t fill;
+	MD5::size_type fill;
     uint32 left;
 
     if (inputLen == 0)

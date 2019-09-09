@@ -49,12 +49,12 @@ template <typename T>
 void initArray(MutableMemoryView bufferView, typename ArrayView<T>::size_type arraySize) {
 	if constexpr (std::is_nothrow_default_constructible<T>::value) {
         auto pos = bufferView.template dataAs<T>();
-        for (size_t i = 0; i < arraySize; ++i) {
+		for (decltype(arraySize) i = 0; i < arraySize; ++i) {
             ctor(*pos++);
         }
     } else {
 		ExceptionGuard<T> guard{bufferView.template dataAs<T>()};
-        for (size_t i = 0; i < arraySize; ++i) {
+		for (decltype(arraySize) i = 0; i < arraySize; ++i) {
             ctor(*guard.pos);
             ++guard.pos;  // Important to be on a different line, in case of exception.
         }

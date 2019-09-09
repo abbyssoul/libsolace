@@ -25,7 +25,7 @@
 using namespace Solace;
 
 
-static const size_t kNbErrorCategories = 128;
+static const uint32 kNbErrorCategories = 128;
 
 
 static Dictionary<AtomValue, ErrorDomain const*> kErrorDomainMap;

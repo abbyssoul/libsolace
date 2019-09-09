@@ -83,8 +83,10 @@ details::ErrorString formatIlligalArgName(StringLiteral argName) {
 			.build();
 }
 
+
+template<typename Index>
 details::ErrorString formatIndexOutOfRangeError(StringView messagePrefix, StringLiteral indexName, StringView reason,
-									   size_t index, size_t minValue, size_t maxValue) {
+									   Index index, Index minValue, Index maxValue) {
 	auto const bufferSize = StringWriter::measure(messagePrefix)
 			+ StringWriter::measure(" '")
 			+ StringWriter::measure(indexName)
@@ -122,14 +124,33 @@ details::ErrorString formatIndexOutOfRangeError(StringView messagePrefix, String
 	return writer.build();
 }
 
-
 details::ErrorString formatIndexOutOfRangeError(StringView messagePrefix, StringLiteral indexName,
-									   size_t index, size_t minValue, size_t maxValue) {
+									   uint16 index, uint16 minValue, uint16 maxValue) {
 	return formatIndexOutOfRangeError(messagePrefix, indexName, "is out of range", index, minValue, maxValue);
 }
 
+details::ErrorString formatIndexOutOfRangeError(StringView messagePrefix, StringLiteral indexName,
+									   uint32 index, uint32 minValue, uint32 maxValue) {
+	return formatIndexOutOfRangeError(messagePrefix, indexName, "is out of range", index, minValue, maxValue);
+}
 
-details::ErrorString formatOverflowError(StringLiteral indexName, size_t index, size_t minValue, size_t maxValue) {
+details::ErrorString formatIndexOutOfRangeError(StringView messagePrefix, StringLiteral indexName,
+									   uint64 index, uint64 minValue, uint64 maxValue) {
+	return formatIndexOutOfRangeError(messagePrefix, indexName, "is out of range", index, minValue, maxValue);
+}
+
+/*
+details::ErrorString formatOverflowError(StringLiteral indexName, uint16 index, uint16 minValue, uint16 maxValue) {
+	return formatIndexOutOfRangeError("Value", indexName, "overflows range", index, minValue, maxValue);
+}
+*/
+
+details::ErrorString formatOverflowError(StringLiteral indexName, uint32 index, uint32 minValue, uint32 maxValue) {
+	return formatIndexOutOfRangeError("Value", indexName, "overflows range", index, minValue, maxValue);
+}
+
+
+details::ErrorString formatOverflowError(StringLiteral indexName, uint64 index, uint64 minValue, uint64 maxValue) {
 	return formatIndexOutOfRangeError("Value", indexName, "overflows range", index, minValue, maxValue);
 }
 
@@ -171,43 +192,51 @@ IndexOutOfRangeException::IndexOutOfRangeException() noexcept
     // No-op
 }
 
-
-IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue) noexcept
+IndexOutOfRangeException::IndexOutOfRangeException(uint16 index, uint16 minValue, uint16 maxValue) noexcept
 	: Exception{formatIndexOutOfRangeError(kIndexOutOfRangeMessage, "", index, minValue, maxValue)}
-{
-    // No-op
-}
+{}
 
+IndexOutOfRangeException::IndexOutOfRangeException(uint32 index, uint32 minValue, uint32 maxValue) noexcept
+	: Exception{formatIndexOutOfRangeError(kIndexOutOfRangeMessage, "", index, minValue, maxValue)}
+{}
 
-IndexOutOfRangeException::IndexOutOfRangeException(StringLiteral indexName,
-												   size_t index, size_t minValue, size_t maxValue) noexcept
-	: Exception{formatIndexOutOfRangeError(kIndexOutOfRangeMessage, indexName, index, minValue, maxValue)}
-{
-    // No-op
-}
+IndexOutOfRangeException::IndexOutOfRangeException(uint64 index, uint64 minValue, uint64 maxValue) noexcept
+	: Exception{formatIndexOutOfRangeError(kIndexOutOfRangeMessage, "", index, minValue, maxValue)}
+{}
 
-
-IndexOutOfRangeException::IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue,
+IndexOutOfRangeException::IndexOutOfRangeException(uint16 index, uint16 minValue, uint16 maxValue,
 												   const char* messagePrefix) noexcept
 	: Exception{formatIndexOutOfRangeError(messagePrefix, "", index, minValue, maxValue)}
-{
-    // No-op
-}
+{}
+
+IndexOutOfRangeException::IndexOutOfRangeException(uint32 index, uint32 minValue, uint32 maxValue,
+												   const char* messagePrefix) noexcept
+	: Exception{formatIndexOutOfRangeError(messagePrefix, "", index, minValue, maxValue)}
+{}
+
+IndexOutOfRangeException::IndexOutOfRangeException(uint64 index, uint64 minValue, uint64 maxValue,
+												   const char* messagePrefix) noexcept
+	: Exception{formatIndexOutOfRangeError(messagePrefix, "", index, minValue, maxValue)}
+{}
 
 
 OverflowException::OverflowException(StringLiteral indexName,
-									 size_t index, size_t minValue, size_t maxValue) noexcept
+									 uint32 index, uint32 minValue, uint32 maxValue) noexcept
 	: Exception{formatOverflowError(indexName, index, minValue, maxValue)}
-{
-    // Nothing else to do here
-}
+{}
 
+OverflowException::OverflowException(StringLiteral indexName,
+									 uint64 index, uint64 minValue, uint64 maxValue) noexcept
+	: Exception{formatOverflowError(indexName, index, minValue, maxValue)}
+{}
 
-OverflowException::OverflowException(size_t index, size_t minValue, size_t maxValue) noexcept
+OverflowException::OverflowException(uint32 index, uint32 minValue, uint32 maxValue) noexcept
 	: Exception(formatOverflowError("", index, minValue, maxValue))
-{
-}
+{}
 
+OverflowException::OverflowException(uint64 index, uint64 minValue, uint64 maxValue) noexcept
+	: Exception(formatOverflowError("", index, minValue, maxValue))
+{}
 
 NoSuchElementException::NoSuchElementException() noexcept
 	: Exception{kNoSuchElementMessage}

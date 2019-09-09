@@ -51,7 +51,7 @@ Char::Char(MemoryView bytes) {
     // TODO(abbyssoul): Assert::indexInRange(count, 0, max_bytes);
 
     memset(_bytes, 0, sizeof(_bytes));
-    for (size_t i = 0; i < bytes.size(); ++i) {
+	for (MemoryView::size_type i = 0; i < bytes.size(); ++i) {
         _bytes[i] = bytes[i];
     }
 }

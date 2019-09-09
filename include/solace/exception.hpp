@@ -100,14 +100,20 @@ public:
 
     IndexOutOfRangeException() noexcept;
 
-    //! Construct exception given expected range values:
-    IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue) noexcept;
+	//! Construct exception given expected range values:
+	IndexOutOfRangeException(uint64 index, uint64 minValue, uint64 maxValue) noexcept;
 
-    //! Construct exception with index name
-	IndexOutOfRangeException(StringLiteral indexName, size_t index, size_t minValue, size_t maxValue) noexcept;
+	//! Construct exception given expected range values:
+	IndexOutOfRangeException(uint32 index, uint32 minValue, uint32 maxValue) noexcept;
+
+	//! Construct exception given expected range values:
+	IndexOutOfRangeException(uint16 index, uint16 minValue, uint16 maxValue) noexcept;
 
     //! Construct exception with custom message
-    IndexOutOfRangeException(size_t index, size_t minValue, size_t maxValue, const char* messagePrefix) noexcept;
+	IndexOutOfRangeException(uint64 index, uint64 minValue, uint64 maxValue, const char* messagePrefix) noexcept;
+	IndexOutOfRangeException(uint32 index, uint32 minValue, uint32 maxValue, const char* messagePrefix) noexcept;
+	IndexOutOfRangeException(uint16 index, uint16 minValue, uint16 maxValue, const char* messagePrefix) noexcept;
+
 };
 
 /**
@@ -116,9 +122,11 @@ public:
 class OverflowException : public Exception {
 public:
 
-	OverflowException(StringLiteral indexName, size_t index, size_t minValue, size_t maxValue) noexcept;
+	OverflowException(StringLiteral indexName, uint32 index, uint32 minValue, uint32 maxValue) noexcept;
+	OverflowException(StringLiteral indexName, uint64 index, uint64 minValue, uint64 maxValue) noexcept;
 
-    OverflowException(size_t index, size_t minValue, size_t maxValue) noexcept;
+	OverflowException(uint32 index, uint32 minValue, uint32 maxValue) noexcept;
+	OverflowException(uint64 index, uint64 minValue, uint64 maxValue) noexcept;
 };
 
 

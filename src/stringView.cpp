@@ -230,12 +230,14 @@ StringView::trim(value_type delim) const noexcept {
 }
 
 
+SOLACE_NO_SANITIZE("unsigned-integer-overflow")
 uint64
 StringView::hashCode() const noexcept {
-    uint64 result = 0;
-    const uint64 prime = 31;
-    for (size_t i = 0; i < _size; ++i) {
-        result = _data[i] + (result * prime);
+	uint64 const prime = 31;
+
+	uint64 result = 0;
+	for (size_type i = 0; i < _size; ++i) {
+		result = static_cast<uint64>(_data[i]) + (result * prime);
     }
 
     return result;

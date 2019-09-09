@@ -51,10 +51,14 @@ ErrorString::ErrorString(StringView view)
 
 
 StringWriter::size_type
+StringWriter::measure(uint16 value) noexcept { return narrow_cast<size_type>(snprintf(nullptr, 0, "%" PRIu16, value)); }
+StringWriter::size_type
 StringWriter::measure(uint32 value) noexcept { return narrow_cast<size_type>(snprintf(nullptr, 0, "%" PRIu32, value)); }
 StringWriter::size_type
 StringWriter::measure(uint64 value) noexcept { return narrow_cast<size_type>(snprintf(nullptr, 0, "%" PRIu64, value)); }
 
+StringWriter::size_type
+StringWriter::measure(int16 value) noexcept { return narrow_cast<size_type>(snprintf(nullptr, 0, "%" PRId16, value)); }
 StringWriter::size_type
 StringWriter::measure(int32 value) noexcept { return narrow_cast<size_type>(snprintf(nullptr, 0, "%" PRId32, value)); }
 StringWriter::size_type
@@ -82,13 +86,13 @@ StringWriter::append(StringView data) noexcept {
 }
 
 StringWriter&
-StringWriter::appendFormated(uint32 value) noexcept {
-	_offset += snprintf(currentBuffer(), remaining(), "%" PRIu32, value); return *this;
+StringWriter::appendFormated(uint16 value) noexcept {
+	_offset += snprintf(currentBuffer(), remaining(), "%" PRIu16, value); return *this;
 }
 
 StringWriter&
-StringWriter::appendFormated(int32 value) noexcept {
-	_offset += snprintf(currentBuffer(), remaining(), "%" PRId32, value); return *this;
+StringWriter::appendFormated(uint32 value) noexcept {
+	_offset += snprintf(currentBuffer(), remaining(), "%" PRIu32, value); return *this;
 }
 
 StringWriter&
@@ -97,6 +101,14 @@ StringWriter::appendFormated(uint64 value) noexcept {
 	return *this;
 }
 
+StringWriter&
+StringWriter::appendFormated(int16 value) noexcept {
+	_offset += snprintf(currentBuffer(), remaining(), "%" PRId16, value); return *this;
+}
+StringWriter&
+StringWriter::appendFormated(int32 value) noexcept {
+	_offset += snprintf(currentBuffer(), remaining(), "%" PRId32, value); return *this;
+}
 StringWriter&
 StringWriter::appendFormated(int64 value) noexcept {
 	_offset += snprintf(currentBuffer(), remaining(), "%" PRId64, value);

@@ -78,9 +78,11 @@ struct StringWriter {
 
 	static size_type measure(StringView value) noexcept { return value.size(); }
 
+	static size_type measure(int16 value) noexcept;
 	static size_type measure(int32 value) noexcept;
 	static size_type measure(int64 value) noexcept;
 
+	static size_type measure(uint16 value) noexcept;
 	static size_type measure(uint32 value) noexcept;
 	static size_type measure(uint64 value) noexcept;
 
@@ -94,10 +96,13 @@ struct StringWriter {
 
 	StringWriter& append(StringView data) noexcept;
 
-	StringWriter& appendFormated(uint32 value) noexcept;
+	StringWriter& appendFormated(int16 value) noexcept;
 	StringWriter& appendFormated(int32 value) noexcept;
-	StringWriter& appendFormated(uint64 value) noexcept;
 	StringWriter& appendFormated(int64 value) noexcept;
+
+	StringWriter& appendFormated(uint16 value) noexcept;
+	StringWriter& appendFormated(uint32 value) noexcept;
+	StringWriter& appendFormated(uint64 value) noexcept;
 
 	StringWriter& append(const char* value) noexcept;
 
