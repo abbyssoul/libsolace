@@ -78,7 +78,11 @@ struct StringWriter {
 
 	static size_type measure(StringView value) noexcept { return value.size(); }
 
-	static size_type measure(size_t value) noexcept;
+	static size_type measure(int32 value) noexcept;
+	static size_type measure(int64 value) noexcept;
+
+	static size_type measure(uint32 value) noexcept;
+	static size_type measure(uint64 value) noexcept;
 
 	template<size_t N>
 	static constexpr size_type measure(char const (&SOLACE_UNUSED(str))[N]) noexcept {  // NOLINT(whitespace/parens)
@@ -90,10 +94,10 @@ struct StringWriter {
 
 	StringWriter& append(StringView data) noexcept;
 
-	StringWriter& appendFormated(size_t value) noexcept;
-
 	StringWriter& appendFormated(uint32 value) noexcept;
 	StringWriter& appendFormated(int32 value) noexcept;
+	StringWriter& appendFormated(uint64 value) noexcept;
+	StringWriter& appendFormated(int64 value) noexcept;
 
 	StringWriter& append(const char* value) noexcept;
 

@@ -22,6 +22,7 @@
 #include "solace/byteReader.hpp"
 
 #include <cstdio>  // snprintf etc
+#include <inttypes.h>
 
 
 using namespace Solace;
@@ -53,17 +54,19 @@ void safeFormat(ByteWriter& dest, const char* fmt, T value) {
 }
 
 StringBuilder::size_type
-StringBuilder::measureFormatted(uint16 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%u", value)); }
+StringBuilder::measureFormatted(uint16 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%" PRIu16, value)); }
 StringBuilder::size_type
-StringBuilder::measureFormatted(uint32 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%u", value)); }
+StringBuilder::measureFormatted(uint32 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%" PRIu32, value)); }
 StringBuilder::size_type
-StringBuilder::measureFormatted(uint64 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%lu", value)); }
+StringBuilder::measureFormatted(uint64 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%" PRIu64, value)); }
+
 StringBuilder::size_type
-StringBuilder::measureFormatted(int16 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%d", value)); }
+StringBuilder::measureFormatted(int16 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%" PRId16, value)); }
 StringBuilder::size_type
-StringBuilder::measureFormatted(int32 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%d", value)); }
+StringBuilder::measureFormatted(int32 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%" PRId32, value)); }
 StringBuilder::size_type
-StringBuilder::measureFormatted(int64 value) noexcept { return nonNegative(snprintf(nullptr, 0, "%ld", value)); }
+StringBuilder::measureFormatted(int64 value) noexcept {	return nonNegative(snprintf(nullptr, 0, "%" PRId64, value));
+}
 
 
 
@@ -100,7 +103,7 @@ StringBuilder&
 StringBuilder::append(uint16 value) {
 	auto buffer = _buffer.viewRemaining();
 	auto const capacity = buffer.size();
-	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%u", value));
+	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%" PRIu16, value));
 
 	return *this;
 }
@@ -109,7 +112,7 @@ StringBuilder&
 StringBuilder::append(uint32 value) {
 	auto buffer = _buffer.viewRemaining();
 	auto const capacity = buffer.size();
-	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%u", value));
+	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%" PRIu32, value));
 
 	return *this;
 }
@@ -118,7 +121,7 @@ StringBuilder&
 StringBuilder::append(uint64 value) {
 	auto buffer = _buffer.viewRemaining();
 	auto const capacity = buffer.size();
-	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%lu", value));
+	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%" PRIu64, value));
 
 	return *this;
 }

@@ -1,8 +1,3 @@
-#include "solace/details/string_utils.hpp"
-
-#include <cstdlib>
-#include <cstring>
-#include <cstdio>  // snprintf etc
 /*
 *  Copyright 2016 Ivan Ryabov
 *
@@ -23,6 +18,13 @@
  *	@file		errorString.cpp
  *	@brief		Implementation details of ErrorString
  ******************************************************************************/
+
+#include "solace/details/string_utils.hpp"
+
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>  // snprintf etc
+#include <inttypes.h>  // Platform-independent format
 
 #include <algorithm>  // std::min
 
@@ -49,10 +51,15 @@ ErrorString::ErrorString(StringView view)
 
 
 StringWriter::size_type
-StringWriter::measure(size_t value) noexcept {
-	// cppcheck-suppress invalidPrintfArgType_uint
-	return narrow_cast<size_type>(snprintf(nullptr, 0, "%lu", value));
-}
+StringWriter::measure(uint32 value) noexcept { return narrow_cast<size_type>(snprintf(nullptr, 0, "%" PRIu32, value)); }
+StringWriter::size_type
+StringWriter::measure(uint64 value) noexcept { return narrow_cast<size_type>(snprintf(nullptr, 0, "%" PRIu64, value)); }
+
+StringWriter::size_type
+StringWriter::measure(int32 value) noexcept { return narrow_cast<size_type>(snprintf(nullptr, 0, "%" PRId32, value)); }
+StringWriter::size_type
+StringWriter::measure(int64 value) noexcept { return narrow_cast<size_type>(snprintf(nullptr, 0, "%" PRId64, value)); }
+
 
 
 StringWriter::StringWriter(size_type memSize) noexcept
@@ -75,19 +82,25 @@ StringWriter::append(StringView data) noexcept {
 }
 
 StringWriter&
-StringWriter::appendFormated(size_t value) noexcept {
-	// cppcheck-suppress invalidPrintfArgType_uint
-	_offset += snprintf(currentBuffer(), remaining(), "%lu", value); return *this;
-}
-
-StringWriter&
 StringWriter::appendFormated(uint32 value) noexcept {
-	_offset += snprintf(currentBuffer(), remaining(), "%u", value); return *this;
+	_offset += snprintf(currentBuffer(), remaining(), "%" PRIu32, value); return *this;
 }
 
 StringWriter&
 StringWriter::appendFormated(int32 value) noexcept {
-	_offset += snprintf(currentBuffer(), remaining(), "%d", value); return *this;
+	_offset += snprintf(currentBuffer(), remaining(), "%" PRId32, value); return *this;
+}
+
+StringWriter&
+StringWriter::appendFormated(uint64 value) noexcept {
+	_offset += snprintf(currentBuffer(), remaining(), "%" PRIu64, value);
+	return *this;
+}
+
+StringWriter&
+StringWriter::appendFormated(int64 value) noexcept {
+	_offset += snprintf(currentBuffer(), remaining(), "%" PRId64, value);
+	return *this;
 }
 
 StringWriter&
