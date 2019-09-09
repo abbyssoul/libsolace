@@ -48,7 +48,9 @@ TEST(TestDictionary, testEmptyDictionaryIsEmpty) {
 }
 
 TEST(TestDictionary, factoryIntergralWithCapacity) {
-    auto v = makeDictionary<int32, int32>(10);
+	auto maybeDict = makeDictionary<int32, int32>(10);
+	ASSERT_TRUE(maybeDict.isOk());
+	auto& v = maybeDict.unwrap();
 
     EXPECT_EQ(10, v.capacity());
     EXPECT_TRUE(v.empty());
@@ -57,7 +59,9 @@ TEST(TestDictionary, factoryIntergralWithCapacity) {
 
 TEST(TestDictionary, factoryWithCapacityCreatesNoObjects) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
-    auto v = makeDictionary<int32, SimpleType>(10);
+	auto maybeDict = makeDictionary<int32, SimpleType>(10);
+	ASSERT_TRUE(maybeDict.isOk());
+	auto& v = maybeDict.unwrap();
 
     EXPECT_EQ(10, v.capacity());
     EXPECT_TRUE(v.empty());
@@ -76,7 +80,9 @@ TEST(TestDictionary, addIntoEmptyCollectionFails) {
 
 
 TEST(TestDictionary, addIntoIntegralNonEmptyCollection) {
-    auto v = makeDictionary<int32, int32>(10);
+	auto maybeDict = makeDictionary<int32, int32>(10);
+	ASSERT_TRUE(maybeDict.isOk());
+	auto& v = maybeDict.unwrap();
 
     EXPECT_EQ(10, v.capacity());
     EXPECT_TRUE(v.empty());
@@ -93,7 +99,9 @@ TEST(TestDictionary, addIntoIntegralNonEmptyCollection) {
 TEST(TestDictionary, addIntoNonEmptyCollection) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeDictionary<int32, SimpleType>(10);
+		auto maybeDict = makeDictionary<int32, SimpleType>(10);
+		ASSERT_TRUE(maybeDict.isOk());
+		auto& v = maybeDict.unwrap();
 
         EXPECT_EQ(10, v.capacity());
         EXPECT_TRUE(v.empty());
@@ -114,10 +122,13 @@ TEST(TestDictionary, addIntoNonEmptyCollection) {
 TEST(TestDictionary, containsDataType) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeDictionaryOf<int32, SimpleType>(
+		auto maybeDict = makeDictionaryOf<int32, SimpleType>(
                                                 Dictionary<int32, SimpleType>::Entry{0, {99888, 2, 3}},
                                                 Dictionary<int32, SimpleType>::Entry{321, {1, 2, 3}},
                                                 Dictionary<int32, SimpleType>::Entry{17, {3, 0, 0}});
+		ASSERT_TRUE(maybeDict.isOk());
+		auto& v = maybeDict.unwrap();
+
         EXPECT_TRUE(v.contains(321));
         EXPECT_TRUE(v.contains(17));
         EXPECT_FALSE(v.contains(18));
@@ -130,10 +141,13 @@ TEST(TestDictionary, containsDataType) {
 TEST(TestDictionary, containsUsingCustomKey) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeDictionaryOf<int32, SimpleType>(
+		auto maybeDict = makeDictionaryOf<int32, SimpleType>(
                                                 Dictionary<int32, SimpleType>::Entry{0, {99888, 2, 3}},
                                                 Dictionary<int32, SimpleType>::Entry{321, {1, 2, 3}},
                                                 Dictionary<int32, SimpleType>::Entry{17, {3, 0, 0}});
+		ASSERT_TRUE(maybeDict.isOk());
+		auto& v = maybeDict.unwrap();
+
         EXPECT_TRUE(v.contains(321));
         EXPECT_TRUE(v.contains(17));
 
@@ -147,10 +161,12 @@ TEST(TestDictionary, containsUsingCustomKey) {
 TEST(TestDictionary, forEachValue) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeDictionaryOf<int32, SimpleType>(
+		auto maybeDict = makeDictionaryOf<int32, SimpleType>(
                                                 Dictionary<int32, SimpleType>::Entry{-1,  {1, 2, 3}},
                                                 Dictionary<int32, SimpleType>::Entry{13, {2, 3, 4}},
                                                 Dictionary<int32, SimpleType>::Entry{17, {3, 4, 5}});
+		ASSERT_TRUE(maybeDict.isOk());
+		auto& v = maybeDict.unwrap();
 
         int32 acc = 0;
         int32 counter = 1;

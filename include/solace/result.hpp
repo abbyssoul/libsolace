@@ -34,6 +34,10 @@ namespace types {
 struct OkTag {};
 struct ErrTag {};
 
+inline constexpr OkTag okTag;
+inline constexpr ErrTag errTag;
+
+
 template<typename T, typename Tag>
 struct ValueWrapper {
     using value_type = T;
@@ -247,7 +251,7 @@ public:
      * @param value Ok value to move from
      */
     constexpr Result(types::Ok<V>&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
-		: Result{types::OkTag{}, mv(value.val_)}
+		: Result{types::okTag, mv(value.val_)}
     {}
 
 
@@ -256,7 +260,7 @@ public:
      * @param err Err value to move from
      */
     constexpr Result(types::Err<E>&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
-		: Result{types::ErrTag{}, mv(value.val_)}
+		: Result{types::errTag, mv(value.val_)}
     {}
 
     /**
@@ -421,7 +425,7 @@ public:
             return f(mv(_value));
         }
 
-        return typename ResT::type{types::ErrTag{}, mv(_error)};
+		return typename ResT::type{types::errTag, mv(_error)};
     }
 
     template<typename F,
@@ -433,7 +437,7 @@ public:
             return f(_value);
         }
 
-        return typename ResT::type{types::ErrTag{}, _error};
+		return typename ResT::type{types::errTag, _error};
     }
 
     template<typename F,
@@ -445,7 +449,7 @@ public:
             return f(_value);
         }
 
-        return typename ResT::type{types::ErrTag{}, _error};
+		return typename ResT::type{types::errTag, _error};
     }
 
 
@@ -455,10 +459,10 @@ public:
     std::enable_if_t<!std::is_same<R, void>::value && !isResult<V, E, R>::value,  Result<R, E>>
     then(F&& f) {
         if (isOk()) {
-            return Result<R, E>{types::OkTag{}, f(mv(_value))};
+			return Result<R, E>{types::okTag, f(mv(_value))};
         }
 
-        return Result<R, E>{types::ErrTag{}, mv(_error)};
+		return Result<R, E>{types::errTag, mv(_error)};
     }
 
 
@@ -486,7 +490,7 @@ public:
     std::enable_if_t<ResT::value, typename ResT::type>
     orElse(F&& f) {
         if (isOk()) {
-            return typename ResT::type{types::OkTag{}, moveResult()};
+			return typename ResT::type{types::okTag, moveResult()};
         }
 
         return f(moveError());
@@ -498,10 +502,10 @@ public:
     std::enable_if_t<!isResult<V, E, RE>::value, Result<RE, E>>
     orElse(F&& f) {
         if (isOk()) {
-            return Result<RE, E>{types::OkTag{}, moveResult()};
+			return Result<RE, E>{types::okTag, moveResult()};
         }
 
-        return Result<RE, E>(types::OkTag{}, f(moveError()));
+		return Result<RE, E>(types::okTag, f(moveError()));
     }
 
     /**
@@ -515,10 +519,10 @@ public:
              typename EE = typename error_result_wrapper<RE>::type>
     Result<V, EE> mapError(F&& f) && {
         if (isOk()) {
-            return Result<V, EE>{types::OkTag{}, mv(_value)};
+			return Result<V, EE>{types::okTag, mv(_value)};
         }
 
-        return Result<V, EE>{types::ErrTag{}, f(mv(_error))};
+		return Result<V, EE>{types::errTag, f(mv(_error))};
     }
 
     template<typename F,
@@ -526,10 +530,10 @@ public:
              typename EE = typename error_result_wrapper<RE>::type>
     Result<V, EE> mapError(F&& f) & {
         if (isOk()) {
-            return Result<V, EE>{types::OkTag{}, unwrap()};
+			return Result<V, EE>{types::okTag, unwrap()};
         }
 
-        return Result<V, EE>{types::ErrTag{}, f(getError())};
+		return Result<V, EE>{types::errTag, f(getError())};
     }
 
     template<typename F,
@@ -537,10 +541,10 @@ public:
              typename EE = typename error_result_wrapper<RE>::type>
     Result<V, EE> mapError(F&& f) const& {
         if (isOk()) {
-            return Result<V, EE>{types::OkTag{}, unwrap()};
+			return Result<V, EE>{types::okTag, unwrap()};
         }
 
-        return Result<V, EE>{types::ErrTag{}, f(getError())};
+		return Result<V, EE>{types::errTag, f(getError())};
     }
 
 private:

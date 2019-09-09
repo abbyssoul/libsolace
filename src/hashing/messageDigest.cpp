@@ -30,14 +30,19 @@ using namespace Solace::hashing;
 
 
 MessageDigest::MessageDigest(MemoryView viewBytes)
-    : _storage(makeArray<byte>(viewBytes.size(), viewBytes.dataAddress()))
+	: _storage{makeArray<byte>(viewBytes.size(), viewBytes.dataAddress()).moveResult()}
 { }
 
 
 String
 MessageDigest::toString() const {
     auto stringBuffer = makeVector<char>(Base16Encoder::encodedSize(size()));
-    ByteWriter dest(wrapMemory(stringBuffer.data(), stringBuffer.size()));
+	if (!stringBuffer) {
+		return String{};
+	}
+
+	auto& buffer = stringBuffer.unwrap();
+	ByteWriter dest{wrapMemory(buffer.data(), buffer.size())};
 
     auto const dataView = _storage.view().view();
     for (auto i = base16Encode_begin(dataView),
@@ -46,7 +51,7 @@ MessageDigest::toString() const {
         dest.write((*i).view());
     }
 
-	auto result = makeString(stringBuffer.data(), narrow_cast<String::size_type>(stringBuffer.size()));
+	auto result = makeString(buffer.data(), narrow_cast<String::size_type>(buffer.size()));
 	return result
 			? result.moveResult()
 			: String{};

@@ -71,15 +71,15 @@ public:
 
     /** Construct a new array by moving content of a given array */
     constexpr Array(Array<T>&& rhs) noexcept
-		: _buffer(mv(rhs._buffer))
-        , _size(exchange(rhs._size, 0))
+		: _buffer{mv(rhs._buffer)}
+		, _size{exchange(rhs._size, 0)}
     {
     }
 
     /** Contruct an array of a given size from a memory resource */
     constexpr Array(MemoryResource&& buffer, size_type len) noexcept
-		: _buffer(mv(buffer))
-        , _size(len)
+		: _buffer{mv(buffer)}
+		, _size{len}
     {
     }
 
@@ -362,61 +362,79 @@ constexpr Array<T> makeArray() noexcept {
     return {};
 }
 
-/** Construct an default-initialized array of T of a given fixed size */
 template <typename T>
 [[nodiscard]]
-Array<T> makeArray(typename Array<T>::size_type initialSize) {
-    auto buffer = getSystemHeapMemoryManager().allocate(initialSize*sizeof(T));           // May throw
+constexpr
+Result<Array<T>, Error> makeArray(MemoryResource&& mem, typename Array<T>::size_type initialSize) noexcept {
+	return {types::okTag, {mv(mem), initialSize}};
+}
 
-    initArray<T>(buffer.view(), initialSize);
+/** Construct a default-initialized array of T of a given fixed size */
+template <typename T>
+[[nodiscard]]
+Result<Array<T>, Error>
+makeArray(typename Array<T>::size_type initialSize) {
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(initialSize*sizeof(T));
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
 
-	return {mv(buffer), initialSize};  // No except c-tor
+	initArray<T>(maybeBuffer.unwrap().view(), initialSize);
+
+	return makeArray<T>(maybeBuffer.moveResult(), initialSize);  // No except c-tor
 }
 
 
 /** Construct a new array from a C-style array */
 template <typename T>
 [[nodiscard]]
-Array<T> makeArray(typename Array<T>::size_type initialSize, T const* carray) {
+Result<Array<T>, Error>
+makeArray(typename Array<T>::size_type initialSize, T const* carray) {
     auto const arraySize = initialSize;
-	auto buffer = getSystemHeapMemoryManager().allocate(arraySize * sizeof(T));           // May throw
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(arraySize * sizeof(T));
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
 
 	auto src = arrayView(carray, arraySize);					// No except
-	auto dest = arrayView<T>(buffer.view());					// No except
+	auto dest = arrayView<T>(maybeBuffer.unwrap().view());		// No except
 
     CopyConstructArray_<RemoveConst<T>, Decay<T*>, false>::apply(dest, src);    // May throw if copy-ctor throws
 
-	return {mv(buffer), arraySize};							    // No except
+	return makeArray<T>(maybeBuffer.moveResult(), arraySize);  // No except
 }
 
 
 /** Create a copy of the given array */
 template <typename T>
 [[nodiscard]]
-Array<T> makeArray(ArrayView<T> other) {
+auto makeArray(ArrayView<T> other) {
     return makeArray(other.size(), other.data());
 }
 
 /** Create a copy of the given array */
 template <typename T>
 [[nodiscard]]
-Array<T> makeArray(Array<T> const& other) {
+auto makeArray(Array<T> const& other) {
     return makeArray(other.size(), other.data());
 }
 
 template <typename T,
           typename...Args>
 [[nodiscard]]
-Array<T> makeArrayOf(Args&&...args) {
+Result<Array<T>, Error> makeArrayOf(Args&&...args) {
      // Should be relativily safe to cast: we don't expect > 65k arguments
     using size_type = typename Array<T>::size_type;
     auto const arraySize = narrow_cast<size_type>(sizeof...(args));
-    auto buffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
-    auto values = arrayView<T>(buffer.view());
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(arraySize * sizeof(T));
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
 
+	auto values = arrayView<T>(maybeBuffer.unwrap().view());
 	values.emplaceAll(fwd<Args>(args)...);
 
-	return {mv(buffer), arraySize};                                 // No except
+	return makeArray<T>(maybeBuffer.moveResult(), arraySize);  // No except
 }
 
 

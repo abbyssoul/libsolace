@@ -107,25 +107,30 @@ private:
 
 
 /// Create an empty zero sized dictionary
-template<typename K, typename T>
+template<typename K, typename V>
 [[nodiscard]]
-constexpr Dictionary<K, T> makeDictionary() noexcept {
+constexpr Dictionary<K, V> makeDictionary() noexcept {
     return {};
 }
 
+template<typename K, typename V>
+[[nodiscard]]
+Result<Dictionary<K, V>, Error> makeDictionary(Vector<K>&& keys, Vector<V>&& values) noexcept {
+	return {types::okTag, {mv(keys), mv(values)}};
+}
 
 /**
  * Create a new dictionary with a given memory resources.
  * Capacity of the resulting container is determined by the size of the resource.
  * @return A newly constructed empty dictionary.
  */
-template<typename K, typename T>
+template<typename K, typename V>
 [[nodiscard]]
-Dictionary<K, T> makeDictionary(MemoryResource&& keysMem, MemoryResource&& valuesMem) noexcept {
-    using DictT = Dictionary<K, T>;
+Result<Dictionary<K, V>, Error> makeDictionary(MemoryResource&& keysMem, MemoryResource&& valuesMem) noexcept {
+	using DictT = Dictionary<K, V>;
 
-	return {makeVector<typename DictT::key_type>(mv(keysMem)),
-			makeVector<typename DictT::value_type>(mv(valuesMem))};
+	return makeDictionary(makeVector<typename DictT::key_type>(mv(keysMem)),
+						  makeVector<typename DictT::value_type>(mv(valuesMem)));
 }
 
 /**
@@ -135,29 +140,45 @@ Dictionary<K, T> makeDictionary(MemoryResource&& keysMem, MemoryResource&& value
  */
 template<typename K, typename T>
 [[nodiscard]]
-Dictionary<K, T> makeDictionary(typename Dictionary<K, T>::size_type size) {
+Result<Dictionary<K, T>, Error> makeDictionary(typename Dictionary<K, T>::size_type size) {
     using DictT = Dictionary<K, T>;
 
-    return {    makeVector<typename DictT::key_type>(size),
-                makeVector<typename DictT::value_type>(size)};
+	auto keys = makeVector<typename DictT::key_type>(size);
+	if (!keys) {
+		return keys.moveError();
+	}
+
+	auto values = makeVector<typename DictT::value_type>(size);
+	if (!values) {
+		return values.moveError();
+	}
+
+	return makeDictionary(keys.moveResult(), values.moveResult());
 }
 
 
 template <typename K, typename T,
           typename...Args>
 [[nodiscard]]
-Dictionary<K, T> makeDictionaryOf(Args&&...args) {
+Result<Dictionary<K, T>, Error> makeDictionaryOf(Args&&...args) {
     using size_type = typename Dictionary<K, T>::size_type;
     // Should be relativily safe to cast: we don't expect > 65k arguments
     auto const arraySize = narrow_cast<size_type>(sizeof...(args));
-    auto keysBuffer   = getSystemHeapMemoryManager().allocate(arraySize*sizeof(K));           // May throw
-    auto valuesBuffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));           // May throw
+	auto keysBuffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(K));
+	if (!keysBuffer) {
+		return keysBuffer.moveError();
+	}
 
-    auto posKeys = arrayView<K>(keysBuffer.view());
-    auto posValues = arrayView<T>(valuesBuffer.view());
+	auto valuesBuffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));
+	if (!valuesBuffer) {
+		return valuesBuffer.moveError();
+	}
 
-    ArrayExceptionGuard<K> keysGuard(posKeys);
-    ArrayExceptionGuard<T> valuesGuard(posValues);
+	auto posKeys = arrayView<K>(keysBuffer.unwrap().view());
+	auto posValues = arrayView<T>(valuesBuffer.unwrap().view());
+
+	ArrayExceptionGuard<K> keysGuard{posKeys};
+	ArrayExceptionGuard<T> valuesGuard{posValues};
 
 	(keysGuard.emplace(mv(args.key)), ...);
 	(valuesGuard.emplace(mv(args.value)), ...);
@@ -165,8 +186,8 @@ Dictionary<K, T> makeDictionaryOf(Args&&...args) {
     keysGuard.release();
     valuesGuard.release();
 
-	return {{mv(keysBuffer),     arraySize},
-			{mv(valuesBuffer),   arraySize}};  // No except c-tor
+	return makeDictionary(Vector<K>{keysBuffer.moveResult(), arraySize},
+						  Vector<T>{valuesBuffer.moveResult(), arraySize});  // No except c-tor
 }
 
 

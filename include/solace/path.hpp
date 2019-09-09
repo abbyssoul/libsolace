@@ -475,14 +475,17 @@ Result<void, Error> joinComponents(Vector<String>& base, Path const& path, Args&
 template<typename...Args>
 [[nodiscard]]
 Result<Path, Error> makePath(Args&&...args) {
-	auto components = makeVector<Path::value_type>(details::countPathComponents(fwd<Args>(args)...));
+	auto maybeVector = makeVector<Path::value_type>(details::countPathComponents(fwd<Args>(args)...));
+	if (!maybeVector) {
+		return maybeVector.moveError();
+	}
 
-	auto maybeComponents = details::joinComponents(components, fwd<Args>(args)...);
+	auto maybeComponents = details::joinComponents(maybeVector.unwrap(), fwd<Args>(args)...);
 	if (!maybeComponents) {
 		return maybeComponents.moveError();
 	}
 
-	return Ok(makePath(mv(components)));
+	return Ok(makePath(maybeVector.moveResult()));
 }
 
 }  // namespace Solace

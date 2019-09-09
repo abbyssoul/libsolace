@@ -74,7 +74,7 @@ MemoryView::lock() {
 		return makeErrno("mlock");
     }
 
-	return {types::OkTag{}, Lock{*this}};
+	return {types::okTag, Lock{*this}};
 }
 
 

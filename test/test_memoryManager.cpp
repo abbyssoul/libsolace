@@ -70,8 +70,11 @@ TEST(TestMemoryManager, testAllocation) {
     MemoryManager test{512};
 
     {
-        auto memBlock = test.allocate(512);
-        EXPECT_EQ(512, memBlock.size());
+		auto maybeBlock = test.allocate(512);
+		ASSERT_TRUE(maybeBlock.isOk());
+
+		auto& memBlock = maybeBlock.unwrap();
+		EXPECT_EQ(512, memBlock.size());
         EXPECT_EQ(512, test.size());
         EXPECT_EQ(0, test.limit());
 
@@ -84,18 +87,26 @@ TEST(TestMemoryManager, testAllocation) {
 }
 
 TEST(TestMemoryManager, testAllocationBeyondCapacity) {
-    MemoryManager test(128);
-    EXPECT_THROW(auto memBlock = test.allocate(2048), IndexOutOfRangeException);
+	MemoryManager test{128};
+
+
+	EXPECT_TRUE(test.allocate(2048).isError());
     {
-        auto memBlock0 = test.allocate(64);
-        EXPECT_EQ(64, test.size());
+		auto maybeBlock0 = test.allocate(64);
+		ASSERT_TRUE(maybeBlock0.isOk());
+		auto& memBlock0 = maybeBlock0.unwrap();
+
+		EXPECT_EQ(64, test.size());
         EXPECT_EQ(64, memBlock0.size());
 
-        auto memBlock1 = test.allocate(64);
-        EXPECT_EQ(2*64, test.size());
+		auto maybeBlock1 = test.allocate(64);
+		ASSERT_TRUE(maybeBlock1.isOk());
+		auto& memBlock1 = maybeBlock1.unwrap();
+
+		EXPECT_EQ(2*64, test.size());
         EXPECT_EQ(64, memBlock1.size());
 
-        EXPECT_THROW(auto memBlock2 = test.allocate(64), IndexOutOfRangeException);
+		EXPECT_TRUE(test.allocate(64).isError());
     }
 
     EXPECT_EQ(128, test.limit());
@@ -109,7 +120,10 @@ TEST(TestMemoryManager, testAllocationLocking) {
     {
         EXPECT_EQ(false, test.isLocked());
 
-        auto memBlock0 = test.allocate(64);
+		auto maybeBlock0 = test.allocate(64);
+		ASSERT_TRUE(maybeBlock0.isOk());
+		auto& memBlock0 = maybeBlock0.unwrap();
+
         EXPECT_EQ(64, test.size());
         EXPECT_EQ(64, memBlock0.size());
 
@@ -118,11 +132,11 @@ TEST(TestMemoryManager, testAllocationLocking) {
         EXPECT_EQ(true, test.isLocked());
 
         // Create should throw as allocation is prohibited
-        EXPECT_THROW(auto memBlock2 = test.allocate(64), Exception);
+		EXPECT_TRUE(test.allocate(64).isError());
 
         EXPECT_NO_THROW(test.unlock());
         EXPECT_EQ(false, test.isLocked());
-        EXPECT_NO_THROW(auto memBlock2 = test.allocate(64));
+		EXPECT_TRUE(test.allocate(64).isOk());
     }
 
     EXPECT_EQ(0, test.size());

@@ -270,7 +270,10 @@ TEST(TestVersion, testParsing_and_ToString_are_consistent) {
 */
 TEST(TestVersion, testContainerReq) {
     constexpr static uint kTestSetSize = 32;
-    Vector<Version> versions = makeVector<Version>(kTestSetSize);
+	auto maybeVec = makeVector<Version>(kTestSetSize);
+	ASSERT_TRUE(maybeVec.isOk());
+
+	Vector<Version>& versions = maybeVec.unwrap();
 
     for (uint i = 0; i < kTestSetSize; ++i) {
         versions.emplace_back(i, i % 3, 2*i + 1);

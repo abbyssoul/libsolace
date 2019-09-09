@@ -429,21 +429,22 @@ inline void swap(String& lhs, String& rhs) noexcept {
 
 
 /**
- * Construct a new string from a StringView
- * @param view A string view to copy data from.
- * @return A new string object that owns the memory where the data is kept.
- */
-[[nodiscard]]
-Result<String, Error> makeString(StringView view);
-
-
-/**
  * Construct a new string from a StringLiteral. Resulting string does not own memory buffer.
  * @param view A string literal that represents the string.
  * @return A new string object that doesn not owns the memory where the data is kept.
  */
 [[nodiscard]]
 String makeString(StringLiteral literal) noexcept;
+
+
+
+/**
+ * Construct a new string from a StringView
+ * @param view A string view to copy data from.
+ * @return A new string object that owns the memory where the data is kept.
+ */
+[[nodiscard]]
+Result<String, Error> makeString(StringView view);
 
 
 //!< Construct a string from a raw null-terminated (C-style) string.
@@ -453,7 +454,7 @@ String makeString(StringLiteral literal) noexcept;
 
 //!< Construct a string from a raw byte buffer of a given size
 [[nodiscard]] inline auto makeString(const char* data, String::size_type dataLength)  {
-    return makeString(StringView(data, dataLength));
+	return makeString(StringView{data, dataLength});
 }
 
 //!< Construct the string from std::string - STD compatibility method
@@ -468,6 +469,12 @@ String makeString(StringLiteral literal) noexcept;
 template <>
 inline String* ctor(String& location, String const& s) {
   return new (_::PlacementNew(), &location) String{makeString(s).unwrap()};
+}
+
+
+inline Result<String, Error>
+makeString(MemoryResource&& mem, String::size_type size) noexcept {
+	return {types::okTag, {mv(mem), size}};
 }
 
 inline constexpr
@@ -506,9 +513,9 @@ StringView::size_type totalSize(String const& arg) noexcept {
     return arg.size();
 }
 
-template<typename T, typename K, typename...Args>
-StringView::size_type totalSize(T&& a, K&& b, Args&&... args) noexcept {
-	return totalSize(a) + totalSize(fwd<K>(b), fwd<Args>(args)...);
+template<typename...Args>
+StringView::size_type totalSize(Args&&... args) noexcept {
+	return (totalSize(args) + ...);
 }
 
 inline
@@ -529,13 +536,9 @@ auto writeArg(ByteWriter& dest, String const& arg) {
 inline
 bool writeAllArgs(ByteWriter&) { return true; }
 
-template<typename T, typename...Args>
-bool writeAllArgs(ByteWriter& dest, T&& arg, Args&&...args) {
-	if (!writeArg(dest, arg)) {
-		return false;
-	}
-
-	return writeAllArgs(dest, fwd<Args>(args)...);
+template<typename...Args>
+bool writeAllArgs(ByteWriter& dest, Args&&...args) {
+	return (writeArg(dest, args) && ...);
 }
 
 /**
@@ -544,49 +547,55 @@ bool writeAllArgs(ByteWriter& dest, T&& arg, Args&&...args) {
  * @return A string that is a result of concatenation of this and a given string.
  */
 template<typename... StringViews>
-String makeString(StringView lhs, StringView rhs, StringViews&&... args) {
+Result<String, Error> makeString(StringView lhs, StringView rhs, StringViews&&... args) noexcept {
 	auto const totalStrLen = totalSize(lhs, rhs, fwd<StringViews>(args)...);
-    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
-    auto writer = ByteWriter(buffer.view());
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
 
+	auto writer = ByteWriter{maybeBuffer.unwrap().view()};
     // Copy string view content into a new buffer
     // FIXME: WriteAllArgs returns Result<> thus makeString should return -> Result<String, Error>
 	/*auto r = */writeAllArgs(writer, lhs, rhs, fwd<StringViews>(args)...);
 
-	return { mv(buffer), totalStrLen };
+	return makeString(maybeBuffer.moveResult(), totalStrLen);
 }
 
 template<typename... StringViews>
-String makeString(StringView::value_type lhs, StringView rhs, StringViews&&... args) {
+Result<String, Error> makeString(StringView::value_type lhs, StringView rhs, StringViews&&... args) {
 	auto const totalStrLen = totalSize(lhs, rhs, fwd<StringViews>(args)...);
-    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
-    auto writer = ByteWriter(buffer.view());
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
 
-    // Copy string view content into a new buffer
+	auto writer = ByteWriter{maybeBuffer.unwrap().view()};
+	// Copy string view content into a new buffer
     // FIXME: WriteAllArgs returns Result<> thus makeString should return -> Result<String, Error>
 	/*auto r = */writeAllArgs(writer, lhs, rhs, fwd<StringViews>(args)...);
 
-	return { mv(buffer), totalStrLen };
+	return makeString(maybeBuffer.moveResult(), totalStrLen);
 }
 
 
 template<typename... StringViews>
-String makeString(String const& lhs, StringView rhs, StringViews&&... args) {
+auto makeString(String const& lhs, StringView rhs, StringViews&&... args) {
 	return makeString(lhs.view(), rhs, fwd<StringViews>(args)...);
 }
 
 template<typename... StringViews>
-String makeString(StringView lhs, String const& rhs, StringViews&&... args) {
+auto makeString(StringView lhs, String const& rhs, StringViews&&... args) {
 	return makeString(lhs, rhs.view(), fwd<StringViews>(args)...);
 }
 
 template<typename... StringViews>
-String makeString(String const& lhs, String const& rhs, StringViews&&... args) {
+auto makeString(String const& lhs, String const& rhs, StringViews&&... args) {
 	return makeString(lhs.view(), rhs.view(), fwd<StringViews>(args)...);
 }
 
 template<typename... StringViews>
-String makeString(StringView::value_type lhs, String const& rhs, StringViews&&... args) {
+auto makeString(StringView::value_type lhs, String const& rhs, StringViews&&... args) {
 	return makeString(lhs, rhs.view(), fwd<StringViews>(args)...);
 }
 
@@ -627,12 +636,12 @@ inline auto makeStringReplace(String const& str, StringView what, String const& 
 
 
 inline
-String makeStringJoin(StringView SOLACE_UNUSED(by)) {
+String makeStringJoin(StringView SOLACE_UNUSED(by)) noexcept {
     return String{};
 }
 
 inline
-String makeStringJoin(StringView::value_type SOLACE_UNUSED(by)) {
+String makeStringJoin(StringView::value_type SOLACE_UNUSED(by)) noexcept {
     return String{};
 }
 
@@ -732,31 +741,41 @@ template<typename...Args>
 Result<String, Error> makeStringJoin(StringView by, Args&&... args) {
 	auto const len = totalSize(fwd<Args>(args)...);
     auto const totalStrLen = narrow_cast<StringView::size_type>(totalSize(by) * (sizeof...(args) - 1) + len);
-    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
-    auto writer = ByteWriter(buffer.view());
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
+
+	auto writer = ByteWriter{maybeBuffer.unwrap().view()};
 
     // Copy string view content into a new buffer
 	auto res = writeJointArgs(writer, by, fwd<Args>(args)...);
-	if (!res)
+	if (!res) {
 		return res.moveError();
+	}
 
-	return Ok(String{mv(buffer), totalStrLen});
+	return makeString(maybeBuffer.moveResult(), totalStrLen);
 }
 
 template<typename...Args>
 Result<String, Error> makeStringJoin(StringView::value_type by, Args&&... args) {
 	auto const len = totalSize(fwd<Args>(args)...);
     auto const totalStrLen = narrow_cast<StringView::size_type>(totalSize(by) * (sizeof...(args) - 1) + len);
-    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
-    auto writer = ByteWriter(buffer.view());
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
+
+	auto writer = ByteWriter{maybeBuffer.unwrap().view()};
 
     // Copy string view content into a new buffer
     // FIXME: writeJointArgs returns Result<> thus makeString should return -> Result<String, Error>
 	auto res = writeJointArgs(writer, by, fwd<Args>(args)...);
-	if (!res)
+	if (!res) {
 		return res.moveError();
+	}
 
-	return Ok(String{mv(buffer), totalStrLen});
+	return makeString(maybeBuffer.moveResult(), totalStrLen);
 }
 
 

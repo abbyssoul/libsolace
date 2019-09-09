@@ -41,7 +41,7 @@ TEST(TestString, testConstruction_null) {
     {   // NullPointer smoke test
         const char* nullCString = nullptr;
 
-        EXPECT_NO_THROW(auto unused = makeString(nullCString));
+		EXPECT_TRUE(makeString(nullCString).isOk());
     }
 
 
@@ -614,4 +614,19 @@ TEST(TestString, test_iterable_forEach) {
 //        });
 
 //        EXPECT_EQ(0, summ);
+}
+
+
+TEST(TestString, test_makingJoin_char) {
+	auto maybeString = makeStringJoin(',', "1", "2", "Bingo!");
+	ASSERT_TRUE(maybeString.isOk());
+
+	EXPECT_EQ(StringLiteral{"1,2,Bingo!"}, maybeString.unwrap());
+}
+
+TEST(TestString, test_makingJoin_str) {
+	auto maybeString = makeStringJoin("-! +", "1", "2", "Bingo!");
+	ASSERT_TRUE(maybeString.isOk());
+
+	EXPECT_EQ(StringLiteral{"1-! +2-! +Bingo!"}, maybeString.unwrap());
 }

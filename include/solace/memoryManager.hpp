@@ -23,7 +23,8 @@
 #define SOLACE_MEMORYMANAGER_HPP
 
 #include "solace/memoryResource.hpp"
-
+#include "solace/result.hpp"
+#include "solace/error.hpp"
 
 
 namespace Solace {
@@ -116,12 +117,12 @@ public:
      * @note Memory allocation may be explicitly prohibited by calling lock on this instance.
      * In this case the call to allocate a new memory segment will fail.
      *
-     * @param dataSize The size of the memory segment to allocate.
+	 * @param nbBytes The size of the memory segment in bytes to allocate.
      * @return A newly allocated memory segment.
      * TODO(abbyssoul): should return Result<>
      */
     [[nodiscard]]
-    MemoryResource allocate(size_type dataSize);
+	Result<MemoryResource, Error> allocate(size_type nbBytes) noexcept;
 
     /**
      * Prohibit memory allocations.
@@ -136,7 +137,7 @@ public:
      * Check if memory allocation is locked.
      * @return True if memory allocation is locked.
      */
-    bool isLocked() const;
+	bool isLocked() const noexcept;
 
     /**
      * Allow memory allocation.

@@ -49,7 +49,9 @@ TEST(TestVector, testEmptyVectorIsEmpty) {
 }
 
 TEST(TestVector, factoryIntergralVectorWithCapacity) {
-    auto v = makeVector<int32>(10);
+	auto maybeVec = makeVector<int32>(10);
+	ASSERT_TRUE(maybeVec.isOk());
+	auto& v = maybeVec.unwrap();
 
     EXPECT_EQ(10, v.capacity());
     EXPECT_TRUE(v.empty());
@@ -58,7 +60,9 @@ TEST(TestVector, factoryIntergralVectorWithCapacity) {
 
 TEST(TestVector, factoryVectorWithCapacityCreatesNoObjects) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
-    auto v = makeVector<SimpleType>(10);
+	auto maybeVec = makeVector<SimpleType>(10);
+	ASSERT_TRUE(maybeVec.isOk());
+	auto& v = maybeVec.unwrap();
 
     EXPECT_EQ(10, v.capacity());
     EXPECT_TRUE(v.empty());
@@ -75,7 +79,10 @@ TEST(TestVector, emptyVectorEmplaceFails) {
 TEST(TestVector, emplaceBack) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeVector<SimpleType>(10);
+		auto maybeVec = makeVector<SimpleType>(10);
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         v.emplace_back(3, 2, 1);
         v.emplace_back(2, 1, 0);
         v.emplace_back(1, 0, -1);
@@ -94,7 +101,10 @@ TEST(TestVector, emplaceBack) {
 TEST(TestVector, emplaceOverflowThrows) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeVector<SimpleType>(3);
+		auto maybeVec = makeVector<SimpleType>(3);
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         EXPECT_EQ(3, v.capacity());
 
         v.emplace_back(3, 2, 1);
@@ -115,7 +125,10 @@ TEST(TestVector, emplaceOverflowThrows) {
 TEST(TestVector, movedFromVectorIsEmpty) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeVector<SimpleType>(10);
+		auto maybeVec = makeVector<SimpleType>(10);
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         v.emplace_back(3, 2, 1);
         v.emplace_back(2, 1, 0);
         v.emplace_back(1, 0, -1);
@@ -145,7 +158,9 @@ TEST(TestVector, movingWhenCopyConstructorThrowsIsSafe) {
     SometimesConstructable::BlowUpEveryInstance = 6;
     ASSERT_EQ(0, SometimesConstructable::InstanceCount);
 
-    auto v = makeVector<SometimesConstructable>(10);
+	auto maybeVec = makeVector<SometimesConstructable>(10);
+	ASSERT_TRUE(maybeVec.isOk());
+	auto& v = maybeVec.unwrap();
 
     EXPECT_TRUE(v.empty());
     EXPECT_EQ(0, v.size());
@@ -164,11 +179,14 @@ TEST(TestVector, movingWhenCopyConstructorThrowsIsSafe) {
 TEST(TestVector, constructionFromInitializerList) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeVectorOf<SimpleType>({
+		auto maybeVec = makeVectorOf<SimpleType>({
                                             {3, 2, 1},
                                             {2, 1, 0},
                                             {1, 0, -1}
                                         });
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         EXPECT_FALSE(v.empty());
         EXPECT_EQ(3, v.capacity());
         EXPECT_EQ(3, v.size());
@@ -184,7 +202,10 @@ TEST(TestVector, constructionFromInitializerList) {
 TEST(TestVector, constructionFromVarArgs) {
     ASSERT_EQ(0, PimitiveType::InstanceCount);
     {
-        auto v = makeVectorOf<PimitiveType>(3, 2, 1);
+		auto maybeVec = makeVectorOf<PimitiveType>(3, 2, 1);
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         EXPECT_FALSE(v.empty());
         EXPECT_EQ(3, v.capacity());
         EXPECT_EQ(3, v.size());
@@ -204,9 +225,13 @@ TEST(TestVector, copy) {
                                             {2, 1, 0},
                                             {1, 0, -1}
                                         });
+		ASSERT_TRUE(origin.isOk());
         EXPECT_EQ(3, SimpleType::InstanceCount);
 
-        auto v = makeVector(origin);  // Make a copy
+		auto maybeVec = makeVector(*origin);  // Make a copy
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         EXPECT_FALSE(v.empty());
         EXPECT_EQ(3, v.capacity());
         EXPECT_EQ(3, v.size());
@@ -238,11 +263,14 @@ TEST(TestVector, interatingOverEmptyVector) {
 TEST(TestVector, interationNoMutation) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto const v = makeVectorOf<SimpleType>({
+		auto const maybeVec = makeVectorOf<SimpleType>({
                                             {3, 2, 1},
                                             {2, 1, 0},
                                             {1, 0, -1}
                                         });
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         int counter = 3;
         for (auto const& i : v) {
             EXPECT_EQ(counter - 0, i.x);
@@ -259,11 +287,14 @@ TEST(TestVector, interationNoMutation) {
 TEST(TestVector, interationMutation) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeVectorOf<SimpleType>({
+		auto maybeVec = makeVectorOf<SimpleType>({
                                             {3, 2, 1},
                                             {2, 1, 0},
                                             {1, 0, -1}
                                         });
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         for (auto& i : v) {
             i.z = i.x + i.y;
         }
@@ -283,7 +314,10 @@ TEST(TestVector, interationMutation) {
 TEST(TestVector, popBack) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeVector<SimpleType>(10);
+		auto maybeVec = makeVector<SimpleType>(10);
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         v.emplace_back(3, 2, 1);
         v.emplace_back(2, 1, 0);
         v.emplace_back(1, 0, -1);
@@ -314,7 +348,10 @@ TEST(TestVector, popBack) {
 TEST(TestVector, clear) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
-        auto v = makeVector<SimpleType>(10);
+		auto maybeVec = makeVector<SimpleType>(10);
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         v.emplace_back(3, 2, 1);
         v.emplace_back(2, 1, 0);
         v.emplace_back(1, 0, -1);
@@ -339,7 +376,10 @@ TEST(TestVector, clear) {
 TEST(TestVector, moveOnlyTypes) {
     ASSERT_EQ(0, MoveOnlyType::InstanceCount);
     {
-        auto v = makeVector<MoveOnlyType>(10);
+		auto maybeVec = makeVector<MoveOnlyType>(10);
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         EXPECT_EQ(10, v.capacity());
         EXPECT_TRUE(v.empty());
         EXPECT_EQ(0, v.size());
@@ -380,7 +420,10 @@ TEST(TestVector, moveOnlyTypes) {
 TEST(TestVector, toArray_MoveOnlyType) {
     ASSERT_EQ(0, MoveOnlyType::InstanceCount);
     {
-        auto v = makeVector<MoveOnlyType>(4);
+		auto maybeVec = makeVector<MoveOnlyType>(4);
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         v.emplace_back(7);
         v.emplace_back(5);
         v.emplace_back(3);
@@ -409,7 +452,10 @@ TEST(TestVector, toArray) {
     ASSERT_EQ(0, SometimesConstructable::InstanceCount);
     SometimesConstructable::BlowUpEveryInstance = 4*2 + 1;
     {
-        auto v = makeVectorOf<SometimesConstructable>(7, 5, 3, 1);
+		auto maybeVec = makeVectorOf<SometimesConstructable>(7, 5, 3, 1);
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
         EXPECT_EQ(4, v.capacity());
         EXPECT_FALSE(v.empty());
         EXPECT_EQ(4, v.size());

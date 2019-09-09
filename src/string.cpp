@@ -28,14 +28,18 @@ const String String::Empty{};
 
 Result<String, Error>
 Solace::makeString(StringView str) {
-	auto buffer = getSystemHeapMemoryManager().allocate(str.size() * sizeof(StringView::value_type));    // May throw
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(str.size() * sizeof(StringView::value_type));    // May throw
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
 
     // Copy string view content into a new buffer
-	auto writeResult = buffer.view().write(str.view());
-	if (!writeResult)
-		return writeResult.getError();
+	auto writeResult = maybeBuffer.unwrap().view().write(str.view());
+	if (!writeResult) {
+		return writeResult.moveError();
+	}
 
-	return Ok(String{mv(buffer), str.size()});
+	return Ok(String{maybeBuffer.moveResult(), str.size()});
 }
 
 
@@ -52,21 +56,25 @@ Solace::makeString(StringLiteral literal) noexcept {
 Result<String, Error>
 Solace::makeStringReplace(StringView str, String::value_type what, String::value_type with) {
     auto const totalStrLen = str.size();
-    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
-    auto bufferView = buffer.view();
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
 
-	auto writeResult = buffer.view().write(str.view());
-	if (!writeResult)
+	auto bufferView = maybeBuffer.unwrap().view();
+	auto writeResult = bufferView.write(str.view());
+	if (!writeResult) {
 		return writeResult.getError();
+	}
 
-    for (StringView::size_type to = 0; to < totalStrLen; ++to) {
-        auto offsetValue = bufferView.dataAs<StringView::value_type>(to);
+	for (String::size_type i = 0; i < totalStrLen; ++i) {
+		auto offsetValue = bufferView.dataAs<String::value_type>(i);
         if (*offsetValue == what) {
             *offsetValue = with;
         }
     }
 
-	return Ok(String{ mv(buffer), totalStrLen });
+	return Ok(String{ maybeBuffer.moveResult(), totalStrLen });
 }
 
 
@@ -87,8 +95,8 @@ Result<String, Error> Solace::makeStringReplace(StringView str, StringView what,
     // Note:  srcStrLen >= delimLength*delimCount. Thus this should not overflow.
     auto const newStrLen = narrow_cast<StringView::size_type>(srcStrLen + byLen * delimCount - delimLength*delimCount);
 
-    auto buffer = getSystemHeapMemoryManager().allocate(newStrLen * sizeof(StringView::value_type));    // May throw
-    auto writer = ByteWriter(buffer.view());
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(newStrLen * sizeof(StringView::value_type));
+	auto writer = ByteWriter{maybeBuffer.unwrap().view()};
 
     StringView::size_type from = 0;
     for (StringView::size_type to = 0; to < srcStrLen && to + delimLength <= srcStrLen; ++to) {
@@ -108,7 +116,7 @@ Result<String, Error> Solace::makeStringReplace(StringView str, StringView what,
 		return result.moveError();
 	}
 
-	return Ok(String{ mv(buffer), newStrLen });
+	return Ok(String{ maybeBuffer.moveResult(), newStrLen });
 }
 
 
@@ -177,15 +185,19 @@ String::trim() const noexcept {
 
 
 /** Return jointed string from the given collection */
-Result<String, Error> Solace::makeStringJoin(StringView by, ArrayView<const String> list) {
+Result<String, Error>
+Solace::makeStringJoin(StringView by, ArrayView<const String> list) {
     auto totalStrLen = narrow_cast<StringView::size_type>(by.size() * (list.size() - 1));
     for (auto const& i : list) {
         totalStrLen += i.size();
     }
 
-    auto buffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
-    auto writer = ByteWriter(buffer.view());
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
 
+	auto writer = ByteWriter{maybeBuffer.unwrap().view()};
     // Copy string view content into a new buffer
     auto count = list.size();
     for (auto const& i : list) {
@@ -198,12 +210,13 @@ Result<String, Error> Solace::makeStringJoin(StringView by, ArrayView<const Stri
 
         if (count > 0) {
 			r = writer.write(by.view());
-			if (!r)
+			if (!r) {
 				return r.moveError();
+			}
 		}
     }
 
-	return Ok(String{ mv(buffer), totalStrLen });
+	return Ok(String{ maybeBuffer.moveResult(), totalStrLen });
 }
 
 

@@ -27,14 +27,17 @@ using namespace Solace;
 String
 Error::toString() const {
     auto const domain = getErrorDomain(_domain);
+	if (domain) {
+		return (*domain)->message(_code);
+	}
 
-    if (!domain) {
-        constexpr auto N = sizeof(AtomValue);
-        char buffer[sizeof(N) + 1] = {0};
-        atomToString(_domain, buffer);
+	// In case domain is not known:
+	constexpr auto N = sizeof(AtomValue);
+	char buffer[sizeof(N) + 1] = {0};
+	atomToString(_domain, buffer);
 
-        return makeString(StringView{buffer}, StringView{": "}, _tag);
-    }
-
-    return (*domain)->message(_code);
+	auto maybeString = makeString(StringView{buffer}, StringView{": "}, _tag);
+	return maybeString
+			? maybeString.moveResult()
+			: String{};
 }

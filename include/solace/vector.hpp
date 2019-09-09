@@ -342,26 +342,43 @@ constexpr Vector<T> makeVector(MemoryResource&& memory) noexcept {
 	return { mv(memory), 0 };
 }
 
+template<typename T>
+[[nodiscard]]
+constexpr
+Result<Vector<T>, Error> makeVector(MemoryResource&& memory, typename Vector<T>::size_type size) noexcept {
+	return {types::okTag, {mv(memory), size}};
+}
+
 /**
  * Vector factory method: create a vector on the heap with a specified capacity.
  * @return A newly constructed empty vector of the required capacity.
  */
 template<typename T>
 [[nodiscard]]
-Vector<T> makeVector(typename Vector<T>::size_type size) {
-    return makeVector<T>(getSystemHeapMemoryManager().allocate(size*sizeof(T)));
+Result<Vector<T>, Error>
+makeVector(typename Vector<T>::size_type size) noexcept {
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(size*sizeof(T));
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
+
+	return makeVector<T>(maybeBuffer.moveResult(), 0);
 }
 
 /** Construct a new vector from an array view */
 template <typename T>
 [[nodiscard]]
-Vector<T> makeVector(ArrayView<T const> array) {
-    auto buffer = getSystemHeapMemoryManager().allocate(array.size() * sizeof(T));           // May throw
-    auto dest = arrayView<T>(buffer.view());                            // No except
+Result<Vector<T>, Error> makeVector(ArrayView<T const> array) {
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(array.size() * sizeof(T));           // May throw
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
 
-    CopyConstructArray_<RemoveConst<T>, Decay<T*>, false>::apply(dest, array);    // May throw if copy-ctor throws
+	auto dest = arrayView<T>(maybeBuffer.unwrap().view());						// No except
 
-	return { mv(buffer), array.size() };                                 // No except
+	CopyConstructArray_<RemoveConst<T>, Decay<T*>, false>::apply(dest, array);  // May throw if copy-ctor throws
+
+	return makeVector<T>(maybeBuffer.moveResult(), array.size());
 }
 
 
@@ -370,7 +387,7 @@ Vector<T> makeVector(ArrayView<T const> array) {
 */
 template <typename T>
 [[nodiscard]]
-Vector<T> makeVector(Vector<T> const& other) {
+auto makeVector(Vector<T> const& other) {
     return makeVector(other.view());
 }
 
@@ -378,7 +395,7 @@ Vector<T> makeVector(Vector<T> const& other) {
 /** Construct a new vector from a C-style array */
 template <typename T>
 [[nodiscard]]
-Vector<T> makeVector(T const* carray, typename Vector<T>::size_type len) {
+auto makeVector(T const* carray, typename Vector<T>::size_type len) {
     return makeVector(arrayView(carray, len));
 }
 
@@ -389,18 +406,21 @@ Vector<T> makeVector(T const* carray, typename Vector<T>::size_type len) {
  */
 template <typename T>
 [[nodiscard]]
-Vector<T> makeVectorOf(std::initializer_list<T> list) {
+Result<Vector<T>, Error> makeVectorOf(std::initializer_list<T> list) {
     // FIXME: Should be checked cast
     auto const vectorSize = narrow_cast<typename Vector<T>::size_type>(list.size());
-    auto buffer = getSystemHeapMemoryManager().allocate(vectorSize * sizeof(T));  // May throw
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(vectorSize * sizeof(T));  // May throw
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
 
-    if (std::is_nothrow_copy_constructible<T>::value) {
-        auto pos = buffer.view().template dataAs<T>();
+	if constexpr (std::is_nothrow_copy_constructible<T>::value) {
+		auto pos = maybeBuffer.unwrap().view().template dataAs<T>();
         for (T const& i : list) {
             ctor(*pos++, i);
         }
     } else {
-        ExceptionGuard<T> guard(buffer.view().template dataAs<T>());
+		ExceptionGuard<T> guard{maybeBuffer.unwrap().view().template dataAs<T>()};
         for (T const& i : list) {
             ctor(*guard.pos, i);
             ++guard.pos;
@@ -408,7 +428,7 @@ Vector<T> makeVectorOf(std::initializer_list<T> list) {
         guard.release();
     }
 
-	return {mv(buffer), vectorSize};                                 // No except
+	return makeVector<T>(maybeBuffer.moveResult(), vectorSize);
 }
 
 
@@ -419,15 +439,19 @@ Vector<T> makeVectorOf(std::initializer_list<T> list) {
 template <typename T,
           typename...Args>
 [[nodiscard]]
-Vector<T> makeVectorOf(Args&&...args) {
+Result<Vector<T>, Error> makeVectorOf(Args&&...args) {
     using size_type = typename Vector<T>::size_type;
     auto const vectorSize = narrow_cast<size_type>(sizeof...(args));
-    auto buffer = getSystemHeapMemoryManager().allocate(vectorSize*sizeof(T));           // May throw
-    auto values = arrayView<T>(buffer.view());
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(vectorSize*sizeof(T));  // May throw
+	if (!maybeBuffer) {
+		return maybeBuffer.moveError();
+	}
+
+	auto values = arrayView<T>(maybeBuffer.unwrap().view());
 
 	values.emplaceAll(fwd<Args>(args)...);
 
-	return {mv(buffer), vectorSize};                                 // No except
+	return makeVector<T>(maybeBuffer.moveResult(), vectorSize);
 }
 
 

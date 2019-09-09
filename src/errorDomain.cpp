@@ -36,8 +36,12 @@ uint32 Solace::registerErrorDomain(AtomValue categoryId, ErrorDomain const& doma
     static byte kValuesBuffer[kNbErrorCategories * sizeof(ErrorDomain*)];
 
     if (kErrorDomainMap.capacity() == 0) {
-        kErrorDomainMap = makeDictionary<AtomValue, ErrorDomain const*>(
-            wrapMemory(kKeysBuffer), wrapMemory(kValuesBuffer));
+		auto maybeDict = makeDictionary<AtomValue, ErrorDomain const*>(
+					wrapMemory(kKeysBuffer), wrapMemory(kValuesBuffer));
+
+		if (maybeDict) {
+			kErrorDomainMap = maybeDict.moveResult();
+		}
     }
 
     kErrorDomainMap.put(categoryId, &domain);

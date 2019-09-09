@@ -77,7 +77,12 @@ Version::toString() const {
 	auto const buildStringSize = (build.empty() ? 0: StringBuilder::measure(BuildSeparator) + build.size());
 
 	auto const bufferSize = versionSize + releaseStringSize + buildStringSize + 1;
-	auto sb = StringBuilder{getSystemHeapMemoryManager().allocate(bufferSize)};
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(bufferSize);
+	if (!maybeBuffer) {
+		return String{};  // FIXME: Meybe this is the place to throw
+	}
+
+	auto sb = StringBuilder{maybeBuffer.moveResult()};
 	sb.append(majorNumber)
 			.append(NumberSeparator)
 			.append(minorNumber)

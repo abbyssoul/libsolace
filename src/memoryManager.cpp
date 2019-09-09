@@ -19,7 +19,7 @@
  *	@brief		Implementation of MemoryManger
  ******************************************************************************/
 #include "solace/memoryManager.hpp"
-
+#include "solace/posixErrorDomain.hpp"
 
 #include <unistd.h>
 #include <cstdlib>
@@ -91,16 +91,24 @@ void MemoryManager::free(MemoryView* view) {
 }
 
 
-MemoryResource
-MemoryManager::allocate(size_type dataSize) {
-    assertIndexInRange(dataSize, 0, limit() + 1, "dataSize");
-    assertTrue(!isLocked(), "Cannot allocate memory block: allocator is locked.");
+Result<MemoryResource, Error>
+MemoryManager::allocate(size_type nbBytes) noexcept {
+	if (limit() < nbBytes) {
+		return makeError(GenericError::NOMEM, "allocate dataSize");
+	}
 
-    auto data = ::malloc(dataSize);
+	if (isLocked()) {
+		return makeError(GenericError::PERM, "locked");
+	}
 
-    _size += dataSize;
+	auto data = ::malloc(nbBytes);
+	if (!data && nbBytes) {
+		return makeError(GenericError::NOMEM, "malloc failed");
+	}
 
-    return {wrapMemory(data, dataSize), &_disposer};
+	_size += nbBytes;
+
+	return {types::okTag, {wrapMemory(data, nbBytes), &_disposer}};
 }
 
 
@@ -108,7 +116,7 @@ void MemoryManager::lock() {
     _isLocked = true;
 }
 
-bool MemoryManager::isLocked() const {
+bool MemoryManager::isLocked() const noexcept{
     return _isLocked;
 }
 

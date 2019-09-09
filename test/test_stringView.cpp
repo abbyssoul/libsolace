@@ -33,11 +33,9 @@ using array_size_t = ArrayView<StringView>::size_type;
 
 TEST(TestStringView, testConstructionFromNull) {
     const char* nullCString = nullptr;
+	EXPECT_TRUE(StringView(nullCString, 0).empty());
+	EXPECT_TRUE(StringView{nullCString}.empty());
 
-    auto const s1 = StringView(nullCString, 0);
-    EXPECT_TRUE(s1.empty());
-
-    EXPECT_NO_THROW(StringView{nullCString});
     EXPECT_THROW(StringView nullString(nullCString, 16), Exception);
 }
 

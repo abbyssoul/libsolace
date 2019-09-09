@@ -33,7 +33,7 @@ public:
     MemoryManager _memoryManager;
 
     StringBuilder moveMe() {
-        return { _memoryManager.allocate(strlen(someConstString)), someConstString };
+		return { _memoryManager.allocate(strlen(someConstString)).unwrap(), someConstString };
 	}
 
 public:
@@ -46,7 +46,9 @@ public:
 
 
 TEST_F(TestStringBuilder, testNullString) {
-    EXPECT_NO_THROW(StringBuilder(_memoryManager.allocate(5), nullptr));
+	auto mem = _memoryManager.allocate(5);
+	ASSERT_TRUE(mem.isOk());
+	EXPECT_NO_THROW(StringBuilder(mem.moveResult(), nullptr));
 }
 
 /**
@@ -56,35 +58,44 @@ TEST_F(TestStringBuilder, testConstruction) {
     const StringView constStr { someConstString };
 
     {   // empty buffer usage
-        const StringBuilder empty(_memoryManager.allocate(0));  // No throw?
+		auto mem = _memoryManager.allocate(0);
+		ASSERT_TRUE(mem.isOk());
+		StringBuilder const empty{mem.moveResult()};
 
         EXPECT_TRUE(empty.empty());
         EXPECT_TRUE(empty.toString().empty());
     }
 
     {   // Empty string post-conditions
-        const StringBuilder empty(_memoryManager.allocate(2 * constStr.size()));  // No throw?
+		auto mem = _memoryManager.allocate(2 * constStr.size());
+		ASSERT_TRUE(mem.isOk());
+		StringBuilder const empty{mem.moveResult()};  // No throw?
 
         EXPECT_TRUE(empty.empty());
         EXPECT_TRUE(empty.toString().empty());
     }
 
     {
-        const StringBuilder sb(_memoryManager.allocate(strlen(someConstString)), someConstString);
+		auto mem = _memoryManager.allocate(strlen(someConstString));
+		ASSERT_TRUE(mem.isOk());
+
+		StringBuilder const sb{mem.moveResult(), someConstString};
 
         EXPECT_TRUE(!sb.empty());
         EXPECT_EQ(constStr, sb.view());
     }
 
     {
-        const StringBuilder sb(_memoryManager.allocate(2 * constStr.size()), constStr);
+		auto mem = _memoryManager.allocate(2 * constStr.size());
+		ASSERT_TRUE(mem.isOk());
+		StringBuilder const sb{mem.moveResult(), constStr};
 
         EXPECT_TRUE(!sb.empty());
         EXPECT_EQ(constStr, sb.view());
     }
 
     {  // Test move construction
-        const StringBuilder sb = moveMe();
+		StringBuilder const sb = moveMe();
 
         EXPECT_TRUE(!sb.empty());
         EXPECT_EQ(constStr, sb.view());
@@ -95,7 +106,10 @@ TEST_F(TestStringBuilder, testConstruction) {
     * Test toString conversion
     */
 TEST_F(TestStringBuilder, testToString) {
-    const StringBuilder ident(_memoryManager.allocate(strlen(someConstString)), someConstString);
+	auto mem = _memoryManager.allocate(strlen(someConstString));
+	ASSERT_TRUE(mem.isOk());
+
+	StringBuilder const ident{mem.moveResult(), someConstString};
 
     auto const str = ident.toString();
 

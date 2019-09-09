@@ -30,7 +30,7 @@ const StringView ParentRef("..");
 
 
 Path makeRoot() {
-	auto root = makePath(StringLiteral{""});
+	auto root = makePath(StringView{""});
 	return root.isOk()
 			? root.moveResult()
 			: Path{};
@@ -39,21 +39,36 @@ Path makeRoot() {
 const Path Path::Root = makeRoot();
 
 
-Result<Path, Error> Solace::makePath(StringView str) {
+Result<Path, Error>
+Solace::makePath(StringView str) {
 	auto maybeString = makeString(str);
-	if (maybeString)
-		return Ok(makePath(makeArrayOf<String>(maybeString.moveResult())));
+	if (!maybeString) {
+		return maybeString.moveError();
+	}
 
-	return maybeString.moveError();
+	auto maybeArray = makeArrayOf<String>(maybeString.moveResult());
+	if (!maybeArray) {
+		return maybeArray.moveError();
+	}
+
+	return Ok(makePath(maybeArray.moveResult()));
 }
 
 
 Result<Path, Error>
 Path::parse(StringView str, StringView delim) {
+	Optional<Error> maybeError{};
     Vector<String> nonEmptyComponents;
     str.split(delim, [&](StringView c, StringView::size_type i, StringView::size_type count) {
+		if (maybeError) return;
+
         if (nonEmptyComponents.capacity() == 0 && count != 0) {
-            nonEmptyComponents = makeVector<String>(count);
+			auto maybeComponents = makeVector<String>(count);
+			if (maybeComponents) {
+				nonEmptyComponents = maybeComponents.moveResult();
+			} else {
+				maybeError = maybeComponents.moveError();
+			}
         }
 
         if (i + 1 == count && c.empty()) {
@@ -63,8 +78,14 @@ Path::parse(StringView str, StringView delim) {
 		auto r = makeString(c);
 		if (r) {
 			nonEmptyComponents.emplace_back(r.moveResult());
+		} else {
+			maybeError = r.moveError();
 		}
     });
+
+	if (maybeError) {
+		return maybeError.move();
+	}
 
     if (nonEmptyComponents.empty()) {
 		nonEmptyComponents.emplace_back(String{});
@@ -215,8 +236,12 @@ Path::isRelative() const noexcept {
 Path
 Path::normalize() const {
     // FIXME(abbyssoul): Dynamic memory re-allocation!!!
-    auto components = makeVector<String>(_components.size());   // Assumption: we don't make path any longer
+	auto maybeComponents = makeVector<String>(_components.size());   // Assumption: we don't make path any longer
+	if (!maybeComponents) {
+		return Path{};  // fixme, maybe return a view or an error
+	}
 
+	auto& components = maybeComponents.unwrap();
     for (auto const& c : _components) {
         if (c.equals(SelfRef)) {            // Skip '.' entries
             continue;
@@ -230,7 +255,7 @@ Path::normalize() const {
         }
     }
 
-    return Path(components.toArray());
+	return Path{components.toArray()};
 }
 
 
@@ -238,11 +263,19 @@ Path
 Path::getParent() const {
     auto const nbComponents = _components.size();
     if (nbComponents < 2) {
-        return {makeArray<String>(_components)};  // Copy components vector
+		auto maybeArray = makeArray<String>(_components);  // Copy components vector
+		return maybeArray
+				? Path{maybeArray.moveResult()}
+				: Path{};
     }
 
     auto const nbBaseComponents = nbComponents - 1;
-    auto basePath = makeVector<String>(nbBaseComponents);
+	auto maybeBasePath = makeVector<String>(nbBaseComponents);
+	if (!maybeBasePath) {
+		return Path{};
+	}
+
+	auto& basePath = maybeBasePath.unwrap();
     // TODO(abbyssoul): Should use array copy
     for (size_type i = 0; i < nbBaseComponents; ++i) {
 		auto r = makeString(_components[i]);
@@ -251,7 +284,7 @@ Path::getParent() const {
 		}
     }
 
-    return Path(basePath.toArray());
+	return Path{basePath.toArray()};
 }
 
 
@@ -279,7 +312,8 @@ Path::subpath(size_type from, size_type to) const noexcept {
     from = std::min(from, nbComponent);
     to = std::max(from, std::min(to, nbComponent));
 
-    auto components = makeVector<String>(to - from);
+	auto maybeComponenets = makeVector<String>(to - from);
+	auto& components = maybeComponenets.unwrap();
     for (size_type i = from; i < to; ++i) {
 		auto r = makeString(_components[i]);
 		if (r) {

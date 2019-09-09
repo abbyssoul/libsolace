@@ -168,14 +168,16 @@ TEST_F(TestArray, testMove) {
     Array<int> a1;
     EXPECT_TRUE(a1.empty());
 
-    auto a2 = makeArray<int>(20);
-    EXPECT_TRUE(!a2.empty());
+	auto maybeArrya = makeArray<int>(20);
+	ASSERT_TRUE(maybeArrya.isOk());
+
+	auto& a2 = maybeArrya.unwrap();
+	EXPECT_FALSE(a2.empty());
     for (Array<int>::size_type i = 0; i < a2.size(); ++i) {
         a2[i] = static_cast<int>(2*i) - 1;
     }
 
-	a1 = mv(a2);
-
+	a1 = maybeArrya.moveResult();
     EXPECT_TRUE(!a1.empty());
     EXPECT_TRUE(a2.empty());
 
@@ -190,8 +192,10 @@ TEST_F(TestArray, testBasics) {
         EXPECT_EQ(0U, i);
     }
 
-    auto array = makeArray<uint>(TEST_SIZE_0);
+	auto maybeArray = makeArray<uint>(TEST_SIZE_0);
+	ASSERT_TRUE(maybeArray.isOk());
 
+	auto& array = maybeArray.unwrap();
     EXPECT_TRUE(!array.empty());
     EXPECT_EQ(TEST_SIZE_0, array.size());
 
@@ -215,9 +219,11 @@ TEST_F(TestArray, testBasics) {
 }
 
 TEST_F(TestArray, testString) {
-    auto array = makeArray<std::string>(TEST_SIZE_0);
+	auto maybeArray = makeArray<std::string>(TEST_SIZE_0);
+	ASSERT_TRUE(maybeArray.isOk());
 
-    EXPECT_TRUE(!array.empty());
+	auto& array = maybeArray.unwrap();
+	EXPECT_TRUE(!array.empty());
     EXPECT_EQ(TEST_SIZE_0, array.size());
 
     std::string empty;
@@ -242,7 +248,10 @@ TEST_F(TestArray, testString) {
 TEST_F(TestArray, testNonPods) {
     EXPECT_EQ(0, NonPodStruct::TotalCount);
     {
-        auto array = makeArray<NonPodStruct>(TEST_SIZE_1);
+		auto maybeArray = makeArray<NonPodStruct>(TEST_SIZE_1);
+		ASSERT_TRUE(maybeArray.isOk());
+
+		auto& array = maybeArray.unwrap();
 
         EXPECT_EQ(TEST_SIZE_1, array.size());
         EXPECT_EQ(static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount), array.size());
@@ -274,8 +283,10 @@ TEST_F(TestArray, testNonPods) {
 TEST_F(TestArray, testInitializerList) {
     {
         const int native_array[] = {0, 1, 2, 3};
-        auto const array = makeArrayOf<int>(0, 1, 2, 3);
+		auto const maybeArray = makeArrayOf<int>(0, 1, 2, 3);
+		ASSERT_TRUE(maybeArray.isOk());
 
+		auto& array = maybeArray.unwrap();
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
@@ -285,8 +296,10 @@ TEST_F(TestArray, testInitializerList) {
 
     {
         const StringLiteral native_array[] = {"Abc", "", "dfe", "_xyz3"};
-        auto const array = makeArrayOf<StringView>("Abc", "", "dfe", "_xyz3");
+		auto const maybeArray = makeArrayOf<StringView>("Abc", "", "dfe", "_xyz3");
+		ASSERT_TRUE(maybeArray.isOk());
 
+		auto& array = maybeArray.unwrap();
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
@@ -305,11 +318,14 @@ TEST_F(TestArray, testInitializerList) {
         EXPECT_EQ(nativeArrayLength(native_array),
                                 static_cast<Array<NonPodStruct>::size_type>(NonPodStruct::TotalCount));
 
-        auto const array = makeArrayOf<NonPodStruct> (
+		auto const maybeArray = makeArrayOf<NonPodStruct> (
                 NonPodStruct(0, "yyyz"),
                 NonPodStruct(),
                 NonPodStruct(-321, "yyx"),
                 NonPodStruct(990, "x^hhf"));
+		ASSERT_TRUE(maybeArray.isOk());
+
+		auto& array = maybeArray.unwrap();
 
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
         EXPECT_EQ(nativeArrayLength(native_array) + array.size(),
@@ -328,8 +344,10 @@ TEST_F(TestArray, testFromNativeConvertion) {
 
     {
         const int native_array[] = {0, 1, 2, 3};
-        auto const array = makeArray<int>(nativeArrayLength(native_array), native_array);
+		auto const maybeArray = makeArray<int>(nativeArrayLength(native_array), native_array);
+		ASSERT_TRUE(maybeArray.isOk());
 
+		auto& array = maybeArray.unwrap();
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
@@ -339,8 +357,10 @@ TEST_F(TestArray, testFromNativeConvertion) {
 
     {
         const std::string native_array[] = {"Abc", "", "dfe", "_xyz3"};
-        auto const array = makeArray<std::string>(nativeArrayLength(native_array), native_array);
+		auto const maybeArray = makeArray<std::string>(nativeArrayLength(native_array), native_array);
+		ASSERT_TRUE(maybeArray.isOk());
 
+		auto& array = maybeArray.unwrap();
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
@@ -355,8 +375,10 @@ TEST_F(TestArray, testFromNativeConvertion) {
                 NonPodStruct(-321, "yyx"),
                 NonPodStruct(990, "x^hhf")
         };
-        auto const array = makeArray<NonPodStruct>(nativeArrayLength(native_array), native_array);
+		auto const maybeArray = makeArray<NonPodStruct>(nativeArrayLength(native_array), native_array);
+		ASSERT_TRUE(maybeArray.isOk());
 
+		auto& array = maybeArray.unwrap();
         EXPECT_EQ(nativeArrayLength(native_array), array.size());
 
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
@@ -370,12 +392,15 @@ TEST_F(TestArray, testFromNativeConvertion) {
 TEST_F(TestArray, testMoveAssignment) {
     {
         // Test on integral types
-        Array<int> array;
+		Array<int> array{};
 
         EXPECT_TRUE(array.empty());
         EXPECT_EQ(ZERO, array.size());
 
-        array = makeArrayOf<int>(1, 2, 3);
+		auto maybeArray = makeArrayOf<int>(1, 2, 3);
+		ASSERT_TRUE(maybeArray.isOk());
+
+		array = maybeArray.moveResult();
         EXPECT_TRUE(!array.empty());
         const int src1[] = {1, 2, 3};
 
@@ -386,10 +411,13 @@ TEST_F(TestArray, testMoveAssignment) {
     }
 
     {   // Test on strings types
-        Array<std::string> array;
+		Array<std::string> array{};
         EXPECT_TRUE(array.empty());
 
-        array = makeArrayOf<std::string>("tasrd", "", "hhha", "asd");
+		auto maybeArray = makeArrayOf<std::string>("tasrd", "", "hhha", "asd");
+		ASSERT_TRUE(maybeArray.isOk());
+
+		array = maybeArray.moveResult();
         EXPECT_TRUE(!array.empty());
 
         std::string const src[] = {"tasrd", "", "hhha", "asd"};
@@ -400,7 +428,7 @@ TEST_F(TestArray, testMoveAssignment) {
     }
 
     {   // Test on non-pod types
-        Array<NonPodStruct> array;
+		Array<NonPodStruct> array{};
         const NonPodStruct src[] = {
                 NonPodStruct(0, "yyyz"),
                 NonPodStruct(),
@@ -409,11 +437,14 @@ TEST_F(TestArray, testMoveAssignment) {
         };
         EXPECT_TRUE(array.empty());
 
-        array = makeArrayOf<NonPodStruct>(
-                    NonPodStruct(0, "yyyz"),
-                    NonPodStruct(),
-                    NonPodStruct(-321, "yyx"),
-                    NonPodStruct(990, "x^hhf"));
+		auto maybeArray = makeArrayOf<NonPodStruct>(
+					NonPodStruct(0, "yyyz"),
+					NonPodStruct(),
+					NonPodStruct(-321, "yyx"),
+					NonPodStruct(990, "x^hhf"));
+		ASSERT_TRUE(maybeArray.isOk());
+
+		array = maybeArray.moveResult();
         EXPECT_TRUE(!array.empty());
         EXPECT_EQ(4, array.size());
 
@@ -426,7 +457,10 @@ TEST_F(TestArray, testMoveAssignment) {
 
 TEST_F(TestArray, testEquals) {
     {
-        auto const array = makeArrayOf<int>(1, 2, 3);
+		auto const maybeArray = makeArrayOf<int>(1, 2, 3);
+		ASSERT_TRUE(maybeArray.isOk());
+
+		auto& array = maybeArray.unwrap();
 
         const int equal_native_array[] = {1, 2, 3};
         auto const equal_native_array_length = nativeArrayLength(equal_native_array);
@@ -441,6 +475,11 @@ TEST_F(TestArray, testEquals) {
         auto const array_neq_0 = makeArray<int>(nequal_native_array_0_length, nequal_native_array_0);
         auto const array_neq_1 = makeArray<int>(nequal_native_array_1_length, nequal_native_array_1);
 
+		ASSERT_TRUE(array_eq.isOk());
+		ASSERT_TRUE(array_neq_0.isOk());
+		ASSERT_TRUE(array_neq_1.isOk());
+
+
         EXPECT_EQ(equal_native_array_length, array.size());
         EXPECT_TRUE(nequal_native_array_0_length != array.size());
         EXPECT_TRUE(nequal_native_array_1_length == array.size());
@@ -449,22 +488,25 @@ TEST_F(TestArray, testEquals) {
         EXPECT_TRUE(!array.equals({3, 2, 3}));
         EXPECT_TRUE(!array.equals({1, 2, 3, 4}));
 
-        EXPECT_TRUE(array.equals(array_eq));
-        EXPECT_TRUE(!array.equals(array_neq_0));
-        EXPECT_TRUE(!array.equals(array_neq_1));
+		EXPECT_TRUE(array.equals(*array_eq));
+		EXPECT_TRUE(!array.equals(*array_neq_0));
+		EXPECT_TRUE(!array.equals(*array_neq_1));
 
-        EXPECT_EQ(true, array == array_eq);
-        EXPECT_EQ(false, array != array_eq);
+		EXPECT_EQ(true, array == *array_eq);
+		EXPECT_EQ(false, array != *array_eq);
 
-        EXPECT_EQ(false, array == array_neq_0);
-        EXPECT_EQ(true, array != array_neq_0);
+		EXPECT_EQ(false, array == *array_neq_0);
+		EXPECT_EQ(true, array != *array_neq_0);
 
-        EXPECT_EQ(false, array == array_neq_1);
-        EXPECT_EQ(true, array != array_neq_1);
+		EXPECT_EQ(false, array == *array_neq_1);
+		EXPECT_EQ(true, array != *array_neq_1);
     }
 
     {
-        auto const array = makeArrayOf<std::string>("tasrd", "", "hhha", "asd");
+		auto const maybeArray = makeArrayOf<std::string>("tasrd", "", "hhha", "asd");
+		ASSERT_TRUE(maybeArray.isOk());
+
+		auto& array = maybeArray.unwrap();
 
         const std::string equal_native_array[] = {"tasrd", "", "hhha", "asd"};
         auto const equal_native_array_length = nativeArrayLength(equal_native_array);
@@ -475,9 +517,16 @@ TEST_F(TestArray, testEquals) {
         const std::string nequal_native_array_1[] = {"tasrd", "", "hhha", "basd"};
         auto const nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
-        auto const array_eq = makeArray<std::string>(equal_native_array_length, equal_native_array);
-        auto const array_neq_0 = makeArray<std::string>(nequal_native_array_0_length, nequal_native_array_0);
-        auto const array_neq_1 = makeArray<std::string>(nequal_native_array_1_length, nequal_native_array_1);
+		auto const marray_eq = makeArray<std::string>(equal_native_array_length, equal_native_array);
+		auto const marray_neq_0 = makeArray<std::string>(nequal_native_array_0_length, nequal_native_array_0);
+		auto const marray_neq_1 = makeArray<std::string>(nequal_native_array_1_length, nequal_native_array_1);
+		ASSERT_TRUE(marray_eq.isOk());
+		ASSERT_TRUE(marray_neq_0.isOk());
+		ASSERT_TRUE(marray_neq_1.isOk());
+
+		auto& array_eq = marray_eq.unwrap();
+		auto& array_neq_0 = marray_neq_0.unwrap();
+		auto& array_neq_1 = marray_neq_0.unwrap();
 
         EXPECT_EQ(equal_native_array_length, array.size());
         EXPECT_TRUE(nequal_native_array_0_length != array.size());
@@ -502,11 +551,12 @@ TEST_F(TestArray, testEquals) {
     }
 
     {
-        auto const array = makeArrayOf<NonPodStruct>(
+		auto const maybeArray = makeArrayOf<NonPodStruct>(
                 NonPodStruct(0, "yyyz"),
                 NonPodStruct(),
                 NonPodStruct(-321, "yyx"),
                 NonPodStruct(990, "x^hhf"));
+		ASSERT_TRUE(maybeArray.isOk());
 
         const NonPodStruct equal_native_array[] = {
                 NonPodStruct(0, "yyyz"),
@@ -533,11 +583,18 @@ TEST_F(TestArray, testEquals) {
 
         auto const nequal_native_array_1_length = nativeArrayLength(nequal_native_array_1);
 
-        auto const array_eq = makeArray<NonPodStruct>(equal_native_array_length, equal_native_array);
-        auto const array_neq_0 = makeArray<NonPodStruct>(nequal_native_array_0_length, nequal_native_array_0);
-        auto const array_neq_1 = makeArray<NonPodStruct>(nequal_native_array_1_length, nequal_native_array_1);
+		auto const marray_eq = makeArray<NonPodStruct>(equal_native_array_length, equal_native_array);
+		auto const marray_neq_0 = makeArray<NonPodStruct>(nequal_native_array_0_length, nequal_native_array_0);
+		auto const marray_neq_1 = makeArray<NonPodStruct>(nequal_native_array_1_length, nequal_native_array_1);
+		ASSERT_TRUE(marray_eq.isOk());
+		ASSERT_TRUE(marray_neq_0.isOk());
+		ASSERT_TRUE(marray_neq_1.isOk());
+		auto& array_eq = marray_eq.unwrap();
+		auto& array_neq_0 = marray_neq_0.unwrap();
+		auto& array_neq_1 = marray_neq_0.unwrap();
 
-        EXPECT_EQ(equal_native_array_length, array.size());
+		auto& array = maybeArray.unwrap();
+		EXPECT_EQ(equal_native_array_length, array.size());
         EXPECT_TRUE(nequal_native_array_0_length != array.size());
         EXPECT_TRUE(nequal_native_array_1_length != array.size());
 
@@ -564,16 +621,31 @@ TEST_F(TestArray, testEquals) {
 }
 
 TEST_F(TestArray, testIndexOf) {
-    // TODO(abbyssoul): Implementation
+	auto const maybeArray = makeArrayOf<int>(1, 2, 3);
+	ASSERT_TRUE(maybeArray.isOk());
+
+	auto& array = maybeArray.unwrap();
+
+	auto maybeIndex1 = array.indexOf(2);
+	EXPECT_TRUE(maybeIndex1.isSome());
+	EXPECT_EQ(1, maybeIndex1.get());
+
+	EXPECT_TRUE(array.indexOf(42).isNone());
 }
 
 TEST_F(TestArray, testContains) {
-    // TODO(abbyssoul): Implementation
+	auto const maybeArray = makeArrayOf<int>(1, 2, 3);
+	ASSERT_TRUE(maybeArray.isOk());
+
+	auto& array = maybeArray.unwrap();
+	EXPECT_TRUE(array.contains(1));
+	EXPECT_TRUE(array.contains(2));
+	EXPECT_TRUE(array.contains(3));
+
+	EXPECT_FALSE(array.contains(42));
+	EXPECT_FALSE(array.contains(4));
 }
 
-TEST_F(TestArray, testExtend) {
-    // TODO(abbyssoul): Implementation
-}
 
 
 /*
@@ -601,7 +673,10 @@ TEST_F(TestArray, testFill) {
 */
 
 TEST_F(TestArray, testForEach_byValue) {
-    auto const array = makeArrayOf<int>(1, 2, 3, 4, 5, 6);
+	auto const maybeArray = makeArrayOf<int>(1, 2, 3, 4, 5, 6);
+	ASSERT_TRUE(maybeArray.isOk());
+
+	auto& array = maybeArray.unwrap();
 
     int acc = 0;
     array.forEach([&acc](int x) {
@@ -613,7 +688,10 @@ TEST_F(TestArray, testForEach_byValue) {
 }
 
 TEST_F(TestArray, testForEach_byConstRef) {
-    auto const array = makeArrayOf<std::string>("Hello", " ", "world", "!");
+	auto const maybeArray = makeArrayOf<std::string>("Hello", " ", "world", "!");
+	ASSERT_TRUE(maybeArray.isOk());
+
+	auto& array = maybeArray.unwrap();
 
     std::string acc;
     array.forEach([&acc](const std::string& x) {
@@ -624,7 +702,10 @@ TEST_F(TestArray, testForEach_byConstRef) {
 }
 
 TEST_F(TestArray, testForEach_byValueConversion) {
-    auto const array = makeArrayOf<int>(1, 2, 3, 4, 5, 6);
+	auto const maybeArray = makeArrayOf<int>(1, 2, 3, 4, 5, 6);
+	ASSERT_TRUE(maybeArray.isOk());
+
+	auto& array = maybeArray.unwrap();
 
     double acc = 0;
     array.forEach([&acc](double x) {
@@ -635,8 +716,11 @@ TEST_F(TestArray, testForEach_byValueConversion) {
 }
 
 TEST_F(TestArray, testForEachIndexed) {
-    auto const array = makeArrayOf<int>(1, 2, 3, 4, 5, 6);
-    bool allEq = true;
+	auto const maybeArray = makeArrayOf<int>(1, 2, 3, 4, 5, 6);
+	ASSERT_TRUE(maybeArray.isOk());
+
+	auto& array = maybeArray.unwrap();
+	bool allEq = true;
 
     array.forEach([&allEq](Array<int>::size_type i, Array<int>::size_type x) {
         allEq &= (i + 1 == x);
@@ -688,7 +772,10 @@ TEST_F(TestArray, testDeallocationWhenElementConstructorThrows) {
 
 
 TEST_F(TestArray, testSet) {
-    auto array = makeArrayOf<int>(1, 2, 3, 4, 5, 6);
+	auto maybeArray = makeArrayOf<int>(1, 2, 3, 4, 5, 6);
+	ASSERT_TRUE(maybeArray.isOk());
+
+	auto& array = maybeArray.unwrap();
 
     int acc = 6;
 
@@ -704,9 +791,10 @@ TEST_F(TestArray, testSet) {
 }
 
 TEST_F(TestArray, settingOutOfBoundsThrows) {
-    auto array = makeArray<int>(5);
+	auto maybeArray = makeArray<int>(5);
+	ASSERT_TRUE(maybeArray.isOk());
 
-    EXPECT_ANY_THROW(array.set(16, []() { return 321; }));
+	EXPECT_ANY_THROW(maybeArray.unwrap().set(16, []() { return 321; }));
 }
 
 const Array<int>::size_type TestArray::ZERO = 0;
