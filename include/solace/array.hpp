@@ -366,7 +366,7 @@ template <typename T>
 [[nodiscard]]
 constexpr
 Result<Array<T>, Error> makeArray(MemoryResource&& mem, typename Array<T>::size_type initialSize) noexcept {
-	return {types::okTag, {mv(mem), initialSize}};
+	return {types::okTag, in_place, mv(mem), initialSize};
 }
 
 /** Construct a default-initialized array of T of a given fixed size */

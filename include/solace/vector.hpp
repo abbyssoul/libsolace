@@ -346,7 +346,7 @@ template<typename T>
 [[nodiscard]]
 constexpr
 Result<Vector<T>, Error> makeVector(MemoryResource&& memory, typename Vector<T>::size_type size) noexcept {
-	return {types::okTag, {mv(memory), size}};
+	return {types::okTag, in_place, mv(memory), size};
 }
 
 /**

@@ -116,7 +116,7 @@ constexpr Dictionary<K, V> makeDictionary() noexcept {
 template<typename K, typename V>
 [[nodiscard]]
 Result<Dictionary<K, V>, Error> makeDictionary(Vector<K>&& keys, Vector<V>&& values) noexcept {
-	return {types::okTag, {mv(keys), mv(values)}};
+	return {types::okTag, in_place, mv(keys), mv(values)};
 }
 
 /**

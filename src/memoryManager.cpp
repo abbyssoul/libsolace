@@ -108,7 +108,7 @@ MemoryManager::allocate(size_type nbBytes) noexcept {
 
 	_size += nbBytes;
 
-	return {types::okTag, {wrapMemory(data, nbBytes), &_disposer}};
+	return {types::okTag, in_place, wrapMemory(data, nbBytes), &_disposer};
 }
 
 

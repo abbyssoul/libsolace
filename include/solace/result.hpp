@@ -283,6 +283,8 @@ public:
         , _engaged{true}
     {}
 
+
+
     constexpr Result(types::ErrTag, E const& value) noexcept(std::is_nothrow_copy_constructible<E>::value)
         : _error{value}
         , _engaged{false}
@@ -292,6 +294,19 @@ public:
         : _error{mv(value)}
         , _engaged{false}
     {}
+
+
+	template<typename...Args>
+	constexpr Result(types::OkTag, InPlace, Args&&...args)
+		: _value{fwd<Args>(args)...}
+		, _engaged{true}
+	{}
+
+	template<typename...Args>
+	constexpr Result(types::ErrTag, InPlace, Args&&...args)
+		: _error{fwd<Args>(args)...}
+		, _engaged{false}
+	{}
 
 
 	template<typename TE,
@@ -681,6 +696,10 @@ public:
         : _maybeError{}
     {}
 
+	constexpr Result(types::OkTag, InPlace) noexcept
+		: _maybeError{}
+	{}
+
     constexpr Result(types::ErrTag, E const& value) noexcept(std::is_nothrow_copy_constructible<E>::value)
         : _maybeError{value}
     {}
@@ -688,6 +707,11 @@ public:
     constexpr Result(types::ErrTag, E&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
         : _maybeError{mv(value)}
     {}
+
+	template<typename...Args>
+	constexpr Result(types::ErrTag, InPlace t, Args&&...args)
+		: _maybeError{t, fwd<Args>(args)...}
+	{}
 
 public:
 

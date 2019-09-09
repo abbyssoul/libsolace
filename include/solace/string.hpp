@@ -474,7 +474,7 @@ inline String* ctor(String& location, String const& s) {
 
 inline Result<String, Error>
 makeString(MemoryResource&& mem, String::size_type size) noexcept {
-	return {types::okTag, {mv(mem), size}};
+	return {types::okTag, in_place, mv(mem), size};
 }
 
 inline constexpr

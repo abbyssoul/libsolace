@@ -654,6 +654,38 @@ TEST_F(TestResult, testErrorCoersion) {
 	EXPECT_EQ(result.getError(), expectedErrorValue);
 }
 
+TEST_F(TestResult, test_inpace_construtor) {
+
+	{
+		Result<SimpleType, int> res{types::okTag, in_place, 3, 42, -118};
+		EXPECT_TRUE(res.isOk());
+		EXPECT_EQ(3, res.unwrap().x);
+		EXPECT_EQ(42, res.unwrap().y);
+		EXPECT_EQ(-118, res.unwrap().z);
+	}
+
+	{
+		Result<int, SimpleType> errs{types::errTag, in_place, -88, 21, 7};
+		EXPECT_TRUE(errs.isError());
+		EXPECT_EQ(-88, errs.getError().x);
+		EXPECT_EQ(21, errs.getError().y);
+		EXPECT_EQ(7, errs.getError().z);
+	}
+
+	{
+		Result<void, SimpleType> v{types::errTag, in_place, 827, -12, 56};
+		EXPECT_TRUE(v.isError());
+		EXPECT_EQ(827, v.getError().x);
+		EXPECT_EQ(-12, v.getError().y);
+		EXPECT_EQ(56, v.getError().z);
+	}
+
+	{
+		Result<void, SimpleType> v{types::okTag, in_place};
+		EXPECT_TRUE(v.isOk());
+	}
+}
+
 std::ostream& operator<<(std::ostream& ostr, const TestResult::SomeTestType& t) {
     return ostr << "SomeTestType(" << t.x << ", " << t.f << ", \"" << t.somethingElse << "\"";
 }
