@@ -28,17 +28,6 @@
 
 namespace Solace {
 
-template <typename T, typename... Params>
-inline T* ctor(T& location, Params&&... params) {
-	return new (_::PlacementNew(), &location) T(fwd<Params>(params)...);
-}
-
-template <typename T>
-inline void dtor(T& location) noexcept(std::is_nothrow_destructible<T>::value) {
-    location.~T();
-}
-
-
 
 /* View into a fixed-length raw memory buffer which allows mutation of the undelaying data.
  * A very thin abstruction on top of raw memory address - it remembers memory block address and size.

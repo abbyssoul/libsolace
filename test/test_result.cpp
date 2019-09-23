@@ -686,6 +686,22 @@ TEST_F(TestResult, test_inpace_construtor) {
 	}
 }
 
+
+TEST_F(TestResult, testRefTypesResult) {
+	SimpleType value{3, 2, 1};
+
+	Result<SimpleType&, PimitiveType> res{types::okTag, value};
+	ASSERT_TRUE(res.isOk());
+	EXPECT_TRUE(value.InstanceCount = 1);
+
+
+	EXPECT_EQ(3, res.unwrap().x);
+
+	value.x = -72;
+	EXPECT_EQ(-72, res.unwrap().x);
+}
+
+
 std::ostream& operator<<(std::ostream& ostr, const TestResult::SomeTestType& t) {
     return ostr << "SomeTestType(" << t.x << ", " << t.f << ", \"" << t.somethingElse << "\"";
 }

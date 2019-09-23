@@ -300,17 +300,16 @@ protected:
     template<typename...Args>
     constexpr bool
     construct(Args&&... args) noexcept(std::is_nothrow_constructible<Stored_type, Args...>()) {
-		:: new (static_cast<void *>(std::addressof(_payload))) Stored_type(fwd<Args>(args)...);
-
+		ctor(_payload, fwd<Args>(args)...);
         _engaged = true;
 
         return _engaged;
     }
 
-    constexpr void destroy() {
+	constexpr void destroy() noexcept(std::is_nothrow_destructible_v<Stored_type>) {
         if (_engaged) {
             _engaged = false;
-            _payload.~Stored_type();
+			dtor(_payload);
         }
     }
 

@@ -195,7 +195,9 @@ struct error_result_wrapper<types::Err<E>> { using type = typename types::Err<E>
  * Note: A specialisation of Result<void, Error> is technically equivalent of Optional<Error>
  */
 template <typename V, typename E>
-class /*[[nodiscard]] */Result {
+class
+// [[nodiscard]]
+Result {
 public:
     using value_type = V;
     using error_type = E;
@@ -217,28 +219,26 @@ public:
      * Move-Construct Result of the same type.
      * @param rhs Source to move values from
      */
-    Result(Result&& rhs) noexcept(std::is_nothrow_move_constructible<V>::value
-                                  && std::is_nothrow_move_constructible<E>::value) {
-        if (rhs.isOk()) {
-            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(mv(rhs._value));
-            _engaged = true;
-        } else {
-            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(mv(rhs._error));
-            _engaged = false;
-        }
+	Result(Result&& rhs) noexcept(std::is_nothrow_move_constructible<V>::value &&
+								  std::is_nothrow_move_constructible<E>::value)
+		: _engaged {
+			  rhs.isOk()
+				  ? emplaceValue(mv(rhs._value))
+				  : emplaceError(mv(rhs._error))
+			  }
+	{
     }
 
 	template<typename DV,
 			 typename x = typename std::enable_if_t<std::is_constructible_v<V, DV>, DV>
 			 >
-    Result(Result<DV, E>&& rhs) noexcept {
-        if (rhs.isOk()) {
-            ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(mv(rhs._value));
-            _engaged = true;
-        } else {
-            ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(mv(rhs._error));
-            _engaged = false;
-        }
+	Result(Result<DV, E>&& rhs) noexcept
+			  : _engaged {
+					rhs.isOk()
+						? emplaceValue(mv(rhs._value))
+						: emplaceError(mv(rhs._error))
+					}
+	{
     }
 
     Result& operator= (Result&& rhs) noexcept {
@@ -273,25 +273,16 @@ public:
     {}
 
 
-    constexpr Result(types::OkTag, V const& value) noexcept(std::is_nothrow_copy_constructible<V>::value)
-        : _value{value}
-        , _engaged{true}
-    {}
-
-    constexpr Result(types::OkTag, V&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
-        : _value{mv(value)}
+	template<typename CanBeV>
+	constexpr Result(types::OkTag, CanBeV&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
+		: _value{fwd<CanBeV>(value)}
         , _engaged{true}
     {}
 
 
-
-    constexpr Result(types::ErrTag, E const& value) noexcept(std::is_nothrow_copy_constructible<E>::value)
-        : _error{value}
-        , _engaged{false}
-    {}
-
-    constexpr Result(types::ErrTag, E&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
-        : _error{mv(value)}
+	template<typename CanBeE>
+	constexpr Result(types::ErrTag, CanBeE&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
+		: _error{fwd<CanBeE>(value)}
         , _engaged{false}
     {}
 
@@ -566,48 +557,51 @@ private:
 
     void destroy() {
         if (_engaged) {
-            _value.~StoredValue_type();
+			dtor(_value);
         } else {
-            _error.~StoredError_type();
+			dtor(_error);
         }
     }
 
-    void constructValue(V const& t) {
-        destroy();
+	template<typename XV>
+	bool emplaceValue(XV&& t) {
+		ctor(_value, fwd<XV>(t));
+		_engaged = true;
 
-        ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(t);
-        _engaged = true;
+		return _engaged;
+	}
+
+	template<typename XE>
+	bool emplaceError(XE&& t) {
+		ctor(_error, fwd<XE>(t));
+		_engaged = false;
+
+		return _engaged;
+	}
+
+	template<typename XV>
+	void constructValue(XV&& t) {
+        destroy();
+		emplaceValue(fwd<XV>(t));
     }
 
-    void constructValue(V&& t) {
-        destroy();
-
-        ::new (reinterpret_cast<void *>(std::addressof(_value))) StoredValue_type(mv(t));
-        _engaged = true;
-    }
-
-
-    void constructError(E const& t) {
-        destroy();
-
-        ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(t);
-        _engaged = false;
-    }
-
-    void constructError(E&& t) {
-        destroy();
-
-        ::new (reinterpret_cast<void *>(std::addressof(_error))) StoredError_type(mv(t));
-        _engaged = false;
-    }
+	template<typename XE>
+	void constructError(XE&& t) {
+		destroy();
+		emplaceError(fwd<XE>(t));
+	}
 
 private:
 
     template<typename DV, typename DE>
     friend class Result;
 
-    using   StoredValue_type = std::remove_const_t<V>;
-    using   StoredError_type = std::remove_const_t<E>;
+	using mutable_value = std::remove_const_t<value_type>;
+	using StoredValue_type = std::conditional_t<std::is_reference_v<value_type>,
+												std::reference_wrapper<std::remove_reference_t<mutable_value>>,
+												mutable_value>;
+
+	using StoredError_type = std::remove_const_t<E>;
 
     union {
         StoredValue_type    _value;

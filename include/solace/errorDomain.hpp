@@ -28,8 +28,6 @@
 
 namespace Solace {
 
-class String;
-
 /**
  * Base class for error domains.
  * This is an interface that all ErrorDomain are expected to implement.
@@ -51,7 +49,7 @@ struct ErrorDomain {
      * @param code Error code from this error domain.
      * @return A string error message.
      */
-    virtual String message(int code) const noexcept = 0;
+	virtual class String message(int code) const noexcept = 0;
 };
 
 

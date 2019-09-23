@@ -33,6 +33,7 @@ namespace _ {  // private
 struct PlacementNew {};
 }  // namespace _
 
+
 /**
  * Use DontInfer<T>::value in place of T for a template function parameter to prevent inference of
  * the type based on the parameter value.
@@ -132,6 +133,22 @@ template<class X, class Y> using has_greater_equal = op_valid<X, Y, std::greater
 
 inline void* operator new(size_t, Solace::_::PlacementNew, void* __p) noexcept { return __p; }
 inline void operator delete(void*, Solace::_::PlacementNew, void*) noexcept {}
+
+
+namespace Solace {
+
+template <typename T, typename... Params>
+inline T* ctor(T& location, Params&&... params) {
+	return new (_::PlacementNew(), &location) T{fwd<Params>(params)...};
+}
+
+template <typename T>
+inline void dtor(T& location) noexcept(std::is_nothrow_destructible_v<T>) {
+	location.~T();
+}
+
+}  // End of namespace Solace
+
 
 
 #endif  // SOLACE_UTILS_HPP

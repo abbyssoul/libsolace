@@ -31,7 +31,7 @@
 namespace Solace {
 
 /// FWD declaration as error depends on StringView which in turn depends on this file.
-class Error;
+//;
 
 /**
  * Check if Runtime platform is big or little endian.
@@ -203,7 +203,7 @@ public:
      * @note: Memory locking and unlocking are performed in units of whole pages.
      * That is if when this memory view if locked - it will lock all memory that falls onto the same pages as this.
      */
-    Result<Lock, Error> lock();
+	Result<Lock, class Error> lock();
 
 
     /**  Create a slice/window view of this memory segment.
