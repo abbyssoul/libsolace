@@ -250,7 +250,7 @@ public:
      * Move-Construct Ok result
      * @param value Ok value to move from
      */
-    constexpr Result(types::Ok<V>&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
+	explicit constexpr Result(types::Ok<V>&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
 		: Result{types::okTag, mv(value.val_)}
     {}
 
@@ -259,7 +259,7 @@ public:
      * Move-Construct Err result by moving error value
      * @param err Err value to move from
      */
-    constexpr Result(types::Err<E>&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
+	explicit constexpr Result(types::Err<E>&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
 		: Result{types::errTag, mv(value.val_)}
     {}
 
