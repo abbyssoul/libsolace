@@ -42,11 +42,11 @@ template<typename T, typename Tag>
 struct ValueWrapper {
     using value_type = T;
 
-	constexpr ValueWrapper(value_type const& val) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
+	explicit constexpr ValueWrapper(value_type const& val) noexcept(std::is_nothrow_copy_constructible<value_type>::value)
         : val_{val}
 	{ }
 
-	constexpr ValueWrapper(value_type&& val) noexcept(std::is_nothrow_move_constructible<value_type>::value)
+	explicit constexpr ValueWrapper(value_type&& val) noexcept(std::is_nothrow_move_constructible<value_type>::value)
         : val_{mv(val)}
 	{ }
 
@@ -199,17 +199,17 @@ class
 // [[nodiscard]]
 Result {
 public:
-    using value_type = V;
-    using error_type = E;
+	using value_type = V;
+	using error_type = E;
 
-    static_assert(!std::is_same<E, void>::value,
-            "Error type must be non-void");
+	static_assert(!std::is_same<E, void>::value,
+				  "Error type must be non-void");
 
 public:
 
-    inline ~Result() {
-        destroy();
-    }
+	inline ~Result() {
+		destroy();
+	}
 
     /** Copy construct of Result is disabled */
     Result(Result const& rhs) = delete;
@@ -221,47 +221,44 @@ public:
      */
 	Result(Result&& rhs) noexcept(std::is_nothrow_move_constructible<V>::value &&
 								  std::is_nothrow_move_constructible<E>::value)
-		: _engaged {
-			  rhs.isOk()
-				  ? emplaceValue(mv(rhs._value))
-				  : emplaceError(mv(rhs._error))
-			  }
-	{
-    }
+		: _engaged(rhs.isOk() ? emplaceValue(mv(rhs._value)) : emplaceError(mv(rhs._error)))
+	{}
 
 	template<typename DV,
 			 typename x = typename std::enable_if_t<std::is_constructible_v<V, DV>, DV>
 			 >
 	Result(Result<DV, E>&& rhs) noexcept
-			  : _engaged {
-					rhs.isOk()
-						? emplaceValue(mv(rhs._value))
-						: emplaceError(mv(rhs._error))
-					}
+		: _engaged(rhs.isOk() ? emplaceValue(mv(rhs._value)) : emplaceError(mv(rhs._error)))
 	{
     }
 
-    Result& operator= (Result&& rhs) noexcept {
-        return swap(rhs);
-    }
+	Result& operator= (Result&& rhs) noexcept {
+		return swap(rhs);
+	}
 
 
     /**
      * Move-Construct Ok result
      * @param value Ok value to move from
      */
-	explicit constexpr Result(types::Ok<V>&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
+	template<typename DV,
+			 typename x = typename std::enable_if_t<std::is_constructible_v<V, DV>, DV>
+			 >
+	constexpr Result(types::Ok<DV>&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
 		: Result{types::okTag, mv(value.val_)}
-    {}
+	{}
 
 
     /**
      * Move-Construct Err result by moving error value
      * @param err Err value to move from
      */
-	explicit constexpr Result(types::Err<E>&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
+	template<typename DE,
+			 typename x = typename std::enable_if_t<std::is_constructible_v<E, DE>, DE>
+			 >
+	constexpr Result(types::Err<DE>&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
 		: Result{types::errTag, mv(value.val_)}
-    {}
+	{}
 
     /**
      * Move-Construct Err result from a compatible error type by moving error value
@@ -270,7 +267,7 @@ public:
 	template<typename VW, typename Tag>
 	constexpr Result(types::ValueWrapper<VW, Tag>&& value)  // Can't say much about noexcept
 		: Result{Tag{}, mv(value.val_)}
-    {}
+	{}
 
 
 	template<typename CanBeV>
@@ -299,47 +296,37 @@ public:
 		, _engaged{false}
 	{}
 
-
-	template<typename TE,
-			 typename T = typename std::enable_if_t<!std::is_same_v<V, E>
-													&& std::is_constructible_v<E, TE>,
-													TE>
-			 >
-	constexpr Result(TE&& value)
-		: _error{fwd<TE>(value)}
-		, _engaged{false}
+	template<typename X>
+	constexpr Result(X&& value)
+		: _engaged{tryEngade(fwd<X>(value))}
 	{}
 
 public:
 
-    Result& swap(Result& rhs) noexcept {
-        using std::swap;
+	Result& swap(Result& rhs) noexcept {
+		using std::swap;
 
-        if (isOk()) {
-            if (rhs.isOk()) {
-                StoredValue_type v(mv(_value));
-                constructValue(mv(rhs._value));
-                rhs.constructValue(mv(v));
-            } else {
-                StoredValue_type v(mv(_value));
-                constructError(mv(rhs._error));
-                rhs.constructValue(mv(v));
-            }
+		if (isOk()) {
+			StoredValue_type v{mv(_value)};
+			if (rhs.isOk()) {
+				constructValue(mv(rhs._value));
+			} else {
+				constructError(mv(rhs._error));
+			}
+			rhs.constructValue(mv(v));
 
-        } else {
-            if (rhs.isOk()) {
-                StoredValue_type v(mv(rhs._value));
-                rhs.constructError(mv(_error));
-                constructValue(mv(v));
-            } else {
-                StoredError_type v(mv(_error));
-                constructError(mv(rhs._error));
-                rhs.constructError(mv(v));
-            }
-        }
+		} else {
+			StoredError_type e{mv(_error)};
+			if (rhs.isOk()) {
+				constructValue(mv(rhs._value));
+			} else {
+				constructError(mv(rhs._error));
+			}
+			rhs.constructError(mv(e));
+		}
 
-        return (*this);
-    }
+		return (*this);
+	}
 
     explicit operator bool () const noexcept {
         return isOk();
@@ -593,22 +580,35 @@ private:
 
 private:
 
+	template<typename X>
+	bool tryEngade(X&& value) {
+		if constexpr (std::is_constructible_v<E, X>) {
+			return emplaceError(fwd<X>(value));
+		} else {
+			return emplaceValue(fwd<X>(value));
+		}
+	}
+
     template<typename DV, typename DE>
     friend class Result;
 
-	using mutable_value = std::remove_const_t<value_type>;
+	using mutable_value = std::remove_cv_t<value_type>;
 	using StoredValue_type = std::conditional_t<std::is_reference_v<value_type>,
-												std::reference_wrapper<std::remove_reference_t<mutable_value>>,
+												std::reference_wrapper<std::decay_t<value_type>>,
 												mutable_value>;
 
-	using StoredError_type = std::remove_const_t<E>;
+
+	using mutable_error = std::remove_cv_t<error_type>;
+	using StoredError_type = std::conditional_t<std::is_reference_v<error_type>,
+			  std::reference_wrapper<std::decay_t<error_type>>,
+			  mutable_error>;
 
     union {
         StoredValue_type    _value;
         StoredError_type    _error;
     };
 
-    bool _engaged = false;
+	bool _engaged{false};
 };
 
 

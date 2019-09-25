@@ -402,6 +402,31 @@ TEST_F(TestResult, dereferencingErrThrows) {
     EXPECT_THROW(*v, Exception);
 }
 
+TEST_F(TestResult, testSwap) {
+	Result<MoveOnlyType, SimpleType> v1{types::errTag, in_place, 112, 2, -1};
+	Result<MoveOnlyType, SimpleType> v2{types::okTag, in_place, 42};
+
+	ASSERT_EQ(1, SimpleType::InstanceCount);
+	ASSERT_EQ(1, MoveOnlyType::InstanceCount);
+
+	ASSERT_TRUE(v1.isError());
+	ASSERT_TRUE(v2.isOk());
+
+	ASSERT_EQ(112, v1.getError().x);
+	ASSERT_EQ(42, v2.unwrap().x_);
+
+	v1.swap(v2);
+
+	EXPECT_TRUE(v1.isOk());
+	EXPECT_TRUE(v2.isError());
+
+	EXPECT_EQ(112, v2.getError().x);
+	EXPECT_EQ(42, v1.unwrap().x_);
+
+	EXPECT_EQ(1, SimpleType::InstanceCount);
+	EXPECT_EQ(1, MoveOnlyType::InstanceCount);
+}
+
 
 TEST_F(TestResult, testVoidResult) {
     Result<void, int> v = Ok();
@@ -689,8 +714,9 @@ TEST_F(TestResult, test_inpace_construtor) {
 
 TEST_F(TestResult, testRefTypesResult) {
 	SimpleType value{3, 2, 1};
+	SimpleType& valueRef = value;
 
-	Result<SimpleType&, PimitiveType> res{types::okTag, value};
+	Result<SimpleType&, PimitiveType> res{types::okTag, valueRef};
 	ASSERT_TRUE(res.isOk());
 	EXPECT_TRUE(value.InstanceCount = 1);
 

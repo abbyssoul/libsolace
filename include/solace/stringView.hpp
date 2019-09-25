@@ -474,6 +474,38 @@ bool operator!= (StringView lhv, StringView rhv) noexcept {
 }
 
 inline
+bool operator== (StringLiteral lhv, StringView rhv) noexcept {
+	return lhv.equals(rhv);
+}
+
+inline
+bool operator!= (StringLiteral lhv, StringView rhv) noexcept {
+	return !lhv.equals(rhv);
+}
+
+inline
+bool operator== (StringView lhv, StringLiteral rhv) noexcept {
+	return lhv.equals(rhv);
+}
+
+inline
+bool operator!= (StringView lhv, StringLiteral rhv) noexcept {
+	return !lhv.equals(rhv);
+}
+
+
+inline
+bool operator== (StringLiteral lhv, StringLiteral rhv) noexcept {
+	return lhv.equals(rhv);
+}
+
+inline
+bool operator!= (StringLiteral lhv, StringLiteral rhv) noexcept {
+	return !lhv.equals(rhv);
+}
+
+
+inline
 bool operator== (char const* rhv, StringView str) noexcept {
     return str.equals(rhv);
 }

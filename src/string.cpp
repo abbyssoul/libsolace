@@ -39,7 +39,7 @@ Solace::makeString(StringView str) {
 		return writeResult.moveError();
 	}
 
-	return Ok(String{maybeBuffer.moveResult(), str.size()});
+	return Ok(String{ maybeBuffer.moveResult(), str.size() });
 }
 
 
