@@ -20,7 +20,7 @@
 #include "solace/assert.hpp"
 #include "solace/exception.hpp"
 
-#include <errno.h>  // BSD defines errno in a separate header
+#include <cerrno>  // BSD defines errno in a separate header
 
 
 using namespace Solace;

@@ -23,8 +23,6 @@
 
 #include <random>
 #include <cstring>  // memcmp (should review)
-#include <cstdlib>  // rand
-#include <ctime>    // time
 
 
 using namespace Solace;

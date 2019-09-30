@@ -20,7 +20,6 @@
 #include <solace/array.hpp>
 #include <solace/exception.hpp>
 
-#include <utility>
 #include <iostream>
 
 

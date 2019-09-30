@@ -25,7 +25,7 @@
 #include "solace/stringView.hpp"
 #include "solace/result.hpp"
 
-#include <type_traits>
+#include <type_traits>  // std::is_integral
 #include <climits>
 
 

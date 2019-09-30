@@ -21,7 +21,7 @@
 #include "solace/base64.hpp"
 #include "solace/posixErrorDomain.hpp"
 
-#include <limits>
+#include <climits>
 
 
 using namespace Solace;

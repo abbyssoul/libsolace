@@ -23,7 +23,6 @@
 #include <cstdio>
 #include <cctype>
 #include <cstring>
-#include <utility>
 
 
 using Solace::byte;
