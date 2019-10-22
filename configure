@@ -10,6 +10,7 @@ debugsym=true
 sanitizer=true
 coverage=false
 profile=false
+pkgconfig=true
 
 # Figure out project name:
 project_name=$(basename $DIR)
@@ -58,6 +59,13 @@ for arg in "$@"; do
         profile=true
         ;;
 
+    --enable-pkgconfig )
+        pkgconfig=true
+        ;;
+    --disable-pkgconfig )
+        pkgconfig=true
+        ;;
+
     --help)
         echo 'usage: ./configure [options]'
         echo 'options:'
@@ -71,6 +79,8 @@ for arg in "$@"; do
         echo '  --disable-coverage To disable compiler coverage option'
         echo '  --enable-profile To enable compiler profiler info generation'
         echo '  --disable-profile To disable compiler profiler info generation'
+        echo '  --enable-pkgconfig To include generated .PC library descriptor when installing'
+        echo '  --disable-pkgconfig To exclude generated .PC library descriptor when installing'
         echo ''
         echo 'all invalid options are silently ignored'
         exit 0
@@ -105,9 +115,14 @@ if $profile; then
     echo 'profile = -pg' >> $TMP_TARGET_FILE_NAME
 fi
 
+if $pkgconfig; then
+  echo 'PKG_CONFIG = ON' >> $TMP_TARGET_FILE_NAME
+fi
+
 if [ ! -z "$conan_profile" ] ; then
     echo "CONAN_PROFILE ?= ${conan_profile}" >> $TMP_TARGET_FILE_NAME
 fi
+
 
 if [ ! -z "${CXX}" ] || [ ! -z "${CC}" ] ; then
     echo "Using custom copiler: CXX=$CXX CC=$CC"

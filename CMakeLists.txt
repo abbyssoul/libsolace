@@ -7,6 +7,7 @@ option(SOLACE_GTEST_SUPPORT "Build without GTEST" ON)
 option(COVERAGE "Generate coverage data" OFF)
 option(SANITIZE "Enable 'sanitize' compiler flag" OFF)
 option(PROFILE "Enable profile information" OFF)
+option(PKG_CONFIG "Enable installation of pkgconfig file" OFF)
 
 # Include common compile flag
 include(cmake/compile_flags.cmake)
@@ -33,8 +34,10 @@ add_subdirectory(examples EXCLUDE_FROM_ALL)
 install(DIRECTORY include/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Install pkgconfig descriptor
-install(FILES ${CMAKE_BINARY_DIR}/lib${PROJECT_NAME}.pc
-    DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+if(PKG_CONFIG)
+  install(FILES ${CMAKE_BINARY_DIR}/lib${PROJECT_NAME}.pc
+      DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig)
+endif()
 
 # ---------------------------------
 # Show build configuration status:

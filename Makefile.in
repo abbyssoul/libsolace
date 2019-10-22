@@ -52,6 +52,12 @@ else
     ENABLE_PROFILE = OFF
 endif
 
+ifdef pkgconfig
+	PKG_CONFIG = ON
+else 
+	PKG_CONFIG = OFF
+endif
+
 ifdef CONAN_PROFILE
     CONAN_INSTALL_PROFILE = --profile ${CONAN_PROFILE}
 endif
@@ -72,7 +78,7 @@ $(DEP_INSTALL): $(BUILD_DIR)
 	cd ${BUILD_DIR} && conan install .. ${CONAN_INSTALL_PROFILE}
 
 $(GENERATED_MAKE): $(DEP_INSTALL)
-	cd ${BUILD_DIR} && cmake -DPROFILE=${ENABLE_PROFILE} -DCOVERAGE=${COVERAGE} -DSANITIZE=${SANITIZE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} ..
+	cd ${BUILD_DIR} && cmake -DPROFILE=${ENABLE_PROFILE} -DCOVERAGE=${COVERAGE} -DSANITIZE=${SANITIZE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPKG_CONFIG={PKG_CONFIG} ..
 
 #-------------------------------------------------------------------------------
 # Build the project
