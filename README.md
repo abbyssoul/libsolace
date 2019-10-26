@@ -5,7 +5,7 @@
 [![Coverity][coverity-shield]][coverity-link]
 [![Coverage Status][coveralls-shield]][coveralls-link]
 [![LGTM][LGTM-shield]][LGTM-link]
-
+[![Download][conan-central-shield]][conan-central-latest]
 
 [c++-standard-shield]: https://img.shields.io/badge/c%2B%2B-14/17/20-blue.svg
 [c++-standard-link]: https://en.wikipedia.org/wiki/C%2B%2B#Standardization
@@ -21,26 +21,28 @@
 [coveralls-link]: https://coveralls.io/github/abbyssoul/libsolace?branch=master
 [LGTM-shield]: https://img.shields.io/lgtm/grade/cpp/github/abbyssoul/libsolace.svg
 [LGTM-link]: https://lgtm.com/projects/g/abbyssoul/libsolace/alerts/
+[conan-central-shield]: https://api.bintray.com/packages/conan/conan-center/libsolace%3A_/images/download.svg
+[conan-central-latest]: https://bintray.com/conan/conan-center/libsolace%3A_/_latestVersion
 
 
-libSolace is a _library_ to help to build mission-critical application.
-> library: a collection of types, functions, classes, etc. implementing a set of facilities (abstractions) meant to be potentially used as part of more that one program. From [Cpp Code guidelines gloassay](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#glossary)
+libSolace is a _library_ to help to build a mission-critical application.
+> library: a collection of types, functions, classes, etc. implementing a set of facilities (abstractions) meant to be potentially used as part of more that one program. From [Cpp Code guidelines glossary](http://isocpp.github.io/CppCoreGuidelines/CppCoreGuidelines#glossary)
 
 The idea of this library is partially inspired by [NASA's Rules for Developing Safety Critical Code](http://spinroot.com/gerard/pdf/P10.pdf).
-That is the aims is to provide building blocks for efficient and reliable applications using modern C++ (at least **C++17**).
+That is the aims to provide building blocks for efficient and reliable applications using modern C++ (at least **C++17**).
 _Note: it is by no means as strict implementation of all of P10 rules but an attempt to provide components that make it easy to observe these rules._
 
 ### Motivation
 Solace is used to provide building primitives to develop a system of communicating processes that solve a problem via collaboration (aka cluster application/actor system).
 It puts the developer in charge of the system and provides mechanisms for explicit memory management.
-As such it will never spawn a thread or allocates memory after initialization.
+As such, it never spawns a thread or allocates memory after initialization.
 
 ## Contributing changes
 The framework is work in progress and contributions are very welcomed.
 Please see  [`CONTRIBUTING.md`](CONTRIBUTING.md) for details on how to contribute to
 this project.
 
-Please note that in order to maintain code quality a set of static code analysis tools is used as part of the build process.
+Please note that in order to maintain code quality, a set of static code analysis tools is used as part of the build process.
 Thus all contributions must be verified by these tools before PR can be accepted.
 
 
@@ -48,36 +50,31 @@ Thus all contributions must be verified by these tools before PR can be accepted
 This library needs to be installed on your system in order to be used. There are a few ways this can be done:
  - You can install the pre-built version via [Conan](https://conan.io/) package manager. (Recommended)
  - You can build it from sources and install it locally.
- - You can install a pre-built version via your system's package manager such as deb/apt if it is available in your system's repository.
+ - You can install a pre-built version via your system package manager such as deb/apt if it is available in your system repository.
 
 ## Consuming library with Conan
-The library can be added to your project dependencies with Conan:
+The library is available via [Conan](https://conan.io/) package manager. Add this to your project `conanfile.txt`:
 ```
 [requires]
-libsolace/0.1.1@abbyssoul/stable
+libsolace/0.3.6
 ```
 
-While the library is not available in the Conan-central repository - you need to use:
-```
-    conan remote add <REMOTE> https://api.bintray.com/conan/abbyssoul/public-conan
-```
-
-Please check the latest available [binary version](https://bintray.com/abbyssoul/public-conan/libsolace%3Aabbyssoul/_latestVersion).
+Please check the latest available [binary version][conan-central-latest].
 
 
 ## Building from sources
-The project build is managed via CMake with a Makefile provided to automate some common actions during the development process.
+The project build is managed via CMake with a Makefile provided to automate some everyday actions during the development process.
 
 ### Build tool dependencies
-In order to build this project following tools must be present in the system:
-* git (to check out the project and it’s external modules, see dependencies section)
+In order to build this project, following tools must be present in the system:
+* git (to check out the project and external modules, see dependencies section)
 * cmake (version 3.0 and above)
 * doxygen (for documentation generation)
 * cppcheck (static code analysis, the latest version from git is used as part of the 'codecheck' build step)
 * cpplint (for static code analysis in addition to cppcheck)
 * valgrind (for runtime code quality verification)
 
-This project is using **C++17** features extensively. The minimal tested/required version of gcc is gcc-4.9.
+This project is using **C++17** features extensively. The minimal tested/required version of gcc is gcc-7.
 CI is using clang-5 and gcc-7.
 To install build tools on Debian based Linux distribution:
 ```shell
@@ -106,8 +103,8 @@ cmake version 3.0.1
 ```
 
 ```shell
-# In the project check-out directory:
-# To build debug version with sanitizer enabled (recommended for development)
+# In the project checkout directory:
+# To build a debug version with sanitizer enabled (recommended for development)
 ./configure --enable-debug --enable-sanitizer
 
 # To build the library itself
@@ -117,16 +114,21 @@ make
 make test
 
 # To run Valgrind on test suit:
-# Please note – doesn’t work with ./configure --enable-sanitize option
+# Note: `valgrind` does not work with `./configure --enable-sanitize` option
 make verify
+```
 
-# To build API documentation using doxygen:
+## Build API documentation using doxygen:
+Documentation system used by the library is `doxygen`.
+Docs can be build with:
+```shell
 make doc
 ```
 
+## Installing library locally:
 To install locally for testing:
 ```shell
-make --prefix=/user/home/<username>/test/lib install
+make --prefix=/user/home/${USER}/test/lib install
 ```
 To install system-wide (as root):
 ```shell
@@ -175,9 +177,9 @@ The design of the library is inspired by various functional language elements th
 
 
 ### Exceptions policy
-Given the language of choice, library is designed with the idea that exceptions can be thrown and functions that don't throw are annotated accordingly. The design is the result of a few ideas:
+Given the language of choice, the library is designed with the idea that exceptions can be thrown and functions that don't throw are annotated accordingly. The design is the result of a few ideas:
  - Regular functions that return values but which invocations can result in an error (due to invalid internal state or invalid arguments) - this functions should signal that fact by returning Result<Value, Error> (the idea borrowed from Rust language)
- - Object constructors can't return value thus they are allowed to throw.
+ - Object constructors can't return value; thus they are allowed to throw.
  - All API clients that want to use 'safe' interface should use object factories that return Result<> with possible error but don't throw.
 
 
