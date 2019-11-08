@@ -25,6 +25,7 @@ addons:
    - "python3-pip"
    - gcc-7
    - g++-7
+   - ninja-build
    - cmake
    - doxygen
    - libc6-dbg  # needed by Valgrind
