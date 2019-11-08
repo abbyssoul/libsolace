@@ -202,6 +202,9 @@ public:
 	using value_type = V;
 	using error_type = E;
 
+	static_assert(!std::is_same<V, E>::value,
+				  "Result types must be destinct");
+
 	static_assert(!std::is_same<E, void>::value,
 				  "Error type must be non-void");
 
@@ -272,15 +275,13 @@ public:
 
 	template<typename CanBeV>
 	constexpr Result(types::OkTag, CanBeV&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
-		: _value{fwd<CanBeV>(value)}
-        , _engaged{true}
+		:_engaged{emplaceValue(fwd<CanBeV>(value))}
     {}
 
 
 	template<typename CanBeE>
 	constexpr Result(types::ErrTag, CanBeE&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
-		: _error{fwd<CanBeE>(value)}
-        , _engaged{false}
+		:_engaged{emplaceError(fwd<CanBeE>(value))}
     {}
 
 
@@ -296,9 +297,13 @@ public:
 		, _engaged{false}
 	{}
 
-	template<typename X>
-	constexpr Result(X&& value)
-		: _engaged{tryEngade(fwd<X>(value))}
+	constexpr Result(V&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
+		: _value{mv(value)}
+		, _engaged{true} //emplaceValue(mv(value))}
+	{}
+
+	constexpr Result(E&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
+		: _engaged{emplaceError(mv(value))}
 	{}
 
 public:

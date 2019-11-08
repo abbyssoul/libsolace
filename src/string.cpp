@@ -64,7 +64,7 @@ Solace::makeStringReplace(StringView str, String::value_type what, String::value
 	auto bufferView = maybeBuffer.unwrap().view();
 	auto writeResult = bufferView.write(str.view());
 	if (!writeResult) {
-		return writeResult.getError();
+		return writeResult.moveError();
 	}
 
 	for (String::size_type i = 0; i < totalStrLen; ++i) {

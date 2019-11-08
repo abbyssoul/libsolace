@@ -236,14 +236,14 @@ TEST_F(TestResult, testConstructionIntegrals) {
 
 TEST_F(TestResult, testErrorTypeCoersion) {
 	SimpleType errValue{3, 2, 1};
-	Result<Unit, SimpleType> v{ errValue };
+	Result<Unit, SimpleType> v{ mv(errValue) };
 	EXPECT_TRUE(v.isError());
 	EXPECT_EQ(v.getError().y, 2);
 }
 
 TEST_F(TestResult, testValueTypeCoersion) {
 	SimpleType value{3, 2, 1};
-	Result<SimpleType, Unit> v{ value };
+	Result<SimpleType, Unit> v{ mv(value) };
 	EXPECT_TRUE(v.isOk());
 	EXPECT_EQ(v.unwrap().y, 2);
 }
@@ -436,12 +436,12 @@ TEST_F(TestResult, testVoidResult) {
     bool thenCalled = false;
     auto derivedOk = v.then([&thenCalled]() {
         thenCalled = true;
-        return Ok<int>(312);
+		return Ok<char>('!');
     });
 
     EXPECT_TRUE(thenCalled);
     EXPECT_TRUE(derivedOk.isOk());
-    EXPECT_EQ(312, derivedOk.unwrap());
+	EXPECT_EQ('!', derivedOk.unwrap());
 
     auto derivedErr = v.then([]() -> Result<const char*, int> { return Err<int>(-5); });
     EXPECT_TRUE(derivedErr.isError());
@@ -555,16 +555,17 @@ TEST_F(TestResult, testThenComposition) {
     EXPECT_TRUE(finalResult.isOk());
     EXPECT_EQ(42, finalResult.unwrap()());
 
-    auto sq =  [](int x) -> Result<int, int> { return Ok<int>(x * x); };
-    auto err = [](int x) -> Result<int, int> { return Err(x); };
+	auto sq =  [](int x) -> Result<int, char> { return Ok<int>(x * x); };
+	auto err = [](int x) -> Result<int, char> { return Err('!'); };
 
-    Result<int, int> ok2 = Ok(2);
-    Result<int, int> err3 = Err(3);
+	Result<int, char> ok2 = Ok(2);
+	Result<int, char> err3 = Err('!');
     EXPECT_TRUE(Ok(2) == ok2.orElse(sq).orElse(sq));
     EXPECT_TRUE(Ok(2) == ok2.orElse(err).orElse(sq));
-    EXPECT_TRUE(Ok(9) == err3.orElse(sq).orElse(err));
-    EXPECT_TRUE(Err(3) == err3.orElse(err).orElse(err));
+	EXPECT_TRUE(Ok('!'*'!') == err3.orElse(sq).orElse(err));
+	EXPECT_TRUE(Err('!') == err3.orElse(err).orElse(err));
 }
+
 
 TEST_F(TestResult, testThenComposition_cv) {
     Result<int, SimpleType> initialResult = Ok<int>(112);
@@ -577,15 +578,15 @@ TEST_F(TestResult, testThenComposition_cv) {
     EXPECT_TRUE(finalResult.isOk());
     EXPECT_EQ(42, finalResult.unwrap()());
 
-    auto sq =  [](int x) -> Result<int, int> { return Ok<int>(x * x); };
-    auto err = [](int x) -> Result<int, int> { return Err(x); };
+	auto sq =  [](int x) -> Result<int, char> { return Ok<int>(x * x); };
+	auto err = [](int x) -> Result<int, char> { return Err('!'); };
 
-    Result<int, int> ok2 = Ok(2);
-    Result<int, int> err3 = Err(3);
+	Result<int, char> ok2 = Ok(2);
+	Result<int, char> err3 = Err('!');
     EXPECT_TRUE(Ok(2) == ok2.orElse(sq).orElse(sq));
     EXPECT_TRUE(Ok(2) == ok2.orElse(err).orElse(sq));
-    EXPECT_TRUE(Ok(9) == err3.orElse(sq).orElse(err));
-    EXPECT_TRUE(Err(3) == err3.orElse(err).orElse(err));
+	EXPECT_TRUE(Ok('!'*'!') == err3.orElse(sq).orElse(err));
+	EXPECT_TRUE(Err('!') == err3.orElse(err).orElse(err));
 }
 
 
@@ -658,6 +659,23 @@ TEST_F(TestResult, testThenMovesObjects) {
     EXPECT_TRUE(movedOut);
 }
 
+
+TEST_F(TestResult, testSuccessCoersion) {
+	auto l1 =[] () -> Result<SimpleType, int> {
+		return SimpleType{11, -12, 7};
+	};
+
+
+	SimpleType value{1, 2, 3};
+	Result<SimpleType, int> result{mv(value)};
+	EXPECT_TRUE(result.isOk());
+	EXPECT_EQ(2, result.unwrap().y);
+
+	result = l1();
+	EXPECT_EQ(-12, result.unwrap().y);
+}
+
+
 TEST_F(TestResult, testErrorCoersion) {
 	auto l1 =[] () -> Result<void, SimpleType> {
 		return SimpleType{1, 2, 3};
@@ -666,11 +684,16 @@ TEST_F(TestResult, testErrorCoersion) {
 	auto l2 = [&]() -> Result<int, SimpleType> {
 		auto x = l1();
 		if (!x) {
-			return x.getError();
+			return x.moveError();
 		} else {
 			return Ok<int>(321);
 		}
 	};
+
+	SimpleType value{1, 2, 3};
+	Result<int, SimpleType> r1{mv(value)};
+	EXPECT_TRUE(r1.isError());
+	EXPECT_EQ(2, r1.getError().y);
 
 	auto result = l2();
 	EXPECT_TRUE(result.isError());
@@ -678,6 +701,7 @@ TEST_F(TestResult, testErrorCoersion) {
 	auto const expectedErrorValue = SimpleType{1, 2, 3};
 	EXPECT_EQ(result.getError(), expectedErrorValue);
 }
+
 
 TEST_F(TestResult, test_inpace_construtor) {
 
