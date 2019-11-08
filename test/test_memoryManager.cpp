@@ -131,7 +131,7 @@ TEST(TestMemoryManager, testAllocationLocking) {
         EXPECT_NO_THROW(test.lock());
         EXPECT_EQ(true, test.isLocked());
 
-        // Create should throw as allocation is prohibited
+		// Allocation should fail as it is prohibited/locked
 		EXPECT_TRUE(test.allocate(64).isError());
 
         EXPECT_NO_THROW(test.unlock());
