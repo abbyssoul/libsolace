@@ -585,15 +585,6 @@ private:
 
 private:
 
-	template<typename X>
-	bool tryEngade(X&& value) {
-		if constexpr (std::is_constructible_v<E, X>) {
-			return emplaceError(fwd<X>(value));
-		} else {
-			return emplaceValue(fwd<X>(value));
-		}
-	}
-
     template<typename DV, typename DE>
     friend class Result;
 

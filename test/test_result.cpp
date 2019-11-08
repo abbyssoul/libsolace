@@ -556,7 +556,7 @@ TEST_F(TestResult, testThenComposition) {
     EXPECT_EQ(42, finalResult.unwrap()());
 
 	auto sq =  [](int x) -> Result<int, char> { return Ok<int>(x * x); };
-	auto err = [](int x) -> Result<int, char> { return Err('!'); };
+	auto err = [](int) -> Result<int, char> { return Err('!'); };
 
 	Result<int, char> ok2 = Ok(2);
 	Result<int, char> err3 = Err('!');
@@ -573,13 +573,13 @@ TEST_F(TestResult, testThenComposition_cv) {
     Result<std::function<int()>, SimpleType> finalResult = initialResult
             .then([](int x)     { return Ok<float32>(x / 10); })
             .then([](float32 x) { return Ok<int>(floor(x) + 30); })
-            .then([](int x)     { return Ok<std::function<int()>>([x]() { return (1 + x); }); });
+			.then([](int x)     { return Ok<std::function<int()>>([x]() { return (1 + x); }); });
 
     EXPECT_TRUE(finalResult.isOk());
     EXPECT_EQ(42, finalResult.unwrap()());
 
 	auto sq =  [](int x) -> Result<int, char> { return Ok<int>(x * x); };
-	auto err = [](int x) -> Result<int, char> { return Err('!'); };
+	auto err = [](int) -> Result<int, char> { return Err('!'); };
 
 	Result<int, char> ok2 = Ok(2);
 	Result<int, char> err3 = Err('!');
