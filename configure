@@ -11,6 +11,7 @@ sanitizer=true
 coverage=false
 profile=false
 pkgconfig=true
+generator=Ninja
 
 # Figure out project name:
 project_name=$(basename $DIR)
@@ -29,6 +30,9 @@ for arg in "$@"; do
 
     --conan-profile=*)
         conan_profile=`echo $arg | sed 's/--conan-profile=//'`
+        ;;
+    --generator=*)
+        generator=`echo $arg | sed 's/--generator=//'`
         ;;
 
     --enable-debug )
@@ -70,6 +74,7 @@ for arg in "$@"; do
         echo 'usage: ./configure [options]'
         echo 'options:'
         echo '  --prefix=<path>: installation prefix'
+        echo '  --generator=<generator>: CMake generator'
         echo '  --conan-profile=<profile>: Use custom conan profil'
         echo '  --enable-debug include debug symbols'
         echo '  --disable-debug do not include debug symbols'
@@ -97,6 +102,8 @@ echo "Generating Makefile for ${project_name}..."
 echo "# Generated Makefile for ${project_name}: $(date)" > $TMP_TARGET_FILE_NAME
 echo "PREFIX ?= ${prefix}" >> $TMP_TARGET_FILE_NAME
 echo "PROJECT ?= ${project_name}" >> $TMP_TARGET_FILE_NAME
+echo "PROJECT ?= ${project_name}" >> $TMP_TARGET_FILE_NAME
+echo "GENERATOR ?= ${generator}" >> $TMP_TARGET_FILE_NAME
 
 
 if $debugsym; then
