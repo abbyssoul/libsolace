@@ -287,19 +287,16 @@ public:
 
 	template<typename...Args>
 	constexpr Result(types::OkTag, InPlace, Args&&...args)
-		: _value{fwd<Args>(args)...}
-		, _engaged{true}
+		: _engaged{emplaceValue(fwd<Args>(args)...)}
 	{}
 
 	template<typename...Args>
 	constexpr Result(types::ErrTag, InPlace, Args&&...args)
-		: _error{fwd<Args>(args)...}
-		, _engaged{false}
+		: _engaged{emplaceError(fwd<Args>(args)...)}
 	{}
 
 	constexpr Result(V&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
-		: _value{mv(value)}
-		, _engaged{true} //emplaceValue(mv(value))}
+		: _engaged{emplaceValue(mv(value))}
 	{}
 
 	constexpr Result(E&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
@@ -555,17 +552,17 @@ private:
         }
     }
 
-	template<typename XV>
-	bool emplaceValue(XV&& t) {
-		ctor(_value, fwd<XV>(t));
+	template<typename ...XV>
+	bool emplaceValue(XV&&...args) {
+		ctor(_value, fwd<XV>(args)...);
 		_engaged = true;
 
 		return _engaged;
 	}
 
-	template<typename XE>
-	bool emplaceError(XE&& t) {
-		ctor(_error, fwd<XE>(t));
+	template<typename ...XE>
+	bool emplaceError(XE&&...args) {
+		ctor(_error, fwd<XE>(args)...);
 		_engaged = false;
 
 		return _engaged;
