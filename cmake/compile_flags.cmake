@@ -20,7 +20,7 @@ check_cxx_compiler_flag("-Wnoexcept" WITH_WNOEXCEPT)
 
 
 # Set compiler flags:
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors") #  -fno-rtti
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors -fno-rtti")
 
 # TODO: Make this warning work too!
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
