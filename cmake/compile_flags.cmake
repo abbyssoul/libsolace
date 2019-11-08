@@ -20,7 +20,8 @@ check_cxx_compiler_flag("-Wnoexcept" WITH_WNOEXCEPT)
 
 
 # Set compiler flags:
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors -fno-rtti")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors")
 
 # TODO: Make this warning work too!
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
@@ -76,8 +77,8 @@ endif (WITH_STACK_PROTECTOR)
 # ---------------------------------
 # Debug mode flags
 # ---------------------------------
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb3 -D _DEBUG -D DEBUG")
-set(CMAKE_CXX_FLAGS_DEBUG   "${CMAKE_CXX_FLAGS_DEBUG} -fstack-protector-all")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -ggdb3 -D _DEBUG -D DEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fstack-protector-all")
 
 if (WITH_FRAME_POINTER)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer")
