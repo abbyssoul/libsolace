@@ -371,7 +371,7 @@ makeVector(typename Vector<T>::size_type size) noexcept {
 template <typename T>
 [[nodiscard]]
 Result<Vector<T>, Error> makeVector(ArrayView<T const> array) {
-	auto maybeBuffer = getSystemHeapMemoryManager().allocate(array.size() * sizeof(T));           // May throw
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(array.size() * sizeof(T));
 	if (!maybeBuffer) {
 		return maybeBuffer.moveError();
 	}
@@ -411,7 +411,7 @@ template <typename T>
 Result<Vector<T>, Error> makeVectorOf(std::initializer_list<T> list) {
     // FIXME: Should be checked cast
     auto const vectorSize = narrow_cast<typename Vector<T>::size_type>(list.size());
-	auto maybeBuffer = getSystemHeapMemoryManager().allocate(vectorSize * sizeof(T));  // May throw
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(vectorSize * sizeof(T));
 	if (!maybeBuffer) {
 		return maybeBuffer.moveError();
 	}
@@ -444,7 +444,7 @@ template <typename T,
 Result<Vector<T>, Error> makeVectorOf(Args&&...args) {
     using size_type = typename Vector<T>::size_type;
     auto const vectorSize = narrow_cast<size_type>(sizeof...(args));
-	auto maybeBuffer = getSystemHeapMemoryManager().allocate(vectorSize*sizeof(T));  // May throw
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(vectorSize*sizeof(T));
 	if (!maybeBuffer) {
 		return maybeBuffer.moveError();
 	}

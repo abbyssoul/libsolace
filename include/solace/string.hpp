@@ -565,7 +565,7 @@ Result<String, Error> makeString(StringView lhs, StringView rhs, StringViews&&..
 template<typename... StringViews>
 Result<String, Error> makeString(StringView::value_type lhs, StringView rhs, StringViews&&... args) {
 	auto const totalStrLen = totalSize(lhs, rhs, fwd<StringViews>(args)...);
-	auto maybeBuffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));
 	if (!maybeBuffer) {
 		return maybeBuffer.moveError();
 	}
@@ -741,7 +741,7 @@ template<typename...Args>
 Result<String, Error> makeStringJoin(StringView by, Args&&... args) {
 	auto const len = totalSize(fwd<Args>(args)...);
     auto const totalStrLen = narrow_cast<StringView::size_type>(totalSize(by) * (sizeof...(args) - 1) + len);
-	auto maybeBuffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));
 	if (!maybeBuffer) {
 		return maybeBuffer.moveError();
 	}
@@ -761,7 +761,7 @@ template<typename...Args>
 Result<String, Error> makeStringJoin(StringView::value_type by, Args&&... args) {
 	auto const len = totalSize(fwd<Args>(args)...);
     auto const totalStrLen = narrow_cast<StringView::size_type>(totalSize(by) * (sizeof...(args) - 1) + len);
-	auto maybeBuffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));    // May throw
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(totalStrLen * sizeof(StringView::value_type));
 	if (!maybeBuffer) {
 		return maybeBuffer.moveError();
 	}

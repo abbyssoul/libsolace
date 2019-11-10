@@ -108,7 +108,7 @@ test: tests
 #-------------------------------------------------------------------------------
 .PHONY: examples
 examples: $(LIB_TAGRET)
-	$(MAKE) -C ${BUILD_DIR} examples
+	cd ${BUILD_DIR} && cmake --build . -j --target examples
 
 
 #-------------------------------------------------------------------------------

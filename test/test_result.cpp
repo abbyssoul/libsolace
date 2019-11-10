@@ -751,6 +751,20 @@ TEST_F(TestResult, testRefTypesResult) {
 	EXPECT_EQ(-72, res.unwrap().x);
 }
 
+TEST_F(TestResult, testRefTypesConvertionResult) {
+	MoveOnlyType value{3};
+	auto f2 = [](MoveOnlyType& v) -> Result<MoveOnlyType&, int> { return v; };
+
+	Result<MoveOnlyType&, int> res = f2(value);
+	ASSERT_TRUE(res.isOk());
+	EXPECT_TRUE(value.InstanceCount = 1);
+
+	EXPECT_EQ(3, res.unwrap().x_);
+	value.x_ = -72;
+	EXPECT_EQ(-72, res.unwrap().x_);
+}
+
+
 
 std::ostream& operator<<(std::ostream& ostr, const TestResult::SomeTestType& t) {
     return ostr << "SomeTestType(" << t.x << ", " << t.f << ", \"" << t.somethingElse << "\"";

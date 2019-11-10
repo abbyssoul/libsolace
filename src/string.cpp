@@ -28,7 +28,7 @@ const String String::Empty{};
 
 Result<String, Error>
 Solace::makeString(StringView str) {
-	auto maybeBuffer = getSystemHeapMemoryManager().allocate(str.size() * sizeof(StringView::value_type));    // May throw
+	auto maybeBuffer = getSystemHeapMemoryManager().allocate(str.size() * sizeof(StringView::value_type));
 	if (!maybeBuffer) {
 		return maybeBuffer.moveError();
 	}

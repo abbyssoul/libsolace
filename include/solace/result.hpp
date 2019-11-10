@@ -65,6 +65,13 @@ using Ok = ValueWrapper<T, OkTag>;
 template<typename T>
 using Err = ValueWrapper<T, ErrTag>;
 
+
+template <typename T> struct RefOrRValue_		{ using Type = T&&; };
+template <typename T> struct RefOrRValue_<T&>	{ using Type = T&; };
+template <typename T> struct RefOrRValue_<T&&>	{ using Type = T&&; };
+template <typename T> using RefOrRValue = typename RefOrRValue_<T>::Type;
+
+
 }  // End of namespace types
 
 
@@ -295,12 +302,12 @@ public:
 		: _engaged{emplaceError(fwd<Args>(args)...)}
 	{}
 
-	constexpr Result(V&& value) noexcept(std::is_nothrow_move_constructible<V>::value)
-		: _engaged{emplaceValue(mv(value))}
+	constexpr Result(types::RefOrRValue<V> value) noexcept(std::is_nothrow_move_constructible<V>::value)
+		: _engaged{emplaceValue(static_cast<types::RefOrRValue<V>>(value))}
 	{}
 
-	constexpr Result(E&& value) noexcept(std::is_nothrow_move_constructible<E>::value)
-		: _engaged{emplaceError(mv(value))}
+	constexpr Result(types::RefOrRValue<E> value) noexcept(std::is_nothrow_move_constructible<E>::value)
+		: _engaged{emplaceError(static_cast<types::RefOrRValue<E>>(value))}
 	{}
 
 public:
