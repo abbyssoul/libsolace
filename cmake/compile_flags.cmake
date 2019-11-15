@@ -20,8 +20,9 @@ check_cxx_compiler_flag("-Wnoexcept" WITH_WNOEXCEPT)
 
 
 # Set compiler flags:
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pipe -pedantic -pedantic-errors")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-rtti")
+
 
 # TODO: Make this warning work too!
 #set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wconversion")
@@ -94,11 +95,11 @@ endif (WITH_VTABLE_VERIFY)
 # ---------------------------------
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG")
 
-# Extra optimizations on GCC
-if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT "MINGW")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -fuse-ld=gold")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fuse-linker-plugin -flto")
-endif()
+# Link time optimization: currently disabled as requires build system support.
+#if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT "MINGW")
+#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -fuse-ld=gold")
+#    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fuse-linker-plugin -flto")
+#endif()
 
 
 # ---------------------------------
@@ -121,8 +122,7 @@ if (SANITIZE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=unsigned-integer-overflow")
     endif(WITH_SANITIZE_UNSIGNED_INTEGER_OVERFLOW)
 
-    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+    add_link_options(-fsanitize=address)
 endif()
 
 
