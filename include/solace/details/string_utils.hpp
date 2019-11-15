@@ -38,6 +38,8 @@ struct ErrorString {
 	using size_type = StringView::size_type;
 
 	~ErrorString() noexcept;
+	ErrorString(ErrorString const& rhs) = delete;
+	ErrorString& operator= (ErrorString const& rhs) = delete;
 
 	ErrorString(ErrorString&& rhs) noexcept
 		: _size{rhs.size()}

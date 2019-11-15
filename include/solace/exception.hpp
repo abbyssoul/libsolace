@@ -48,8 +48,6 @@ public:
 
     //! Construct exception w. message
 	Exception(StringView message) noexcept;
-
-    Exception(Exception const& other)       = default;
     Exception(Exception&& other) noexcept   = default;
 
 	virtual StringView getMessage() const noexcept {
