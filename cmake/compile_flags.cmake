@@ -122,7 +122,9 @@ if (SANITIZE)
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=unsigned-integer-overflow")
     endif(WITH_SANITIZE_UNSIGNED_INTEGER_OVERFLOW)
 
-    add_link_options(-fsanitize=address)
+    set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -fsanitize=address")
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fsanitize=address")
+    # CMake 3.13 can replace with: add_link_options(-fsanitize=address)
 endif()
 
 
