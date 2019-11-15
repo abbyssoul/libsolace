@@ -23,8 +23,8 @@ addons:
    - "python3-setuptools"
    - "python3-cryptography"
    - "python3-pip"
-   - gcc-8
-   - g++-8
+   - gcc-7
+   - g++-7
    - ninja-build
    - cmake
    - doxygen
@@ -52,8 +52,8 @@ before_install:
 install:
   - gcov --version
   - lcov --version
-  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-8 90 --slave /usr/bin/g++ g++ /usr/bin/g++-8
-  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-8 90
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 90 --slave /usr/bin/g++ g++ /usr/bin/g++-7
+  - sudo update-alternatives --install /usr/bin/gcov gcov /usr/bin/gcov-7 90
   - echo $CXX
   - $CXX --version
   - ld --version

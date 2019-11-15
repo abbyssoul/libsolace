@@ -95,11 +95,11 @@ endif (WITH_VTABLE_VERIFY)
 # ---------------------------------
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Ofast -D NDEBUG")
 
-# Link time optimization: currently disabled as requires build system support.
-#if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT "MINGW")
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -fuse-ld=gold")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU" AND NOT "MINGW")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -fuse-ld=gold")
+    # Link time optimization: currently disabled as requires build system support.
 #    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -fuse-linker-plugin -flto")
-#endif()
+endif()
 
 
 # ---------------------------------
