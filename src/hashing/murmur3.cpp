@@ -93,17 +93,17 @@ FORCE_INLINE uint64 fmix64(uint64 k) {
 
 //-----------------------------------------------------------------------------
 SOLACE_NO_SANITIZE("unsigned-integer-overflow")
-uint32 murmurhash3_x86_32(const byte* data, const Murmur3_128::size_type len, uint32 seed) {
-    const int nblocks = static_cast<int>(len / 4);
+uint32 murmurhash3_x86_32(byte const* data, Murmur3_128::size_type const len, uint32 seed) {
+	auto const nblocks = static_cast<int>(len / 4);
     uint32 h1 = seed;
 
-    const uint32 c1 = 0xcc9e2d51;
-    const uint32 c2 = 0x1b873593;
+	constexpr uint32 const c1 = 0xcc9e2d51;
+	constexpr uint32 const c2 = 0x1b873593;
 
     //----------
     // body
 
-    const uint32* blocks = reinterpret_cast<const uint32*>(data + nblocks*4);
+	uint32 const* blocks = reinterpret_cast<const uint32*>(data + nblocks*4);
     for (int i = -nblocks; i; i++) {
         uint32 k1 = getblock32(blocks, i);
 
@@ -119,7 +119,7 @@ uint32 murmurhash3_x86_32(const byte* data, const Murmur3_128::size_type len, ui
     //----------
     // tail
 
-    const byte* tail = static_cast<const byte*>(data + nblocks*4);
+	auto tail = static_cast<byte const*>(data + nblocks*4);
     uint32 k1 = 0;
     switch (len & 3) {
     case 3: k1 ^= static_cast<uint32>(tail[2] << 16);  /* Falls through. */
@@ -329,7 +329,7 @@ Murmur3_32::getDigestLength() const {
 
 
 HashingAlgorithm& Murmur3_32::update(MemoryView input) {
-    _hash[0] = murmurhash3_x86_32(input.dataAddress(), input.size(), _seed);
+	_hash[0] = murmurhash3_x86_32(input.dataAs<byte>(), input.size(), _seed);
 
     return (*this);
 }
@@ -362,9 +362,9 @@ Murmur3_128::size_type Murmur3_128::getDigestLength() const {
 
 HashingAlgorithm& Murmur3_128::update(MemoryView input) {
 #if  defined(__i386__) || defined(__arm__)
-    MurmurHash3_x86_128(input.dataAddress(), input.size(), _seed, _hash);
+	MurmurHash3_x86_128(input.dataAs<byte>(), input.size(), _seed, _hash);
 #elif  defined(__x86_64__) ||  defined(__aarch64__)
-    MurmurHash3_x64_128(input.dataAddress(), input.size(), _seed, _hash);
+	MurmurHash3_x64_128(input.dataAs<byte>(), input.size(), _seed, _hash);
 #else
 #error "Unsupported CPU architecture"
 #endif

@@ -452,13 +452,13 @@ constexpr ArrayView<T> arrayView(MutableMemoryView memView, typename ArrayView<T
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-[[nodiscard]] constexpr ArrayView<T> arrayView(T* ptr, typename ArrayView<T>::size_type size) noexcept {
+[[nodiscard]] constexpr ArrayView<T> arrayView(T* ptr, typename ArrayView<T>::size_type size) {
   return {ptr, narrow_cast<typename ArrayView<const T>::size_type>(size)};
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-[[nodiscard]] constexpr ArrayView<const T> arrayView(T const* ptr, typename ArrayView<T>::size_type size) noexcept {
+[[nodiscard]] constexpr ArrayView<const T> arrayView(T const* ptr, typename ArrayView<T>::size_type size) {
   return {ptr, narrow_cast<typename ArrayView<const T>::size_type>(size)};
 }
 
@@ -471,7 +471,7 @@ template <typename T, size_t N>
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-[[nodiscard]] constexpr ArrayView<T> arrayView(T* begin, T* end) noexcept {
+[[nodiscard]] constexpr ArrayView<T> arrayView(T* begin, T* end) {
   return {begin, end};
 }
 

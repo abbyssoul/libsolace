@@ -25,6 +25,7 @@
 #include "solace/types.hpp"
 #include "solace/assert.hpp"
 #include "solace/utils.hpp"
+#include "solace/optional.hpp"
 #include "solace/result.hpp"
 
 
@@ -58,7 +59,8 @@ bool isBigendian() noexcept;
 class MemoryView {
 public:
 
-    using MemoryAddress = void *;
+	using MutableMemoryAddress = void*;
+	using MemoryAddress = void const*;
 
     using size_type  = uint64;
     using value_type = byte;
@@ -133,24 +135,7 @@ public:
     }
 
 
-    constexpr bool equals(MemoryView const& other) const noexcept {
-        if ((&other == this) ||
-            ((_size == other._size) && (_dataAddress == other._dataAddress))) {
-            return true;
-        }
-
-        if (_size != other._size) {
-            return false;
-        }
-
-        for (size_type i = 0; i < _size; ++i) {
-            if (_dataAddress[i] != other._dataAddress[i]) {
-                return false;
-            }
-        }
-
-        return true;
-    }
+	bool equals(MemoryView const& other) const noexcept;
 
     constexpr bool empty() const noexcept {
         return (_size == 0);
@@ -170,31 +155,35 @@ public:
      * @return iterator to beginning of the collection
      */
     constexpr const_iterator begin() const noexcept {
-        return _dataAddress;
-    }
+		return static_cast<value_type const*>(_dataAddress);
+	}
 
     /**
      * Return iterator to end of the collection
      * @return iterator to end of the collection
      */
     constexpr const_iterator end() const noexcept {
-        return _dataAddress + _size;
+		return begin() + _size;
     }
 
     value_type operator[] (size_type index) const;
 
-    constexpr value_type const* dataAddress() const noexcept { return _dataAddress; }
-    value_type const* dataAddress(size_type offset) const;
+	constexpr MemoryAddress dataAddress() const noexcept { return _dataAddress; }
+	Optional<MemoryAddress> dataAddress(size_type offset) const noexcept;
 
     template <typename T>
-    constexpr T const* dataAs() const noexcept { return reinterpret_cast<const T*>(_dataAddress); }
+	T const* dataAs() const {
+		assertTrue(_size == 0 || sizeof(T) <= size(), "Not enough room to emplace type T");
+
+		return reinterpret_cast<T const*>(_dataAddress);
+	}
 
     template <typename T>
     T const* dataAs(size_type offset) const {
         assertIndexInRange(offset, 0, this->size());
         assertIndexInRange(offset + sizeof(T), offset, this->size());
 
-        return reinterpret_cast<const T*>(_dataAddress + offset);
+		return reinterpret_cast<T const*>(begin() + offset);
     }
 
 
@@ -222,8 +211,8 @@ public:
 
 private:
 
-    size_type                   _size{};
-    byte const*                 _dataAddress{nullptr};
+	size_type		_size{};
+	MemoryAddress	_dataAddress{nullptr};
 };
 
 

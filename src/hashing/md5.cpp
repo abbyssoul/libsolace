@@ -202,7 +202,7 @@ MD5::size_type MD5::getDigestLength() const {
 
 
 HashingAlgorithm& MD5::update(MemoryView input) {
-    md5_update(_state, input.dataAddress(), input.size());
+	md5_update(_state, input.dataAs<byte>(), input.size());
 
     return (*this);
 }

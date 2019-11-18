@@ -90,7 +90,7 @@ public:
      */
     ByteReader(MemoryView view) noexcept
         : _limit{view.size()}
-        , _storage{wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()), nullptr}
+		, _storage{mutable_cast(view)}
     {
     }
 

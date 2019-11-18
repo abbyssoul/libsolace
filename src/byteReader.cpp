@@ -97,8 +97,12 @@ ByteReader::read(void* dest, size_type bytesToRead) noexcept {
 		return makeError(SystemErrors::Overflow, "ByteReader::read()");
     }
 
-    const void* srcAddr = _storage.view().dataAddress(_position);
-    memmove(dest, srcAddr, bytesToRead);
+	auto maybeSrcAddress = _storage.view().dataAddress(_position);
+	if (!maybeSrcAddress) {
+		return makeError(SystemErrors::Overflow, "ByteReader::read()");
+	}
+
+	memmove(dest, *maybeSrcAddress, bytesToRead);
     _position += bytesToRead;
 
     return Ok();
@@ -115,8 +119,12 @@ ByteReader::read(size_type offset, MutableMemoryView dest, size_type bytesToRead
 		return makeError(SystemErrors::Overflow, "ByteReader::read()");
     }
 
-    const void* srcAddr = _storage.view().dataAddress(offset);
-    memmove(dest.dataAddress(), srcAddr, bytesToRead);
+	auto maybeSrcAddress = _storage.view().dataAddress(offset);
+	if (!maybeSrcAddress) {
+		return makeError(SystemErrors::Overflow, "ByteReader::read()");
+	}
+
+	memmove(dest.dataAddress(), *maybeSrcAddress, bytesToRead);
 
     return Ok();
 }

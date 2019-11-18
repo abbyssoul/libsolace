@@ -40,6 +40,9 @@ namespace Solace {
 class MutableMemoryView
         : public MemoryView {
 public:
+	using MemoryView::MemoryAddress;
+	using MemoryView::MutableMemoryAddress;
+
     using MemoryView::size_type;
     using MemoryView::value_type;
 
@@ -72,19 +75,19 @@ public:
      * @throws IllegalArgumentException if the `data` is nullptr while size is non-zero.
      */
     MutableMemoryView(void* data, size_type dataSize)
-        : MemoryView(data, dataSize)
+		: MemoryView{data, dataSize}
     {}
 
     template<typename PodType, size_t N>
     constexpr MutableMemoryView(PodType const (&data)[N]) noexcept
-        : MemoryView(data)
+		: MemoryView{data}
     {
     }
 
 
     using MemoryView::equals;
 
-    constexpr bool equals(MutableMemoryView const& other) const noexcept {
+	bool equals(MutableMemoryView const& other) const noexcept {
         return MemoryView::equals(other);
     }
 
@@ -100,7 +103,7 @@ public:
      * @return iterator to beginning of the collection
      */
     constexpr iterator begin() noexcept {
-        return const_cast<value_type*>(dataAddress());
+		return static_cast<value_type*>(dataAddress());
     }
 
     using MemoryView::begin;
@@ -110,30 +113,35 @@ public:
      * @return iterator to end of the collection
      */
     constexpr iterator end() noexcept {
-        return const_cast<value_type*>(dataAddress() + size());
+		return (begin() + size());
     }
     using MemoryView::end;
 
-    reference  operator[] (size_type index);
+	reference operator[] (size_type index);
     using MemoryView::operator[];
 
     using MemoryView::dataAddress;
 
-    constexpr value_type* dataAddress() noexcept {
-        return const_cast<value_type*>(MemoryView::dataAddress());
+	constexpr MutableMemoryAddress dataAddress() noexcept {
+		return const_cast<MutableMemoryAddress>(MemoryView::dataAddress());
     }
 
-    value_type* dataAddress(size_type offset);
+	Optional<MutableMemoryAddress> dataAddress(size_type offset) noexcept;
 
 
-    using MemoryView::dataAs;
-    template <typename T>
-    T* dataAs(size_type offset = 0) {
-        assertIndexInRange(offset, 0, this->size());
-        assertIndexInRange(offset + sizeof(T), offset, this->size() + 1);
+	using MemoryView::dataAs;
+	template <typename T>
+	T* dataAs() {
+		return const_cast<T*>(MemoryView::dataAs<T>());
+	}
 
-        return reinterpret_cast<T*>(dataAddress() + offset);
-    }
+//    template <typename T>
+//    T* dataAs(size_type offset = 0) {
+//        assertIndexInRange(offset, 0, this->size());
+//        assertIndexInRange(offset + sizeof(T), offset, this->size() + 1);
+
+//        return reinterpret_cast<T*>(dataAddress() + offset);
+//    }
 
 
     /**
@@ -175,7 +183,10 @@ public:
      *
      * @return A reference to this for fluent interface
      */
-    MutableMemoryView& fill(byte value, size_type from, size_type to);
+	MutableMemoryView& fill(byte value, size_type from, size_type to) noexcept {
+		slice(from, to).fill(value);
+		return (*this);
+	}
 
     /// @see MemoryView::slice
     using MemoryView::slice;
@@ -192,7 +203,11 @@ public:
     template<typename T, typename... Args>
     /*[[nodiscard]]*/ T* construct(Args&&... args) {
         // Note: dataAs<> does assertion for the storage size
-		return ctor(*dataAs<T>(), fwd<Args>(args)...);
+		constexpr auto const spaceRequired = sizeof(T);
+		assertTrue(spaceRequired <= size(), "Not enough room to emplace type T");
+
+		T& dest = *dataAs<T>();
+		return ctor(dest, fwd<Args>(args)...);
     }
 
     template<typename T>
@@ -227,6 +242,10 @@ constexpr MutableMemoryView wrapMemory(PodType (&data)[N]) noexcept {
     return {data};
 }
 
+inline MutableMemoryView
+mutable_cast(MemoryView view) {
+	return wrapMemory(const_cast<MemoryView::MutableMemoryAddress>(view.dataAddress()), view.size());
+}
 
 inline void
 swap(MutableMemoryView& a, MutableMemoryView& b) noexcept {

@@ -255,7 +255,7 @@ public:
 
 protected:
 
-    Result<void, Error> write(void const* bytes, size_type count) noexcept;
+	Result<void, Error> write(MemoryView::MemoryAddress srcAddr, size_type count) noexcept;
 
 private:
 

@@ -24,8 +24,9 @@
 #include "solace/error.hpp"
 #include "solace/posixErrorDomain.hpp"
 
-#include <sys/mman.h>   // mlock/munlock
+#include <cstring>		// memcmp
 #include <algorithm>    // std::min/max
+#include <sys/mman.h>   // mlock/munlock
 
 
 using namespace Solace;
@@ -42,29 +43,29 @@ MemoryView::value_type
 MemoryView::operator[] (size_type index) const {
     assertIndexInRange(index, 0, _size, "index");
 
-    return _dataAddress[index];
+	return begin()[index];
 }
 
 
-MemoryView::value_type const*
-MemoryView::dataAddress(size_type offset) const {
-    if (offset != 0) {
-        assertIndexInRange(offset, 0, _size + 1, "offset");
+Optional<MemoryView::MemoryAddress>
+MemoryView::dataAddress(size_type offset) const noexcept {
+	if (offset != 0 && offset > _size) {
+		return none;
     }
 
-    return _dataAddress + offset;
+	return begin() + offset;
 }
 
 
 MemoryView
 MemoryView::slice(size_type from, size_type to) const noexcept {
-    auto const thisSize = size();
+	auto const thisSize = size();
 
     from = std::min(from, thisSize);
     to = std::min(thisSize, std::max(to, from));
     size_type const newSize = to - from;
 
-    return {_dataAddress + from, newSize};
+	return {begin() + from, newSize};
 }
 
 
@@ -85,5 +86,19 @@ MemoryView::Lock::~Lock() {
 //        // TODO(abbyssoul): shold use ErrnoException
 //        raise<Exception>("failed to unlock the memory buffer");
 //    }
+}
+
+
+bool MemoryView::equals(MemoryView const& other) const noexcept {
+	if (_size != other._size) {
+		return false;
+	}
+
+	if ((&other == this) ||
+		(_dataAddress == other._dataAddress)) {
+		return true;
+	}
+
+	return (std::memcmp(_dataAddress, other._dataAddress, _size) == 0);
 }
 

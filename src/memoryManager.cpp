@@ -85,7 +85,7 @@ MemoryManager::HeapMemoryDisposer::dispose(MemoryView* view) const {
 
 void MemoryManager::free(MemoryView* view) {
     auto const size = view->size();
-    ::free(reinterpret_cast<void*>(const_cast<MemoryView::value_type*>(view->dataAddress())));
+	::free(const_cast<MemoryView::MutableMemoryAddress>(view->dataAddress()));
 
     _size -= size;
 }

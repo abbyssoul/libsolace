@@ -64,7 +64,7 @@ ByteWriter::advance(size_type increment) noexcept {
 
 
 Result<void, Error>
-ByteWriter::write(void const* data, size_type count) noexcept {
+ByteWriter::write(MemoryView::MemoryAddress srcAddr, size_type count) noexcept {
     if (count == 0) {  // It's always ok to write 0 bytes :)
         return Ok();
     }
@@ -73,9 +73,13 @@ ByteWriter::write(void const* data, size_type count) noexcept {
 		return makeError(SystemErrors::Overflow, "ByteWriter::write()");
     }
 
-    auto const pos = position();
-    auto dest = reinterpret_cast<void*>(_storage.view().dataAddress(pos));
-    memmove(dest, data, count);
+	auto const pos = position();
+	auto maybeDestAddr = _storage.view().dataAddress(pos);
+	if (!maybeDestAddr) {
+		return makeError(SystemErrors::Overflow, "ByteWriter::write()");
+	}
+
+	memmove(*maybeDestAddr, srcAddr, count);
 
     return advance(count);
 }

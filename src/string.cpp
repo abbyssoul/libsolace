@@ -45,11 +45,7 @@ Solace::makeString(StringView str) {
 
 String
 Solace::makeString(StringLiteral literal) noexcept {
-    auto view = literal.view();
-	auto buffer = MemoryResource{wrapMemory(const_cast<MemoryView::value_type*>(view.dataAddress()), view.size()),
-								 nullptr};
-
-	return { mv(buffer), literal.size() };
+	return { MemoryResource{mutable_cast(literal.view())}, literal.size() };
 }
 
 
@@ -67,8 +63,8 @@ Solace::makeStringReplace(StringView str, String::value_type what, String::value
 		return writeResult.moveError();
 	}
 
-	for (String::size_type i = 0; i < totalStrLen; ++i) {
-		auto offsetValue = bufferView.dataAs<String::value_type>(i);
+	auto offsetValue = bufferView.dataAs<String::value_type>();
+	for (String::size_type i = 0; i < totalStrLen; ++i, ++offsetValue) {
         if (*offsetValue == what) {
             *offsetValue = with;
         }

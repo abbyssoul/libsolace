@@ -150,10 +150,10 @@ TEST(TestReadBuffer, testReadFromOffset) {
     constexpr size_type testSize = sizeof(srcBytes);
 
     byte readBuffer[128];
-    constexpr size_type readBufferChunk = 3;
+	constexpr size_type const readBufferChunk = 3;
+	MutableMemoryView destView = wrapMemory(readBuffer);
 
     ByteReader buffer(wrapMemory(srcBytes));
-    MutableMemoryView destView = wrapMemory(readBuffer);
 
     // Read data from an offset
     EXPECT_TRUE(buffer.read(4, destView, readBufferChunk).isOk());

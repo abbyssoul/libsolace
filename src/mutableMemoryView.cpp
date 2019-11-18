@@ -30,31 +30,36 @@ using namespace Solace;
 
 MutableMemoryView::reference
 MutableMemoryView::operator[] (size_type index) {
-    return *dataAddress(index);
+	assertIndexInRange(index, 0, size(), "index");
+
+	return *static_cast<value_type*>(*dataAddress(index));
 }
 
 
-MutableMemoryView::value_type*
-MutableMemoryView::dataAddress(size_type offset) {
-    return const_cast<value_type*>(MemoryView::dataAddress(offset));
+Optional<MutableMemoryView::MutableMemoryAddress>
+MutableMemoryView::dataAddress(size_type offset) noexcept {
+	return MemoryView::dataAddress(offset)
+			.map([](MemoryAddress addr) { return const_cast<MutableMemoryAddress>(addr); });
 }
 
 
 Result<void, Error>
 MutableMemoryView::write(MemoryView const& source, size_type offset) {
-    auto const thisSize = size();
-    auto const srcSize = source.size();
+	auto const thisSize = size();
+	auto const srcSize = source.size();
 
-    if (offset > thisSize) {  // Make sure that offset is within [0, size())
+	auto maybeDestAddress = dataAddress(offset);
+	if (!maybeDestAddress) {  // Make sure that offset is within [0, size())
 		return makeError(GenericError::DOM, "offset: offset outsize of data range");
 	}
 
+	// assert that `offset <= thisSize` - otherwise maybeDestAddress is none
     if (srcSize > thisSize - offset) {  // Make sure that source is writing no more then there is room.
 		return makeError(GenericError::DOM, "source: overflow");
 	}
 
     if (srcSize > 0) {
-        std::memmove(dataAddress(offset), source.dataAddress(), srcSize);
+		std::memmove(*maybeDestAddress, source.dataAddress(), srcSize);
     }
 
 	return Ok();
@@ -63,8 +68,8 @@ MutableMemoryView::write(MemoryView const& source, size_type offset) {
 
 Result<void, Error>
 MutableMemoryView::read(MutableMemoryView& dest) {
-    auto const thisSize = size();
-    auto const destSize = dest.size();
+	auto const thisSize = size();
+	auto const destSize = dest.size();
 
     if (thisSize < destSize) {
 		return makeError(BasicError::Overflow, "dest is too small");
@@ -77,15 +82,16 @@ MutableMemoryView::read(MutableMemoryView& dest) {
 
 Result<void, Error>
 MutableMemoryView::read(MutableMemoryView& dest, size_type bytesToRead, size_type offset) {
-    auto const thisSize = size();
+	auto const thisSize = size();
 
     // Check if there is enough room in the dest to hold `bytesToRead` bytes.
 	if (dest.size() < bytesToRead) {  // Precondition: `bytesToRead <= dest.size()` don't ask to read more then can hold
 		return makeError(GenericError::DOM, "bytesToRead: dest is too small");
 	}
 
+	auto maybeDestAddr = dataAddress(offset);
     // Make sure that offset is within [0, size())
-	if (thisSize < offset) {  // Precondition: `offset <= this.size()` - don't go out of bounds
+	if (!maybeDestAddr) {  // Precondition: `offset <= this.size()` - don't go out of bounds
 		return makeError(GenericError::DOM, "offset: outside of bounds");
 	}
 
@@ -95,7 +101,7 @@ MutableMemoryView::read(MutableMemoryView& dest, size_type bytesToRead, size_typ
 	}
 
 	if (bytesToRead > 0) {
-		std::memmove(dest.dataAddress(), dataAddress(offset), bytesToRead);
+		std::memmove(dest.dataAddress(), *maybeDestAddr, bytesToRead);
 	}
 
 	return Ok();
@@ -110,26 +116,20 @@ MutableMemoryView::fill(byte value) noexcept {
 }
 
 
-MutableMemoryView&
-MutableMemoryView::fill(byte value, size_type from, size_type to) {
-    from = assertIndexInRange(from, 0, size(), "from");
-    to = assertIndexInRange(to, from, size() + 1, "to");
-
-    memset(dataAddress(from), value, to - from);
-
-    return (*this);
-}
-
-
 MutableMemoryView
 MutableMemoryView::slice(size_type from, size_type to) noexcept {
-    auto const thisSize = size();
+	if (from == to) {
+		return {dataAddress(), 0};
+	}
+
+	auto const thisSize = size();
 
     // `from` is constrained to [0, size())
     // `to` is constrained to [from, size())
     from = std::min(from, thisSize);
-    to = std::min(thisSize, std::max(to, from));
-    size_type const newSize = to - from;
+	to = std::min(std::max(to, from), thisSize);
 
-    return {dataAddress(from), newSize};
+	auto destAddress = dataAs<byte>() + from;
+
+	return {destAddress, to - from};
 }
