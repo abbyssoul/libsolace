@@ -134,9 +134,6 @@ public:
     /**
      * Construct an non-empty optional value by copying-value.
      */
-//    template<typename D,
-//             typename unused = std::enable_if_t<std::is_copy_assignable<T>::value, void>
-//             >
     Optional(T const& t) noexcept(std::is_nothrow_copy_constructible<T>::value)
         : _payload{t}
         , _engaged{true}
