@@ -32,8 +32,8 @@ Error::toString() const {
 	}
 
 	// In case domain is not known:
-	constexpr auto N = sizeof(AtomValue);
-	char buffer[sizeof(N) + 1] = {0};
+	constexpr auto const N = sizeof(AtomValue);
+	char buffer[N + 1] = {0};
 	atomToString(_domain, buffer);
 
 	auto maybeString = makeString(StringView{buffer}, StringView{": "}, _tag);
