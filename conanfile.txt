@@ -2,6 +2,8 @@
 [options]
 
 [build_requires]
+gtest/1.10.0
+
 #cppcheck/1.84@abbyssoul/stable
 #valgrind/3.14.0@abbyssoul/stable
 
