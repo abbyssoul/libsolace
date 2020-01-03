@@ -58,7 +58,54 @@ public:
 
     using value_type = String;
     using size_type = Array<value_type>::size_type;
-    using const_iterator = Array<value_type>::const_iterator;
+
+	struct Iterator {
+
+		Iterator(Path const& p, size_type position) noexcept
+			: _index{position}
+			, _path{p}
+		{}
+
+		constexpr Iterator(Iterator const& rhs) noexcept = default;
+		constexpr Iterator(Iterator&& rhs) noexcept = default;
+
+		Iterator& operator= (Iterator const& rhs) noexcept = default;
+		Iterator& operator= (Iterator&& rhs) noexcept {
+			return swap(rhs);
+		}
+
+		constexpr bool operator!= (Iterator const& other) const noexcept {
+			return (_index != other._index);
+		}
+
+		constexpr bool operator== (Iterator const& other) const noexcept {
+			return (_index == other._index);
+		}
+
+		Iterator& operator++ ();
+
+		StringView operator-> () const;
+
+		auto operator* () const {
+			return operator ->();
+		}
+
+
+		Iterator& swap(Iterator& rhs) noexcept {
+			std::swap(_index, rhs._index);
+			std::swap(_path, rhs._path);
+
+			return *this;
+		}
+
+		constexpr size_type getIndex() const noexcept { return _index; }
+
+	private:
+		size_type	_index;
+		std::reference_wrapper<const Path> _path;
+	};
+
+	using const_iterator = Iterator;
 
 public:  // Static methods
 
@@ -88,11 +135,11 @@ public:  // Static methods
 public:  // Object construction
 
 	/** Construct an empty path */
-    Path() = default;
+	constexpr Path() noexcept = default;
 
     /** Construct an object by moving content from a given */
-    Path(Path&& p) noexcept
-		: _components(mv(p._components))
+	constexpr Path(Path&& p) noexcept
+		: _components{mv(p._components)}
     { }
 
 public:  // Operation
@@ -194,7 +241,7 @@ public:  // Operation
      * @param other
      * @return True, if this path object ends with the given
      */
-    bool endsWith(const Path& other) const;
+	bool endsWith(Path const& other) const;
 
     /** Tests if this path ends with the given string.
      * @param other
@@ -261,19 +308,19 @@ public:  // Operation
         return _components.size();
     }
 
-    /** Get number of components this path includes
-     * @brief getComponentsCount
+	/** Get n'th component of this path
+	 * @param index Index of a path segment
      * @return Number of path elements in this path
      */
-    const String& getComponent(size_type index) const;
+	StringView getComponent(size_type index) const;
 
     const_iterator begin() const {
-        return _components.begin();
+		return Iterator{*this, 0};
     }
 
     const_iterator end() const {
-        return _components.end();
-    }
+		return Iterator{*this, getComponentsCount()};
+	}
 
     /** Returns sub path of this path
      * Slice of this path object
@@ -284,25 +331,24 @@ public:  // Operation
 
     /** @see Iterable::forEach */
     template<typename F>
-    std::enable_if_t<isCallable<F, const value_type&>::value, const Path& >
+	std::enable_if_t<isCallable<F, StringView>::value, Path const &>
     forEach(F&& f) const {
         for (auto const& i : _components) {
-            f(i);
+			f(i.view());
         }
 
         return *this;
     }
 
-    template<typename F>
-    std::enable_if_t<isCallable<F, value_type&&>::value, Path& >
-    forEach(F&& f) && {
-        for (auto& i : _components) {
+	template<typename F>
+	std::enable_if_t<isCallable<F, Path::value_type&&>::value, Path &>
+	forEach(F&& f) && {
+		for (auto& i : _components) {
 			f(mv(i));
-        }
+		}
 
-        return *this;
-    }
-
+		return *this;
+	}
 
     /** Get string representation of the path object using give delimiter */
     String toString(StringView delim) const;
@@ -323,7 +369,7 @@ protected:
      * Move-Construct the path object from a collection of String components
      * @param array A collection of string components forming the path
      */
-	Path(Array<String>&& array) noexcept
+	constexpr Path(Array<String>&& array) noexcept
 		: _components{mv(array)}
 	{
         // No-op
@@ -332,7 +378,7 @@ protected:
 
 private:
 
-    Array<String>  _components{};
+	Array<String>  _components;
 };
 
 
@@ -350,6 +396,18 @@ inline
 void swap(Path& lhs, Path& rhs) noexcept {
     lhs.swap(rhs);
 }
+
+
+[[nodiscard]] inline
+Path makePath(Array<String>&& array) noexcept {
+	return {mv(array)};
+}
+
+[[nodiscard]] inline
+Path makePath(Vector<String>&& vec) noexcept {
+	return makePath(vec.toArray());
+}
+
 
 /**
  * Construct the path object from a single string component
@@ -369,16 +427,6 @@ auto makePath(char const* str) {
     return makePath(StringView{str});
 }
 
-[[nodiscard]] inline
-Path makePath(Array<String>&& array) noexcept {
-	return {mv(array)};
-}
-
-[[nodiscard]] inline
-Path makePath(Vector<String>&& vec) noexcept {
-    return makePath(vec.toArray());
-}
-
 
 namespace details {
 
@@ -390,10 +438,12 @@ constexpr Path::size_type countPathComponents(String&)          noexcept { retur
 constexpr Path::size_type countPathComponents(char const*)      noexcept { return 1; }
 constexpr Path::size_type countPathComponents(Path const& path) noexcept { return path.getComponentsCount(); }
 constexpr Path::size_type countPathComponents(Path& path)       noexcept { return path.getComponentsCount(); }
+constexpr Path::size_type countPathComponents(Path&& path)      noexcept { return path.getComponentsCount(); }
+
 
 template<typename T, typename...Args>
 Path::size_type countPathComponents(T&& base, Args&&...args) {
-	return (countPathComponents(base) + countPathComponents(fwd<Args>(args)...));
+	return (countPathComponents(fwd<T>(base)) + ... + countPathComponents(fwd<Args>(args)));
 }
 
 
@@ -429,7 +479,7 @@ inline Result<void, Error> joinComponents(Vector<String>& base, Path&& path) {
 }
 
 inline Result<void, Error> joinComponents(Vector<String>& base, Path const& path) {
-    for (auto const& component : path) {
+	for (auto component : path) {
 		auto maybeDup = makeString(component);
 		if (!maybeDup)
 			return maybeDup.moveError();
@@ -468,6 +518,17 @@ Result<void, Error> joinComponents(Vector<String>& base, Path const& path, Args&
 
 	return joinComponents(base, fwd<Args>(args)...);
 }
+
+
+template <typename...Args>
+Result<void, Error> joinComponents(Vector<String>& base, Path&& path, Args&&...args) {
+	auto r = joinComponents(base, mv(path));
+	if (!r)
+		return r;
+
+	return joinComponents(base, fwd<Args>(args)...);
+}
+
 
 }  // namespace details
 

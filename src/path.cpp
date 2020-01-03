@@ -95,6 +95,19 @@ Path::parse(StringView str, StringView delim) {
 }
 
 
+Path::Iterator&
+Path::Iterator::operator++ () {
+	_index += 1;
+
+	return *this;
+}
+
+
+StringView
+Path::Iterator::operator-> () const {
+	return _path.get().getComponent(_index);
+}
+
 String::size_type
 Path::length(StringView delim) const noexcept {
     auto const delimLen = delim.length();
@@ -299,9 +312,8 @@ Path::getBasename() const {
 }
 
 
-Solace::String const&
-Path::getComponent(size_type index) const {
-    return _components[index];
+StringView Path::getComponent(size_type index) const {
+	return _components[index].view();
 }
 
 

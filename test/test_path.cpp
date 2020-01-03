@@ -32,9 +32,8 @@ using namespace Solace;
 
 std::ostream& operator<< (std::ostream& ostr, Solace::Path const& v) {
     ostr << "Path:" << v.getComponentsCount() << ":{";
-    for (auto const& c : v) {
-        auto const componentView = c.view();
-        ostr.write(componentView.data(), componentView.size());
+	for (auto c : v) {
+		ostr.write(c.data(), c.size());
         ostr << " ";
     }
 
@@ -366,7 +365,7 @@ TEST(TestPath, testIterable) {
 	auto const& p = maybeP.unwrap();
 
     String::size_type i = 0;
-    for (auto& v : p) {
+	for (auto v : p) {
         ++i;
         EXPECT_EQ(i, v.length());
     }
@@ -374,7 +373,9 @@ TEST(TestPath, testIterable) {
 
 TEST(TestPath, testForEach) {
     std::vector<int> counts;
-	makePathSafe("e", "so", "long", "pat", "fx", "x").forEach([&counts] (const String& component){
+	counts.reserve(6);
+
+	makePathSafe("e", "so", "long", "pat", "fx", "x").forEach([&counts] (StringView component){
         counts.push_back(component.length());
     });
 
