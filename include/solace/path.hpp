@@ -61,7 +61,7 @@ public:
 
 	struct Iterator {
 
-		Iterator(Path const& p, size_type position) noexcept
+		Iterator(ArrayView<const value_type> const& p, size_type position) noexcept
 			: _index{position}
 			, _path{p}
 		{}
@@ -102,7 +102,7 @@ public:
 
 	private:
 		size_type	_index;
-		std::reference_wrapper<const Path> _path;
+		ArrayView<const value_type> _path;
 	};
 
 	using const_iterator = Iterator;
@@ -135,10 +135,10 @@ public:  // Static methods
 public:  // Object construction
 
 	/** Construct an empty path */
-	constexpr Path() noexcept = default;
+	/*constexpr*/ Path() noexcept = default;
 
     /** Construct an object by moving content from a given */
-	constexpr Path(Path&& p) noexcept
+	/*constexpr*/ Path(Path&& p) noexcept
 		: _components{mv(p._components)}
     { }
 
@@ -315,11 +315,11 @@ public:  // Operation
 	StringView getComponent(size_type index) const;
 
     const_iterator begin() const {
-		return Iterator{*this, 0};
+		return Iterator{_components.view(), 0};
     }
 
     const_iterator end() const {
-		return Iterator{*this, getComponentsCount()};
+		return Iterator{_components.view(), _components.size()};
 	}
 
     /** Returns sub path of this path
@@ -369,7 +369,7 @@ protected:
      * Move-Construct the path object from a collection of String components
      * @param array A collection of string components forming the path
      */
-	constexpr Path(Array<String>&& array) noexcept
+	/*constexpr*/ Path(Array<String>&& array) noexcept
 		: _components{mv(array)}
 	{
         // No-op

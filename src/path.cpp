@@ -105,8 +105,9 @@ Path::Iterator::operator++ () {
 
 StringView
 Path::Iterator::operator-> () const {
-	return _path.get().getComponent(_index);
+	return _path[_index].view();
 }
+
 
 String::size_type
 Path::length(StringView delim) const noexcept {
