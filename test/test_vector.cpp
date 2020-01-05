@@ -31,8 +31,8 @@ TEST(TestVector, testEmptyIntegralVectorIsEmpty) {
     Vector<uint32> v{};
 
     EXPECT_TRUE(v.empty());
-    EXPECT_EQ(0, v.size());
-    EXPECT_EQ(0, v.capacity());
+	EXPECT_EQ(0U, v.size());
+	EXPECT_EQ(0U, v.capacity());
 }
 
 
@@ -43,8 +43,8 @@ TEST(TestVector, testEmptyVectorIsEmpty) {
     Vector<SimpleType> v;
 
     EXPECT_TRUE(v.empty());
-    EXPECT_EQ(0, v.size());
-    EXPECT_EQ(0, v.capacity());
+	EXPECT_EQ(0U, v.size());
+	EXPECT_EQ(0U, v.capacity());
     EXPECT_EQ(0, SimpleType::InstanceCount);
 }
 
@@ -53,9 +53,9 @@ TEST(TestVector, factoryIntergralVectorWithCapacity) {
 	ASSERT_TRUE(maybeVec.isOk());
 	auto& v = maybeVec.unwrap();
 
-    EXPECT_EQ(10, v.capacity());
+	EXPECT_EQ(10U, v.capacity());
     EXPECT_TRUE(v.empty());
-    EXPECT_EQ(0, v.size());
+	EXPECT_EQ(0U, v.size());
 }
 
 TEST(TestVector, factoryVectorWithCapacityCreatesNoObjects) {
@@ -64,9 +64,9 @@ TEST(TestVector, factoryVectorWithCapacityCreatesNoObjects) {
 	ASSERT_TRUE(maybeVec.isOk());
 	auto& v = maybeVec.unwrap();
 
-    EXPECT_EQ(10, v.capacity());
+	EXPECT_EQ(10U, v.capacity());
     EXPECT_TRUE(v.empty());
-    EXPECT_EQ(0, v.size());
+	EXPECT_EQ(0U, v.size());
     EXPECT_EQ(0, SimpleType::InstanceCount);
 }
 
@@ -87,9 +87,9 @@ TEST(TestVector, emplaceBack) {
         v.emplace_back(2, 1, 0);
         v.emplace_back(1, 0, -1);
 
-        EXPECT_EQ(10, v.capacity());
+		EXPECT_EQ(10U, v.capacity());
         EXPECT_FALSE(v.empty());
-        EXPECT_EQ(3, v.size());
+		EXPECT_EQ(3U, v.size());
         EXPECT_EQ(3, SimpleType::InstanceCount);
     }
 
@@ -105,13 +105,13 @@ TEST(TestVector, emplaceOverflowThrows) {
 		ASSERT_TRUE(maybeVec.isOk());
 		auto& v = maybeVec.unwrap();
 
-        EXPECT_EQ(3, v.capacity());
+		EXPECT_EQ(3U, v.capacity());
 
         v.emplace_back(3, 2, 1);
         v.emplace_back(2, 1, 0);
         v.emplace_back(1, 0, -1);
 
-        EXPECT_EQ(3, v.size());
+		EXPECT_EQ(3U, v.size());
         EXPECT_ANY_THROW(v.emplace_back(1, 0, -1));
 
         EXPECT_EQ(3, SimpleType::InstanceCount);
@@ -133,18 +133,18 @@ TEST(TestVector, movedFromVectorIsEmpty) {
         v.emplace_back(2, 1, 0);
         v.emplace_back(1, 0, -1);
 
-        EXPECT_EQ(10, v.capacity());
+		EXPECT_EQ(10U, v.capacity());
         EXPECT_FALSE(v.empty());
-        EXPECT_EQ(3, v.size());
+		EXPECT_EQ(3U, v.size());
         EXPECT_EQ(3, SimpleType::InstanceCount);
 
 		auto other = mv(v);
-        EXPECT_EQ(0, v.capacity());
+		EXPECT_EQ(0U, v.capacity());
         EXPECT_TRUE(v.empty());
 
-        EXPECT_EQ(10, other.capacity());
+		EXPECT_EQ(10U, other.capacity());
         EXPECT_FALSE(other.empty());
-        EXPECT_EQ(3, other.size());
+		EXPECT_EQ(3U, other.size());
         EXPECT_EQ(3, SimpleType::InstanceCount);
     }
 
@@ -163,15 +163,15 @@ TEST(TestVector, movingWhenCopyConstructorThrowsIsSafe) {
 	auto& v = maybeVec.unwrap();
 
     EXPECT_TRUE(v.empty());
-    EXPECT_EQ(0, v.size());
-    EXPECT_EQ(10, v.capacity());
+	EXPECT_EQ(0U, v.size());
+	EXPECT_EQ(10U, v.capacity());
     EXPECT_EQ(0, SometimesConstructable::InstanceCount);
 
 	Vector<SometimesConstructable> const movedInto = mv(v);
 
     EXPECT_TRUE(v.empty());
-    EXPECT_EQ(0, v.size());
-    EXPECT_EQ(0, v.capacity());
+	EXPECT_EQ(0U, v.size());
+	EXPECT_EQ(0U, v.capacity());
     EXPECT_EQ(0, SometimesConstructable::InstanceCount);
 }
 
@@ -188,8 +188,8 @@ TEST(TestVector, constructionFromInitializerList) {
 		auto& v = maybeVec.unwrap();
 
         EXPECT_FALSE(v.empty());
-        EXPECT_EQ(3, v.capacity());
-        EXPECT_EQ(3, v.size());
+		EXPECT_EQ(3U, v.capacity());
+		EXPECT_EQ(3U, v.size());
         EXPECT_EQ(3, SimpleType::InstanceCount);
     }
 
@@ -207,8 +207,8 @@ TEST(TestVector, constructionFromVarArgs) {
 		auto& v = maybeVec.unwrap();
 
         EXPECT_FALSE(v.empty());
-        EXPECT_EQ(3, v.capacity());
-        EXPECT_EQ(3, v.size());
+		EXPECT_EQ(3U, v.capacity());
+		EXPECT_EQ(3U, v.size());
         EXPECT_EQ(3, PimitiveType::InstanceCount);
     }
 
@@ -233,8 +233,8 @@ TEST(TestVector, copy) {
 		auto& v = maybeVec.unwrap();
 
         EXPECT_FALSE(v.empty());
-        EXPECT_EQ(3, v.capacity());
-        EXPECT_EQ(3, v.size());
+		EXPECT_EQ(3U, v.capacity());
+		EXPECT_EQ(3U, v.size());
         EXPECT_EQ(6, SimpleType::InstanceCount);
     }
 
@@ -324,18 +324,18 @@ TEST(TestVector, popBack) {
         v.emplace_back(2, 1, 0);
         v.emplace_back(3, 2, 1);
 
-        EXPECT_EQ(10, v.capacity());
+		EXPECT_EQ(10U, v.capacity());
         EXPECT_FALSE(v.empty());
-        EXPECT_EQ(5, v.size());
+		EXPECT_EQ(5U, v.size());
         EXPECT_EQ(5, SimpleType::InstanceCount);
 
         EXPECT_NO_THROW(v.pop_back());
-        EXPECT_EQ(4, v.size());
+		EXPECT_EQ(4U, v.size());
         EXPECT_EQ(4, SimpleType::InstanceCount);
         EXPECT_EQ(SimpleType(2, 1, 0), v[3]);
 
         EXPECT_NO_THROW(v.pop_back());
-        EXPECT_EQ(3, v.size());
+		EXPECT_EQ(3U, v.size());
         EXPECT_EQ(3, SimpleType::InstanceCount);
         EXPECT_EQ(SimpleType(1, 0, -1), v[2]);
     }
@@ -358,13 +358,13 @@ TEST(TestVector, clear) {
         v.emplace_back(2, 1, 0);
         v.emplace_back(3, 2, 1);
 
-        EXPECT_EQ(10, v.capacity());
+		EXPECT_EQ(10U, v.capacity());
         EXPECT_FALSE(v.empty());
-        EXPECT_EQ(5, v.size());
+		EXPECT_EQ(5U, v.size());
         EXPECT_EQ(5, SimpleType::InstanceCount);
 
         EXPECT_NO_THROW(v.clear());
-        EXPECT_EQ(0, v.size());
+		EXPECT_EQ(0U, v.size());
         EXPECT_EQ(0, SimpleType::InstanceCount);
     }
 
@@ -380,9 +380,9 @@ TEST(TestVector, moveOnlyTypes) {
 		ASSERT_TRUE(maybeVec.isOk());
 		auto& v = maybeVec.unwrap();
 
-        EXPECT_EQ(10, v.capacity());
+		EXPECT_EQ(10U, v.capacity());
         EXPECT_TRUE(v.empty());
-        EXPECT_EQ(0, v.size());
+		EXPECT_EQ(0U, v.size());
         EXPECT_EQ(0, MoveOnlyType::InstanceCount);
 
         v.emplace_back(3);
@@ -391,9 +391,9 @@ TEST(TestVector, moveOnlyTypes) {
         v.emplace_back(0);
         v.emplace_back(-1);
 
-        EXPECT_EQ(10, v.capacity());
+		EXPECT_EQ(10U, v.capacity());
         EXPECT_FALSE(v.empty());
-        EXPECT_EQ(5, v.size());
+		EXPECT_EQ(5U, v.size());
         EXPECT_EQ(5, MoveOnlyType::InstanceCount);
 
         int counter = 3;
@@ -403,12 +403,12 @@ TEST(TestVector, moveOnlyTypes) {
         }
 
         EXPECT_NO_THROW(v.pop_back());
-        EXPECT_EQ(4, v.size());
+		EXPECT_EQ(4U, v.size());
         EXPECT_EQ(4, MoveOnlyType::InstanceCount);
         EXPECT_EQ(0, v[3].x_);
 
         EXPECT_NO_THROW(v.pop_back());
-        EXPECT_EQ(3, v.size());
+		EXPECT_EQ(3U, v.size());
         EXPECT_EQ(3, MoveOnlyType::InstanceCount);
         EXPECT_EQ(1, v[2].x_);
     }
@@ -428,20 +428,20 @@ TEST(TestVector, toArray_MoveOnlyType) {
         v.emplace_back(5);
         v.emplace_back(3);
         v.emplace_back(1);
-        EXPECT_EQ(4, v.capacity());
+		EXPECT_EQ(4U, v.capacity());
         EXPECT_FALSE(v.empty());
-        EXPECT_EQ(4, v.size());
+		EXPECT_EQ(4U, v.size());
         EXPECT_EQ(4, MoveOnlyType::InstanceCount);
 
         Array<MoveOnlyType> array = v.toArray();
         EXPECT_FALSE(array.empty());
-        EXPECT_EQ(4, array.size());
+		EXPECT_EQ(4U, array.size());
         EXPECT_EQ(4, MoveOnlyType::InstanceCount);
 
         // vector 'v' has been moved from - thus should be 'empty'
         EXPECT_TRUE(v.empty());
-        EXPECT_EQ(0, v.capacity());
-        EXPECT_EQ(0, v.size());
+		EXPECT_EQ(0U, v.capacity());
+		EXPECT_EQ(0U, v.size());
     }
 
     // Important to make sure all the instances has been correctly destructed after scope exit
@@ -456,21 +456,21 @@ TEST(TestVector, toArray) {
 		ASSERT_TRUE(maybeVec.isOk());
 		auto& v = maybeVec.unwrap();
 
-        EXPECT_EQ(4, v.capacity());
+		EXPECT_EQ(4U, v.capacity());
         EXPECT_FALSE(v.empty());
-        EXPECT_EQ(4, v.size());
+		EXPECT_EQ(4U, v.size());
         EXPECT_EQ(4, SometimesConstructable::InstanceCount);
 
         Array<SometimesConstructable> array = v.toArray();
         EXPECT_EQ(4, SometimesConstructable::InstanceCount);
         EXPECT_FALSE(array.empty());
-        EXPECT_EQ(4, array.size());
+		EXPECT_EQ(4U, array.size());
 
 
         // vector 'v' has been moved from - thus should be 'empty'
         EXPECT_TRUE(v.empty());
-        EXPECT_EQ(0, v.capacity());
-        EXPECT_EQ(0, v.size());
+		EXPECT_EQ(0U, v.capacity());
+		EXPECT_EQ(0U, v.size());
     }
 
     // Important to make sure all the instances has been correctly destructed after scope exit

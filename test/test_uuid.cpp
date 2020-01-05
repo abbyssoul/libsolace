@@ -30,8 +30,8 @@ static constexpr size_t RandomSampleSize = 100;
 
 
 TEST(TestUUID, testStaticConstraints) {
-    EXPECT_EQ(16, UUID::StaticSize);
-    EXPECT_EQ(36, UUID::StringSize);
+	EXPECT_EQ(16U, UUID::StaticSize);
+	EXPECT_EQ(36U, UUID::StringSize);
 }
 
 TEST(TestUUID, testRandom) {

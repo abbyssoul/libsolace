@@ -82,7 +82,7 @@ TEST(TestMemoryView, testWrapping) {
         auto test = wrapMemory(example);
 
         EXPECT_TRUE(!test.empty());
-        EXPECT_EQ(6, test.size());
+		EXPECT_EQ(6U, test.size());
 
         for (MutableMemoryView::size_type i = 0; i < test.size(); ++i) {
 			EXPECT_EQ(example[i], test.dataAs<byte>()[i]);
@@ -94,7 +94,7 @@ TEST(TestMemoryView, testWrapping) {
         auto test = wrapMemory(example, 4);
 
         EXPECT_TRUE(!test.empty());
-        EXPECT_EQ(4, test.size());
+		EXPECT_EQ(4U, test.size());
 
         for (MutableMemoryView::size_type i = 0; i < test.size(); ++i) {
 			EXPECT_EQ(example[i], test.dataAs<byte>()[i]);
@@ -109,7 +109,7 @@ TEST(TestMemoryView, testConstruction) {
         MutableMemoryView test = wrapMemory(buff);
 
         EXPECT_TRUE(!test.empty());
-        EXPECT_EQ(3102, test.size());
+		EXPECT_EQ(3102U, test.size());
         test[0] = 19;
         test[2] = 17;
         test[1] = 4;
@@ -128,7 +128,7 @@ TEST(TestMemoryView, testConstruction) {
         {
 			MutableMemoryView b2(mv(b1));
 
-            EXPECT_EQ(0, b1.size());
+			EXPECT_EQ(0U, b1.size());
             EXPECT_EQ(exampleSize, b2.size());
 
             for (MutableMemoryView::size_type i = 0; i < b2.size(); ++i) {
@@ -334,13 +334,13 @@ TEST(TestMemoryView, testZeroSizedSlice) {
     byte src[24];
     auto buffer = wrapMemory(src);
 
-    EXPECT_EQ(0, buffer.slice(3, 3).size());
-    EXPECT_EQ(0, buffer.slice(512, 512).size());
+	EXPECT_EQ(0U, buffer.slice(3, 3).size());
+	EXPECT_EQ(0U, buffer.slice(512, 512).size());
 
-    EXPECT_EQ(0, MemoryView().slice(0, 0).size());
-    EXPECT_EQ(0, MemoryView().slice(312, 312).size());
-    EXPECT_EQ(0, MutableMemoryView().slice(0, 0).size());
-    EXPECT_EQ(0, MutableMemoryView().slice(10, 10).size());
+	EXPECT_EQ(0U, MemoryView().slice(0, 0).size());
+	EXPECT_EQ(0U, MemoryView().slice(312, 312).size());
+	EXPECT_EQ(0U, MutableMemoryView().slice(0, 0).size());
+	EXPECT_EQ(0U, MutableMemoryView().slice(10, 10).size());
 }
 
 
@@ -354,7 +354,7 @@ TEST(TestMemoryView, testSlice) {
 
     auto buffer = wrapMemory(src);
     auto slice = buffer.slice(32, buffer.size());
-    EXPECT_EQ(32, slice.size());
+	EXPECT_EQ(32U, slice.size());
     EXPECT_EQ(32, slice[0]);
     EXPECT_EQ(63, slice[31]);
 
@@ -376,7 +376,7 @@ TEST(TestMemoryView, testGreadySlice) {
     {
         MutableMemoryView buffer = wrapMemory(src);
         auto slice = buffer.slice(0, 256);
-        EXPECT_EQ(64, slice.size());
+		EXPECT_EQ(64U, slice.size());
         EXPECT_EQ(0, slice[0]);
         EXPECT_EQ(31, slice[31]);
         EXPECT_EQ(63, slice[63]);
@@ -385,7 +385,7 @@ TEST(TestMemoryView, testGreadySlice) {
     {
         MemoryView buffer = wrapMemory(src);
         auto slice = buffer.slice(0, 256);
-        EXPECT_EQ(64, slice.size());
+		EXPECT_EQ(64U, slice.size());
         EXPECT_EQ(0, slice[0]);
         EXPECT_EQ(31, slice[31]);
         EXPECT_EQ(63, slice[63]);

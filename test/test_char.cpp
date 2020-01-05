@@ -29,8 +29,8 @@ TEST(TestChar, testConstruction) {
 
     {
         const Char c;
-        EXPECT_EQ(0, c.getBytesCount());
-        EXPECT_EQ(0, c.getValue());
+		EXPECT_EQ(0U, c.getBytesCount());
+		EXPECT_EQ(0U, c.getValue());
     }
 
     {

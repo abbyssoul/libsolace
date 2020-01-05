@@ -404,7 +404,7 @@ TEST_F(TestArray, testMoveAssignment) {
         EXPECT_TRUE(!array.empty());
         const int src1[] = {1, 2, 3};
 
-        EXPECT_EQ(3, array.size());
+		EXPECT_EQ(3U, array.size());
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             EXPECT_EQ(src1[i], array[i]);
         }
@@ -421,7 +421,7 @@ TEST_F(TestArray, testMoveAssignment) {
         EXPECT_TRUE(!array.empty());
 
         std::string const src[] = {"tasrd", "", "hhha", "asd"};
-        EXPECT_EQ(4, array.size());
+		EXPECT_EQ(4U, array.size());
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             EXPECT_EQ(src[i], array[i]);
         }
@@ -446,7 +446,7 @@ TEST_F(TestArray, testMoveAssignment) {
 
 		array = maybeArray.moveResult();
         EXPECT_TRUE(!array.empty());
-        EXPECT_EQ(4, array.size());
+		EXPECT_EQ(4U, array.size());
 
         for (auto i = ZERO, end = array.size(); i < end; ++i) {
             EXPECT_EQ(src[i].iValue, array[i].iValue);
@@ -628,7 +628,7 @@ TEST_F(TestArray, testIndexOf) {
 
 	auto maybeIndex1 = array.indexOf(2);
 	EXPECT_TRUE(maybeIndex1.isSome());
-	EXPECT_EQ(1, maybeIndex1.get());
+	EXPECT_EQ(1U, maybeIndex1.get());
 
 	EXPECT_TRUE(array.indexOf(42).isNone());
 }

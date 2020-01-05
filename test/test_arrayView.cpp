@@ -248,8 +248,8 @@ TEST_F(TestArrayView, testEmpty) {
 TEST_F(TestArrayView, testConstructionFromMemoryResource) {
     byte buffer[32];  // 32 bytes is 8 u32.
 
-    EXPECT_EQ(32, arrayView(buffer).size());
-    EXPECT_EQ(8, arrayView(reinterpret_cast<uint32*>(buffer), sizeof (buffer) / sizeof (uint32)).size());
+	EXPECT_EQ(32U, arrayView(buffer).size());
+	EXPECT_EQ(8U, arrayView(reinterpret_cast<uint32*>(buffer), sizeof (buffer) / sizeof (uint32)).size());
 }
 
 
@@ -830,14 +830,14 @@ TEST_F(TestArrayView, slice) {
     EXPECT_EQ(array, array.slice(0, array.size()));
 
     auto halfView = array.slice(12, 22);
-    EXPECT_EQ(10, halfView.size());
+	EXPECT_EQ(10U, halfView.size());
     for (ArrayView<int>::size_type i = 0; i < halfView.size(); ++i) {
-        EXPECT_EQ(12 + i, halfView[i]);
+		EXPECT_EQ(static_cast<int>(12 + i), halfView[i]);
     }
 
     EXPECT_TRUE(array.slice(12, 12).empty());
     EXPECT_TRUE(array.slice(128, 300).empty());
-    EXPECT_EQ(14, array.slice(10, 300).size());
+	EXPECT_EQ(14U, array.slice(10, 300).size());
     EXPECT_TRUE(array.slice(128, 21).empty());
     EXPECT_TRUE(array.slice(21, 7).empty());
 }
@@ -928,7 +928,7 @@ TEST_F(TestArrayView, sizeNarrowing) {
 	byte buffer[sizeof (MisalignedType) * 3 + sizeof (MisalignedType) / 2];
 
 	auto value = arrayView<MisalignedType>(wrapMemory(buffer), 4);
-	ASSERT_EQ(value.size(), 3);  // FIXME: Maybe we should return Err() in this case as it is a narrowing
+	ASSERT_EQ(3U, value.size());  // FIXME: Maybe we should return Err() in this case as it is a narrowing
 }
 
 /*

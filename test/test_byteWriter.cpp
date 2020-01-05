@@ -34,7 +34,7 @@ TEST(TestByteWriter, testPositioning) {
 
     EXPECT_EQ(testSize, buffer.capacity());
     EXPECT_EQ(testSize, buffer.limit());
-    EXPECT_EQ(0, buffer.position());
+	EXPECT_EQ(0U, buffer.position());
 
     EXPECT_TRUE(buffer.position(buffer.position() + 12).isOk());
     EXPECT_TRUE(buffer.position(0).isOk());

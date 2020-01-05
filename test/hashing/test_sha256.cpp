@@ -72,7 +72,7 @@ TEST(TestHashingSHA256, hashABC) {
 TEST(TestHashingSHA256, hashMessageDigest) {
     Sha256 hash;
 
-    EXPECT_EQ(256, hash.getDigestLength());
+	EXPECT_EQ(256U, hash.getDigestLength());
 
     char message[] = "abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq";
     hash.update(wrapMemory(message, sizeof(message) - 1));

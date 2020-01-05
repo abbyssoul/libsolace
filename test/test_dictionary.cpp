@@ -30,8 +30,8 @@ TEST(TestDictionary, testEmptyIntegralDictionaryIsEmpty) {
     Dictionary<int32, int32> v;
 
     EXPECT_TRUE(v.empty());
-    EXPECT_EQ(0, v.size());
-    EXPECT_EQ(0, v.capacity());
+	EXPECT_EQ(0U, v.size());
+	EXPECT_EQ(0U, v.capacity());
 }
 
 
@@ -42,9 +42,9 @@ TEST(TestDictionary, testEmptyDictionaryIsEmpty) {
     Dictionary<int32, SimpleType> v;
 
     EXPECT_TRUE(v.empty());
-    EXPECT_EQ(0, v.size());
-    EXPECT_EQ(0, v.capacity());
-    EXPECT_EQ(0, SimpleType::InstanceCount);
+	EXPECT_EQ(0U, v.size());
+	EXPECT_EQ(0U, v.capacity());
+	EXPECT_EQ(0, SimpleType::InstanceCount);
 }
 
 TEST(TestDictionary, factoryIntergralWithCapacity) {
@@ -52,9 +52,9 @@ TEST(TestDictionary, factoryIntergralWithCapacity) {
 	ASSERT_TRUE(maybeDict.isOk());
 	auto& v = maybeDict.unwrap();
 
-    EXPECT_EQ(10, v.capacity());
+	EXPECT_EQ(10U, v.capacity());
     EXPECT_TRUE(v.empty());
-    EXPECT_EQ(0, v.size());
+	EXPECT_EQ(0U, v.size());
 }
 
 TEST(TestDictionary, factoryWithCapacityCreatesNoObjects) {
@@ -63,9 +63,9 @@ TEST(TestDictionary, factoryWithCapacityCreatesNoObjects) {
 	ASSERT_TRUE(maybeDict.isOk());
 	auto& v = maybeDict.unwrap();
 
-    EXPECT_EQ(10, v.capacity());
+	EXPECT_EQ(10U, v.capacity());
     EXPECT_TRUE(v.empty());
-    EXPECT_EQ(0, v.size());
+	EXPECT_EQ(0U, v.size());
     EXPECT_EQ(0, SimpleType::InstanceCount);
 }
 
@@ -84,16 +84,16 @@ TEST(TestDictionary, addIntoIntegralNonEmptyCollection) {
 	ASSERT_TRUE(maybeDict.isOk());
 	auto& v = maybeDict.unwrap();
 
-    EXPECT_EQ(10, v.capacity());
+	EXPECT_EQ(10U, v.capacity());
     EXPECT_TRUE(v.empty());
 
     v.put(321, 99888);
     EXPECT_FALSE(v.empty());
-    EXPECT_EQ(1, v.size());
+	EXPECT_EQ(1U, v.size());
 
     v.put(132, 99888);
     EXPECT_FALSE(v.empty());
-    EXPECT_EQ(2, v.size());
+	EXPECT_EQ(2U, v.size());
 }
 
 TEST(TestDictionary, addIntoNonEmptyCollection) {
@@ -103,16 +103,16 @@ TEST(TestDictionary, addIntoNonEmptyCollection) {
 		ASSERT_TRUE(maybeDict.isOk());
 		auto& v = maybeDict.unwrap();
 
-        EXPECT_EQ(10, v.capacity());
+		EXPECT_EQ(10U, v.capacity());
         EXPECT_TRUE(v.empty());
 
         v.put(321, 99888, 2, 3);
         EXPECT_FALSE(v.empty());
-        EXPECT_EQ(1, v.size());
+		EXPECT_EQ(1U, v.size());
 
         v.put(132, 99888, 3, 2);
         EXPECT_FALSE(v.empty());
-        EXPECT_EQ(2, v.size());
+		EXPECT_EQ(2U, v.size());
     }
 
     ASSERT_EQ(0, SimpleType::InstanceCount);

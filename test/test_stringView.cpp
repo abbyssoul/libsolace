@@ -42,8 +42,8 @@ TEST(TestStringView, testConstructionFromNull) {
 TEST(TestStringView, testConstructEmptyString) {
     StringView value;
     EXPECT_TRUE(value.empty());
-    EXPECT_EQ(0, value.size());
-    EXPECT_EQ(0, value.length());
+	EXPECT_EQ(0U, value.size());
+	EXPECT_EQ(0U, value.length());
 
     EXPECT_TRUE(StringView("").empty());
 }
@@ -51,27 +51,27 @@ TEST(TestStringView, testConstructEmptyString) {
 TEST(TestStringView, testConstructionUnsized) {
     const char *cstr = "world";
     EXPECT_TRUE(!StringView("Non-empty").empty());
-    EXPECT_EQ(5, StringView(cstr).size());
-    EXPECT_EQ(5, StringView(cstr).length());
+	EXPECT_EQ(5U, StringView(cstr).size());
+	EXPECT_EQ(5U, StringView(cstr).length());
     EXPECT_EQ(cstr, StringView(cstr).data());
 }
 
 TEST(TestStringView, testConstructionSized) {
     const char *cstr = "world";
 
-    EXPECT_EQ(3, StringView(cstr, 3).length());
-    EXPECT_EQ(3, StringView(&cstr[2], 3).length());
+	EXPECT_EQ(3U, StringView(cstr, 3).length());
+	EXPECT_EQ(3U, StringView(&cstr[2], 3).length());
     EXPECT_EQ(cstr, StringView(cstr, 3).data());
     EXPECT_EQ(cstr + 2, StringView(&cstr[2], 3).data());
 }
 
 TEST(TestStringView, testAssignmentFromCstring) {
     StringView value("world");
-    EXPECT_EQ(5, value.length());
+	EXPECT_EQ(5U, value.length());
     EXPECT_EQ(0, strcmp("world", value.data()));
 
     value = "Something else";
-    EXPECT_EQ(14, value.size());
+	EXPECT_EQ(14U, value.size());
     EXPECT_EQ(0, strcmp("Something else", value.data()));
 }
 
@@ -85,7 +85,7 @@ TEST(TestStringView, testAssignment) {
 
     value = other;
 
-    EXPECT_EQ(26, value.length());
+	EXPECT_EQ(26U, value.length());
     EXPECT_EQ(0, strcmp("Completely different value", value.data()));
 }
 
@@ -137,9 +137,9 @@ TEST(TestStringView, testCompareTo) {
 TEST(TestStringView, testLength) {
     // FIXME: Add utf8 example
 
-    EXPECT_EQ(0, StringView().length());
-    EXPECT_EQ(0, StringView("").length());
-    EXPECT_EQ(5, StringView("world").length());
+	EXPECT_EQ(0U, StringView().length());
+	EXPECT_EQ(0U, StringView("").length());
+	EXPECT_EQ(5U, StringView("world").length());
 }
 
 
@@ -294,10 +294,10 @@ TEST(TestStringView, testContains) {
     * @see StringView::hashCode
     */
 TEST(TestStringView, testHashCode) {
-    EXPECT_NE(StringView("Hello otu there").hashCode(), 0);
+	EXPECT_NE(0UL, StringView("Hello otu there").hashCode());
 
-    EXPECT_TRUE(StringView("Hello otu there").hashCode() !=
-                    StringView("Hello out there").hashCode());
+	EXPECT_NE(StringView("Hello otu there").hashCode(),
+			  StringView("Hello out there").hashCode());
 }
 
 TEST(TestStringView, testSplitByChar) {
@@ -317,7 +317,7 @@ TEST(TestStringView, testSplitByChar) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(3, result.size());
+		EXPECT_EQ(3U, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
         EXPECT_EQ(StringView("and"), result[1]);
         EXPECT_EQ(StringView("foo"), result[2]);
@@ -330,7 +330,7 @@ TEST(TestStringView, testSplitByChar) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(4, result.size());
+		EXPECT_EQ(4U, result.size());
         EXPECT_EQ(StringView("warning"), result[0]);
         EXPECT_EQ(StringView("performance"), result[1]);
         EXPECT_EQ(StringView("portability"), result[2]);
@@ -343,7 +343,7 @@ TEST(TestStringView, testSplitByChar) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(3, result.size());
+		EXPECT_EQ(3U, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
         EXPECT_EQ(StringView(),      result[1]);
         EXPECT_EQ(StringView("foo"), result[2]);
@@ -357,7 +357,7 @@ TEST(TestStringView, testSplitByChar) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(4, result.size());
+		EXPECT_EQ(4U, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
         EXPECT_EQ(StringView(),      result[1]);
         EXPECT_EQ(StringView("foo"), result[2]);
@@ -371,7 +371,7 @@ TEST(TestStringView, testSplitByChar) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(1, result.size());
+		EXPECT_EQ(1U, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
     }
     {   // Normal split with empty token in beggining
@@ -380,7 +380,7 @@ TEST(TestStringView, testSplitByChar) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(2, result.size());
+		EXPECT_EQ(2U, result.size());
         EXPECT_EQ(StringView(),      result[0]);
         EXPECT_EQ(StringView("boo"), result[1]);
     }
@@ -404,7 +404,7 @@ TEST(TestStringView, testSplitByStringToken) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(3, result.size());
+		EXPECT_EQ(3U, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
         EXPECT_EQ(StringView("and"), result[1]);
         EXPECT_EQ(StringView("foo"), result[2]);
@@ -415,7 +415,7 @@ TEST(TestStringView, testSplitByStringToken) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(3, result.size());
+		EXPECT_EQ(3U, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
         EXPECT_EQ(StringView("and"), result[1]);
         EXPECT_EQ(StringView(), result[2]);
@@ -426,7 +426,7 @@ TEST(TestStringView, testSplitByStringToken) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(4, result.size());
+		EXPECT_EQ(4U, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
         EXPECT_EQ(StringView(),      result[1]);
         EXPECT_EQ(StringView("foo"), result[2]);
@@ -438,7 +438,7 @@ TEST(TestStringView, testSplitByStringToken) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(3, result.size());
+		EXPECT_EQ(3U, result.size());
         EXPECT_EQ(StringView(),         result[0]);
         EXPECT_EQ(StringView("boofoo"), result[1]);
         EXPECT_EQ(StringView(),         result[2]);
@@ -450,7 +450,7 @@ TEST(TestStringView, testSplitByStringToken) {
             result.emplace_back(bit);
         });
 
-        EXPECT_EQ(1, result.size());
+		EXPECT_EQ(1U, result.size());
         EXPECT_EQ(StringView("boo"), result[0]);
     }
 }

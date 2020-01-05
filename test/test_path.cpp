@@ -56,7 +56,7 @@ Path makePathSafe(Path const& p, Args&&...args) {
 
 
 TEST(TestPath, testRootIsSingleComponent) {
-    EXPECT_EQ(1, Path::Root.getComponentsCount());
+	EXPECT_EQ(1U, Path::Root.getComponentsCount());
 }
 
 TEST(TestPath, testRootAbsolute) {
@@ -65,8 +65,8 @@ TEST(TestPath, testRootAbsolute) {
 
 TEST(TestPath, defaultConstructedPathIsEmpty) {
 	EXPECT_TRUE(Path{}.empty());
-	EXPECT_EQ(0, Path{}.length());
-	EXPECT_EQ(0, Path{}.getComponentsCount());
+	EXPECT_EQ(0U, Path{}.length());
+	EXPECT_EQ(0U, Path{}.getComponentsCount());
 }
 
 TEST(TestPath, nonEmptyPathIsNotEmpty) {
@@ -319,7 +319,7 @@ TEST(TestPath, testComponents) {
 	ASSERT_TRUE(maybeP.isOk());
 	auto const& p = maybeP.unwrap();
 
-    EXPECT_EQ(5, p.getComponentsCount());
+	EXPECT_EQ(5U, p.getComponentsCount());
     for (Path::size_type i = 0; i < p.getComponentsCount(); ++i) {
         EXPECT_EQ(components[i], p.getComponent(i));
     }
@@ -334,7 +334,7 @@ TEST(TestPath, testSubpath) {
     // Error modes:
 
     // End index outside of path lenght
-	EXPECT_EQ(4, makePathSafe("1", "2", "3", "4", "file").subpath(1, 23).getComponentsCount());
+	EXPECT_EQ(4U, makePathSafe("1", "2", "3", "4", "file").subpath(1, 23).getComponentsCount());
     // Start index oustide of path lenght
 	EXPECT_TRUE(makePathSafe("1", "2", "3", "4", "file").subpath(17, 18).empty());
     // Start greater then end index

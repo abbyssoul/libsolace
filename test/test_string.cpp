@@ -227,7 +227,7 @@ TEST(TestString, testSplit) {
 			}
         });
 
-        EXPECT_EQ(3, result.size());
+		EXPECT_EQ(3U, result.size());
         EXPECT_EQ(dest0, result[0]);
         EXPECT_EQ(dest1, result[1]);
         EXPECT_EQ(dest2, result[2]);
@@ -241,7 +241,7 @@ TEST(TestString, testSplit) {
 				result.emplace_back(maybeString.moveResult());
 		});
 
-        EXPECT_EQ(1, result.size());
+		EXPECT_EQ(1U, result.size());
         EXPECT_EQ(dest0, result[0]);
     }
 
@@ -253,7 +253,7 @@ TEST(TestString, testSplit) {
 				result.emplace_back(maybeString.moveResult());
 		});
 
-        EXPECT_EQ(1, result.size());
+		EXPECT_EQ(1U, result.size());
         EXPECT_EQ(source, result[0]);
     }
 
@@ -268,7 +268,7 @@ TEST(TestString, testSplit) {
 				result.emplace_back(maybeString.moveResult());
 		});
 
-        EXPECT_EQ(2, result.size());
+		EXPECT_EQ(2U, result.size());
         EXPECT_EQ(String::Empty, result[0]);
         EXPECT_EQ(dest2, result[1]);
     }
@@ -538,8 +538,8 @@ TEST(TestString, testHashCode) {
 	String const testString1 = makeString(StringLiteral{"Hello otu there"});
 	String const testString2 = makeString(StringLiteral{"Hello out there"});
 
-    EXPECT_NE(testString1.hashCode(), 0);
-    EXPECT_NE(testString2.hashCode(), 0);
+	EXPECT_NE(testString1.hashCode(), 0U);
+	EXPECT_NE(testString2.hashCode(), 0U);
 
 	EXPECT_NE(testString1, testString2);
     EXPECT_NE(testString1.hashCode(), testString2.hashCode());

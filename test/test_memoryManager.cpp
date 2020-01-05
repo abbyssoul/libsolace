@@ -32,16 +32,16 @@ TEST(TestMemoryManager, testConstruction) {
 //             EXPECT_THROW(Buffer nullbuffer(321, nullptr), IllegalArgumentException);
         MemoryManager nullManager(0);
 
-        EXPECT_EQ(0, nullManager.size());
-        EXPECT_EQ(0, nullManager.capacity());
+		EXPECT_EQ(0U, nullManager.size());
+		EXPECT_EQ(0U, nullManager.capacity());
     }
     {   // Fixed size constructor
         MemoryManager test(1024);
 
         EXPECT_TRUE(test.empty());
-        EXPECT_EQ(1024, test.capacity());
-        EXPECT_EQ(0, test.size());
-        EXPECT_EQ(1024, test.capacity());
+		EXPECT_EQ(1024U, test.capacity());
+		EXPECT_EQ(0U, test.size());
+		EXPECT_EQ(1024U, test.capacity());
 
     }
 }
@@ -49,20 +49,20 @@ TEST(TestMemoryManager, testConstruction) {
 TEST(TestMemoryManager, testNativePageSize) {
     MemoryManager test(1024);
 
-    EXPECT_EQ(getpagesize(), test.getPageSize());
-    EXPECT_EQ(sysconf(_SC_PAGESIZE), test.getPageSize());
+	EXPECT_EQ(static_cast<MemoryManager::size_type>(getpagesize()), test.getPageSize());
+	EXPECT_EQ(static_cast<MemoryManager::size_type>(sysconf(_SC_PAGESIZE)), test.getPageSize());
 }
 
 
 TEST(TestMemoryManager, testNativePageCount) {
     MemoryManager test(1024);
 
-    EXPECT_EQ(sysconf(_SC_PHYS_PAGES), test.getNbPages());
+	EXPECT_EQ(static_cast<MemoryManager::size_type>(sysconf(_SC_PHYS_PAGES)), test.getNbPages());
 
     #ifdef SOLACE_PLATFORM_LINUX
     // NOTE: This is a pretty stupid test as number of avaliable pages changes all the time!
-    EXPECT_EQ(sysconf(_SC_AVPHYS_PAGES) / 1000,
-                            test.getNbAvailablePages() / 1000);
+	EXPECT_EQ(static_cast<MemoryManager::size_type>(sysconf(_SC_AVPHYS_PAGES) / 1000),
+			  test.getNbAvailablePages() / 1000U);
     #endif
 }
 
@@ -74,16 +74,16 @@ TEST(TestMemoryManager, testAllocation) {
 		ASSERT_TRUE(maybeBlock.isOk());
 
 		auto& memBlock = maybeBlock.unwrap();
-		EXPECT_EQ(512, memBlock.size());
-        EXPECT_EQ(512, test.size());
-        EXPECT_EQ(0, test.limit());
+		EXPECT_EQ(512U, memBlock.size());
+		EXPECT_EQ(512U, test.size());
+		EXPECT_EQ(0U, test.limit());
 
         memBlock.view().fill(128);
         EXPECT_EQ(128, memBlock.view()[memBlock.size() - 1]);
     }
 
-    EXPECT_EQ(512, test.limit());
-    EXPECT_EQ(0, test.size());
+	EXPECT_EQ(512U, test.limit());
+	EXPECT_EQ(0U, test.size());
 }
 
 TEST(TestMemoryManager, testAllocationBeyondCapacity) {
@@ -96,21 +96,21 @@ TEST(TestMemoryManager, testAllocationBeyondCapacity) {
 		ASSERT_TRUE(maybeBlock0.isOk());
 		auto& memBlock0 = maybeBlock0.unwrap();
 
-		EXPECT_EQ(64, test.size());
-        EXPECT_EQ(64, memBlock0.size());
+		EXPECT_EQ(64U, test.size());
+		EXPECT_EQ(64U, memBlock0.size());
 
 		auto maybeBlock1 = test.allocate(64);
 		ASSERT_TRUE(maybeBlock1.isOk());
 		auto& memBlock1 = maybeBlock1.unwrap();
 
-		EXPECT_EQ(2*64, test.size());
-        EXPECT_EQ(64, memBlock1.size());
+		EXPECT_EQ(128U, test.size());
+		EXPECT_EQ(64U, memBlock1.size());
 
 		EXPECT_TRUE(test.allocate(64).isError());
     }
 
-    EXPECT_EQ(128, test.limit());
-    EXPECT_EQ(0, test.size());
+	EXPECT_EQ(128U, test.limit());
+	EXPECT_EQ(0U, test.size());
 }
 
 
@@ -124,8 +124,8 @@ TEST(TestMemoryManager, testAllocationLocking) {
 		ASSERT_TRUE(maybeBlock0.isOk());
 		auto& memBlock0 = maybeBlock0.unwrap();
 
-        EXPECT_EQ(64, test.size());
-        EXPECT_EQ(64, memBlock0.size());
+		EXPECT_EQ(64U, test.size());
+		EXPECT_EQ(64U, memBlock0.size());
 
         // Lock allocation
         EXPECT_NO_THROW(test.lock());
@@ -139,5 +139,5 @@ TEST(TestMemoryManager, testAllocationLocking) {
 		EXPECT_TRUE(test.allocate(64).isOk());
     }
 
-    EXPECT_EQ(0, test.size());
+	EXPECT_EQ(0U, test.size());
 }

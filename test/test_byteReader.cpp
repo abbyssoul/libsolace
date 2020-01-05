@@ -30,9 +30,9 @@ using size_type = ByteReader::size_type;
 TEST(TestReadBuffer, defaultConstructedBufferIsEmpty) {
     ByteReader buffer;
 
-    EXPECT_EQ(0, buffer.capacity());
-    EXPECT_EQ(0, buffer.limit());
-    EXPECT_EQ(0, buffer.position());
+	EXPECT_EQ(0U, buffer.capacity());
+	EXPECT_EQ(0U, buffer.limit());
+	EXPECT_EQ(0U, buffer.position());
 }
 
 
@@ -43,7 +43,7 @@ TEST(TestReadBuffer, constructFromImmutableMemory) {
     ByteReader buffer(wrapMemory(bytes));
     EXPECT_EQ(testSize, buffer.capacity());
     EXPECT_EQ(testSize, buffer.limit());
-    EXPECT_EQ(0, buffer.position());
+	EXPECT_EQ(0U, buffer.position());
 }
 
 TEST(TestReadBuffer, constructFromMutableMemory) {
@@ -55,7 +55,7 @@ TEST(TestReadBuffer, constructFromMutableMemory) {
 	ByteReader buffer(mv(memView));
     EXPECT_EQ(testSize, buffer.capacity());
     EXPECT_EQ(testSize, buffer.limit());
-    EXPECT_EQ(0, buffer.position());
+	EXPECT_EQ(0U, buffer.position());
 }
 
 
@@ -68,11 +68,11 @@ TEST(TestReadBuffer, testPositioning) {
     EXPECT_TRUE(buffer.position(4).isOk());
     EXPECT_EQ(size_type(4), buffer.position());
     EXPECT_TRUE(buffer.position(0).isOk());
-    EXPECT_EQ(0, buffer.position());
+	EXPECT_EQ(0U, buffer.position());
     // Can't go beyond the limit
     EXPECT_TRUE(buffer.position(buffer.limit() + 3).isError());
 
-    EXPECT_EQ(0, buffer.position());
+	EXPECT_EQ(0U, buffer.position());
     EXPECT_TRUE(buffer.advance(5).isOk());
     EXPECT_EQ(size_type(5), buffer.position());
 
@@ -162,7 +162,7 @@ TEST(TestReadBuffer, testReadFromOffset) {
     }
 
     // Make sure we have not moved position
-    EXPECT_EQ(0, buffer.position());
+	EXPECT_EQ(0U, buffer.position());
 
     // We can't read more data than there is in the buffer
     EXPECT_TRUE(buffer.read(testSize - 3, destView, 12).isError());

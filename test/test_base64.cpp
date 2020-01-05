@@ -28,24 +28,24 @@ using namespace Solace;
 
 
 TEST(TestBase64, testEncodedSize) {
-    EXPECT_EQ(0, Base64Encoder::encodedSize(0));
-    EXPECT_EQ(4, Base64Encoder::encodedSize(1));
-    EXPECT_EQ(4, Base64Encoder::encodedSize(2));
-    EXPECT_EQ(4, Base64Encoder::encodedSize(3));
-    EXPECT_EQ(8, Base64Encoder::encodedSize(4));
-    EXPECT_EQ(8, Base64Encoder::encodedSize(5));
-    EXPECT_EQ(8, Base64Encoder::encodedSize(6));
+	EXPECT_EQ(0U, Base64Encoder::encodedSize(0));
+	EXPECT_EQ(4U, Base64Encoder::encodedSize(1));
+	EXPECT_EQ(4U, Base64Encoder::encodedSize(2));
+	EXPECT_EQ(4U, Base64Encoder::encodedSize(3));
+	EXPECT_EQ(8U, Base64Encoder::encodedSize(4));
+	EXPECT_EQ(8U, Base64Encoder::encodedSize(5));
+	EXPECT_EQ(8U, Base64Encoder::encodedSize(6));
 }
 
 TEST(TestBase64, testDecodedSize) {
     const char* nullStr = nullptr;
-    EXPECT_EQ(0, Base64Decoder::decodedSize(wrapMemory(nullStr, 0)));
-    EXPECT_EQ(1, Base64Decoder::decodedSize(wrapMemory("Zg==", 4)));
-    EXPECT_EQ(2, Base64Decoder::decodedSize(wrapMemory("Zm8=", 4)));
-    EXPECT_EQ(3, Base64Decoder::decodedSize(wrapMemory("Zm9v", 4)));
-    EXPECT_EQ(4, Base64Decoder::decodedSize(wrapMemory("Zm9vYg==", 8)));
-    EXPECT_EQ(5, Base64Decoder::decodedSize(wrapMemory("Zm9vYmE=", 8)));
-    EXPECT_EQ(6, Base64Decoder::decodedSize(wrapMemory("Zm9vYmFy", 8)));
+	EXPECT_EQ(0U, Base64Decoder::decodedSize(wrapMemory(nullStr, 0)));
+	EXPECT_EQ(1U, Base64Decoder::decodedSize(wrapMemory("Zg==", 4)));
+	EXPECT_EQ(2U, Base64Decoder::decodedSize(wrapMemory("Zm8=", 4)));
+	EXPECT_EQ(3U, Base64Decoder::decodedSize(wrapMemory("Zm9v", 4)));
+	EXPECT_EQ(4U, Base64Decoder::decodedSize(wrapMemory("Zm9vYg==", 8)));
+	EXPECT_EQ(5U, Base64Decoder::decodedSize(wrapMemory("Zm9vYmE=", 8)));
+	EXPECT_EQ(6U, Base64Decoder::decodedSize(wrapMemory("Zm9vYmFy", 8)));
 }
 
 TEST(TestBase64, testBasicEncoding) {
