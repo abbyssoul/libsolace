@@ -76,10 +76,10 @@ $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
 $(DEP_INSTALL): $(BUILD_DIR)
-	conan install -if ${BUILD_DIR} . ${CONAN_INSTALL_PROFILE}
+	conan install -if ${BUILD_DIR} -s build_type=${BUILD_TYPE} . ${CONAN_INSTALL_PROFILE} --build missing
 
 $(GENERATED_MAKE): $(DEP_INSTALL)
-	cd ${BUILD_DIR} && cmake -G ${GENERATOR} -DPROFILE=${ENABLE_PROFILE} -DCOVERAGE=${COVERAGE} -DSANITIZE=${SANITIZE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPKG_CONFIG={PKG_CONFIG} ..
+	cd ${BUILD_DIR} && cmake -G ${GENERATOR} -DPROFILE=${ENABLE_PROFILE} -DCOVERAGE=${COVERAGE} -DSANITIZE=${SANITIZE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPKG_CONFIG=${PKG_CONFIG} ..
 
 #-------------------------------------------------------------------------------
 # Build the project

@@ -1,16 +1,16 @@
 #!/usr/bin/env sh
 
 DIR="$( cd "$( dirname "${0}" )" && pwd )"
-TMP_TARGET_FILE_NAME=Makefile.tmp
+TMP_TARGET_FILE_NAME=$(mktemp Makefile.XXXXX)
 TARGET_FILE_NAME=Makefile
 
 # Configurable options
 prefix=/usr/local
-debugsym=true
-sanitizer=true
+debugsym=false
+sanitizer=false
 coverage=false
 profile=false
-pkgconfig=true
+pkgconfig=false
 generator=Ninja
 
 # Figure out project name:
@@ -149,5 +149,6 @@ cat Makefile.in >> $TMP_TARGET_FILE_NAME
 
 # Atomic move if above was successful
 mv $TMP_TARGET_FILE_NAME $TARGET_FILE_NAME
+
 # Congrats
 echo "Configuration complete, type 'make' to build ${project_name}."
