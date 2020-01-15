@@ -63,7 +63,7 @@ install:
   - conan remote add abbyssoul https://api.bintray.com/conan/abbyssoul/public-conan
 
 script:
-  - ./configure --enable-coverage --enable-sanitizer && make clean;
+  - ./configure --enable-debug --enable-coverage --enable-sanitizer && make clean;
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make codecheck; fi
   - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then make test; fi
   # Disabled valgrind build as std::random_device causes failure on Valgrind-3.11.0 avaliable in travisCI
