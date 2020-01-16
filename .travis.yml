@@ -59,7 +59,8 @@ install:
   - ld --version
   - conan --version
   - conan profile new default --detect
-  - if [ "${TRAVIS_COMPILER}" != "clang" ]; then conan profile update settings.compiler.libcxx=libstdc++11 default; fi
+  - conan profile update settings.compiler.libcxx=libstdc++11 default
+  #- if [ "${TRAVIS_COMPILER}" != "clang" ]; then conan profile update settings.compiler.libcxx=libstdc++11 default; fi
   - conan remote add abbyssoul https://api.bintray.com/conan/abbyssoul/public-conan
 
 script:
