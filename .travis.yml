@@ -30,7 +30,6 @@ addons:
    - doxygen
    - libc6-dbg  # needed by Valgrind
    - valgrind
-   #- ggcov
    - lcov
    - curl
  coverity_scan:
@@ -60,7 +59,6 @@ install:
   - conan --version
   - conan profile new default --detect
   - conan profile update settings.compiler.libcxx=libstdc++11 default
-  #- if [ "${TRAVIS_COMPILER}" != "clang" ]; then conan profile update settings.compiler.libcxx=libstdc++11 default; fi
   - conan remote add abbyssoul https://api.bintray.com/conan/abbyssoul/public-conan
 
 script:
