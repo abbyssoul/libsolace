@@ -126,4 +126,12 @@
 #endif
 
 
+#if __clang__ && __clang_major__ > 11
+#define LIFETIME_HINT_POINTER(T) [[gsl::Pointer(T)]]
+#define LIFETIME_HINT_OWNER(T) [[gsl::Owner(T)]]
+#else
+#define LIFETIME_HINT_POINTER(T)
+#define LIFETIME_HINT_OWNER(T)
+#endif
+
 #endif  // SOLACE_COMPILER_CONFIG_HPP

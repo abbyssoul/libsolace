@@ -62,11 +62,11 @@ struct op_valid_impl {
 };
 */
 
-template <typename T> struct RemoveConst_ { typedef T Type; };
-template <typename T> struct RemoveConst_<const T> { typedef T Type; };
+template <typename T> struct RemoveConst_ { using Type = T; };
+template <typename T> struct RemoveConst_<const T> { using Type = T; };
 template <typename T> using RemoveConst = typename RemoveConst_<T>::Type;
 
-template <typename T> struct Decay_ { typedef T Type; };
+template <typename T> struct Decay_ { using Type = T; };
 template <typename T> struct Decay_<T&> { typedef typename Decay_<T>::Type Type; };
 template <typename T> struct Decay_<T&&> { typedef typename Decay_<T>::Type Type; };
 template <typename T> struct Decay_<T[]> { typedef typename Decay_<T*>::Type Type; };
@@ -81,13 +81,16 @@ template <typename T> using Decay = typename Decay_<T>::Type;
  * Replacement for std::move() and std::forward() in order to not pull
  * std header <utility> that drags a lot of other stuff we don't use.
  */
-template<typename T> constexpr
-T&& mv(T& t) noexcept {
-    return static_cast<T&&>(t);
+template<class T>
+constexpr typename Decay_<T>::Type&&
+mv(T&& t) noexcept {
+	return static_cast<typename Decay_<T>::Type&&>(t);
 }
 
-template<typename T> constexpr
-T&& fwd(DontInfer_v<T>& t) noexcept {
+
+template<typename T>
+constexpr T&&
+fwd(DontInfer_v<T>& t) noexcept {
     return static_cast<T&&>(t);
 }
 

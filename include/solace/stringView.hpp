@@ -32,7 +32,7 @@ namespace Solace {
  * String View.
  *
  */
-class StringView {
+class LIFETIME_HINT_POINTER(char) StringView {
 public:
 
     /// String size_type is intentionally small to discourage long strings.

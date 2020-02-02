@@ -30,13 +30,13 @@ namespace jetbrains {
 namespace teamcity {
 
 TeamcityProgressListener::TeamcityProgressListener()
+	: TeamcityProgressListener(getFlowIdFromEnvironment())
 {
-    flowid = getFlowIdFromEnvironment();
 }
 
-TeamcityProgressListener::TeamcityProgressListener(const std::string& _flowid)
+TeamcityProgressListener::TeamcityProgressListener(std::string _flowid)
+	: flowid{std::move(_flowid)}
 {
-    flowid = _flowid;
 }
 
 TeamcityProgressListener::~TeamcityProgressListener()

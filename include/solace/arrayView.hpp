@@ -36,12 +36,12 @@ namespace Solace {
  * Passed by value copies the pointer, not the data.
  */
 template <typename T>
-class ArrayView {
+class LIFETIME_HINT_POINTER(T) ArrayView {
 public:
     using ViewType = typename std::conditional<std::is_const<T>::value, MemoryView, MutableMemoryView>::type;
 
+	using size_type = uint32;
     using value_type = T;
-    using size_type = uint32;
 
     using Iterator = T *;
     using const_iterator = T const *;
@@ -191,11 +191,11 @@ public:
                 : _memory.template dataAs<T>();
     }
 
-    const_iterator end()     const noexcept { return (begin() + size()); }
+	const_iterator end() const noexcept { return (begin() + size()); }
 
     const_pointer data() const noexcept { return begin(); }
 
-    ArrayView<const T>
+	ArrayView<T const>
     slice(size_type from, size_type to) const noexcept {
         return {_memory.slice(from*sizeof(T), to*sizeof(T))};
     }
@@ -204,15 +204,9 @@ public:
         return {_memory.slice(from*sizeof(T), to*sizeof(T))};
     }
 
-    constexpr MemoryView view() const & noexcept {
-        return _memory;
-    }
+	constexpr MemoryView view() const noexcept { return _memory; }
 
-    template<class Q = T>
-    std::enable_if_t<!std::is_const<Q>::value, MutableMemoryView>
-    view() & noexcept {
-        return _memory;
-    }
+	constexpr ViewType view() noexcept { return _memory; }
 
     template<typename F, class Q = T>
     std::enable_if_t<!std::is_const<Q>::value, void>

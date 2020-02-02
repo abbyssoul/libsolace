@@ -40,6 +40,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Winit-self -Wdisabled-optimization")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wsign-promo -Wstrict-overflow=5")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wformat=2 -Wformat-security")
 
+# set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wlifetime -Wlifetime-global") # Not yet supported by the main branch
+
 # -Werror
 # -Wundef -Wmissing-declarations
 # Not compatible wit GTest: -Wctor-dtor-privacy

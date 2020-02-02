@@ -56,7 +56,7 @@ bool isBigendian() noexcept;
  *  * if (a.dataAddress() == nullptr) => (a.size() == 0)
  *
  */
-class MemoryView {
+class LIFETIME_HINT_POINTER(void) MemoryView {
 public:
 
 	using MutableMemoryAddress = void*;
