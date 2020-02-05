@@ -1,7 +1,8 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 DIR="$( cd "$( dirname "${0}" )" && pwd )"
-TMP_TARGET_FILE_NAME=$(mktemp Makefile.XXXXX)
+#TMP_TARGET_FILE_NAME="mktemp Makefile.XXXXX)"
+TMP_TARGET_FILE_NAME="$(mktemp Makefile.$(date +"%Y-%m-%d_%T_XXXXXX"))"
 TARGET_FILE_NAME=Makefile
 
 # Configurable options
@@ -16,7 +17,7 @@ generator=Ninja
 # Figure out project name:
 project_name=$(basename $DIR)
 if [ -f "PROJECT.name" ]; then
-    project_name=$(cat "PROJECT.name")
+    project_name="$(cat 'PROJECT.name')"
 else
     echo "Warning: no file 'PROJECT.name' found, guessing project name: '${project_name}'"
 fi
@@ -99,56 +100,56 @@ for arg in "$@"; do
 done
 
 echo "Generating Makefile for ${project_name}..."
-echo "# Generated Makefile for ${project_name}: $(date)" > $TMP_TARGET_FILE_NAME
-echo "PREFIX ?= ${prefix}" >> $TMP_TARGET_FILE_NAME
-echo "PROJECT ?= ${project_name}" >> $TMP_TARGET_FILE_NAME
-echo "PROJECT ?= ${project_name}" >> $TMP_TARGET_FILE_NAME
-echo "GENERATOR ?= ${generator}" >> $TMP_TARGET_FILE_NAME
+echo "# Generated Makefile for ${project_name}: $(date)" >> "${TMP_TARGET_FILE_NAME}"
+echo "PREFIX ?= ${prefix}" >> "${TMP_TARGET_FILE_NAME}"
+echo "PROJECT ?= ${project_name}" >> "${TMP_TARGET_FILE_NAME}"
+echo "PROJECT ?= ${project_name}" >> "${TMP_TARGET_FILE_NAME}"
+echo "GENERATOR ?= ${generator}" >> "${TMP_TARGET_FILE_NAME}"
 
 
 if $debugsym; then
-    echo 'dbg = -g' >> $TMP_TARGET_FILE_NAME
+    echo 'dbg = -g' >> "${TMP_TARGET_FILE_NAME}"
 fi
 
 if $sanitizer; then
-    echo 'sanitize = address,undefined,leak' >> $TMP_TARGET_FILE_NAME
+    echo 'sanitize = address,undefined,leak' >> "${TMP_TARGET_FILE_NAME}"
 fi
 
 if $coverage; then
-    echo 'coverage = -coverage' >> $TMP_TARGET_FILE_NAME
+    echo 'coverage = -coverage' >> "${TMP_TARGET_FILE_NAME}"
 fi
 
 if $profile; then
-    echo 'profile = -pg' >> $TMP_TARGET_FILE_NAME
+    echo 'profile = -pg' >> "${TMP_TARGET_FILE_NAME}"
 fi
 
 if $pkgconfig; then
-  echo 'PKG_CONFIG = ON' >> $TMP_TARGET_FILE_NAME
+  echo 'PKG_CONFIG = ON' >> "${TMP_TARGET_FILE_NAME}"
 fi
 
 if [ ! -z "$conan_profile" ] ; then
-    echo "CONAN_PROFILE ?= ${conan_profile}" >> $TMP_TARGET_FILE_NAME
+    echo "CONAN_PROFILE ?= ${conan_profile}" >> "${TMP_TARGET_FILE_NAME}"
 fi
 
 
 if [ ! -z "${CXX}" ] || [ ! -z "${CC}" ] ; then
     echo "Using custom copiler: CXX=$CXX CC=$CC"
-    printf "\n# Compiler config\n" >> $TMP_TARGET_FILE_NAME
+    printf "\n# Compiler config\n" >> "${TMP_TARGET_FILE_NAME}"
 
     if [ ! -z "${CXX}" ] ; then
-        echo "CXX ?= ${CXX}" >> $TMP_TARGET_FILE_NAME
+        echo "CXX ?= ${CXX}" >> "${TMP_TARGET_FILE_NAME}"
     fi
 
     if [ ! -z "${CC}" ]; then
-        echo "CC ?= ${CC}" >> $TMP_TARGET_FILE_NAME
+        echo "CC ?= ${CC}" >> "${TMP_TARGET_FILE_NAME}"
     fi
 fi
 
-echo '' >> $TMP_TARGET_FILE_NAME
-cat Makefile.in >> $TMP_TARGET_FILE_NAME
+echo '' >> "${TMP_TARGET_FILE_NAME}"
+cat Makefile.in >> "${TMP_TARGET_FILE_NAME}"
 
 # Atomic move if above was successful
-mv $TMP_TARGET_FILE_NAME $TARGET_FILE_NAME
+mv "${TMP_TARGET_FILE_NAME}" "${TARGET_FILE_NAME}"
 
 # Congrats
 echo "Configuration complete, type 'make' to build ${project_name}."
