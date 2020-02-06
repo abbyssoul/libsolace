@@ -103,7 +103,6 @@ echo "Generating Makefile for ${project_name}..."
 echo "# Generated Makefile for ${project_name}: $(date)" >> "${TMP_TARGET_FILE_NAME}"
 echo "PREFIX ?= ${prefix}" >> "${TMP_TARGET_FILE_NAME}"
 echo "PROJECT ?= ${project_name}" >> "${TMP_TARGET_FILE_NAME}"
-echo "PROJECT ?= ${project_name}" >> "${TMP_TARGET_FILE_NAME}"
 echo "GENERATOR ?= ${generator}" >> "${TMP_TARGET_FILE_NAME}"
 
 
