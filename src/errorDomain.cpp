@@ -51,6 +51,6 @@ uint32 Solace::registerErrorDomain(AtomValue categoryId, ErrorDomain const& doma
 
 
 Optional<ErrorDomain const*>
-Solace::getErrorDomain(AtomValue categoryId) noexcept {
+Solace::findErrorDomain(AtomValue categoryId) noexcept {
     return kErrorDomainMap.find(categoryId);
 }

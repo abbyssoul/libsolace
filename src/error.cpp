@@ -26,7 +26,7 @@ using namespace Solace;
 
 String
 Error::toString() const {
-    auto const domain = getErrorDomain(_domain);
+    auto const domain = findErrorDomain(_domain);
 	if (domain) {
 		return (*domain)->message(_code);
 	}

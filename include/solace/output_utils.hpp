@@ -67,7 +67,7 @@ inline std::ostream& operator<< (std::ostream& ostr, String const& str) {
 
 inline std::ostream& operator<< (std::ostream& ostr, Error const& e) {
     auto const errorDomain = e.domain();
-    auto const domain = getErrorDomain(errorDomain);
+	auto const domain = findErrorDomain(errorDomain);
 
     if (domain) {
         ostr << (*domain)->name();
@@ -79,6 +79,7 @@ inline std::ostream& operator<< (std::ostream& ostr, Error const& e) {
     }
 
     ostr << ':' << e.value() << ':';
+
     if (domain) {
         ostr << (*domain)->message(e.value());
     }

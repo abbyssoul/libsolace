@@ -39,16 +39,15 @@ class Error {
 public:
 
     //! Construct error with a message
-    constexpr Error(AtomValue errorDomain, int code, StringLiteral tag) noexcept
-        : _domain{errorDomain}
-        , _code{code}
-		, _tag{mv(tag)}
-    {}
+	constexpr Error(AtomValue errorDomain, int code, StringView tag) noexcept
+		: _code{code}
+		, _domain{errorDomain}
+		, _tag{tag}
+	{}
 
     //! Construct error with a message
     constexpr Error(AtomValue errorDomain, int code) noexcept
-        : _domain{errorDomain}
-        , _code{code}
+		: Error{errorDomain, code, {}}
     {}
 
 
@@ -56,12 +55,12 @@ public:
         return _code;
     }
 
+	constexpr AtomValue domain() const noexcept {
+		return _domain;
+	}
+
     constexpr StringView tag() const noexcept {
         return _tag;
-    }
-
-    constexpr AtomValue domain() const noexcept {
-        return _domain;
     }
 
     constexpr bool operator== (Error const& rhs) const noexcept {
@@ -79,7 +78,7 @@ public:
     }
 
     constexpr explicit operator bool () const noexcept {
-        return (value() != 0);
+		return (_code != 0);
     }
 
     //! Get message description of the exception.
@@ -87,9 +86,9 @@ public:
 
 private:
 
-    AtomValue       _domain;
-    int             _code;
-    StringLiteral   _tag;		//!< Tag for the error.
+	int             _code;	  //!< Numerical error code.
+	AtomValue       _domain;  //!< Domain of this error.
+	StringView		_tag;	  //!< Tag for the error.
 };
 
 

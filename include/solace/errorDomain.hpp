@@ -58,9 +58,15 @@ struct ErrorDomain {
  * @param categoryId Atom identifing error domain
  * @return An error domain if one was found.
  */
-Optional<const ErrorDomain*> getErrorDomain(AtomValue categoryId) noexcept;
+Optional<const ErrorDomain*>
+findErrorDomain(AtomValue categoryId) noexcept;
 
-
+/**
+ * Register Error domain
+ * @param categoryId Atom value of a error category
+ * @param domain Error domain to be associated with the category
+ * @return Registration id
+ */
 uint32 registerErrorDomain(AtomValue categoryId, ErrorDomain const& domain) noexcept;
 
 
