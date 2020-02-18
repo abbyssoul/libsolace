@@ -363,35 +363,59 @@ constexpr Array<T> makeArray() noexcept {
 }
 
 template <typename T>
-[[nodiscard]]
-constexpr
-Result<Array<T>, Error> makeArray(MemoryResource&& mem, typename Array<T>::size_type initialSize) noexcept {
+[[nodiscard]] constexpr
+Result<Array<T>, Error>
+makeArray(MemoryResource&& mem, typename Array<T>::size_type initialSize) noexcept {
 	return {types::okTag, in_place, mv(mem), initialSize};
 }
 
-/** Construct a default-initialized array of T of a given fixed size */
+/**
+ * Construct a default-initialized array of T of a given fixed size using custom memory manager.
+ * @param memManager Memory manager to use to allocate space for the array.
+ * @param initialSize Size of the array to construct.
+ * @return Resulting array or an  error.
+*/
 template <typename T>
 [[nodiscard]]
 Result<Array<T>, Error>
-makeArray(typename Array<T>::size_type initialSize) {
-	auto maybeBuffer = getSystemHeapMemoryManager().allocate(initialSize*sizeof(T));
+makeArray(MemoryManager& memManager, typename Array<T>::size_type initialSize) {
+	auto maybeBuffer = memManager.allocate(initialSize*sizeof(T));
 	if (!maybeBuffer) {
 		return maybeBuffer.moveError();
 	}
 
+	// Emplce new default constructed values T into a new memory space.
+	// This may throw if construction of T{} throws
 	initArray<T>(maybeBuffer.unwrap().view(), initialSize);
 
 	return makeArray<T>(maybeBuffer.moveResult(), initialSize);  // No except c-tor
 }
 
+/**
+ * Construct a default-initialized array of T of a given fixed size using system memory manager.
+ * @param initialSize Size of the array to construct.
+ * @return Resulting array or an  error.
+*/
+template <typename T>
+[[nodiscard]]
+auto makeArray(typename Array<T>::size_type initialSize) {
+	return makeArray<T>(getSystemHeapMemoryManager(), initialSize);
+}
 
-/** Construct a new array from a C-style array */
+
+/**
+ * Construct a new array from a C-style array using custom memory manager.
+ * @param memManager Memory manager to use to allocate space for the array.
+ * @param initialSize Size of the array to construct.
+ * @param carray C-style array to _copy_ values from. Should be no less then initialSize elements.
+ * @return Resulting array or an  error.
+*/
 template <typename T>
 [[nodiscard]]
 Result<Array<T>, Error>
-makeArray(typename Array<T>::size_type initialSize, T const* carray) {
+makeArray(MemoryManager& memManager, typename Array<T>::size_type initialSize, T const* carray) {
     auto const arraySize = initialSize;
-	auto maybeBuffer = getSystemHeapMemoryManager().allocate(arraySize * sizeof(T));
+	auto maybeBuffer = memManager.allocate(arraySize * sizeof(T));
 	if (!maybeBuffer) {
 		return maybeBuffer.moveError();
 	}
@@ -404,25 +428,71 @@ makeArray(typename Array<T>::size_type initialSize, T const* carray) {
 	return makeArray<T>(maybeBuffer.moveResult(), arraySize);  // No except
 }
 
+/**
+ * Construct a new array from a C-style array using system memory manager.
+ * @param initialSize Size of the array to construct.
+ * @param carray C-style array to _copy_ values from. Should be no less then initialSize elements.
+ * @return Resulting array or an  error.
+*/
+template <typename T>
+[[nodiscard]]
+auto makeArray(typename Array<T>::size_type initialSize, T const* carray) {
+	return makeArray<T>(getSystemHeapMemoryManager(), initialSize, carray);  // No except
+}
 
-/** Create a copy of the given array */
+
+
+/** Create a copy of the given array
+ * @param memManager Memory manager to use to allocate space for the array.
+ * @param other ArrayView to _copy_ values from.
+ * @return Resulting array or an  error.
+*/
+template <typename T>
+[[nodiscard]]
+auto makeArray(MemoryManager& memManager, ArrayView<T> other) {
+	return makeArray(memManager, other.size(), other.data());
+}
+
+
+/** Create a copy of the given array
+ * @param other ArrayView to _copy_ values from.
+ * @return Resulting array or an  error.
+*/
 template <typename T>
 [[nodiscard]]
 auto makeArray(ArrayView<T> other) {
-    return makeArray(other.size(), other.data());
+	return makeArray(getSystemHeapMemoryManager(), other);
 }
 
-/** Create a copy of the given array */
+
+/** Create a copy of the given array using custom memory manager.
+ * @param memManager Memory manager to use to allocate space for the array.
+ * @param other ArrayView to _copy_ values from.
+ * @return Resulting array or an  error.
+*/
+template <typename T>
+[[nodiscard]]
+auto makeArray(MemoryManager& memManager, Array<T> const& other) {
+	return makeArray(memManager, other.size(), other.data());
+}
+
+
+/** Create a copy of the given array
+ * @param other ArrayView to _copy_ values from.
+ * @return Resulting array or an  error.
+*/
 template <typename T>
 [[nodiscard]]
 auto makeArray(Array<T> const& other) {
-    return makeArray(other.size(), other.data());
+	return makeArray(getSystemHeapMemoryManager(), other);
 }
+
 
 template <typename T,
           typename...Args>
 [[nodiscard]]
-Result<Array<T>, Error> makeArrayOf(Args&&...args) {
+Result<Array<T>, Error>
+makeArrayOf(Args&&...args) {
      // Should be relativily safe to cast: we don't expect > 65k arguments
     using size_type = typename Array<T>::size_type;
     auto const arraySize = narrow_cast<size_type>(sizeof...(args));
