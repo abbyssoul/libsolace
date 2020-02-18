@@ -72,10 +72,11 @@ TEST(TestDictionary, factoryWithCapacityCreatesNoObjects) {
 
 TEST(TestDictionary, addIntoEmptyCollectionFails) {
     Dictionary<int32, int32> integral;
-    EXPECT_ANY_THROW(integral.put(212, 8288));
+	EXPECT_TRUE(integral.put(212, 8288).isError());
 
     Dictionary<int32, SimpleType> custom;
-    EXPECT_ANY_THROW(custom.put(212, {1, 2, 3}));
+	EXPECT_TRUE(custom.put(212, {1, 2, 3}).isError());
+	EXPECT_EQ(0, SimpleType::InstanceCount);
 }
 
 

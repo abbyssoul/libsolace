@@ -204,7 +204,7 @@ public:
     /*[[nodiscard]]*/ T* construct(Args&&... args) {
         // Note: dataAs<> does assertion for the storage size
 		constexpr auto const spaceRequired = sizeof(T);
-		assertTrue(spaceRequired <= size(), "Not enough room to emplace type T");
+		assertTrue(spaceRequired <= size(), "No room to construct new value");
 
 		T& dest = *dataAs<T>();
 		return ctor(dest, fwd<Args>(args)...);

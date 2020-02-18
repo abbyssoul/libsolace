@@ -72,7 +72,36 @@ TEST(TestVector, factoryVectorWithCapacityCreatesNoObjects) {
 
 
 TEST(TestVector, emptyVectorEmplaceFails) {
-    EXPECT_ANY_THROW(Vector<int32>().emplace_back(212));
+	ASSERT_TRUE(Vector<int32>().emplace_back(212).isError());
+}
+
+TEST(TestVector, emplaceBackResults) {
+	ASSERT_EQ(0, SimpleType::InstanceCount);
+	{
+		auto maybeVec = makeVector<SimpleType>(2);
+		ASSERT_TRUE(maybeVec.isOk());
+		auto& v = maybeVec.unwrap();
+
+		{
+			auto maybeValue = v.emplace_back(3, 2, 1);
+			ASSERT_TRUE(maybeValue.isOk());
+			EXPECT_EQ(2, maybeValue.unwrap().y);
+			EXPECT_EQ(1, maybeValue.unwrap().z);
+
+			EXPECT_FALSE(v.empty());
+			EXPECT_EQ(2U, v.capacity());
+			EXPECT_EQ(1U, v.size());
+			EXPECT_EQ(1, SimpleType::InstanceCount);
+		}
+
+		EXPECT_FALSE(v.empty());
+		EXPECT_EQ(2U, v.capacity());
+		EXPECT_EQ(1U, v.size());
+		EXPECT_EQ(1, SimpleType::InstanceCount);
+	}
+
+	// Important to make sure all the instances has been correctly destructed after scope exit
+	ASSERT_EQ(0, SimpleType::InstanceCount);
 }
 
 
@@ -107,12 +136,12 @@ TEST(TestVector, emplaceOverflowThrows) {
 
 		EXPECT_EQ(3U, v.capacity());
 
-        v.emplace_back(3, 2, 1);
-        v.emplace_back(2, 1, 0);
-        v.emplace_back(1, 0, -1);
+		EXPECT_TRUE(v.emplace_back(3, 2, 1).isOk());
+		EXPECT_TRUE(v.emplace_back(2, 1, 0).isOk());
+		EXPECT_TRUE(v.emplace_back(1, 0, -1).isOk());
 
 		EXPECT_EQ(3U, v.size());
-        EXPECT_ANY_THROW(v.emplace_back(1, 0, -1));
+		EXPECT_FALSE(v.emplace_back(1, 0, -1).isOk());
 
         EXPECT_EQ(3, SimpleType::InstanceCount);
     }

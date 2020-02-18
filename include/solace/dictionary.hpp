@@ -73,16 +73,38 @@ public:
     }
 */
 
-    void put(Key key, T&& value) {
-		_values.emplace_back(mv(value));
-		_lookup.emplace_back(mv(key));
-    }
+	Result<T&, Error>
+	put(Key key, T&& value) {
+		auto maybeValue = _values.emplace_back(mv(value));
+		if (!maybeValue) {
+			return maybeValue.moveError();
+		}
+
+		auto maybeKey = _lookup.emplace_back(mv(key));
+		if (!maybeKey) {
+			_values.pop_back();
+			return maybeKey.moveError();
+		}
+
+		return maybeValue;
+	}
 
     template<typename... Args>
-    void put(Key key, Args&&...args) {
-		_values.emplace_back(fwd<Args>(args)...);
-		_lookup.emplace_back(mv(key));
-    }
+	Result<T&, Error>
+	put(Key key, Args&&...args) {
+		auto maybeValue = _values.emplace_back(fwd<Args>(args)...);
+		if (!maybeValue) {
+			return maybeValue.moveError();
+		}
+
+		auto maybeKey = _lookup.emplace_back(mv(key));
+		if (!maybeKey) {
+			_values.pop_back();
+			return maybeKey.moveError();
+		}
+
+		return maybeValue;
+	}
 
 
     Optional<T> find(Key const& key) const noexcept {

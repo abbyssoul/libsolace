@@ -24,11 +24,11 @@
 
 #include "solace/types.hpp"
 
-#include "solace/assert.hpp"
 #include "solace/arrayView.hpp"
 #include "solace/array.hpp"
 #include "solace/mutableMemoryView.hpp"
 #include "solace/memoryManager.hpp"
+#include "solace/posixErrorDomain.hpp"
 
 #include "solace/traits/callable.hpp"
 #include "solace/details/array_utils.hpp"
@@ -195,29 +195,33 @@ public:
         return view().contains(value);
     }
 
-    Optional<size_type> indexOf(const_reference value) const noexcept {
+	Optional<size_type>
+	indexOf(const_reference value) const noexcept {
         return view().indexOf(value);
     }
 
     template<typename... Args>
-    void emplace_back(Args&&... args) {
-        assertIndexInRange(_position, 0, capacity());
+	Result<T&, Error> emplace_back(Args&&... args) {
+		if (capacity() <= _position) {
+			return makeError(BasicError::Overflow, "Vector::emplace_back");
+		}
 
-        _buffer.view()
-                .template sliceFor<value_type>(_position)
-				.template construct<value_type>(fwd<Args>(args)...);
+		auto arena = _buffer.view()
+				.template sliceFor<value_type>(_position);
 
-        _position += 1;
+		if (arena.empty()) {
+			return makeError(BasicError::Overflow, "Vector::emplace_back");
+		}
+
+
+		auto value = arena.template construct<value_type>(fwd<Args>(args)...);
+		_position += 1;
+
+		return Result<T&, Error>{types::okTag, in_place, *value};
     }
 
-    void push_back(T const& value)  {
-        assertIndexInRange(_position, 0, capacity());
-
-        _buffer.view()
-                .template sliceFor<value_type>(_position)
-                .template construct<value_type>(value);
-
-        _position += 1;
+	auto push_back(T const& value) {
+		return emplace_back(value);
     }
 
     const_reference operator[] (size_type index) const {
