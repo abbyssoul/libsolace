@@ -40,12 +40,87 @@ public:
     using value_type = T;
     using key_type = Key;
 
-    using size_type = typename Vector<value_type>::size_type;
+	using KeySet = Vector<key_type>;
+	using ValueSet = Vector<value_type>;
 
-    struct Entry {
-        key_type    key;
-        value_type  value;
+	using KeyRef = typename KeySet::reference;
+	using ValueRef = typename ValueSet::reference;
+
+	using KeyConstRef = typename KeySet::const_reference;
+	using ValueConstRef = typename ValueSet::const_reference;
+
+	using KeysIterator   = typename KeySet::Iterator;
+	using ValuesIterator = typename ValueSet::Iterator;
+
+	using KeysConstIterator   = typename KeySet::const_iterator;
+	using ValuesConstIterator = typename ValueSet::const_iterator;
+
+	using size_type = typename ValueSet::size_type;
+
+	struct Entry {
+		key_type	key;
+		value_type	value;
+	};
+
+	struct EntryConstRef {
+		KeyConstRef		key;
+		ValueConstRef	value;
     };
+
+	struct EntryRef {
+		KeyRef		key;
+		ValueRef	value;
+	};
+
+
+	template<typename KI, typename VI>
+	struct Iterator_base {
+
+		constexpr Iterator_base(Iterator_base const& rhs) noexcept = default;
+		constexpr Iterator_base(Iterator_base&& rhs) noexcept = default;
+
+		constexpr Iterator_base(KI keyIt, VI valueIt) noexcept
+			: _keyIt{mv(keyIt)}
+			, _valueIt{mv(valueIt)}
+		{
+		}
+
+		Iterator_base& operator= (Iterator_base const& rhs) noexcept = default;
+		Iterator_base& operator= (Iterator_base&& rhs) noexcept {
+			return swap(rhs);
+		}
+
+		constexpr bool operator!= (Iterator_base const& other) const noexcept {
+			return (_keyIt != other._keyIt) || (_valueIt != other._valueIt);
+		}
+
+		constexpr bool operator== (Iterator_base const& other) const noexcept {
+			return (_keyIt == other._keyIt) && (_valueIt == other._valueIt);
+		}
+
+		EntryConstRef operator* () const { return {*_keyIt, *_valueIt}; }
+
+		Iterator_base& swap(Iterator_base& rhs) noexcept {
+			std::swap(_keyIt, rhs._keyIt);
+			std::swap(_valueIt, rhs._valueIt);
+
+			return *this;
+		}
+
+		Iterator_base& operator++ () {
+			++_keyIt;
+			++_valueIt;
+
+			return *this;
+		}
+
+	private:
+		KI	_keyIt;
+		VI _valueIt;
+	};
+
+	using Iterator = Iterator_base<KeysIterator, ValuesIterator>;
+	using const_iterator = Iterator_base<KeysConstIterator, ValuesConstIterator>;
 
 public:
 
@@ -66,14 +141,8 @@ public:
     bool contains(Key const& key) const noexcept {
         return _lookup.contains(key);
     }
-/*
-    void put(Key key, T const& value) {
-        _values.push_back(value);
-        _lookup.puch_back(key);
-    }
-*/
 
-	Result<T&, Error>
+	Result<ValueRef, Error>
 	put(Key key, T&& value) {
 		auto maybeValue = _values.emplace_back(mv(value));
 		if (!maybeValue) {
@@ -90,7 +159,7 @@ public:
 	}
 
     template<typename... Args>
-	Result<T&, Error>
+	Result<ValueRef, Error>
 	put(Key key, Args&&...args) {
 		auto maybeValue = _values.emplace_back(fwd<Args>(args)...);
 		if (!maybeValue) {
@@ -107,23 +176,41 @@ public:
 	}
 
 
-    Optional<T> find(Key const& key) const noexcept {
-        size_type i = 0;
-        for (auto const& keyHash : _lookup) {
-            if (keyHash == key) {
-                return _values[i];
-            }
+	Optional<ValueRef> find(Key const& key) noexcept {
+		auto valueIt = _values.begin();
+		for (auto const& keyHash : _lookup) {
+			// Maybe check for `valueIt != _values.end()` for sanity.
+			if (keyHash == key) {
+				return *valueIt;
+			}
+			++valueIt;
+		}
 
-            i += 1;
+		return none;
+	}
+
+	Optional<ValueConstRef> find(Key const& key) const noexcept {
+		auto valueIt = _values.begin();
+        for (auto const& keyHash : _lookup) {
+			// Maybe check for `valueIt != _values.end()` for sanity.
+            if (keyHash == key) {
+				return *valueIt;
+            }
+			++valueIt;
         }
 
         return none;
     }
 
+	Iterator begin() noexcept { return {_lookup.begin(), _values.begin()}; }
+	Iterator end() noexcept { return {_lookup.end(), _values.end()}; }
+
+	const_iterator begin() const noexcept { return {_lookup.begin(), _values.begin()}; }
+	const_iterator end() const noexcept { return {_lookup.end(), _values.end()}; }
 
 private:
-    Vector<key_type>        _lookup;
-    Vector<value_type>      _values;
+	KeySet		_lookup;
+	ValueSet	_values;
 };
 
 

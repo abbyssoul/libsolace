@@ -70,7 +70,7 @@ inline std::ostream& operator<< (std::ostream& ostr, Error const& e) {
 	auto const domain = findErrorDomain(errorDomain);
 
     if (domain) {
-        ostr << (*domain)->name();
+		ostr << (*domain).name();
     } else {
         constexpr auto N = sizeof(AtomValue);
         char buffer[sizeof(N) + 1];
@@ -81,7 +81,7 @@ inline std::ostream& operator<< (std::ostream& ostr, Error const& e) {
     ostr << ':' << e.value() << ':';
 
     if (domain) {
-        ostr << (*domain)->message(e.value());
+		ostr << (*domain).message(e.value());
     }
 
     auto const tag = e.tag();

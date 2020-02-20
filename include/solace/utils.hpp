@@ -48,20 +48,6 @@ template <typename T> using DontInfer_v = typename DontInfer_<T>::value_type;
 template <typename T>
 T instance() noexcept;
 
-/*
-template<class X, class Y, class Op>
-struct op_valid_impl {
-    template<class U, class L, class R>
-    static auto test(int) -> decltype(std::declval<U>()(std::declval<L>(), std::declval<R>()),
-                                      void(), std::true_type());
-
-    template<class U, class L, class R>
-    static auto test(...) -> std::false_type;
-
-    using type = decltype(test<Op, X, Y>(0));
-};
-*/
-
 template <typename T> struct RemoveConst_ { using Type = T; };
 template <typename T> struct RemoveConst_<const T> { using Type = T; };
 template <typename T> using RemoveConst = typename RemoveConst_<T>::Type;
@@ -119,17 +105,10 @@ constexpr bool canMemcpy() {
     return std::is_trivially_copy_constructible<T>::value && std::is_trivially_copy_assignable<T>::value;
 }
 
-
-/* Unused meta code to check if class support certain operations
- *
-template<class X, class Y, class Op> using op_valid = typename op_valid_impl<X, Y, Op>::type;
-template<class X, class Y> using has_equality = op_valid<X, Y, std::equal_to<>>;
-template<class X, class Y> using has_inequality = op_valid<X, Y, std::not_equal_to<>>;
-template<class X, class Y> using has_less_than = op_valid<X, Y, std::less<>>;
-template<class X, class Y> using has_less_equal = op_valid<X, Y, std::less_equal<>>;
-template<class X, class Y> using has_greater_than = op_valid<X, Y, std::greater<>>;
-template<class X, class Y> using has_greater_equal = op_valid<X, Y, std::greater_equal<>>;
-*/
+template <typename T> struct RefOrRValue_		{ using Type = T&&; };
+template <typename T> struct RefOrRValue_<T&>	{ using Type = T&; };
+template <typename T> struct RefOrRValue_<T&&>	{ using Type = T&&; };
+template <typename T> using RefOrRValue = typename RefOrRValue_<T>::Type;
 
 }  // End of namespace Solace
 

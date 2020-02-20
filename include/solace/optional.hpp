@@ -87,7 +87,6 @@ template<typename T>
 class Optional {
 public:
     using value_type = T;
-    using Stored_type = std::remove_const_t<value_type>;
 
 public:
 
@@ -100,61 +99,50 @@ public:
      * Construct an new empty optional value.
      */
     constexpr Optional() noexcept
-        : _empty{}
+		: _engaged{false}
+		, _empty{}
     {}
 
     constexpr Optional(None) noexcept
-        : _empty{}
-    {}
+		: _engaged{false}
+		, _empty{}
+	{}
 
 
     Optional(Optional<T>&& other) noexcept(std::is_nothrow_move_constructible<T>::value)
-        : _engaged(other.isSome()
+		: _engaged{other.isSome()
 				   ? construct(mv(other._payload))
-                   : false)
-    {
+				   : false}
+	{
     }
 
     Optional(Optional<T> const& other) noexcept(std::is_nothrow_copy_constructible<T>::value)
-        : _engaged(other.isSome()
-                   ? construct(other._payload)
-                   : false)
-    {
+	   : _engaged{other.isSome()
+				  ? construct(other._payload)
+				  : false}
+	{
     }
 
     template<typename D>
-    Optional(Optional<D>&& other) noexcept(std::is_nothrow_move_constructible<T>::value) :
-        _engaged(other.isSome()
-				 ? construct(mv(other._payload))
-                 : false)
+	Optional(Optional<D>&& other) noexcept(std::is_nothrow_move_constructible<T>::value)
+		: _engaged{other.isSome()
+				   ? construct(mv(other._payload))
+				   : false}
     {
     }
 
-
-    /**
-     * Construct an non-empty optional value by copying-value.
-     */
-    Optional(T const& t) noexcept(std::is_nothrow_copy_constructible<T>::value)
-        : _payload{t}
-        , _engaged{true}
-    {}
-
-
-    /**
-     * Construct an non-empty optional value moving value.
-     */
-    Optional(T&& t) noexcept(std::is_nothrow_move_constructible<T>::value)
-		: _payload{mv(t)}
-        , _engaged{true}
-    {}
+	template<typename CanBeT>
+	constexpr Optional(CanBeT&& value) noexcept(std::is_nothrow_move_constructible<T>::value)
+		: _engaged{construct(fwd<CanBeT>(value))}
+	{}
 
     /**
      * Construct an non-empty optional in place.
      */
     template<typename ...ARGS>
     explicit Optional(InPlace, ARGS&&... args) noexcept(std::is_nothrow_move_constructible<T>::value)
-		: _payload{fwd<ARGS>(args)...}
-        , _engaged{true}
+		: _engaged{true}
+		, _payload{fwd<ARGS>(args)...}
     {}
 
 
@@ -266,7 +254,7 @@ public:
               typename U = typename std::result_of<F(T)>::type>
     std::enable_if_t<is_optional<U>::value && (isCallable<F, T>::value || isCallable<F, const T&>::value),
     U >
-    flatMap(F&& f) const {
+	flatMap(F&& f) const& {
         return (isSome())
                 ? f(_payload)
                 : none;
@@ -285,25 +273,30 @@ public:
 
 
     template <typename F>
-    const Optional<T>& filter(F&& predicate) const {
-        return (isSome())
-                ? (predicate(_payload) ? *this : _emptyInstance)
-                : _emptyInstance;
+	Optional<T> const& filter(F&& predicate) const {
+		return (isSome() && predicate(_payload))
+				? *this
+				: _kEmptyInstance;
     }
 
 protected:
+	using mutable_value = std::remove_cv_t<value_type>;
+	using StoredValue_type = std::conditional_t<std::is_reference_v<value_type>,
+												std::reference_wrapper<std::decay_t<value_type>>,
+												mutable_value>;
 
 
     template<typename...Args>
     constexpr bool
-    construct(Args&&... args) noexcept(std::is_nothrow_constructible<Stored_type, Args...>()) {
+	construct(Args&&... args) noexcept(std::is_nothrow_constructible<StoredValue_type, Args...>()) {
 		ctor(_payload, fwd<Args>(args)...);
         _engaged = true;
 
         return _engaged;
     }
 
-	constexpr void destroy() noexcept(std::is_nothrow_destructible_v<Stored_type>) {
+	constexpr void
+	destroy() noexcept(std::is_nothrow_destructible_v<StoredValue_type>) {
         if (_engaged) {
             _engaged = false;
 			dtor(_payload);
@@ -312,55 +305,49 @@ protected:
 
 private:
 
-    static Optional<T> _emptyInstance;
+	static Optional<T> _kEmptyInstance;
 
     template <class>
     friend class Optional;
 
-    struct  Empty_type {};
+	struct Empty_type {};
 
-    union {
-        Empty_type  _empty;
-        Stored_type _payload;
+	bool _engaged;
+	union {
+		Empty_type			_empty;
+		StoredValue_type	_payload;
     };
 
-    bool _engaged {false};
 };
 
 
 template <typename T>
-inline Optional<T> Optional<T>::_emptyInstance {none};
+inline Optional<T> Optional<T>::_kEmptyInstance{};
 
-constexpr bool operator== (None, None) { return true; }
-constexpr bool operator!= (None, None) { return false; }
-
-template<typename T>
-bool operator== (Optional<T> const& a, None) { return a.isNone(); }
+constexpr bool operator== (None, None) noexcept { return true; }
+constexpr bool operator!= (None, None) noexcept { return false; }
 
 template<typename T>
-bool operator== (None, Optional<T> const& a) { return a.isNone(); }
+bool operator== (Optional<T> const& a, None) noexcept { return a.isNone(); }
 
 template<typename T>
-bool operator!= (Optional<T> const& a, None) { return a.isSome(); }
+bool operator== (None, Optional<T> const& a) noexcept { return a.isNone(); }
 
 template<typename T>
-bool operator!= (None, Optional<T> const& a) { return a.isSome(); }
+bool operator!= (Optional<T> const& a, None) noexcept { return a.isSome(); }
 
 template<typename T>
-bool operator== (Optional<T> const& a, Optional<T> const& b) {
+bool operator!= (None, Optional<T> const& a) noexcept { return a.isSome(); }
+
+template<typename T>
+bool operator== (Optional<T> const& a, Optional<T> const& b) noexcept {
     if (&a == &b) {
         return true;
     }
 
-    if (a.isNone() && b.isNone()) {
-        return true;
-    }
-
-    if (a.isSome() && b.isSome()) {
-        return (a.get() == b.get());
-    }
-
-    return false;
+	return (a.isSome() && b.isSome())
+			? (a.get() == b.get())
+			: (a.isNone() && b.isNone());
 }
 
 template<typename T>
@@ -369,15 +356,9 @@ bool operator!= (Optional<T> const& a, Optional<T> const& b) {
         return false;
     }
 
-    if (a.isNone() && b.isNone()) {
-        return false;
-    }
-
-    if (a.isSome() && b.isSome()) {
-        return (*a != *b);
-    }
-
-    return true;
+	return (a.isSome() && b.isSome())
+			? (*a != *b)
+			: !(a.isNone() && b.isNone());
 }
 
 

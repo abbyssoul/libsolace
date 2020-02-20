@@ -74,11 +74,11 @@ public:
 
         Iterator& operator++ ();
 
-        Var operator* () const {
+		Var operator-> () const;
+
+		Var operator* () const {
             return operator ->();
         }
-
-        Var operator-> () const;
 
         Iterator& swap(Iterator& rhs) noexcept {
             std::swap(_index, rhs._index);

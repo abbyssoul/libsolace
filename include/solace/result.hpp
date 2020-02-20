@@ -65,13 +65,6 @@ using Ok = ValueWrapper<T, OkTag>;
 template<typename T>
 using Err = ValueWrapper<T, ErrTag>;
 
-
-template <typename T> struct RefOrRValue_		{ using Type = T&&; };
-template <typename T> struct RefOrRValue_<T&>	{ using Type = T&; };
-template <typename T> struct RefOrRValue_<T&&>	{ using Type = T&&; };
-template <typename T> using RefOrRValue = typename RefOrRValue_<T>::Type;
-
-
 }  // End of namespace types
 
 
@@ -302,12 +295,12 @@ public:
 		: _engaged{emplaceError(fwd<Args>(args)...)}
 	{}
 
-	constexpr Result(types::RefOrRValue<V> value) noexcept(std::is_nothrow_move_constructible<V>::value)
-		: _engaged{emplaceValue(static_cast<types::RefOrRValue<V>>(value))}
+	constexpr Result(RefOrRValue<V> value) noexcept(std::is_nothrow_move_constructible<V>::value)
+		: _engaged{emplaceValue(static_cast<RefOrRValue<V>>(value))}
 	{}
 
-	constexpr Result(types::RefOrRValue<E> value) noexcept(std::is_nothrow_move_constructible<E>::value)
-		: _engaged{emplaceError(static_cast<types::RefOrRValue<E>>(value))}
+	constexpr Result(RefOrRValue<E> value) noexcept(std::is_nothrow_move_constructible<E>::value)
+		: _engaged{emplaceError(static_cast<RefOrRValue<E>>(value))}
 	{}
 
 public:
@@ -603,12 +596,11 @@ private:
 			  std::reference_wrapper<std::decay_t<error_type>>,
 			  mutable_error>;
 
-    union {
+	bool _engaged{false};
+	union {
         StoredValue_type    _value;
         StoredError_type    _error;
     };
-
-	bool _engaged{false};
 };
 
 

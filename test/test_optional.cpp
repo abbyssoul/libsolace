@@ -281,17 +281,35 @@ TEST_F(TestOptional, testEquals) {
     EXPECT_TRUE(Optional<SimpleType>{} == none);
     EXPECT_TRUE(none == Optional<SimpleType>{});
 
+	// Value equal
     EXPECT_TRUE(o1 == o1);  // Self equality
     EXPECT_TRUE(o1 == o3);  // A == B
     EXPECT_TRUE(o3 == o1);  // B == A
 
-    EXPECT_TRUE(o1 != none);
-    EXPECT_TRUE(o1 != Optional<SimpleType>{});
-    EXPECT_TRUE(none != o1);
+	// False assertions:
+	EXPECT_FALSE(o1 == o2);
+	EXPECT_FALSE(o2 == o1);
 
-    EXPECT_TRUE(o1 != o2);  // A != B
-    EXPECT_TRUE(o2 != o1);  // B != A
+	EXPECT_FALSE(o1 == none);
+	EXPECT_FALSE(none == o1);
+	EXPECT_FALSE(o1 == Optional<SimpleType>{});
+	EXPECT_FALSE(Optional<SimpleType>{} == o1);
+
+	// Not-equal
+	EXPECT_TRUE(o1 != o2);  // A != B
+	EXPECT_TRUE(o2 != o1);  // B != A
+
+	EXPECT_TRUE(o1 != none);
+	EXPECT_TRUE(none != o1);
+    EXPECT_TRUE(o1 != Optional<SimpleType>{});
+	EXPECT_TRUE(Optional<SimpleType>{} != o1);
+
+	// False assertions:
+	EXPECT_FALSE(o1 != o1);  // A == A
+	EXPECT_FALSE(o1 != o3);  // A == B
+	EXPECT_FALSE(o3 != o1);  // B == A
 }
+
 
 TEST_F(TestOptional, testEqualsValues) {
 	EXPECT_EQ(Optional<int>(in_place, 4), 4);
@@ -337,7 +355,7 @@ TEST_F(TestOptional, testEmpty) {
 
 TEST_F(TestOptional, testString) {
 	auto maybeString = makeString("hello-xyz");
-	auto const v1 = Optional<String>{maybeString ? maybeString.moveResult() : String{}};
+	Optional<String> v1{maybeString.moveResult()};
 
     EXPECT_TRUE(v1.isSome());
     EXPECT_TRUE(!v1.isNone());
@@ -364,9 +382,15 @@ TEST_F(TestOptional, testOrElse) {
 }
 
 
-TEST_F(TestOptional, testOrElseOPerator) {
-	SimpleType value(7762, 2, -21);
-	SimpleType testElse(321, -1, 5);
+TEST_F(TestOptional, testOrElseOperator) {
+	auto noneValue = Optional<SimpleType>{};
+	SimpleType value{7762, 2, -21};
+	SimpleType testElse{321, -1, 5};
+
+	{
+		SimpleType otherV = noneValue || testElse;
+		EXPECT_EQ(otherV, testElse);
+	}
 
 	EXPECT_EQ(Optional<SimpleType>{} || testElse, testElse);
 	EXPECT_EQ(Optional<SimpleType>{value} || testElse, value);
@@ -448,15 +472,15 @@ TEST_F(TestOptional, testFilter) {
                     .isNone());
 
     EXPECT_TRUE(Optional<SimpleType>{}
-                    .filter([](const SimpleType& t) { return t.x != 0;})
+					.filter([](SimpleType const& t) { return t.x != 0;})
                     .isNone());
 
-    EXPECT_TRUE(Optional<SimpleType>({32, 72, -858})
-                    .filter([](const SimpleType& t) { return t.x >= 0;})
+	EXPECT_TRUE(Optional<SimpleType>(in_place, 32, 72, -858)
+					.filter([](SimpleType const& t) { return t.x >= 0;})
                     .isSome());
 
     EXPECT_TRUE(Optional<MoveOnlyType>(in_place, 32)
-                    .filter([](const MoveOnlyType& t) { return t.x_ != 0;})
+					.filter([](MoveOnlyType const& t) { return t.x_ != 0;})
                     .isSome());
 }
 
@@ -521,7 +545,7 @@ TEST_F(TestOptional, optionalPointer) {
     };
 
 
-    auto const r = Optional<MoveOnlyType*>(nullptr);
+	auto const r = Optional<MoveOnlyType*>{nullptr};
 
     EXPECT_EQ(0, MoveOnlyType::InstanceCount);
     EXPECT_TRUE(r.isSome());
@@ -529,4 +553,19 @@ TEST_F(TestOptional, optionalPointer) {
     auto const r2 = getMaybe(0);
     EXPECT_EQ(0, MoveOnlyType::InstanceCount);
     EXPECT_TRUE(r2.isNone());
+}
+
+
+TEST_F(TestOptional, refTypes) {
+	auto const maybeNonRef = Optional<MoveOnlyType&>{};
+	ASSERT_TRUE(maybeNonRef.isNone());
+	EXPECT_EQ(0, MoveOnlyType::InstanceCount);
+
+	MoveOnlyType value{3213};
+	auto const maybeRef = Optional<MoveOnlyType&>{value};
+	ASSERT_TRUE(maybeNonRef.isNone());
+
+	MoveOnlyType const& valueRef = *maybeRef;
+	EXPECT_EQ(3213, valueRef.x_);
+	EXPECT_EQ(1, MoveOnlyType::InstanceCount);
 }

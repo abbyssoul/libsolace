@@ -33,7 +33,7 @@ const AtomValue Solace::kSystemCatergory = atom("posix");
 
 namespace /*anonymous*/ {
 
-struct SystemErrorDomain
+struct SystemErrorDomain final
         : public ErrorDomain
 {
     StringView name() const noexcept override {
@@ -50,7 +50,7 @@ struct SystemErrorDomain
 };
 
 
-static const SystemErrorDomain kSystemErrorDomain;
+static SystemErrorDomain kSystemErrorDomain;
 static const auto rego = registerErrorDomain(kSystemCatergory, kSystemErrorDomain);
 
 }  // namespace

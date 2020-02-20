@@ -28,7 +28,7 @@ String
 Error::toString() const {
     auto const domain = findErrorDomain(_domain);
 	if (domain) {
-		return (*domain)->message(_code);
+		return (*domain).message(_code);
 	}
 
 	// In case domain is not known:

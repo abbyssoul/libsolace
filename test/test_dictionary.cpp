@@ -124,9 +124,9 @@ TEST(TestDictionary, containsDataType) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
 		auto maybeDict = makeDictionaryOf<int32, SimpleType>(
-                                                Dictionary<int32, SimpleType>::Entry{0, {99888, 2, 3}},
-                                                Dictionary<int32, SimpleType>::Entry{321, {1, 2, 3}},
-                                                Dictionary<int32, SimpleType>::Entry{17, {3, 0, 0}});
+												Dictionary<int32, SimpleType>::Entry{0, {99888, 2, 3}},
+												Dictionary<int32, SimpleType>::Entry{321, {1, 2, 3}},
+												Dictionary<int32, SimpleType>::Entry{17, {3, 0, 0}});
 		ASSERT_TRUE(maybeDict.isOk());
 		auto& v = maybeDict.unwrap();
 
@@ -143,9 +143,9 @@ TEST(TestDictionary, containsUsingCustomKey) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
 		auto maybeDict = makeDictionaryOf<int32, SimpleType>(
-                                                Dictionary<int32, SimpleType>::Entry{0, {99888, 2, 3}},
-                                                Dictionary<int32, SimpleType>::Entry{321, {1, 2, 3}},
-                                                Dictionary<int32, SimpleType>::Entry{17, {3, 0, 0}});
+												Dictionary<int32, SimpleType>::Entry{0, {99888, 2, 3}},
+												Dictionary<int32, SimpleType>::Entry{321, {1, 2, 3}},
+												Dictionary<int32, SimpleType>::Entry{17, {3, 0, 0}});
 		ASSERT_TRUE(maybeDict.isOk());
 		auto& v = maybeDict.unwrap();
 
@@ -163,9 +163,9 @@ TEST(TestDictionary, forEachValue) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
     {
 		auto maybeDict = makeDictionaryOf<int32, SimpleType>(
-                                                Dictionary<int32, SimpleType>::Entry{-1,  {1, 2, 3}},
-                                                Dictionary<int32, SimpleType>::Entry{13, {2, 3, 4}},
-                                                Dictionary<int32, SimpleType>::Entry{17, {3, 4, 5}});
+												Dictionary<int32, SimpleType>::Entry{-1,  {1, 2, 3}},
+												Dictionary<int32, SimpleType>::Entry{13, {2, 3, 4}},
+												Dictionary<int32, SimpleType>::Entry{17, {3, 4, 5}});
 		ASSERT_TRUE(maybeDict.isOk());
 		auto& v = maybeDict.unwrap();
 
@@ -191,6 +191,37 @@ TEST(TestDictionary, forEachValue) {
 }
 
 
+TEST(TestDictionary, iterateForeach) {
+	ASSERT_EQ(0, SimpleType::InstanceCount);
+	{
+		auto maybeDict = makeDictionaryOf<int32, SimpleType>(
+												Dictionary<int32, SimpleType>::Entry{-1,  {1, 2, 3}},
+												Dictionary<int32, SimpleType>::Entry{13, {2, 3, 4}},
+												Dictionary<int32, SimpleType>::Entry{17, {3, 4, 5}});
+		ASSERT_TRUE(maybeDict.isOk());
+		auto& dict = maybeDict.unwrap();
+		ASSERT_EQ(3, SimpleType::InstanceCount);
+
+		int32 index = 0;
+		int32 expectedKeys[] = {-1, 13, 17};
+		int32 expectedChecks[][3] = {{1, 2, 3}, {2, 3, 4}, {3, 4, 5}};
+		for (auto entry : dict) {
+			EXPECT_EQ(expectedKeys[index], entry.key);
+			EXPECT_EQ(expectedChecks[index][0], entry.value.x);
+			EXPECT_EQ(expectedChecks[index][1], entry.value.y);
+			EXPECT_EQ(expectedChecks[index][2], entry.value.z);
+			index += 1;
+
+			// Make sure iterator does not create copies
+			EXPECT_EQ(3, SimpleType::InstanceCount);
+		}
+
+		EXPECT_EQ(3, SimpleType::InstanceCount);
+	}
+
+	ASSERT_EQ(0, SimpleType::InstanceCount);
+}
+
 
 TEST(TestDictionary, constructionThrow) {
     ASSERT_EQ(0, SimpleType::InstanceCount);
@@ -199,11 +230,38 @@ TEST(TestDictionary, constructionThrow) {
     SometimesConstructable::BlowUpEveryInstance = 4;
     {
         EXPECT_ANY_THROW(auto x = (makeDictionaryOf<SimpleType, SometimesConstructable>(
-                             Dictionary<SimpleType, SometimesConstructable>::Entry{{81, 2, 3}, 1},
-                             Dictionary<SimpleType, SometimesConstructable>::Entry{{12, 7, 3}, 2},
-                             Dictionary<SimpleType, SometimesConstructable>::Entry{{-3, 0, 0}, 3})));
+							 Dictionary<SimpleType, SometimesConstructable>::Entry{{81, 2, 3}, 1},
+							 Dictionary<SimpleType, SometimesConstructable>::Entry{{12, 7, 3}, 2},
+							 Dictionary<SimpleType, SometimesConstructable>::Entry{{-3, 0, 0}, 3})));
 
         EXPECT_EQ(0, SimpleType::InstanceCount);
         EXPECT_EQ(0, SometimesConstructable::InstanceCount);
     }
+}
+
+
+TEST(TestDictionary, find) {
+	ASSERT_EQ(0, SimpleType::InstanceCount);
+	{
+		auto maybeDict = makeDictionaryOf<int32, SimpleType>(
+												Dictionary<int32, SimpleType>::Entry{-1,  {1, 2, 3}},
+												Dictionary<int32, SimpleType>::Entry{13, {2, 3, 4}},
+												Dictionary<int32, SimpleType>::Entry{17, {3, 4, 5}});
+		ASSERT_TRUE(maybeDict.isOk());
+		auto& dict = maybeDict.unwrap();
+		ASSERT_EQ(3, SimpleType::InstanceCount);
+
+		EXPECT_TRUE(dict.find(32).isNone());
+
+		auto maybeValueRef = dict.find(13);
+		EXPECT_TRUE(maybeValueRef.isSome());
+		auto& value = *maybeValueRef;
+		EXPECT_EQ(3, SimpleType::InstanceCount);
+
+		EXPECT_EQ(2, value.x);
+		EXPECT_EQ(3, value.y);
+		EXPECT_EQ(4, value.z);
+	}
+
+	ASSERT_EQ(0, SimpleType::InstanceCount);
 }

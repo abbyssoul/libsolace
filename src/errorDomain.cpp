@@ -15,7 +15,7 @@
 */
 /*******************************************************************************
  *	@file		errorDomain.cpp
- *	@brief		Implementation of Error omain
+ *	@brief		Implementation of the Error Domain
  ******************************************************************************/
 #include "solace/errorDomain.hpp"
 #include "solace/posixErrorDomain.hpp"
@@ -24,33 +24,42 @@
 
 using namespace Solace;
 
+namespace  {
 
 static const uint32 kNbErrorCategories = 128;
 
+Dictionary<AtomValue, ErrorDomain*>
+autoRegisterDomainMap() noexcept {
+	static byte kKeysBuffer[kNbErrorCategories * sizeof(AtomValue)];
+	static byte kValuesBuffer[kNbErrorCategories * sizeof(ErrorDomain*)];
 
-static Dictionary<AtomValue, ErrorDomain const*> kErrorDomainMap;
+	auto maybeDict = makeDictionary<AtomValue, ErrorDomain*>(
+				wrapMemory(kKeysBuffer), wrapMemory(kValuesBuffer));
+
+	return maybeDict.moveResult();
+}
+
+// Poor-man's singleton
+static Dictionary<AtomValue, ErrorDomain*> kErrorDomainMap = autoRegisterDomainMap();
+
+}  // namespace
 
 
-uint32 Solace::registerErrorDomain(AtomValue categoryId, ErrorDomain const& domain) noexcept {
-    static byte kKeysBuffer[kNbErrorCategories * sizeof(AtomValue)];
-    static byte kValuesBuffer[kNbErrorCategories * sizeof(ErrorDomain*)];
-
-    if (kErrorDomainMap.capacity() == 0) {
-		auto maybeDict = makeDictionary<AtomValue, ErrorDomain const*>(
-					wrapMemory(kKeysBuffer), wrapMemory(kValuesBuffer));
-
-		if (maybeDict) {
-			kErrorDomainMap = maybeDict.moveResult();
-		}
-    }
-
+uint32
+Solace::registerErrorDomain(AtomValue categoryId, ErrorDomain& domain) noexcept {
     kErrorDomainMap.put(categoryId, &domain);
 
     return kErrorDomainMap.size();
 }
 
 
-Optional<ErrorDomain const*>
+Optional<ErrorDomain&>
 Solace::findErrorDomain(AtomValue categoryId) noexcept {
-    return kErrorDomainMap.find(categoryId);
+	auto maybePointer = kErrorDomainMap.find(categoryId);
+	if (!maybePointer)
+		return none;
+
+	ErrorDomain* p = *maybePointer;
+	ErrorDomain& ref = *p;
+	return Optional<ErrorDomain&>{std::ref(ref)};
 }

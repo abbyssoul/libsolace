@@ -58,8 +58,7 @@ struct ErrorDomain {
  * @param categoryId Atom identifing error domain
  * @return An error domain if one was found.
  */
-Optional<const ErrorDomain*>
-findErrorDomain(AtomValue categoryId) noexcept;
+Optional<ErrorDomain&> findErrorDomain(AtomValue categoryId) noexcept;
 
 /**
  * Register Error domain
@@ -67,7 +66,7 @@ findErrorDomain(AtomValue categoryId) noexcept;
  * @param domain Error domain to be associated with the category
  * @return Registration id
  */
-uint32 registerErrorDomain(AtomValue categoryId, ErrorDomain const& domain) noexcept;
+uint32 registerErrorDomain(AtomValue categoryId, ErrorDomain& domain) noexcept;
 
 
 }  // End of namespace Solace
