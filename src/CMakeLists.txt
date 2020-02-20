@@ -29,6 +29,7 @@ set(SOURCE_FILES
         encoder.cpp
         env.cpp
         uuid.cpp
+        dialstring.cpp
 
         hashing/messageDigest.cpp
         hashing/md5.cpp

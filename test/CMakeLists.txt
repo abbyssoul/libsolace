@@ -30,6 +30,7 @@ set(TEST_SOURCE_FILES
         test_path.cpp
         test_env.cpp
         test_version.cpp
+        test_dialstring.cpp
 
         hashing/test_md5.cpp
         hashing/test_murmur3.cpp

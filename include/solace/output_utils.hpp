@@ -27,6 +27,7 @@
 #include "solace/path.hpp"
 #include "solace/uuid.hpp"
 #include "solace/version.hpp"
+#include "solace/dialstring.hpp"
 #include "solace/optional.hpp"
 #include "solace/hashing/messageDigest.hpp"
 
@@ -111,21 +112,33 @@ operator<< (std::ostream& ostr, hashing::MessageDigest const& a) {
 }
 
 
-// FIXME: std dependence, used for Unit Testing only
 inline std::ostream& operator<< (std::ostream& ostr, Path const& v) {
     return ostr << v.toString();
 }
 
 
-// FIXME: std dependence, used for Unit Testing only
 inline std::ostream& operator<< (std::ostream& ostr, UUID const& v) {
     return ostr << v.toString();
 }
 
-// FIXME: std dependence, used for Unit Testing only
 inline std::ostream& operator<< (std::ostream& ostr, Version const& v) {
     return ostr << v.toString();
 }
+
+
+inline std::ostream& operator<< (std::ostream& ostr, DialString const& ds) {
+	constexpr auto N = sizeof(AtomValue);
+	char buff[sizeof(N) + 1];
+	atomToString(ds.protocol, buff);
+
+	ostr << buff << ':' << ds.address;
+	if (!ds.service.empty()) {
+		ostr << ':' << ds.service;
+	}
+
+	return ostr;
+}
+
 
 
 // TODO(abbyssoul): Should be in a separate file, if at all
