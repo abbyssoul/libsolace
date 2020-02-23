@@ -357,13 +357,15 @@ Result<Vector<T>, Error> makeVector(MemoryResource&& memory, typename Vector<T>:
 
 /**
  * Vector factory method: create a vector on the heap with a specified capacity.
+ * @param memManager Memory manager to use to allocate space for the array.
+ * @param size Max number of elements to be stored in a vector.
  * @return A newly constructed empty vector of the required capacity.
  */
 template<typename T>
 [[nodiscard]]
 Result<Vector<T>, Error>
-makeVector(typename Vector<T>::size_type size) noexcept {
-	auto maybeBuffer = getSystemHeapMemoryManager().allocate(size*sizeof(T));
+makeVector(MemoryManager& memManager, typename Vector<T>::size_type size) noexcept {
+	auto maybeBuffer = memManager.allocate(size*sizeof(T));
 	if (!maybeBuffer) {
 		return maybeBuffer.moveError();
 	}
@@ -371,11 +373,29 @@ makeVector(typename Vector<T>::size_type size) noexcept {
 	return makeVector<T>(maybeBuffer.moveResult(), 0);
 }
 
-/** Construct a new vector from an array view */
+
+/**
+ * Vector factory method: create a vector on the heap with a specified capacity.
+ * @param size Max number of elements to be stored in a vector.
+ * @return A newly constructed empty vector of the required capacity.
+ */
+template<typename T>
+[[nodiscard]]
+Result<Vector<T>, Error>
+makeVector(typename Vector<T>::size_type size) noexcept {
+	return makeVector<T>(getSystemHeapMemoryManager(), size);
+}
+
+
+/** Construct a new vector from an array view
+ * @param memManager Memory manager to use to allocate space for the array.
+ * @param array Array view to copy elements from.
+ * @return A newly constructed empty vector of the required capacity.
+*/
 template <typename T>
 [[nodiscard]]
-Result<Vector<T>, Error> makeVector(ArrayView<T const> array) {
-	auto maybeBuffer = getSystemHeapMemoryManager().allocate(array.size() * sizeof(T));
+Result<Vector<T>, Error> makeVector(MemoryManager& memManager, ArrayView<T const> array) {
+	auto maybeBuffer = memManager.allocate(array.size() * sizeof(T));
 	if (!maybeBuffer) {
 		return maybeBuffer.moveError();
 	}
@@ -388,34 +408,75 @@ Result<Vector<T>, Error> makeVector(ArrayView<T const> array) {
 }
 
 
+/** Construct a new vector from an array view
+ * @param array Array view to copy elements from.
+ * @return A newly constructed vector of the required capacity.
+*/
+template <typename T>
+[[nodiscard]]
+Result<Vector<T>, Error> makeVector(ArrayView<T const> array) {
+	return makeVector<T>(getSystemHeapMemoryManager(), array);
+}
+
+
+
+/** Create a copy of the given vector, using custom memory manager.
+ * @param memManager Memory manager to use to allocate space for the array.
+ * @param other Vector to copy elements from.
+ * @return A newly constructed vector of the required capacity.
+*/
+template <typename T>
+[[nodiscard]]
+auto makeVector(MemoryManager& memManager, Vector<T> const& other) {
+	return makeVector(memManager, other.view());
+}
+
+
 /** Create an on the heap copy of the given vector
- * @param other A vector to copy data from.
+ * @param other Vector to copy elements from.
+ * @return A newly constructed vector of the required capacity.
 */
 template <typename T>
 [[nodiscard]]
 auto makeVector(Vector<T> const& other) {
-    return makeVector(other.view());
+	return makeVector(other.view());
 }
 
 
-/** Construct a new vector from a C-style array */
+/** Construct a new vector from a C-style array
+ * @param memManager Memory manager to use to allocate space for the array.
+ * @param carry C-style arrya to copy elements from.
+ * @param size Max number of elements to be stored in a vector. Should be no more then the size of the c-array.
+ * @return A newly constructed vector of the required capacity.
+*/
+template <typename T>
+[[nodiscard]]
+auto makeVector(MemoryManager& memManager, T const* carray, typename Vector<T>::size_type len) {
+	return makeVector(memManager, arrayView(carray, len));
+}
+
+/** Construct a new vector from a C-style array
+ * @param carry C-style arrya to copy elements from.
+ * @param size Max number of elements to be stored in a vector. Should be no more then the size of the c-array.
+ * @return A newly constructed vector of the required capacity.
+*/
 template <typename T>
 [[nodiscard]]
 auto makeVector(T const* carray, typename Vector<T>::size_type len) {
-    return makeVector(arrayView(carray, len));
+	return makeVector(arrayView(carray, len));
 }
-
 
 /**
  * Vector factory function.
+ * @param memManager Memory manager to use to allocate space for the array.
+ * @param list A list of values to construct a vector from.
  * @return A newly constructed vector with given items.
  */
 template <typename T>
 [[nodiscard]]
-Result<Vector<T>, Error> makeVectorOf(std::initializer_list<T> list) {
-    // FIXME: Should be checked cast
+Result<Vector<T>, Error> makeVectorOf(MemoryManager& memManager, std::initializer_list<T> list) {
     auto const vectorSize = narrow_cast<typename Vector<T>::size_type>(list.size());
-	auto maybeBuffer = getSystemHeapMemoryManager().allocate(vectorSize * sizeof(T));
+	auto maybeBuffer = memManager.allocate(vectorSize * sizeof(T));
 	if (!maybeBuffer) {
 		return maybeBuffer.moveError();
 	}
@@ -437,6 +498,16 @@ Result<Vector<T>, Error> makeVectorOf(std::initializer_list<T> list) {
 	return makeVector<T>(maybeBuffer.moveResult(), vectorSize);
 }
 
+/**
+* Vector factory function.
+* @param list A list of values to construct a vector from.
+* @return A newly constructed vector with given items.
+*/
+template <typename T>
+[[nodiscard]]
+Result<Vector<T>, Error> makeVectorOf(std::initializer_list<T> list) {
+   return makeVectorOf<T>(getSystemHeapMemoryManager(), list);
+}
 
 /**
  * Vector factory function.
