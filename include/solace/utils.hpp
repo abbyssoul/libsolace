@@ -101,7 +101,7 @@ constexpr T narrow_cast(U&& u) noexcept {
  * assignment operator.
  */
 template <typename T>
-constexpr bool canMemcpy() {
+constexpr bool canMemcpy() noexcept {
     return std::is_trivially_copy_constructible<T>::value && std::is_trivially_copy_assignable<T>::value;
 }
 

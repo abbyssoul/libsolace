@@ -82,7 +82,6 @@ struct is_optional<Optional<T>>: std::true_type {
     unit: Optional.of()
     bind: Optional.flatMap()
  */
-// cppcheck-suppress copyCtorAndEqOperator
 template<typename T>
 class Optional {
 public:
@@ -93,7 +92,6 @@ public:
     inline ~Optional() noexcept(std::is_nothrow_destructible_v<T>) {
         destroy();
     }
-
 
     /**
      * Construct an new empty optional value.
@@ -108,23 +106,24 @@ public:
 		, _empty{}
 	{}
 
-
-    Optional(Optional<T>&& other) noexcept(std::is_nothrow_move_constructible<T>::value)
+	template<typename D>
+	constexpr Optional(Optional<D>& other) noexcept(std::is_nothrow_copy_constructible<T>::value)
 		: _engaged{other.isSome()
-				   ? construct(mv(other._payload))
+				   ? construct(other._payload)
 				   : false}
 	{
-    }
+	}
 
-    Optional(Optional<T> const& other) noexcept(std::is_nothrow_copy_constructible<T>::value)
-	   : _engaged{other.isSome()
-				  ? construct(other._payload)
-				  : false}
+	template<typename D>
+	constexpr Optional(Optional<D> const& other) noexcept(std::is_nothrow_copy_constructible<T>::value)
+		: _engaged{other.isSome()
+				   ? construct(other._payload)
+				   : false}
 	{
-    }
+	}
 
-    template<typename D>
-	Optional(Optional<D>&& other) noexcept(std::is_nothrow_move_constructible<T>::value)
+	template<typename D>
+	constexpr Optional(Optional<D>&& other) noexcept(std::is_nothrow_move_constructible<T>::value)
 		: _engaged{other.isSome()
 				   ? construct(mv(other._payload))
 				   : false}

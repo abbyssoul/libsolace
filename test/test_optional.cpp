@@ -136,6 +136,20 @@ TEST_F(TestOptional, testConstruction) {
     }
 }
 
+TEST_F(TestOptional, copyConstruct) {
+	Optional<SimpleType> someValue{in_place, 3, 2, 1};
+	EXPECT_EQ(1, SimpleType::InstanceCount);
+
+	Optional<SimpleType> copyValue = someValue;
+	EXPECT_TRUE(copyValue.isSome());
+	EXPECT_EQ(2, SimpleType::InstanceCount);
+
+	EXPECT_EQ(3, copyValue.get().x);
+	EXPECT_EQ(2, copyValue.get().y);
+	EXPECT_EQ(1, copyValue.get().z);
+}
+
+
 TEST_F(TestOptional, testConstructorTypeConvertion) {
     EXPECT_EQ(0, PimitiveType::InstanceCount);
 
