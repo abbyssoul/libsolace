@@ -32,9 +32,8 @@
 
 namespace Solace {
 
-/** Immutable String object
- * Solace::String is a proper immutable unicode string that brings the comfort yet
- * it can be easily converted to and from std::string and/or C-strings
+/** Immutable String
+ * Solace::String is an immutable byte sequience aka string.
  */
 class String {
 public:
@@ -449,7 +448,7 @@ Result<String, Error> makeString(StringView view);
 
 //!< Construct a string from a raw null-terminated (C-style) string.
 [[nodiscard]] inline auto makeString(const char* data) {
-    return makeString(StringView(data));
+	return makeString(StringView{data});
 }
 
 //!< Construct a string from a raw byte buffer of a given size
@@ -459,7 +458,6 @@ Result<String, Error> makeString(StringView view);
 
 //!< Construct the string from std::string - STD compatibility method
 // TODO(one day): String makeString(std::string const& buffer);
-// TODO(one day): String makeString(std::string&& buffer);
 
 //!< Copy string content from another string.
 [[nodiscard]] inline auto makeString(String const& s) {
@@ -469,6 +467,11 @@ Result<String, Error> makeString(StringView view);
 template <>
 inline String* ctor(String& location, String const& s) {
   return new (_::PlacementNew(), &location) String{makeString(s).unwrap()};
+}
+
+template <>
+inline String* ctor(String& location, String&& s) {
+  return new (_::PlacementNew(), &location) String{mv(s)};
 }
 
 
