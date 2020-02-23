@@ -99,7 +99,8 @@ public:
         , build{}
     {}
 
-    Version(value_type aMajor, value_type aMinor, value_type aPatch, String aPre)
+	// cppcheck-suppress passedByValue
+	Version(value_type aMajor, value_type aMinor, value_type aPatch, String aPre)
         : majorNumber{aMajor}
         , minorNumber{aMinor}
         , patchNumber{aPatch}
@@ -126,16 +127,6 @@ public:
         , preRelease{makeString(aPre)}
         , build{makeString(aBuild)}
     {}
-
-    /** Construct the version object by specifying all components */
-    // cppcheck-suppress passedByValue
-//    Version(value_type aMajor, value_type aMinor, value_type aPatch, String const& aPre, StringLiteral aBuild)
-//        : majorNumber{aMajor}
-//        , minorNumber{aMinor}
-//        , patchNumber{aPatch}
-//        , preRelease{makeString(aPre)}
-//        , build{makeString(aBuild)}
-//    {}
 
 public:
 
