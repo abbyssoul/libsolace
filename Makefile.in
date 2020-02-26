@@ -13,11 +13,11 @@ TEST_DIR = test
 MODULE_HEADERS = ${INCLUDE_DIR}/*
 MODULE_SRC = ${SRC_DIR}/*
 
-DEP_INSTALL = ${BUILD_DIR}/conaninfo.txt
-GENERATED_MAKE = ${BUILD_DIR}/Makefile
+DEP_INSTALL = $(BUILD_DIR)/conan.lock
+GENERATED_MAKE = $(BUILD_DIR)/CMakeFiles
 
 LIBNAME = lib$(PROJECT).a
-LIB_TAGRET = $(BUILD_DIR)/$(SRC_DIR)/$(LIBNAME)
+LIB_TAGRET = $(BUILD_DIR)/lib/$(LIBNAME)
 
 TESTNAME = test_$(PROJECT)
 TEST_TAGRET = $(BUILD_DIR)/bin/$(TESTNAME)
@@ -64,28 +64,24 @@ endif
 
 
 # First tagret that starts not with '.'' - is a default target to run
-.PHONY: codecheck verify test ANALYZE_MAKE
-
 all: lib
 
 
 #-------------------------------------------------------------------------------
 # CMake wrapper
 #-------------------------------------------------------------------------------
-$(BUILD_DIR):
+$(DEP_INSTALL):
 	mkdir -p $(BUILD_DIR)
-
-$(DEP_INSTALL): $(BUILD_DIR)
-	conan install -if ${BUILD_DIR} -s build_type=${BUILD_TYPE} . ${CONAN_INSTALL_PROFILE} --build missing
+	conan install -if $(BUILD_DIR) -s build_type=${BUILD_TYPE} . ${CONAN_INSTALL_PROFILE} --build missing
 
 $(GENERATED_MAKE): $(DEP_INSTALL)
-	cd ${BUILD_DIR} && cmake -G ${GENERATOR} -DPROFILE=${ENABLE_PROFILE} -DCOVERAGE=${COVERAGE} -DSANITIZE=${SANITIZE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPKG_CONFIG=${PKG_CONFIG} ..
+	cd $(BUILD_DIR) && cmake -G ${GENERATOR} -DPROFILE=${ENABLE_PROFILE} -DCOVERAGE=${COVERAGE} -DSANITIZE=${SANITIZE} -DCMAKE_BUILD_TYPE=${BUILD_TYPE} -DPKG_CONFIG=${PKG_CONFIG} ..
 
 #-------------------------------------------------------------------------------
 # Build the project
 #-------------------------------------------------------------------------------
 $(LIB_TAGRET): $(GENERATED_MAKE)
-	cd ${BUILD_DIR} && cmake --build . -j --target $(PROJECT)
+	cd $(BUILD_DIR) && cmake --build . -j --target $(PROJECT)
 
 lib: $(LIB_TAGRET)
 
@@ -93,12 +89,13 @@ lib: $(LIB_TAGRET)
 #-------------------------------------------------------------------------------
 # Build unit tests
 #-------------------------------------------------------------------------------
-$(TEST_TAGRET): ${GENERATED_MAKE}
-	cd ${BUILD_DIR} && cmake --build . -j --target $(TESTNAME)
+$(TEST_TAGRET): $(GENERATED_MAKE)
+	cd $(BUILD_DIR) && cmake --build . -j --target $(TESTNAME)
 
 tests: $(LIB_TAGRET) $(TEST_TAGRET)
 
 
+.PHONY: test
 test: tests
 	 ./$(TEST_TAGRET)
 
@@ -108,7 +105,7 @@ test: tests
 #-------------------------------------------------------------------------------
 .PHONY: examples
 examples: $(LIB_TAGRET)
-	cd ${BUILD_DIR} && cmake --build . -j --target examples
+	cd $(BUILD_DIR) && cmake --build . -j --target examples
 
 
 #-------------------------------------------------------------------------------
@@ -124,11 +121,9 @@ doc: $(MODULE_HEADERS) $(MODULE_SRC) $(DOC_TARGET_HTML)
 #-------------------------------------------------------------------------------
 # Code Quality Assurance
 #-------------------------------------------------------------------------------
-$(ANALYZE_DIR):
-	mkdir -p ${ANALYZE_DIR}
-
-ANALYZE_MAKE: ${ANALYZE_DIR}
-	cd ${ANALYZE_DIR} && cmake -DCMAKE_C_COMPILER=$(shell which scan-build) ..
+ANALYZE_MAKE: $(ANALYZE_DIR)
+	mkdir -p $(ANALYZE_DIR)
+	cd $(ANALYZE_DIR) && cmake -DCMAKE_C_COMPILER=$(shell which scan-build) ..
 
 tools/cppcheck:
 	# Getting latest cppcheck
@@ -206,12 +201,12 @@ coverage_report: $(COVERAGE_REPORT)
 
 .PHONY: install
 install: $(LIB_TAGRET)
-	cd ${BUILD_DIR} && cmake \
+	cd $(BUILD_DIR) && cmake \
 		-DCMAKE_INSTALL_PREFIX=$(PREFIX) \
 		-DSANITIZE=${SANITIZE} \
 		..
-	#cd ${BUILD_DIR} && cmake --build . --target install --config ${BUILD_TYPE}
-	$(MAKE) -C ${BUILD_DIR} install DESTDIR=$(DESTDIR)
+	#cd $(BUILD_DIR) && cmake --build . --target install --config ${BUILD_TYPE}
+	$(MAKE) -C $(BUILD_DIR) install DESTDIR=$(DESTDIR)
 
 
 .PHONY: uninstall
