@@ -30,6 +30,12 @@ for arg in "$@"; do
 
     --conan-profile=*)
         conan_profile=`echo $arg | sed 's/--conan-profile=//'`
+        # Check selected profile actually exist:
+        if ! $(conan profile list | grep -q $conan_profile); then
+            echo "Error: selected conan profile '$conan_profile' does not exist. valid local profiles are:" 1>&2;
+            conan profile list 1>&2;
+            exit 1
+        fi
         ;;
     --generator=*)
         generator=`echo $arg | sed 's/--generator=//'`
