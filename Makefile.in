@@ -12,6 +12,7 @@ TEST_DIR = test
 
 MODULE_HEADERS = ${INCLUDE_DIR}/*
 MODULE_SRC = ${SRC_DIR}/*
+MODULE_TESTS = ${TEST_DIR}/*
 
 DEP_INSTALL = $(BUILD_DIR)/conan.lock
 GENERATED_MAKE = $(BUILD_DIR)/CMakeFiles
@@ -80,7 +81,8 @@ $(GENERATED_MAKE): $(DEP_INSTALL)
 #-------------------------------------------------------------------------------
 # Build the project
 #-------------------------------------------------------------------------------
-$(LIB_TAGRET): $(GENERATED_MAKE)
+.PHONY: $(LIB_TAGRET)
+$(LIB_TAGRET): $(GENERATED_MAKE) $(MODULE_SRC)
 	cd $(BUILD_DIR) && cmake --build . -j --target $(PROJECT)
 
 lib: $(LIB_TAGRET)
@@ -89,7 +91,8 @@ lib: $(LIB_TAGRET)
 #-------------------------------------------------------------------------------
 # Build unit tests
 #-------------------------------------------------------------------------------
-$(TEST_TAGRET): $(GENERATED_MAKE)
+.PHONY: $(TEST_TAGRET)
+$(TEST_TAGRET): $(GENERATED_MAKE) $(MODULE_TESTS)
 	cd $(BUILD_DIR) && cmake --build . -j --target $(TESTNAME)
 
 tests: $(LIB_TAGRET) $(TEST_TAGRET)
