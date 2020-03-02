@@ -24,8 +24,13 @@
 
 using namespace Solace;
 
+TEST(TestDialString, parsingEmptyStringIsNotOk) {
+	auto res = tryParseDailString("");
+	ASSERT_TRUE(res.isError());
+}
 
-TEST(TestDialString, testParsing_addressOnly) {
+
+TEST(TestDialString, parsingAddressOnlyDefaultsProtocolToUnknown) {
     auto res = tryParseDailString("filename");
 	ASSERT_TRUE(res.isOk());
 	EXPECT_EQ(kProtocolNone, res.unwrap().protocol);
@@ -34,7 +39,7 @@ TEST(TestDialString, testParsing_addressOnly) {
 }
 
 
-TEST(TestDialString, testParsingServiceOnly) {
+TEST(TestDialString, parsingServiceOnlyIsOk) {
 	auto res = tryParseDailString("::http");
 	ASSERT_TRUE(res.isOk());
 	EXPECT_EQ(kProtocolNone, res.unwrap().protocol);
@@ -43,7 +48,7 @@ TEST(TestDialString, testParsingServiceOnly) {
 }
 
 
-TEST(TestDialString, testParsing_addressAndProtocol) {
+TEST(TestDialString, parsingAddressAndProtocolIsOk) {
     auto res = tryParseDailString("sctp:10.3.2.1");
     ASSERT_TRUE(res.isOk());
 	EXPECT_EQ(kProtocolSCTP, res.unwrap().protocol);
@@ -51,7 +56,7 @@ TEST(TestDialString, testParsing_addressAndProtocol) {
     EXPECT_TRUE(res.unwrap().service.empty());
 }
 
-TEST(TestDialString, testParsing) {
+TEST(TestDialString, parsingFullValueIsOk) {
     auto res = tryParseDailString("udp:10.3.2.1:54321");
     ASSERT_TRUE(res.isOk());
 	EXPECT_EQ(kProtocolUDP, res.unwrap().protocol);
@@ -59,7 +64,7 @@ TEST(TestDialString, testParsing) {
     EXPECT_EQ("54321", res.unwrap().service);
 }
 
-TEST(TestDialString, testParsingUnix) {
+TEST(TestDialString, parsingUnixPathIsOk) {
     auto res = tryParseDailString("unix:/dev/null");
     ASSERT_TRUE(res.isOk());
 	EXPECT_EQ(kProtocolUnix, res.unwrap().protocol);
@@ -67,7 +72,7 @@ TEST(TestDialString, testParsingUnix) {
     EXPECT_TRUE(res.unwrap().service.empty());
 }
 
-TEST(TestDialString, testParsingProtocolOnly) {
+TEST(TestDialString, parsingProtocolOnly) {
     auto res = tryParseDailString("blah:");
     ASSERT_TRUE(res.isOk());
 	EXPECT_EQ(atom("blah"), res.unwrap().protocol);
@@ -75,7 +80,7 @@ TEST(TestDialString, testParsingProtocolOnly) {
     EXPECT_TRUE(res.unwrap().service.empty());
 }
 
-TEST(TestDialString, testParsingNonAtomProtocol) {
+TEST(TestDialString, parsingNonAtomProtocolIsError) {
 	auto res = tryParseDailString("somelongvalue:87212");
 	ASSERT_TRUE(res.isError());
 }

@@ -21,31 +21,28 @@ using namespace Solace;
 
 Result<DialString, Error>
 Solace::tryParseDailString(Solace::StringView data) noexcept {
-	auto result = DialString{kProtocolNone, data};
-	bool isFailure = false;
+	if (data.empty())
+		return makeError(BasicError::InvalidInput, "tryParseDailString");
 
+	auto result = Result<DialString, Error>{types::okTag, in_place, kProtocolNone, data};
+	auto& ds = *result;
     if (data.contains(':')) {
-		data.split(":", [&result, &isFailure](StringView split, StringView::size_type i, StringView::size_type) {
-			if (isFailure)
-				return;
+		data.split(":", [&result, &ds](StringView split, StringView::size_type i, StringView::size_type) {
+			if (!result) return;
 
             if (i == 0) {
-				auto parseResult = tryParseAtom(split.trim());
-				if (!parseResult) {
-					isFailure = true;
+				if (auto parseResult = tryParseAtom(split.trim())) {
+					ds.protocol = *parseResult;
 				} else {
-					result.protocol = *parseResult;
+					result = makeError(BasicError::InvalidInput, "tryParseDailString");
 				}
             } else if (i == 1) {
-                result.address = split.trim();
+				ds.address = split.trim();
             } else if (i == 2) {
-                result.service = split.trim();
+				ds.service = split.trim();
             }
         });
     }
 
-	if (isFailure)
-		return makeError(BasicError::InvalidInput, "tryParseDailString");
-
-    return Ok(result);
+	return result;
 }
