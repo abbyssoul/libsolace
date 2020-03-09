@@ -10,14 +10,15 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macOS-latest, windows-latest]
+        # TODO: -- windows-latest
+        os: [ubuntu-latest, macOS-latest]
 
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-python@v1
       with:
-        python-version: '3.x'
+        python-version: '3.7'
     - run: python -m pip install cpplint -U
 
     - name: configure
