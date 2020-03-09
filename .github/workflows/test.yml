@@ -19,9 +19,11 @@ jobs:
     - uses: actions/setup-python@v1
       with:
         python-version: '3.7'
-    - run: python -m pip install cpplint conan -U
-    - run: conan profile new default --detect
-    - run: conan profile update settings.compiler.libcxx=libstdc++11 default
+    - run: |
+        python -m pip install cpplint conan -U
+        conan profile new default --detect
+        conan profile update settings.compiler.libcxx=libstdc++11 default
+    - uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: configure
       run: ./configure --enable-debug --enable-coverage --enable-sanitizer
