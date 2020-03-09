@@ -19,7 +19,9 @@ jobs:
     - uses: actions/setup-python@v1
       with:
         python-version: '3.7'
-    - run: python -m pip install cpplint -U
+    - run: python -m pip install cpplint conan -U
+    - run: conan profile new default --detect
+    - run: conan profile update settings.compiler.libcxx=libstdc++11 default
 
     - name: configure
       run: ./configure --enable-debug --enable-coverage --enable-sanitizer
