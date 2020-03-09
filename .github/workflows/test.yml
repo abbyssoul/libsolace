@@ -18,7 +18,7 @@ jobs:
     - uses: actions/setup-python@v1
       with:
         python-version: '3.x'
-      - run: python -m pip install cpplint -U
+    - run: python -m pip install cpplint -U
 
     - name: configure
       run: ./configure --enable-debug --enable-coverage --enable-sanitizer
