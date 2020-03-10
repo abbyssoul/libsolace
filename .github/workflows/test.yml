@@ -29,7 +29,7 @@ jobs:
     - uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: configure
-      run: ./configure --enable-debug --enable-coverage --enable-sanitizer
+      run: ./configure --enable-sanitizer
     - name: code-check
       run: make codecheck
     - name: make
