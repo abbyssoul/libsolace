@@ -22,7 +22,10 @@ jobs:
     - run: |
         python -m pip install cpplint conan -U
         conan profile new default --detect
-        conan profile update settings.compiler.libcxx=libstdc++11 default
+    - name: Set conan C++ ABI to 11
+      if: matrix.os != macOS
+      run: conan profile update settings.compiler.libcxx=libstdc++11 default
+
     - uses: seanmiddleditch/gha-setup-ninja@master
 
     - name: configure
