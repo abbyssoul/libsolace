@@ -156,7 +156,7 @@ TEST_F(TestOptional, testConstructorTypeConvertion) {
     Optional<PimitiveType> ptype = Optional<int>(321);
 
     EXPECT_EQ(1, PimitiveType::InstanceCount);
-    EXPECT_EQ(321, ptype.get().x);
+	EXPECT_EQ(321, ptype.get().value);
 }
 
 /*
@@ -456,6 +456,19 @@ TEST_F(TestOptional, testMap) {
     }
 }
 
+
+PimitiveType mapSimpleToPrimitive(SimpleType t) noexcept {
+	return {t.x*2};
+}
+
+TEST_F(TestOptional, mapWithFreeFunction) {
+	auto o = Optional<SimpleType>{in_place, 128, 3, 2};
+
+	auto mapped = o.map(mapSimpleToPrimitive);
+	EXPECT_TRUE(mapped.isSome());
+	EXPECT_EQ(256, (*mapped).value);
+}
+
 TEST_F(TestOptional, testFlatMap) {
     SimpleType test(32, 72, -312);
 
@@ -513,24 +526,24 @@ TEST_F(TestOptional, testMoveOnlyResult) {
     EXPECT_EQ(1, MoveOnlyType::InstanceCount);
 }
 
-//TEST_F(TestOptional, testMoveOnlyMapper) {
-//	auto r = Optional<MoveOnlyType>{in_place, 32};
+TEST_F(TestOptional, testMoveOnlyMapper) {
+	auto r = Optional<MoveOnlyType>{in_place, 32};
 
-//	/* FIXME: This is broken as map() does not support functors that move value out. */
-//	auto op = r.map([](MoveOnlyType&& m) {
-//            return m.x_ * 2;
-//    });
+	/* FIXME: This is broken as map() does not support functors that move value out. */
+	auto op = r.map([](MoveOnlyType& m) {
+			return m.x_ * 2;
+	});
 
-//    EXPECT_TRUE(op.isSome());
-//    EXPECT_EQ(64, op.get());
+	EXPECT_TRUE(op.isSome());
+	EXPECT_EQ(64, op.get());
 
-//	EXPECT_EQ(1, MoveOnlyType::InstanceCount);
-//}
+	EXPECT_EQ(1, MoveOnlyType::InstanceCount);
+}
 
 
 TEST_F(TestOptional, testMoveOnlyMove) {
 	auto r = Optional<MoveOnlyType>{in_place, 732};
-    auto p = [&r]() { return r.move(); } ();
+	auto p = [](Optional<MoveOnlyType>& value) { return value.move(); } (r);
 
     EXPECT_EQ(2, MoveOnlyType::InstanceCount);
     EXPECT_EQ(732, p.x_);

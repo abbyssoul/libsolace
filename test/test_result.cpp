@@ -358,7 +358,7 @@ TEST_F(TestResult, testMoveAssignment) {
         EXPECT_EQ(0, SomeTestType::InstanceCount);
 
         const PimitiveType& res = v.unwrap();
-        EXPECT_EQ(321, res.x);      // Needed to keep compiler happy
+        EXPECT_EQ(321, res.value);      // Needed to keep compiler happy
         EXPECT_EQ(1, PimitiveType::InstanceCount);
         EXPECT_EQ(0, SomeTestType::InstanceCount);
 
@@ -537,7 +537,7 @@ TEST_F(TestResult, testThenChaining) {
     auto stillNotGood = alsoNotGood.then([](int r) { return Ok<int>(r + 21); });
     EXPECT_TRUE(stillNotGood.isError());
 
-    auto recovered = stillNotGood.orElse([](const PimitiveType& x) { return Ok<int>(x.x + 2); });
+    auto recovered = stillNotGood.orElse([](const PimitiveType& x) { return Ok<int>(x.value + 2); });
 
     EXPECT_TRUE(recovered.isOk());
     EXPECT_EQ(20, recovered.unwrap());
@@ -607,7 +607,7 @@ TEST_F(TestResult, testMapError) {
     Result<int, PimitiveType> res = Err<PimitiveType>(112);
 
     EXPECT_TRUE(Err<StringLiteral>("Error is 112") == res.mapError([](PimitiveType const& x) {
-                return (x.x == 112)
+                return (x.value == 112)
                     ? StringLiteral{"Error is 112"}
                     : StringLiteral{"Error is unknown"};
                 }));
@@ -615,7 +615,7 @@ TEST_F(TestResult, testMapError) {
     Result<void, PimitiveType> res2 = Err<PimitiveType>(321);
     Result<void, SimpleType> mappedRes = Err(SimpleType{321, 1, 2});
     EXPECT_TRUE(mappedRes == res2.mapError([](PimitiveType const& x) {
-                    return Err(SimpleType{x.x, 1, 2});
+                    return Err(SimpleType{x.value, 1, 2});
                 }));
 }
 

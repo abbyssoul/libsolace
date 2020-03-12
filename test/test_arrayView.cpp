@@ -938,7 +938,7 @@ TEST_F(TestArrayView, viewInitializerList) {
 		return arrayView(list.begin(), list.end());
 	};
 
-	auto array = asArray({ {3,2, 1}, {0, -1, -2} });
+	auto array = asArray({ {3, 2, 1}, {0, -1, -2} });
 
 	EXPECT_EQ(2U, array.size());
 	EXPECT_EQ(1, array[0].z);

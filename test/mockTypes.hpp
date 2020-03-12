@@ -28,7 +28,7 @@ struct PimitiveType {
 
     static int InstanceCount;
 
-    int x{};
+	int value{};
 
     ~PimitiveType() noexcept {
         --InstanceCount;
@@ -37,19 +37,19 @@ struct PimitiveType {
     constexpr PimitiveType() noexcept = default;
 
     PimitiveType(int x_) noexcept
-		: x{x_}
+		: value{x_}
     {
         ++InstanceCount;
     }
 
     PimitiveType(PimitiveType const& rhs) noexcept
-		: x{rhs.x}
+		: value{rhs.value}
     {
         ++InstanceCount;
     }
 
     PimitiveType(PimitiveType&& rhs) noexcept
-		: x{rhs.x}
+		: value{rhs.value}
     {
         ++InstanceCount;
 
@@ -62,13 +62,13 @@ struct PimitiveType {
     PimitiveType& swap(PimitiveType& rhs) noexcept {
         using std::swap;
 
-        swap(x, rhs.x);
+		swap(value, rhs.value);
 
         return *this;
     }
 
     friend bool operator == (PimitiveType const& a, PimitiveType const& b) noexcept {
-        return (a.x == b.x);
+		return (a.value == b.value);
     }
 
 };

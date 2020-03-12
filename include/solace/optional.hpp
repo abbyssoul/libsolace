@@ -71,17 +71,6 @@ struct is_optional<Optional<T>> : std::true_type {
     using value_type = T;
 };
 
-template <typename T>
-struct is_optional<Optional<T>&> : std::true_type {
-	using std::true_type::value;
-	using value_type = T;
-};
-
-template <typename T>
-struct is_optional<Optional<T>&&> : std::true_type {
-	using std::true_type::value;
-	using value_type = T;
-};
 
 
 /** Optional monad
@@ -244,9 +233,9 @@ public:
         return _payload;
     }
 
-    template <typename F,
+	template <typename F,
 			  typename U = typename std::invoke_result<F, T&>::type>
-    Optional<U> map(F&& f) {
+	Optional<U>	map(F&& f) {
         return (isSome())
 				? Optional<U>{f(_payload)}
                 : none;
@@ -254,7 +243,7 @@ public:
 
     template <typename F,
 			  typename U = typename std::invoke_result<F, T>::type>
-    Optional<U> map(F&& f) const {
+	Optional<U>	map(F&& f) const {
         return (isSome())
 				? Optional<U>{f(_payload)}
                 : none;
