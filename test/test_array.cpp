@@ -687,6 +687,21 @@ TEST_F(TestArray, testForEach_byValue) {
     EXPECT_EQ(21, acc);
 }
 
+
+TEST_F(TestArray, testForEach_byMutRef) {
+	auto maybeArray = makeArrayOf<std::string>("Hello", " ", "world", "!");
+	ASSERT_TRUE(maybeArray.isOk());
+	auto& array = maybeArray.unwrap();
+
+	std::string acc;
+	array.forEach([&acc](std::string& x) {
+		acc += x;
+	});
+
+	EXPECT_EQ(std::string("Hello world!"), acc);
+}
+
+
 TEST_F(TestArray, testForEach_byConstRef) {
 	auto const maybeArray = makeArrayOf<std::string>("Hello", " ", "world", "!");
 	ASSERT_TRUE(maybeArray.isOk());

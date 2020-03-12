@@ -240,7 +240,9 @@ public:
     template<typename F>
     std::enable_if_t<
                 isCallable<F, T>::value ||
-                isCallable<F, T&>::value,
+				isCallable<F, T const&>::value ||
+				isCallable<F, T&>::value ||
+				isCallable<F, T&&>::value,
     Array<T>& >
     forEach(F&& f) {
 		view().forEach(fwd<F>(f));
@@ -249,7 +251,10 @@ public:
     }
 
     template<typename F>
-    std::enable_if_t<isCallable<F, const T&>::value, const Array<T>& >
+	std::enable_if_t<
+		isCallable<F, T>::value ||
+		isCallable<F, T const&>::value,
+	Array<T> const& >
     forEach(F&& f) const {
 		view().forEach(fwd<F>(f));
 
@@ -277,36 +282,6 @@ public:
 
         return *this;
     }
-
-/*
-    template<typename F,
-             typename R = typename std::result_of<F(T)>::type>
-    Array<R> map(F&& f) const {
-        auto const thisSize = size();
-        typename Array<R>::Storage mappedStorage;  // NOTE: No default size here as it will insert that many elements.
-        mappedStorage.reserve(thisSize);
-
-        for (auto const& x : _storage) {
-            mappedStorage.emplace_back(f(x));
-        }
-
-        return mappedStorage;
-    }
-
-    template <typename F,
-              typename R = typename std::result_of<F(size_type, T)>::type>
-    Array<R> mapIndexed(F&& f) const {
-        const size_type thisSize = size();
-        typename Array<R>::Storage mappedStorage;  // NOTE: No default size here as it will insert that many elements.
-        mappedStorage.reserve(thisSize);
-
-        for (size_type i = 0; i < thisSize; ++i) {
-            mappedStorage.emplace_back(f(i, _storage[i]));
-        }
-
-        return mappedStorage;
-    }
-*/
 
 protected:
 

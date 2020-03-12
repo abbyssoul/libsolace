@@ -62,7 +62,7 @@ public:
 	using MutableMemoryAddress = void*;
 	using MemoryAddress = void const*;
 
-    using size_type  = uint64;
+	using size_type  = size_t;
     using value_type = byte;
 
     using const_reference = value_type const&;

@@ -60,15 +60,27 @@ class Optional;
 
 /// Optional type-trait
 template <typename MaybeOptional>
-struct is_optional: std::false_type {
+struct is_optional : std::false_type {
     using std::false_type::value;
 };
 
 template <typename T>
-struct is_optional<Optional<T>>: std::true_type {
+struct is_optional<Optional<T>> : std::true_type {
     using std::true_type::value;
 
     using value_type = T;
+};
+
+template <typename T>
+struct is_optional<Optional<T>&> : std::true_type {
+	using std::true_type::value;
+	using value_type = T;
+};
+
+template <typename T>
+struct is_optional<Optional<T>&&> : std::true_type {
+	using std::true_type::value;
+	using value_type = T;
 };
 
 
@@ -233,25 +245,25 @@ public:
     }
 
     template <typename F,
-              typename U = typename std::result_of<F(T&)>::type>
+			  typename U = typename std::invoke_result<F, T&>::type>
     Optional<U> map(F&& f) {
         return (isSome())
-                ? Optional<U>(f(_payload))
+				? Optional<U>{f(_payload)}
                 : none;
     }
 
     template <typename F,
-              typename U = typename std::result_of<F(T)>::type>
+			  typename U = typename std::invoke_result<F, T>::type>
     Optional<U> map(F&& f) const {
         return (isSome())
-                ? Optional<U>(f(_payload))
+				? Optional<U>{f(_payload)}
                 : none;
     }
 
 
     template <typename F,
-              typename U = typename std::result_of<F(T)>::type>
-    std::enable_if_t<is_optional<U>::value && (isCallable<F, T>::value || isCallable<F, const T&>::value),
+			  typename U = typename std::invoke_result<F, T>::type>
+	std::enable_if_t<is_optional<U>::value && (isCallable<F, T>::value || isCallable<F, T const&>::value),
     U >
 	flatMap(F&& f) const& {
         return (isSome())
@@ -261,7 +273,7 @@ public:
 
 
     template <typename F,
-              typename U = typename std::result_of<F(T)>::type>
+			  typename U = typename std::invoke_result<F, T&&>::type>
     std::enable_if_t<is_optional<U>::value && (isCallable<F, T&&>::value || isCallable<F, T>::value),
     U >
     flatMap(F&& f) && {
@@ -270,6 +282,15 @@ public:
                 : none;
     }
 
+	 template <typename F,
+			   typename U = typename std::invoke_result<F, T&&>::type>
+	 std::enable_if_t<is_optional<U>::value && (isCallable<F, T&&>::value || isCallable<F, T>::value),
+	 U >
+	 flatMap(F&& f) & {
+		 return (isSome())
+				 ? f(mv(_payload))
+				 : none;
+	 }
 
     template <typename F>
 	Optional<T> const& filter(F&& predicate) const {

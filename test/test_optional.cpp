@@ -513,29 +513,31 @@ TEST_F(TestOptional, testMoveOnlyResult) {
     EXPECT_EQ(1, MoveOnlyType::InstanceCount);
 }
 
-TEST_F(TestOptional, testMoveOnlyMapper) {
-    auto r = Optional<MoveOnlyType>(MoveOnlyType(32));
+//TEST_F(TestOptional, testMoveOnlyMapper) {
+//	auto r = Optional<MoveOnlyType>{in_place, 32};
 
-    /* FIXME: This is broken as map() does not support functors that move value out.
-    auto op = r.map([](MoveOnlyType&& m) {
-            return m.x_ * 2;
-    });
+//	/* FIXME: This is broken as map() does not support functors that move value out. */
+//	auto op = r.map([](MoveOnlyType&& m) {
+//            return m.x_ * 2;
+//    });
 
-    EXPECT_TRUE(op.isSome());
-    EXPECT_EQ(64, op.get());
-    */
-    EXPECT_EQ(1, MoveOnlyType::InstanceCount);
-}
+//    EXPECT_TRUE(op.isSome());
+//    EXPECT_EQ(64, op.get());
+
+//	EXPECT_EQ(1, MoveOnlyType::InstanceCount);
+//}
 
 
 TEST_F(TestOptional, testMoveOnlyMove) {
-    auto r = Optional<MoveOnlyType>(in_place, 732);
-
+	auto r = Optional<MoveOnlyType>{in_place, 732};
     auto p = [&r]() { return r.move(); } ();
+
     EXPECT_EQ(2, MoveOnlyType::InstanceCount);
     EXPECT_EQ(732, p.x_);
-    EXPECT_EQ(732, r.get().x_);
-    EXPECT_EQ(732, r.orElse(MoveOnlyType(-9876)).x_);
+
+	// R is moved-out of
+	EXPECT_EQ(0, r.get().x_);
+	EXPECT_EQ(0, r.orElse(MoveOnlyType(-9876)).x_);
 }
 
 

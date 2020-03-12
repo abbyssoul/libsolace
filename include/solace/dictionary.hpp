@@ -126,7 +126,7 @@ public:
 
     constexpr Dictionary() noexcept = default;
 
-    Dictionary(Vector<Key>&& lookup, Vector<T>&& values)
+	Dictionary(Vector<Key>&& lookup, Vector<T>&& values) noexcept
 		: _lookup{mv(lookup)}
 		, _values{mv(values)}
     {}
@@ -135,8 +135,8 @@ public:
     constexpr auto size() const noexcept { return _values.size(); }
     constexpr auto capacity() const noexcept { return _values.capacity(); }
 
-    constexpr Vector<Key> const&    keys() const noexcept   { return _lookup; }
-    constexpr Vector<T> const&      values() const noexcept { return _values; }
+	constexpr KeySet   const& keys()   const noexcept { return _lookup; }
+	constexpr ValueSet const& values() const noexcept { return _values; }
 
     bool contains(Key const& key) const noexcept {
         return _lookup.contains(key);
@@ -188,6 +188,7 @@ public:
 
 		return none;
 	}
+
 
 	Optional<ValueConstRef> find(Key const& key) const noexcept {
 		auto valueIt = _values.begin();
@@ -264,41 +265,6 @@ Result<Dictionary<K, T>, Error> makeDictionary(typename Dictionary<K, T>::size_t
 
 	return makeDictionary(keys.moveResult(), values.moveResult());
 }
-
-
-template <typename K, typename T,
-          typename...Args>
-[[nodiscard]]
-Result<Dictionary<K, T>, Error> makeDictionaryOf(Args&&...args) {
-    using size_type = typename Dictionary<K, T>::size_type;
-    // Should be relativily safe to cast: we don't expect > 65k arguments
-    auto const arraySize = narrow_cast<size_type>(sizeof...(args));
-	auto keysBuffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(K));
-	if (!keysBuffer) {
-		return keysBuffer.moveError();
-	}
-
-	auto valuesBuffer = getSystemHeapMemoryManager().allocate(arraySize*sizeof(T));
-	if (!valuesBuffer) {
-		return valuesBuffer.moveError();
-	}
-
-	auto posKeys = arrayView<K>(keysBuffer.unwrap().view());
-	auto posValues = arrayView<T>(valuesBuffer.unwrap().view());
-
-	ArrayExceptionGuard<K> keysGuard{posKeys};
-	ArrayExceptionGuard<T> valuesGuard{posValues};
-
-	(keysGuard.emplace(mv(args.key)), ...);
-	(valuesGuard.emplace(mv(args.value)), ...);
-
-    keysGuard.release();
-    valuesGuard.release();
-
-	return makeDictionary(Vector<K>{keysBuffer.moveResult(), arraySize},
-						  Vector<T>{valuesBuffer.moveResult(), arraySize});  // No except c-tor
-}
-
 
 }  // End of namespace Solace
 #endif  // SOLACE_DICTIONARY_HPP

@@ -801,7 +801,7 @@ TEST_F(TestArrayView, testFillWithConstExplosiveValue) {
         array.fill(SometimesConstructable(99));
         EXPECT_EQ(static_cast<int>(kNonPodStruct), SometimesConstructable::InstanceCount);
 
-        for (int i = 0; i < SometimesConstructable::InstanceCount; ++i) {
+		for (int i = 0; i < SometimesConstructable::InstanceCount; ++i) {
             EXPECT_EQ(99, array[i].someValue);
         }
     }
@@ -929,6 +929,20 @@ TEST_F(TestArrayView, sizeNarrowing) {
 
 	auto value = arrayView<MisalignedType>(wrapMemory(buffer), 4);
 	ASSERT_EQ(3U, value.size());  // FIXME: Maybe we should return Err() in this case as it is a narrowing
+}
+
+
+
+TEST_F(TestArrayView, viewInitializerList) {
+	auto asArray = [](std::initializer_list<SimpleType> list) {
+		return arrayView(list.begin(), list.end());
+	};
+
+	auto array = asArray({ {3,2, 1}, {0, -1, -2} });
+
+	EXPECT_EQ(2U, array.size());
+	EXPECT_EQ(1, array[0].z);
+	EXPECT_EQ(0, array[1].x);
 }
 
 /*

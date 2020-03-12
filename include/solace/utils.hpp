@@ -82,7 +82,9 @@ fwd(DontInfer_v<T>& t) noexcept {
 
 
 template<class T, class U = T>
-constexpr T exchange(T& obj, U&& newValue) {
+constexpr T exchange(T& obj, U&& newValue) noexcept(std::is_nothrow_move_constructible_v<T> &&
+													std::is_nothrow_assignable_v<T, U>)
+{
     T old_value{mv(obj)};
 	obj = fwd<U>(newValue);
 

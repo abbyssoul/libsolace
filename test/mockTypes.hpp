@@ -37,19 +37,19 @@ struct PimitiveType {
     constexpr PimitiveType() noexcept = default;
 
     PimitiveType(int x_) noexcept
-        : x(x_)
+		: x{x_}
     {
         ++InstanceCount;
     }
 
     PimitiveType(PimitiveType const& rhs) noexcept
-        : x(rhs.x)
+		: x{rhs.x}
     {
         ++InstanceCount;
     }
 
     PimitiveType(PimitiveType&& rhs) noexcept
-        : x(rhs.x)
+		: x{rhs.x}
     {
         ++InstanceCount;
 
@@ -82,7 +82,7 @@ struct SimpleType {
 
     int x{}, y{}, z{};
 
-    ~SimpleType() {
+	~SimpleType() noexcept {
         --InstanceCount;
     }
 
@@ -90,18 +90,18 @@ struct SimpleType {
         ++InstanceCount;
     }
 
-    SimpleType(int x_, int y_, int z_) noexcept :
-        x(x_),
-        y(y_),
-        z(z_)
+	SimpleType(int x_, int y_, int z_) noexcept
+		: x{x_}
+		, y{y_}
+		, z{z_}
     {
         ++InstanceCount;
     }
 
-    SimpleType(const SimpleType& rhs) noexcept :
-        x(rhs.x),
-        y(rhs.y),
-        z(rhs.z)
+	SimpleType(SimpleType const& rhs) noexcept
+		: x{rhs.x}
+		, y{rhs.y}
+		, z{rhs.z}
     {
         ++InstanceCount;
     }
@@ -112,15 +112,12 @@ struct SimpleType {
         swap(rhs);
     }
 
-    SimpleType& operator= (const SimpleType& rhs) {
-        x = rhs.x;
-        y = rhs.y;
-        z = rhs.z;
-
-        return (*this);
+	SimpleType& operator= (SimpleType const& rhs) noexcept {
+		SimpleType copy{rhs};
+		return swap(copy);
     }
 
-    SimpleType& operator= (SimpleType&& rhs) {
+	SimpleType& operator= (SimpleType&& rhs) noexcept {
         return swap(rhs);
     }
 
@@ -134,11 +131,11 @@ struct SimpleType {
         return *this;
     }
 
-    friend bool operator== (const SimpleType& a, const SimpleType& b) noexcept {
+	friend bool operator== (SimpleType const& a, SimpleType const& b) noexcept {
         return ((a.x == b.x) && (a.y == b.y) && (a.z == b.z));
     }
 
-    friend bool operator!= (const SimpleType& a, const SimpleType& b) noexcept {
+	friend bool operator!= (SimpleType const& a, SimpleType const& b) noexcept {
         return !(a == b);
     }
 };
@@ -148,18 +145,22 @@ struct SimpleType {
 struct MoveOnlyType {
     static int InstanceCount;
 
-    ~MoveOnlyType() {
+	~MoveOnlyType() noexcept {
         --InstanceCount;
     }
 
-    MoveOnlyType(int x): x_(x) {
+	MoveOnlyType(int x) noexcept
+		: x_{x}
+	{
         ++InstanceCount;
     }
 
     MoveOnlyType(const MoveOnlyType& rhs) = delete;
     MoveOnlyType& operator= (const MoveOnlyType& rhs) = delete;
 
-    MoveOnlyType(MoveOnlyType&& rhs): x_(rhs.x_) {
+	MoveOnlyType(MoveOnlyType&& rhs)
+		: x_{Solace::exchange(rhs.x_, 0)}
+	{
         ++InstanceCount;
     }
 

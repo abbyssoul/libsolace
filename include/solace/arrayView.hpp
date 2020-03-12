@@ -40,7 +40,7 @@ class LIFETIME_HINT_POINTER(T) ArrayView {
 public:
     using ViewType = typename std::conditional<std::is_const<T>::value, MemoryView, MutableMemoryView>::type;
 
-	using size_type = uint32;
+	using size_type = MemoryView::size_type;
     using value_type = T;
 
     using Iterator = T *;
@@ -380,8 +380,12 @@ struct ArrayExceptionGuard {
         }
     }
 
-    constexpr explicit ArrayExceptionGuard(ArrayView<T>& a) noexcept : start{a.begin()}, pos{a.begin()} {}
-    constexpr void release() noexcept { start = pos; }
+	constexpr explicit ArrayExceptionGuard(ArrayView<T>& a) noexcept
+		: start{a.begin()}
+		, pos{a.begin()}
+	{}
+
+	constexpr void release() noexcept { start = pos; }
 
 
     template <typename V>
@@ -452,8 +456,8 @@ template <typename T>
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-[[nodiscard]] constexpr ArrayView<const T> arrayView(T const* ptr, typename ArrayView<T>::size_type size) {
-  return {ptr, narrow_cast<typename ArrayView<const T>::size_type>(size)};
+[[nodiscard]] constexpr ArrayView<T const> arrayView(T const* ptr, typename ArrayView<T>::size_type size) {
+  return {ptr, narrow_cast<typename ArrayView<T const>::size_type>(size)};
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
@@ -466,6 +470,12 @@ template <typename T, size_t N>
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
 [[nodiscard]] constexpr ArrayView<T> arrayView(T* begin, T* end) {
+  return {begin, end};
+}
+
+/** Syntactic sugar to create ArrayView without spelling out the type name. */
+template <typename T>
+[[nodiscard]] constexpr ArrayView<T const> arrayView(T const* begin, T const* end) {
   return {begin, end};
 }
 
