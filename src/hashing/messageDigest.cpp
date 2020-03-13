@@ -30,7 +30,7 @@ using namespace Solace::hashing;
 
 
 MessageDigest::MessageDigest(MemoryView viewBytes)
-	: _storage{makeArray<byte>(viewBytes.size(), viewBytes.dataAs<byte>()).moveResult()}
+	: _storage{makeArray<byte>(viewBytes.size(), viewBytes.begin()).moveResult()}
 { }
 
 

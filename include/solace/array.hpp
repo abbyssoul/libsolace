@@ -361,7 +361,7 @@ makeArray(MemoryManager& memManager, typename Array<T>::size_type initialSize) {
 
 	// Emplce new default constructed values T into a new memory space.
 	// This may throw if construction of T{} throws
-	initArray<T>(maybeBuffer.unwrap().view(), initialSize);
+	initArray(arrayView<T>(maybeBuffer.unwrap().view()));
 
 	return makeArray<T>(maybeBuffer.moveResult(), initialSize);  // No except c-tor
 }

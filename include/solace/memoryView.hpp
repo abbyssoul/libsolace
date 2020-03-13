@@ -172,18 +172,17 @@ public:
 	Optional<MemoryAddress> dataAddress(size_type offset) const noexcept;
 
     template <typename T>
-	T const* dataAs() const {
-		assertTrue(_size == 0 || sizeof(T) <= size(), "Not enough room to emplace type T");
+	T const& dataAs() const {
+		assertTrue(sizeof(T) <= size(), "Not enough room for value of type T");
 
-		return reinterpret_cast<T const*>(_dataAddress);
+		return *reinterpret_cast<T const*>(_dataAddress);
 	}
 
     template <typename T>
-    T const* dataAs(size_type offset) const {
-        assertIndexInRange(offset, 0, this->size());
-        assertIndexInRange(offset + sizeof(T), offset, this->size());
+	T const& dataAs(size_type offset) const {
+		assertTrue(offset + sizeof(T) <= size(), "Not enough room for value of type T");
 
-		return reinterpret_cast<T const*>(begin() + offset);
+		return *reinterpret_cast<T const*>(begin() + offset);
     }
 
 

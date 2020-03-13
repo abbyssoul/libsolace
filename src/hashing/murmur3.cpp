@@ -93,7 +93,7 @@ FORCE_INLINE uint64 fmix64(uint64 k) {
 
 //-----------------------------------------------------------------------------
 SOLACE_NO_SANITIZE("unsigned-integer-overflow")
-uint32 murmurhash3_x86_32(byte const* data, Murmur3_128::size_type const len, uint32 seed) {
+uint32 murmurhash3_x86_32(MemoryView::const_iterator data, Murmur3_128::size_type const len, uint32 seed) {
 	auto const nblocks = static_cast<int>(len / 4);
     uint32 h1 = seed;
 
@@ -329,7 +329,7 @@ Murmur3_32::getDigestLength() const {
 
 
 HashingAlgorithm& Murmur3_32::update(MemoryView input) {
-	_hash[0] = murmurhash3_x86_32(input.dataAs<byte>(), input.size(), _seed);
+	_hash[0] = murmurhash3_x86_32(input.begin(), input.size(), _seed);
 
     return (*this);
 }
@@ -362,9 +362,9 @@ Murmur3_128::size_type Murmur3_128::getDigestLength() const {
 
 HashingAlgorithm& Murmur3_128::update(MemoryView input) {
 #if  defined(__i386__) || defined(__arm__)
-	MurmurHash3_x86_128(input.dataAs<byte>(), input.size(), _seed, _hash);
+	MurmurHash3_x86_128(input.begin(), input.size(), _seed, _hash);
 #elif  defined(__x86_64__) ||  defined(__aarch64__)
-	MurmurHash3_x64_128(input.dataAs<byte>(), input.size(), _seed, _hash);
+	MurmurHash3_x64_128(input.begin(), input.size(), _seed, _hash);
 #else
 #error "Unsupported CPU architecture"
 #endif

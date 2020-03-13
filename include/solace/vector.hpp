@@ -176,12 +176,12 @@ public:
     }
 
     pointer data() noexcept {
-        return _buffer.view().template dataAs<T>();
+		return static_cast<pointer>(_buffer.view().dataAddress());
     }
 
     const_pointer data() const noexcept {
-        return _buffer.view().template dataAs<T>();
-    }
+		return static_cast<const_pointer>(_buffer.view().dataAddress());
+	}
 
     ArrayView<T const> view() const noexcept {
         return arrayView<T const>(_buffer.view(), _position);
@@ -481,13 +481,14 @@ Result<Vector<T>, Error> makeVectorOf(MemoryManager& memManager, std::initialize
 		return maybeBuffer.moveError();
 	}
 
+	auto arr = arrayView<T>(maybeBuffer.unwrap().view());
 	if constexpr (std::is_nothrow_copy_constructible<T>::value) {
-		auto pos = maybeBuffer.unwrap().view().template dataAs<T>();
+		auto pos = arr.begin();
         for (T const& i : list) {
             ctor(*pos++, i);
         }
     } else {
-		ExceptionGuard<T> guard{maybeBuffer.unwrap().view().template dataAs<T>()};
+		ExceptionGuard<T> guard{arr.begin()};
         for (T const& i : list) {
             ctor(*guard.pos, i);
             ++guard.pos;

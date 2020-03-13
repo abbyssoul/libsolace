@@ -62,29 +62,15 @@ public:
     {}
 
     constexpr ArrayView(ArrayView const& other) noexcept
-        : _memory(other._memory)
+		: _memory{other._memory}
     {}
 
     constexpr ArrayView(ArrayView&& other) noexcept
-		: _memory(mv(other._memory))
+		: _memory{mv(other._memory)}
     {}
 
-    /** Construct an array from C-style array with the given size */
-    constexpr ArrayView(T* ptr, size_type arraySize)
-        : _memory{wrapMemory(ptr, sizeof(T) * arraySize)}
-    {}
-
-    constexpr ArrayView(T* beginSeq, T* endSeq) noexcept
-        : _memory{wrapMemory(beginSeq, sizeof(T) * (endSeq - beginSeq))}
-    {}
-
-    template <size_t size>
-    constexpr ArrayView(T (&carray)[size]) noexcept
-        : _memory{wrapMemory(carray)}
-    {}
-
-    constexpr ArrayView(ViewType memview) noexcept :
-		_memory(mv(memview))
+	constexpr ArrayView(ViewType memview) noexcept
+		: _memory{mv(memview)}
     {}
 
 public:
@@ -166,21 +152,21 @@ public:
     const_reference operator[] (size_type index) const {
         index = assertIndexInRange(index, 0, size(), "ArrayView[] const");
 
-        return _memory.template dataAs<T>()[index];
+		return _memory.template dataAs<T>(sizeof(T) * index);
     }
 
 
     reference operator[] (size_type index) {
         index = assertIndexInRange(index, 0, size(), "ArrayView[]");
 
-        return _memory.template dataAs<T>()[index];
-    }
+		return _memory.template dataAs<T>(sizeof(T) * index);
+	}
 
 
     Iterator begin() noexcept {
         return _memory.empty()
                 ? nullptr
-                : _memory.template dataAs<T>();
+				: static_cast<Iterator>(_memory.dataAddress());
     }
 
     Iterator end() noexcept { return begin() + size(); }
@@ -188,8 +174,8 @@ public:
     const_iterator begin() const noexcept {
         return _memory.empty()
                 ? nullptr
-                : _memory.template dataAs<T>();
-    }
+				: static_cast<const_iterator>(_memory.dataAddress());
+	}
 
 	const_iterator end() const noexcept { return (begin() + size()); }
 
@@ -213,7 +199,7 @@ public:
     set(size_type index, F&& f) {
         index = assertIndexInRange(index, 0, size(), "ArrayView.set()");
 
-        _memory.template dataAs<T>()[index] = f();
+		_memory.template dataAs<T>(sizeof(T) * index) = f();
     }
 
 
@@ -315,7 +301,7 @@ public:
     }
 
     template<typename F>
-    std::enable_if_t<isCallable<F, const T&>::value,
+	std::enable_if_t<isCallable<F, T const&>::value,
     const ArrayView<T>& >
     forEach(F&& f) const {
         for (const auto& x : *this) {
@@ -327,14 +313,13 @@ public:
 
     template<typename F>
     std::enable_if_t<
-            isCallable<F, size_type, const T&>::value,
+			isCallable<F, size_type, T const&>::value,
     const ArrayView<T>& >
     forEach(F&& f) const {
-        auto const thisSize = size();
-        auto const pData = _memory.template dataAs<T>();
-
-        for (size_type i = 0; i < thisSize; ++i) {
-            f(i, pData[i]);
+		size_type i = 0;
+		for (auto item : *this) {
+			f(i, item);
+			i += 1;
         }
 
         return *this;
@@ -347,12 +332,11 @@ public:
             isCallable<F, size_type, T&>::value,
     ArrayView<T>& >
     forEach(F&& f) {
-        auto const thisSize = size();
-        auto const pData = _memory.template dataAs<T>();
-
-        for (size_type i = 0; i < thisSize; ++i) {
-            f(i, pData[i]);
-        }
+		size_type i = 0;
+		for (auto item : *this) {
+			f(i, item);
+			i += 1;
+		}
 
         return *this;
     }
@@ -447,36 +431,35 @@ constexpr ArrayView<T> arrayView(MutableMemoryView memView, typename ArrayView<T
   return {memView.slice(0, len * sizeof(T))};
 }
 
-
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
 [[nodiscard]] constexpr ArrayView<T> arrayView(T* ptr, typename ArrayView<T>::size_type size) {
-  return {ptr, narrow_cast<typename ArrayView<const T>::size_type>(size)};
+  return {wrapMemory(ptr, sizeof(T) * size)};
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
 [[nodiscard]] constexpr ArrayView<T const> arrayView(T const* ptr, typename ArrayView<T>::size_type size) {
-  return {ptr, narrow_cast<typename ArrayView<T const>::size_type>(size)};
+  return {wrapMemory(ptr, sizeof(T) * size)};
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T, size_t N>
 [[nodiscard]] constexpr ArrayView<T> arrayView(T (&carray)[N]) noexcept {
-  return {carray};
+  return {wrapMemory(carray)};
 }
 
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
 [[nodiscard]] constexpr ArrayView<T> arrayView(T* begin, T* end) {
-  return {begin, end};
+  return {wrapMemory(begin, sizeof(T) * (end - begin))};
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
 [[nodiscard]] constexpr ArrayView<T const> arrayView(T const* begin, T const* end) {
-  return {begin, end};
+  return {wrapMemory(begin, sizeof(T) * (end - begin))};
 }
 
 

@@ -103,7 +103,7 @@ operator<< (std::ostream& ostr, hashing::MessageDigest const& a) {
          i != end; ++i) {
         auto const encodedView = (*i).view();
         ostr << "0x";
-        ostr.write(encodedView.dataAs<char>(), encodedView.size());
+		ostr.write(static_cast<char const*>(encodedView.dataAddress()), encodedView.size());
     }
 
     ostr << ']';

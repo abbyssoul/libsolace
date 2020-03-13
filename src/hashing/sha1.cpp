@@ -240,7 +240,7 @@ Sha1::size_type Sha1::getDigestLength() const {
 
 
 HashingAlgorithm& Sha1::update(MemoryView input) {
-	sha1_update(_state, input.dataAs<byte>(), input.size());
+	sha1_update(_state, input.begin(), input.size());
 
     return (*this);
 }

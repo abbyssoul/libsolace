@@ -42,10 +42,10 @@ void maybeAdvance(ByteWriter& dest, MemoryView::size_type capacity, int bytesWri
 }
 
 template<typename T>
-void safeFormat(ByteWriter& dest, const char* fmt, T value) {
+void safeFormat(ByteWriter& dest, char const* fmt, T value) {
 	auto buffer = dest.viewRemaining();
 	auto const capacity = buffer.size();
-	auto const bytesWritten = snprintf(buffer.dataAs<char>(), capacity, fmt, value);
+	auto const bytesWritten = snprintf(buffer.begin(), capacity, fmt, value);
 
 	if (bytesWritten > 0 &&
 		bytesWritten < capacity) {
@@ -103,7 +103,8 @@ StringBuilder&
 StringBuilder::append(uint16 value) {
 	auto buffer = _buffer.viewRemaining();
 	auto const capacity = buffer.size();
-	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%" PRIu16, value));
+	auto pos = static_cast<char*>(buffer.dataAddress());
+	maybeAdvance(_buffer, capacity, snprintf(pos, capacity, "%" PRIu16, value));
 
 	return *this;
 }
@@ -112,7 +113,8 @@ StringBuilder&
 StringBuilder::append(uint32 value) {
 	auto buffer = _buffer.viewRemaining();
 	auto const capacity = buffer.size();
-	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%" PRIu32, value));
+	auto pos = static_cast<char*>(buffer.dataAddress());
+	maybeAdvance(_buffer, capacity, snprintf(pos, capacity, "%" PRIu32, value));
 
 	return *this;
 }
@@ -121,7 +123,8 @@ StringBuilder&
 StringBuilder::append(uint64 value) {
 	auto buffer = _buffer.viewRemaining();
 	auto const capacity = buffer.size();
-	maybeAdvance(_buffer, capacity, snprintf(buffer.dataAs<char>(), capacity, "%" PRIu64, value));
+	auto pos = static_cast<char*>(buffer.dataAddress());
+	maybeAdvance(_buffer, capacity, snprintf(pos, capacity, "%" PRIu64, value));
 
 	return *this;
 }
@@ -129,7 +132,7 @@ StringBuilder::append(uint64 value) {
 
 StringView
 StringBuilder::view() const noexcept {
-    return StringView(_buffer.viewWritten().dataAs<const char>(), _buffer.position());
+	return StringView{_buffer.viewWritten()};
 }
 
 
@@ -146,9 +149,7 @@ StringBuilder::length() const noexcept {
 StringView
 StringBuilder::substring(size_type from, size_type to) const {
     auto const data = _buffer.viewWritten();
-    auto const subSlice = data.slice(from, to);
-
-    return StringView(subSlice.dataAs<char>(), subSlice.size());
+	return data.slice(from, to);
 }
 
 

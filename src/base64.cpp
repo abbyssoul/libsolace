@@ -118,17 +118,17 @@ static const byte prUrl2six[256] = {
 
 
 Result<void, Error>
-base64decode(ByteWriter& dest, MemoryView const& src, byte const* decodingTable) {
+base64decode(ByteWriter& dest, MemoryView src, byte const* decodingTable) {
 	if (src.empty()) {
 		return makeError(SystemErrors::NODATA, "base64decode");
     }
 
-	byte const* bufin = src.dataAs<byte>();
+	byte const* bufin = src.begin();
 	while (decodingTable[*(bufin++)] <= 63)  // Count decodable bytes
     {}
 
-	auto nprbytes = (bufin - src.dataAs<byte>()) - 1;
-	bufin = src.dataAs<byte>();
+	auto nprbytes = (bufin - src.begin()) - 1;
+	bufin = src.begin();
 
     while (nprbytes > 4) {
         byte const encoded[] = {

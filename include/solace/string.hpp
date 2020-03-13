@@ -326,7 +326,7 @@ public:  // Basic collection operations:
      * @return Immutable Memory View into the string data.
      */
     /*constexpr*/ StringView view() const noexcept {
-        return {_buffer.view().dataAs<char>(), size()};
+		return {_buffer.view().slice(0, sizeof(value_type)*size())};
     }
 
 public:

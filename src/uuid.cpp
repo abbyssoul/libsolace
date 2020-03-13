@@ -102,8 +102,8 @@ UUID::toString() const {
 
 StringView
 UUID::toString(MutableMemoryView buffer) const {
-    ByteWriter dest(buffer);
-    Base16Encoder encoder(dest);
+	ByteWriter dest{buffer};
+	Base16Encoder encoder{dest};
 
     auto dataView = view();
     // 123e4567-e89b-12d3-a456-426655440000
@@ -118,7 +118,7 @@ UUID::toString(MutableMemoryView buffer) const {
     dest.write('-');
     encoder.encode(dataView.slice(10, 16));
 
-    return StringView{buffer.dataAs<char>(), StringSize};
+	return StringView{buffer.slice(0, StringSize)};
 }
 
 

@@ -84,8 +84,9 @@ TEST(TestMemoryView, testWrapping) {
         EXPECT_TRUE(!test.empty());
 		EXPECT_EQ(6U, test.size());
 
-        for (MutableMemoryView::size_type i = 0; i < test.size(); ++i) {
-			EXPECT_EQ(example[i], test.dataAs<byte>()[i]);
+		auto b = test.begin();
+		for (MutableMemoryView::size_type i = 0; i < test.size(); ++i, ++b) {
+			EXPECT_EQ(example[i], *b);
         }
     }
 
@@ -96,8 +97,9 @@ TEST(TestMemoryView, testWrapping) {
         EXPECT_TRUE(!test.empty());
 		EXPECT_EQ(4U, test.size());
 
-        for (MutableMemoryView::size_type i = 0; i < test.size(); ++i) {
-			EXPECT_EQ(example[i], test.dataAs<byte>()[i]);
+		auto b = test.begin();
+		for (MutableMemoryView::size_type i = 0; i < test.size(); ++i, ++b) {
+			EXPECT_EQ(example[i], *b);
         }
     }
 }
@@ -114,10 +116,10 @@ TEST(TestMemoryView, testConstruction) {
         test[2] = 17;
         test[1] = 4;
         test[test.size() - 1] = 255;
-		EXPECT_EQ(19, test.dataAs<byte>()[0]);
-		EXPECT_EQ(4, test.dataAs<byte>()[1]);
-		EXPECT_EQ(17, test.dataAs<byte>()[2]);
-		EXPECT_EQ(255, test.dataAs<byte>()[test.size() - 1]);
+		EXPECT_EQ(19, test[0]);
+		EXPECT_EQ(4, test[1]);
+		EXPECT_EQ(17, test[2]);
+		EXPECT_EQ(255, test[test.size() - 1]);
     }
 
 
@@ -217,7 +219,7 @@ TEST(TestMemoryView, testDataAs) {
         b = ++n;
     }
 
-    auto&& buffer = wrapMemory(src);
+	auto buffer = wrapMemory(src);
 
     int tx, ty, tz;
 
@@ -226,30 +228,32 @@ TEST(TestMemoryView, testDataAs) {
 	ASSERT_TRUE(buffer.write(wrapMemory(&ty, sizeof(tx)), sizeof(tx)));
 	ASSERT_TRUE(buffer.write(wrapMemory(&tz, sizeof(tx)), 2*sizeof(ty)));
 
-    SimpleType* uuid1 = buffer.dataAs<SimpleType>();
-    EXPECT_EQ(SimpleType(1, 3, 2), *uuid1);
+	SimpleType& uuid1 = buffer.dataAs<SimpleType>();
+	EXPECT_EQ(SimpleType(1, 3, 2), uuid1);
 
     tx = 7; ty = 44; tz = -32;
 	ASSERT_TRUE(buffer.write(wrapMemory(&tx, sizeof(tx))));
 	ASSERT_TRUE(buffer.write(wrapMemory(&ty, sizeof(tx)), sizeof(tx)));
 	ASSERT_TRUE(buffer.write(wrapMemory(&tz, sizeof(tx)), 2*sizeof(ty)));
-    EXPECT_EQ(SimpleType(7, 44, -32), *uuid1);
+	EXPECT_EQ(SimpleType(7, 44, -32), uuid1);
 
-	SimpleType const* uuid2 = buffer.dataAs<SimpleType>(4);
+	SimpleType const& uuid2 = buffer.dataAs<SimpleType>(4);
 
     tx = -91; ty = 12; tz = 0;
 	ASSERT_TRUE(buffer.write(wrapMemory(&tx, sizeof(tx)), 4));
 	ASSERT_TRUE(buffer.write(wrapMemory(&ty, sizeof(tx)), 4 + sizeof(tx)));
 	ASSERT_TRUE(buffer.write(wrapMemory(&tz, sizeof(tx)), 4 + 2*sizeof(ty)));
-    EXPECT_EQ(SimpleType(-91, 12, 0), *uuid2);
+	EXPECT_EQ(SimpleType(-91, 12, 0), uuid2);
 
 	EXPECT_THROW(buffer.dataAs<SimpleType>(6), Exception);
 	EXPECT_THROW(buffer.dataAs<LargePodType>(), Exception);
+}
 
 
-    byte src2[sizeof(LargePodType)];
-    auto buffer2 = wrapMemory(src2);
-    EXPECT_NO_THROW(buffer2.dataAs<LargePodType>());
+TEST(TestMemoryView, dataAsWhenNoRoom) {
+	byte src2[sizeof(LargePodType) / 2];
+	auto buffer = wrapMemory(src2);
+	EXPECT_ANY_THROW(buffer.dataAs<LargePodType>());
 }
 
 

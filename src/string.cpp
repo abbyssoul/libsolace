@@ -63,14 +63,14 @@ Solace::makeStringReplace(StringView str, String::value_type what, String::value
 		return writeResult.moveError();
 	}
 
-	auto offsetValue = bufferView.dataAs<String::value_type>();
+	auto offsetValue = bufferView.begin();
 	for (String::size_type i = 0; i < totalStrLen; ++i, ++offsetValue) {
         if (*offsetValue == what) {
             *offsetValue = with;
         }
     }
 
-	return Ok(String{ maybeBuffer.moveResult(), totalStrLen });
+	return String{ maybeBuffer.moveResult(), totalStrLen };
 }
 
 
@@ -112,7 +112,7 @@ Result<String, Error> Solace::makeStringReplace(StringView str, StringView what,
 		return result.moveError();
 	}
 
-	return Ok(String{ maybeBuffer.moveResult(), newStrLen });
+	return String{ maybeBuffer.moveResult(), newStrLen };
 }
 
 

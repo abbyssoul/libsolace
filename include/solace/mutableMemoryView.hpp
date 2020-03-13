@@ -130,18 +130,16 @@ public:
 
 
 	using MemoryView::dataAs;
+
 	template <typename T>
-	T* dataAs() {
-		return const_cast<T*>(MemoryView::dataAs<T>());
+	T& dataAs() {
+		return const_cast<T&>(MemoryView::dataAs<T>());
 	}
 
-//    template <typename T>
-//    T* dataAs(size_type offset = 0) {
-//        assertIndexInRange(offset, 0, this->size());
-//        assertIndexInRange(offset + sizeof(T), offset, this->size() + 1);
-
-//        return reinterpret_cast<T*>(dataAddress() + offset);
-//    }
+	template <typename T>
+	T& dataAs(size_type offset) {
+		return const_cast<T&>(MemoryView::dataAs<T>(offset));
+	}
 
 
     /**
@@ -206,14 +204,14 @@ public:
 		constexpr auto const spaceRequired = sizeof(T);
 		assertTrue(spaceRequired <= size(), "No room to construct new value");
 
-		T& dest = *dataAs<T>();
+		T& dest = dataAs<T>();
 		return ctor(dest, fwd<Args>(args)...);
     }
 
     template<typename T>
     void destruct() noexcept(std::is_nothrow_destructible<T>::value) {
         // Note: dataAs<> does assertion for the storage size
-        dtor(*dataAs<T>());
+		dtor(dataAs<T>());
     }
 };
 

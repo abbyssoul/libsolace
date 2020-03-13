@@ -87,7 +87,7 @@ public:
 
 	StringView(MemoryView data) noexcept
 		: _size{narrow_cast<size_type>(data.size())}
-		, _data{data.dataAs<char>()}
+		, _data{static_cast<const_iterator>(data.dataAddress())}
 	{}
 
     StringView& swap(StringView& rhs) noexcept {
@@ -445,8 +445,8 @@ struct StringLiteral: public StringView {
     constexpr StringLiteral() noexcept = default;
 
     template<size_t N>
-    constexpr StringLiteral(char const (&str)[N]) :
-            StringView(N -1, &str[0])
+	constexpr StringLiteral(char const (&str)[N]) noexcept
+		: StringView{N - 1, &str[0]}
     {
     }
 };

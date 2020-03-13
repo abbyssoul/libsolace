@@ -317,6 +317,26 @@ TEST_F(TestArrayView, testCopy) {
         }
     }
 }
+
+TEST_F(TestArrayView, dataTypesFitness) {
+	byte buf[sizeof(SimpleType)];
+	auto arr = arrayView<SimpleType>(wrapMemory(buf));
+	ASSERT_EQ(1U, arr.size());
+
+	arr[0].y = 3;
+	EXPECT_EQ(3, arr[0].y);
+}
+
+TEST_F(TestArrayView, dataTypeNotFitting) {
+	byte buf[sizeof(SimpleType) + sizeof(SimpleType) /2];
+	auto arr = arrayView<SimpleType>(wrapMemory(buf));
+	ASSERT_EQ(1U, arr.size());
+
+	arr[0].y = 3;
+	EXPECT_EQ(3, arr[0].y);
+}
+
+
 /*
 TEST_F(TestArrayView, testBasics) {
     ArrayView<uint> array(TEST_SIZE_0);
@@ -927,18 +947,17 @@ TEST_F(TestArrayView, testForEachIndexed) {
 TEST_F(TestArrayView, sizeNarrowing) {
 	byte buffer[sizeof (MisalignedType) * 3 + sizeof (MisalignedType) / 2];
 
+	// FIXME: Maybe we should return Err() in this case as it is a narrowing
 	auto value = arrayView<MisalignedType>(wrapMemory(buffer), 4);
-	ASSERT_EQ(3U, value.size());  // FIXME: Maybe we should return Err() in this case as it is a narrowing
+
+	ASSERT_EQ(3U, value.size());
 }
 
 
 
-TEST_F(TestArrayView, viewInitializerList) {
-	auto asArray = [](std::initializer_list<SimpleType> list) {
-		return arrayView(list.begin(), list.end());
-	};
-
-	auto array = asArray({ {3, 2, 1}, {0, -1, -2} });
+TEST_F(TestArrayView, viewConstPointerList) {
+	SimpleType list[] = { {3, 2, 1}, {0, -1, -2} };
+	auto array = arrayView(std::begin(list), std::end(list));
 
 	EXPECT_EQ(2U, array.size());
 	EXPECT_EQ(1, array[0].z);

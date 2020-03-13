@@ -143,7 +143,7 @@ void md5_process(MD5::State& ctx, const byte data[64]) {
 }
 
 
-void md5_update(MD5::State& ctx, const byte *input, MD5::size_type inputLen) {
+void md5_update(MD5::State& ctx, MemoryView::const_iterator input, MD5::size_type inputLen) {
 	MD5::size_type fill;
     uint32 left;
 
@@ -201,8 +201,9 @@ MD5::size_type MD5::getDigestLength() const {
 }
 
 
-HashingAlgorithm& MD5::update(MemoryView input) {
-	md5_update(_state, input.dataAs<byte>(), input.size());
+HashingAlgorithm&
+MD5::update(MemoryView input) {
+	md5_update(_state, input.begin(), input.size());
 
     return (*this);
 }

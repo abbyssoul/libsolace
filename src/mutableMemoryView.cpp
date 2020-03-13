@@ -129,7 +129,7 @@ MutableMemoryView::slice(size_type from, size_type to) noexcept {
     from = std::min(from, thisSize);
 	to = std::min(std::max(to, from), thisSize);
 
-	auto destAddress = dataAs<byte>() + from;
+	auto destAddress = begin() + from;
 
 	return {destAddress, to - from};
 }

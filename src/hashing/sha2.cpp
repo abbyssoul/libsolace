@@ -212,7 +212,7 @@ Sha256::size_type Sha256::getDigestLength() const {
 
 
 HashingAlgorithm& Sha256::update(MemoryView input) {
-	sha256_update(_state, input.dataAs<byte>(), input.size());
+	sha256_update(_state, input.begin(), input.size());
 
     return (*this);
 }
