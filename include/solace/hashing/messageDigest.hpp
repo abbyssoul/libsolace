@@ -83,7 +83,7 @@ public:
     }
 
     const_reference operator[] (size_type index) const {
-        index = assertIndexInRange(index, 0, size());
+		index = assertIndexInRange(index, size(), "MessageDigest[]");
 
         return _storage[index];
     }

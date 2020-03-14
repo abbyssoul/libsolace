@@ -198,6 +198,37 @@ uint32 assertIndexInRange(uint32 index, uint32 from, uint32 to, const char* mess
  */
 uint64 assertIndexInRange(uint64 index, uint64 from, uint64 to, const char* message);
 
+
+
+/**
+ * Assert that the give index is within the give range. Throw if it is not.
+ * @param index Index value to be asserted.
+ * @param size Upper value bound (exclusive).
+ * @param message Tag identifying location.
+ * @return Index value if the index is in range. Throws otherwise.
+ */
+uint16 assertIndexInRange(uint16 index, uint16 size, const char* message);
+
+
+/**
+ * Assert that the give index is within the give range. Throw if it is not.
+ * @param index Index value to be asserted.
+ * @param size Upper value bound (exclusive).
+ * @param message Tag identifying location.
+ * @return Index value if the index is in range. Throws otherwise.
+ */
+uint32 assertIndexInRange(uint32 index, uint32 size, const char* message);
+
+
+/**
+ * Assert that the give index is within the give range. Throw if it is not.
+ * @param index Index value to be asserted.
+ * @param size Upper value bound (exclusive).
+ * @param message Tag identifying location.
+ * @return Index value if the index is in range. Throws otherwise.
+ */
+uint64 assertIndexInRange(uint64 index, uint64 size, const char* message);
+
 }  // End of namespace Solace
 #endif  // SOLACE_ASSERT_HPP
 

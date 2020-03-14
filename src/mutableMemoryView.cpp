@@ -30,9 +30,9 @@ using namespace Solace;
 
 MutableMemoryView::reference
 MutableMemoryView::operator[] (size_type index) {
-	assertIndexInRange(index, 0, size(), "index");
+	assertIndexInRange(index, size(), "MutableMemoryView[]");
 
-	return *static_cast<value_type*>(*dataAddress(index));
+	return begin()[index];
 }
 
 

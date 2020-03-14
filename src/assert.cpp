@@ -78,6 +78,35 @@ uint16 Solace::assertIndexInRange(uint16 index, uint16 from, uint16 to, const ch
     return index;
 }
 
+
+
+
+
+
+uint64 Solace::assertIndexInRange(uint64 index, uint64 size, const char* message) {
+	if (size <= index) {
+		Solace::raise<IndexOutOfRangeException>(index, decltype(size){0}, size, message);
+	}
+
+	return index;
+}
+
+uint32 Solace::assertIndexInRange(uint32 index, uint32 size, const char* message) {
+	if (size <= index) {
+		Solace::raise<IndexOutOfRangeException>(index, decltype(size){0}, size, message);
+	}
+
+	return index;
+}
+
+uint16 Solace::assertIndexInRange(uint16 index, uint16 size, const char* message) {
+	if (size <= index) {
+		Solace::raise<IndexOutOfRangeException>(index, decltype(size){0}, size, message);
+	}
+
+	return index;
+}
+
 [[noreturn]]
 void Solace::raiseInvalidStateError() {
     Solace::raise<InvalidStateException>();

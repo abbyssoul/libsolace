@@ -166,7 +166,7 @@ public:
 		return begin() + _size;
     }
 
-    value_type operator[] (size_type index) const;
+	value_type operator[] (size_type index) const;
 
 	constexpr MemoryAddress dataAddress() const noexcept { return _dataAddress; }
 	Optional<MemoryAddress> dataAddress(size_type offset) const noexcept;

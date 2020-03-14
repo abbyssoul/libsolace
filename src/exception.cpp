@@ -139,11 +139,11 @@ details::ErrorString formatIndexOutOfRangeError(StringView messagePrefix, String
 	return formatIndexOutOfRangeError(messagePrefix, indexName, "is out of range", index, minValue, maxValue);
 }
 
-/*
+
 details::ErrorString formatOverflowError(StringLiteral indexName, uint16 index, uint16 minValue, uint16 maxValue) {
 	return formatIndexOutOfRangeError("Value", indexName, "overflows range", index, minValue, maxValue);
 }
-*/
+
 
 details::ErrorString formatOverflowError(StringLiteral indexName, uint32 index, uint32 minValue, uint32 maxValue) {
 	return formatIndexOutOfRangeError("Value", indexName, "overflows range", index, minValue, maxValue);
@@ -221,6 +221,11 @@ IndexOutOfRangeException::IndexOutOfRangeException(uint64 index, uint64 minValue
 
 
 OverflowException::OverflowException(StringLiteral indexName,
+									 uint16 index, uint16 minValue, uint16 maxValue) noexcept
+	: Exception{formatOverflowError(indexName, index, minValue, maxValue)}
+{}
+
+OverflowException::OverflowException(StringLiteral indexName,
 									 uint32 index, uint32 minValue, uint32 maxValue) noexcept
 	: Exception{formatOverflowError(indexName, index, minValue, maxValue)}
 {}
@@ -228,6 +233,10 @@ OverflowException::OverflowException(StringLiteral indexName,
 OverflowException::OverflowException(StringLiteral indexName,
 									 uint64 index, uint64 minValue, uint64 maxValue) noexcept
 	: Exception{formatOverflowError(indexName, index, minValue, maxValue)}
+{}
+
+OverflowException::OverflowException(uint16 index, uint16 minValue, uint16 maxValue) noexcept
+	: Exception(formatOverflowError("", index, minValue, maxValue))
 {}
 
 OverflowException::OverflowException(uint32 index, uint32 minValue, uint32 maxValue) noexcept

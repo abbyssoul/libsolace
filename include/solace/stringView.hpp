@@ -256,7 +256,7 @@ public:
      * FIXME: Should be Optional<> and noexcept
      */
     value_type charAt(size_type index) const {
-        index = assertIndexInRange(index, 0, _size);
+		index = assertIndexInRange(index, _size, "StringView.charAt");
 
         return _data[index];
     }

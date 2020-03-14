@@ -48,7 +48,7 @@ public:
 
     //! Construct exception w. message
 	Exception(StringView message) noexcept;
-    Exception(Exception&& other) noexcept   = default;
+	Exception(Exception&& other) noexcept = default;
 
 	virtual StringView getMessage() const noexcept {
 		return _message.view();
@@ -82,9 +82,9 @@ private:
 /**
  * An error type to signal that argument value is illegal.
 */
-class IllegalArgumentException: public Exception {
-public:
-    IllegalArgumentException() noexcept;
+struct IllegalArgumentException final : public Exception {
+
+	IllegalArgumentException() noexcept;
 
 	IllegalArgumentException(StringLiteral msg) noexcept;
 };
@@ -93,9 +93,7 @@ public:
 /**
  * An error type to signal that index value is outsige of acceptable range.
 */
-class IndexOutOfRangeException : public Exception {
-public:
-
+struct IndexOutOfRangeException final : public Exception {
     IndexOutOfRangeException() noexcept;
 
 	//! Construct exception given expected range values:
@@ -117,12 +115,12 @@ public:
 /**
  * An error to signal that operation leads to overflow of some internal buffer
  */
-class OverflowException : public Exception {
-public:
-
+struct OverflowException final : public Exception {
+	OverflowException(StringLiteral indexName, uint16 index, uint16 minValue, uint16 maxValue) noexcept;
 	OverflowException(StringLiteral indexName, uint32 index, uint32 minValue, uint32 maxValue) noexcept;
 	OverflowException(StringLiteral indexName, uint64 index, uint64 minValue, uint64 maxValue) noexcept;
 
+	OverflowException(uint16 index, uint16 minValue, uint16 maxValue) noexcept;
 	OverflowException(uint32 index, uint32 minValue, uint32 maxValue) noexcept;
 	OverflowException(uint64 index, uint64 minValue, uint64 maxValue) noexcept;
 };
@@ -131,9 +129,7 @@ public:
 /**
  * Raised by accessor methods to signal that requested element does not exist.
  */
-class NoSuchElementException: public Exception {
-public:
-
+struct NoSuchElementException final : public Exception {
     NoSuchElementException() noexcept;
 
 	NoSuchElementException(StringLiteral elementName) noexcept;
@@ -143,9 +139,7 @@ public:
 /**
  * Raised by accessor methods to signal that requested element does not exist.
  */
-class InvalidStateException: public Exception {
-public:
-
+struct InvalidStateException final : public Exception {
     InvalidStateException() noexcept;
 
     InvalidStateException(const char* tag) noexcept;
@@ -155,15 +149,13 @@ public:
 /**
  * Exception during IO operations
  */
-class IOException: public Exception {
-public:
+struct IOException: public Exception {
 
-    IOException(int errorCode) noexcept;
+	IOException(int errorCode) noexcept;
 
 	IOException(int errorCode, StringView msg) noexcept;
 
 	IOException(StringView msg) noexcept;
-
 
     int getErrorCode() const noexcept {
         return _errorCode;
@@ -177,8 +169,7 @@ private:
 /**
  * Special case of IOException for attemping to access not yet opened file
  */
-class NotOpen: public IOException {
-public:
+struct NotOpen final : public IOException {
     NotOpen() noexcept;
 };
 
@@ -190,5 +181,4 @@ void raise(Args&&... args) {
 }
 
 }  // End of namespace Solace
-
 #endif  // SOLACE_EXCEPTION_HPP

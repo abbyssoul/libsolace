@@ -71,14 +71,14 @@ bool UUID::equals(UUID const& rhs) const noexcept {
 
 UUID::reference
 UUID::operator[] (size_type index) {
-    index = assertIndexInRange(index, 0, size());
+	index = assertIndexInRange(index, size(), "UUID[]");
 
     return _bytes[index];
 }
 
 UUID::value_type
 UUID::operator[] (size_type index) const {
-    index = assertIndexInRange(index, 0, size());
+	index = assertIndexInRange(index, size(), "UUID[]");
 
     return _bytes[index];
 }

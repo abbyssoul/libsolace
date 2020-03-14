@@ -41,7 +41,7 @@ bool Solace::isBigendian() noexcept {
 
 MemoryView::value_type
 MemoryView::operator[] (size_type index) const {
-    assertIndexInRange(index, 0, _size, "index");
+	assertIndexInRange(index, size(), "MemoryView[]");
 
 	return begin()[index];
 }

@@ -150,14 +150,14 @@ public:
 
 
     const_reference operator[] (size_type index) const {
-        index = assertIndexInRange(index, 0, size(), "ArrayView[] const");
+		index = assertIndexInRange(index, size(), "ArrayView[] const");
 
 		return _memory.template dataAs<T>(sizeof(T) * index);
     }
 
 
     reference operator[] (size_type index) {
-        index = assertIndexInRange(index, 0, size(), "ArrayView[]");
+		index = assertIndexInRange(index, size(), "ArrayView[]");
 
 		return _memory.template dataAs<T>(sizeof(T) * index);
 	}
@@ -197,7 +197,7 @@ public:
     template<typename F, class Q = T>
     std::enable_if_t<!std::is_const<Q>::value, void>
     set(size_type index, F&& f) {
-        index = assertIndexInRange(index, 0, size(), "ArrayView.set()");
+		index = assertIndexInRange(index, size(), "ArrayView.set()");
 
 		_memory.template dataAs<T>(sizeof(T) * index) = f();
     }
@@ -209,7 +209,7 @@ public:
     template<class Q = T, typename...Args>
     std::enable_if_t<!std::is_const<Q>::value, void>
     emplace(size_type index, Args&&...args) {
-        index = assertIndexInRange(index, 0, size(), "ArrayView.emplace()");
+		index = assertIndexInRange(index, size(), "ArrayView.emplace()");
 
         auto memBlock = _memory.template sliceFor<T>(index);
         memBlock.template destruct<T>();
@@ -224,7 +224,7 @@ public:
     template<class Q = T, typename...Args>
     std::enable_if_t<!std::is_const<Q>::value, void>
     _emplace_unintialized(size_type index, Args&&...args) {
-        index = assertIndexInRange(index, 0, size(), "ArrayView.emplace()");
+		index = assertIndexInRange(index, size(), "ArrayView.emplace()");
 
         _memory .template sliceFor<T>(index)
 				.template construct<T>(fwd<Args>(args)...);

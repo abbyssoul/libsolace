@@ -54,7 +54,7 @@ extern char** environ;
 
 Env::Iterator&
 Env::Iterator::operator++ () {
-    assertIndexInRange(_index, 0, _size, "iterator");
+	assertIndexInRange(_index, _size, "iterator++");
 
     ++_index;
 
@@ -64,7 +64,7 @@ Env::Iterator::operator++ () {
 
 Env::Var
 Env::Iterator::operator-> () const {
-    assertIndexInRange(_index, 0, _size, "iterator");
+	assertIndexInRange(_index, _size, "iterator->");
 
     Env::Var var;
     StringView{environ[_index]}
