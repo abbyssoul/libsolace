@@ -202,7 +202,7 @@ public:
 
     T const& get() const {
         if (isNone()) {
-            raiseInvalidStateError();
+			raiseInvalidStateError("Optional<>::get");
         }
 
         return _payload;
@@ -210,7 +210,7 @@ public:
 
     T& get() {
         if (isNone()) {
-            raiseInvalidStateError();
+			raiseInvalidStateError("Optional<>::get");
         }
 
         return _payload;
@@ -219,7 +219,7 @@ public:
 
     T&& move() {
         if (isNone()) {
-            raiseInvalidStateError();
+			raiseInvalidStateError("Optional<>::move");
         }
 
 		return mv(_payload);

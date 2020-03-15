@@ -62,7 +62,7 @@ public:
 	using MutableMemoryAddress = void*;
 	using MemoryAddress = void const*;
 
-	using size_type  = size_t;
+	using size_type  = std::conditional<sizeof(MutableMemoryAddress) == 4, uint32, uint64>::type;
     using value_type = byte;
 
     using const_reference = value_type const&;

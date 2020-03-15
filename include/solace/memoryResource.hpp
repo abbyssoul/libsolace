@@ -37,7 +37,7 @@ namespace Solace {
 class MemoryResource {
 public:
 
-    using size_type = MutableMemoryView::size_type;
+	using size_type = MemoryView::size_type;
 
 
     /**

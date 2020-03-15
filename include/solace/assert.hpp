@@ -140,7 +140,7 @@ T* assertNull(T* value) {
  * @param to Upper value bound (exclusive)
  * @return Index value if the index is in range. Throws otherwise.
  */
-uint16 assertIndexInRange(uint16 index, uint16 from, uint16 to);
+uint16 assertValueInRange(uint16 index, uint16 from, uint16 to);
 
 /**
  * Assert that the give index is within the give range. Throw if it is not.
@@ -150,7 +150,7 @@ uint16 assertIndexInRange(uint16 index, uint16 from, uint16 to);
  * @param to Upper value bound (exclusive)
  * @return Index value if the index is in range. Throws otherwise.
  */
-uint32 assertIndexInRange(uint32 index, uint32 from, uint32 to);
+uint32 assertValueInRange(uint32 index, uint32 from, uint32 to);
 
 /**
  * Assert that the give index is within the give range. Throw if it is not.
@@ -160,7 +160,7 @@ uint32 assertIndexInRange(uint32 index, uint32 from, uint32 to);
  * @param to Upper value bound (exclusive)
  * @return Index value if the index is in range. Throws otherwise.
  */
-uint64 assertIndexInRange(uint64 index, uint64 from, uint64 to);
+uint64 assertValueInRange(uint64 index, uint64 from, uint64 to);
 
 
 /**
@@ -172,7 +172,7 @@ uint64 assertIndexInRange(uint64 index, uint64 from, uint64 to);
  *
  * @return Index value if the index is in range. Throws otherwise.
  */
-uint16 assertIndexInRange(uint16 index, uint16 from, uint16 to, const char* message);
+uint16 assertValueInRange(uint16 index, uint16 from, uint16 to, const char* message);
 
 
 /**
@@ -184,7 +184,7 @@ uint16 assertIndexInRange(uint16 index, uint16 from, uint16 to, const char* mess
  *
  * @return Index value if the index is in range. Throws otherwise.
  */
-uint32 assertIndexInRange(uint32 index, uint32 from, uint32 to, const char* message);
+uint32 assertValueInRange(uint32 index, uint32 from, uint32 to, const char* message);
 
 
 /**
@@ -196,7 +196,7 @@ uint32 assertIndexInRange(uint32 index, uint32 from, uint32 to, const char* mess
  *
  * @return Index value if the index is in range. Throws otherwise.
  */
-uint64 assertIndexInRange(uint64 index, uint64 from, uint64 to, const char* message);
+uint64 assertValueInRange(uint64 index, uint64 from, uint64 to, const char* message);
 
 
 
@@ -231,4 +231,3 @@ uint64 assertIndexInRange(uint64 index, uint64 size, const char* message);
 
 }  // End of namespace Solace
 #endif  // SOLACE_ASSERT_HPP
-

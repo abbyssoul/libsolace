@@ -345,9 +345,9 @@ public:
     V& operator* () { return unwrap(); }
     V const& operator* () const { return unwrap(); }
 
-    V const& unwrap() const& {
+	V const& unwrap() const & {
         if (isError()) {
-            raiseInvalidStateError();
+			raiseInvalidStateError("Result<>::unwrap");
         }
 
         return _value;
@@ -355,7 +355,7 @@ public:
 
     V& unwrap() & {
         if (isError()) {
-            raiseInvalidStateError();
+			raiseInvalidStateError("Result<>::unwrap");
         }
 
         return _value;
@@ -363,7 +363,7 @@ public:
 
     V&& unwrap() && {
         if (isError()) {
-            raiseInvalidStateError();
+			raiseInvalidStateError("Result<>::unwrap");
         }
 
         return mv(_value);
@@ -372,7 +372,7 @@ public:
 
     V&& moveResult() {
         if (isError()) {
-            raiseInvalidStateError();
+			raiseInvalidStateError("Result<>::moveResult");
         }
 
         return mv(_value);
@@ -380,7 +380,7 @@ public:
 
     E&& moveError() {
         if (isOk()) {
-            raiseInvalidStateError();
+			raiseInvalidStateError("Result<>::moveError");
         }
 
         return mv(_error);
@@ -388,7 +388,7 @@ public:
 
     E& getError() {
         if (isOk()) {
-            raiseInvalidStateError();
+			raiseInvalidStateError("Result<>::getError");
         }
 
         return _error;
@@ -396,7 +396,7 @@ public:
 
     E const& getError() const {
         if (isOk()) {
-            raiseInvalidStateError();
+			raiseInvalidStateError("Result<>::getError");
         }
 
         return _error;

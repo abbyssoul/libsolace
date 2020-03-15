@@ -27,7 +27,7 @@ using namespace Solace;
 
 
 uint16
-Solace::assertIndexInRange(uint16 index, uint16 from, uint16 to) {
+Solace::assertValueInRange(uint16 index, uint16 from, uint16 to) {
     if (index >= to || index < from) {
         Solace::raise<IndexOutOfRangeException>(index, from, to);
     }
@@ -37,7 +37,7 @@ Solace::assertIndexInRange(uint16 index, uint16 from, uint16 to) {
 
 
 uint32
-Solace::assertIndexInRange(uint32 index, uint32 from, uint32 to) {
+Solace::assertValueInRange(uint32 index, uint32 from, uint32 to) {
     if (index >= to || index < from) {
         Solace::raise<IndexOutOfRangeException>(index, from, to);
     }
@@ -45,7 +45,7 @@ Solace::assertIndexInRange(uint32 index, uint32 from, uint32 to) {
     return index;
 }
 
-uint64 Solace::assertIndexInRange(uint64 index, uint64 from, uint64 to) {
+uint64 Solace::assertValueInRange(uint64 index, uint64 from, uint64 to) {
     if (index >= to || index < from) {
         Solace::raise<IndexOutOfRangeException>(index, from, to);
     }
@@ -54,7 +54,7 @@ uint64 Solace::assertIndexInRange(uint64 index, uint64 from, uint64 to) {
 }
 
 
-uint64 Solace::assertIndexInRange(uint64 index, uint64 from, uint64 to, const char* message) {
+uint64 Solace::assertValueInRange(uint64 index, uint64 from, uint64 to, const char* message) {
     if (index >= to || index < from) {
         Solace::raise<IndexOutOfRangeException>(index, from, to, message);
     }
@@ -62,7 +62,7 @@ uint64 Solace::assertIndexInRange(uint64 index, uint64 from, uint64 to, const ch
     return index;
 }
 
-uint32 Solace::assertIndexInRange(uint32 index, uint32 from, uint32 to, const char* message) {
+uint32 Solace::assertValueInRange(uint32 index, uint32 from, uint32 to, const char* message) {
     if (index >= to || index < from) {
         Solace::raise<IndexOutOfRangeException>(index, from, to, message);
     }
@@ -70,16 +70,13 @@ uint32 Solace::assertIndexInRange(uint32 index, uint32 from, uint32 to, const ch
     return index;
 }
 
-uint16 Solace::assertIndexInRange(uint16 index, uint16 from, uint16 to, const char* message) {
+uint16 Solace::assertValueInRange(uint16 index, uint16 from, uint16 to, const char* message) {
     if (index >= to || index < from) {
         Solace::raise<IndexOutOfRangeException>(index, from, to, message);
     }
 
     return index;
 }
-
-
-
 
 
 

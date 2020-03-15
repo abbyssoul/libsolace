@@ -26,7 +26,7 @@
 
 using namespace Solace;
 
-static constexpr size_t RandomSampleSize = 100;
+static constexpr uint32 RandomSampleSize = 100;
 
 
 TEST(TestUUID, testStaticConstraints) {
