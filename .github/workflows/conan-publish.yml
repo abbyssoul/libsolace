@@ -46,7 +46,7 @@ jobs:
     - name: Fetch tags
       run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - name: Describe
-      run: git describe --tags
+      run: export VERSION=$(git describe --tags)
 
     - name: Building the package
-      run: python build.py
+      run: echo $VERSION
