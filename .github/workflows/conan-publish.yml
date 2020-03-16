@@ -37,16 +37,10 @@ jobs:
         conan profile new default --detect
     - name: Generating conan user directory
       run: conan user
-    - name: Get current tag
-      run: echo ${{ github.ref }}
-    - name: Set ref version
-      run: echo $CONAN_REFERENCE
-    - name: Show ref/tag
-      run: echo $GITHUB_REF
-    - name: Fetch tags
-      run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
-    - name: Describe
-      run: echo "::set-env name=VERSION::$(git describe --tags)"
+    - name: Deduce package version from tag
+      run: |
+        git fetch --depth=1 origin +$GITHUB_REF:$GITHUB_REF
+        echo "::set-env name=CONAN_VERSION::$(git describe --tags)"
 
     - name: Building the package
-      run: echo $VERSION
+      run: python build.py
