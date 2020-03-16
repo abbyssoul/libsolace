@@ -1,0 +1,49 @@
+name: Build conan package
+
+on:
+  push:
+    tags:
+    - 'x*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        # TODO: -- windows-latest
+        os: [ubuntu-latest, macOS-latest]
+
+    runs-on: ${{ matrix.os }}
+    env:
+        CONAN_USERNAME: "abbyssoul"
+        CONAN_LOGIN_USERNAME: "abbyssoul"
+        CONAN_CHANNEL: "stable"
+        CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
+        #CONAN_STABLE_BRANCH_PATTERN: "release/*"
+        CONAN_APPLE_CLANG_VERSIONS: "11.0"
+        CONAN_VISUAL_VERSIONS: ${{ matrix.vs-version }}
+        CONAN_GCC_VERSIONS: ${{ matrix.gcc-version }}
+        # CONAN_GCC_VERSIONS=7
+        # CONAN_DOCKER_IMAGE=conanio/gcc7
+        # CONAN_ARCHS="x86_64"
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.7'
+    - run: |
+        python -m pip install conan conan_package_tools -U
+        conan profile new default --detect
+    - name: Generating conan user directory
+      run: conan user
+    - name: Get current tag:
+      run: echo ${{ github.ref }}
+    - name: Set ref version
+      run: echo $CONAN_REFERENCE
+    - name: Describe
+      run: git describe --tags
+    - name: Show ref/tag
+      run: echo $GITHUB_REF
+
+    - name: Building the package
+      #run: python build.py

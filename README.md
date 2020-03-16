@@ -56,7 +56,7 @@ This library needs to be installed on your system in order to be used. There are
 The library is available via [Conan](https://conan.io/) package manager. Add this to your project `conanfile.txt`:
 ```
 [requires]
-libsolace/0.3.6
+libsolace/0.3.9
 ```
 
 Please check the latest available [binary version][conan-central-latest].
@@ -67,8 +67,8 @@ The project build is managed via CMake with a Makefile provided to automate some
 
 ### Build tool dependencies
 In order to build this project, following tools must be present in the system:
-* git (to check out the project and external modules, see dependencies section)
-* cmake (version 3.0 and above)
+* git (to check out this project)
+* cmake (version 3.12 and above)
 * doxygen (for documentation generation)
 * cppcheck (static code analysis, the latest version from git is used as part of the 'codecheck' build step)
 * cpplint (for static code analysis in addition to cppcheck)
@@ -78,28 +78,22 @@ This project is using **C++17** features extensively. The minimal tested/require
 CI is using clang-5 and gcc-7.
 To install build tools on Debian based Linux distribution:
 ```shell
-sudo apt-get update -qq
-sudo apt-get install cmake doxygen python-pip valgrind ggcov
-sudo pip install cpplint
+sudo apt update -qq
+sudo apt install cmake doxygen python-pip valgrind ggcov
+python3 -m pip install cpplint conan -U
+conan profile new default --detect
 ```
 
-The one external dependency is on [googletest](http://github.com/googletest/) - a unit testing framework.
-It is managed as `git submodule`. Please make sure to use `git clone --recursive` when cloning the project for the first time.
-You can also update an existing clone with:
-```sh
-git submodule update --init --recursive
-```
-If you have an existing checkout that you need to initialize to use submodules:
-```sh
-git submodule init
-```
+
+The only external dependency is on [googletest](http://github.com/googletest/) - a unit testing framework used for development.
+
 
 ## Building the project
 Current build system used for the project is `cmake`.
 Please make sure that the system has `cmake` installed. Minimal confirmed version is 3.0
 ```sh
 > cmake --version
-cmake version 3.0.1
+cmake version 3.12.1
 ```
 
 ```shell
@@ -115,6 +109,7 @@ make test
 
 # To run Valgrind on test suit:
 # Note: `valgrind` does not work with `./configure --enable-sanitize` option
+# Configure as: `./configure --enable-debug --disable-sanitize`
 make verify
 ```
 
@@ -152,22 +147,30 @@ The library is designed with the following platforms in mind:
 
 
 ## Design
-The design of the library is inspired by various functional language elements that can be found in other languages such as Rust and Java.
+Main goal of design for this library is to make declarative programming in C++ easy.
+As a result a number of similir data structures provided are inspired by othre functional languages.
+So some of the concepts and types might fill familiar if you have previous experience with Rust, Java, Python etc.
 - Fixed-size integral types:
     - Fix sized integral types:
         - int{8,16,32}
         - uint{8,16,32}
         - float{32,64}
-- OOP Memory management interface:
-    - MemoryView – a OOP way of dealing with raw memory that knows its size and has associated destructor.
+- Memory management interface:
     - MemoryManager – a custom memory allocator that can be locked to control memory allocation after initialization.
 - Immutable String (for those who are from Java land) with StringBuilder.
 - Optional<> - optional monad.
-- Result<> - Either monad. A good alternative to throwing an exception.
+- Result<> - Either monad. An alternative approach to error handling instead of throwing exceptions.
 - Fixed-size collections:
-    - ArrayView: a memory view as a collection of objects.
     - Array: Fixed-size array (dynamically allocated on the heap)
-    - ArrayBuilder: variable-length collection
+    - Vector: A collection to hold up-to given number of elements. No re-allocation performed if limit is reached.
+- Views to different data structures. Views don't own underlying resources and must be used with care as to not to exceed
+lifetime of the object being viewed. Views are designed to be "lightweight" many views can exist for same resource.
+It is also convenient for slicing of a resource. It is preferable to pass views by value.
+    - ArrayView: a memory view as a collection of objects.
+    - MemoryView – a OOP way of dealing with raw memory that knows its size and has associated destructor.
+    - StringView - non-owning "string" consisting of pointer and an integer representing length of the string.
+
+- ArrayBuilder: variable-length collection
 - Text utilities:
     - Formatting
     - Encoding
@@ -184,7 +187,7 @@ Given the language of choice, the library is designed with the idea that excepti
 
 
 ## Dependencies
-The project's external dependency managed via `git submodule`:
+The project has no dependencies other then unit testing framework.
 * [GTest](https://github.com/google/googletest) - Google's C++ test framework
 
 
