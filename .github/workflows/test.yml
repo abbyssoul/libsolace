@@ -34,5 +34,7 @@ jobs:
       run: make codecheck
     - name: make
       run: make
-    - name: Unit-test
+    - name: Build tests
+      run: make tests
+    - name: Run unit tests
       run: make test

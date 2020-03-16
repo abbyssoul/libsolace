@@ -4,8 +4,8 @@ on:
   push:
     tags:
     - 'x*'
-    push:
-      branches: [ feature/release-workflow ]
+  push:
+    branches: [ feature/release-workflow ]
 
 jobs:
   build:
