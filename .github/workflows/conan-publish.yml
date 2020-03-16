@@ -46,7 +46,7 @@ jobs:
     - name: Fetch tags
       run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
     - name: Describe
-      run: echo "::set-env name=action_state::$(git describe --tags)"
+      run: echo "::set-env name=VERSION::$(git describe --tags)"
 
     - name: Building the package
       run: echo $VERSION
