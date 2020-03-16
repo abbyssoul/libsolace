@@ -4,7 +4,6 @@ on:
   push:
     tags:
     - 'x*'
-  push:
     branches: [ feature/release-workflow ]
 
 jobs:
