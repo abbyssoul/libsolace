@@ -48,4 +48,4 @@ jobs:
       run: echo $GITHUB_REF
 
     - name: Building the package
-      #run: python build.py
+      run: python build.py
