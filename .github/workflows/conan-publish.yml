@@ -4,6 +4,8 @@ on:
   push:
     tags:
     - 'x*'
+    push:
+      branches: [ feature/release-workflow ]
 
 jobs:
   build:
@@ -36,7 +38,7 @@ jobs:
         conan profile new default --detect
     - name: Generating conan user directory
       run: conan user
-    - name: Get current tag:
+    - name: Get current tag
       run: echo ${{ github.ref }}
     - name: Set ref version
       run: echo $CONAN_REFERENCE
