@@ -12,6 +12,11 @@ jobs:
       matrix:
         # TODO: -- windows-latest, macOS-latest
         os: [ubuntu-latest]
+        gcc_version: [8, 9]
+        build_arch: [x86_64, armv7, armv7hf]
+
+        #exclude:
+         #- os: macOS-latest
 
     runs-on: ${{ matrix.os }}
     env:
@@ -19,24 +24,51 @@ jobs:
         CONAN_LOGIN_USERNAME: "abbyssoul"
         CONAN_CHANNEL: "stable"
         CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
-        #CONAN_STABLE_BRANCH_PATTERN: "release/*"
-        $CONAN_APPLE_CLANG_VERSIONS: "11.0"
+        CONAN_GCC_VERSIONS: ${{ matrix.gcc_version }}
+        CONAN_ARCHS: ${{matrix.build_arch}}
+        #CONAN_APPLE_CLANG_VERSIONS: "11.0"
         #CONAN_VISUAL_VERSIONS: ${{ matrix.vs-version }}
-        #CONAN_GCC_VERSIONS: ${{ matrix.gcc-version }}
-        # CONAN_GCC_VERSIONS=7
         # CONAN_DOCKER_IMAGE=conanio/gcc7
-        # CONAN_ARCHS="x86_64"
+        # CONAN_STABLE_BRANCH_PATTERN: "release/*"
 
     steps:
     - uses: actions/checkout@master
     - uses: actions/setup-python@master
       with:
         python-version: '3.7'
-    - run: |
+    - name: Generating conan user directory
+      run: |
         python -m pip install conan conan_package_tools -U
         conan profile new default --detect
-    - name: Generating conan user directory
-      run: conan user
+        conan user
+    - name: Deduce package version from tag
+      run: |
+        git fetch --depth=1 origin +$GITHUB_REF:$GITHUB_REF
+        export CONAN_VERSION=$(git describe --tags)
+        echo "::set-env name=CONAN_REFERENCE::libsolace/${CONAN_VERSION}"
+
+    - name: Building the package
+      run: python build.py
+
+  build-osx:
+    runs-on: macOS-latest
+    env:
+        CONAN_USERNAME: "abbyssoul"
+        CONAN_LOGIN_USERNAME: "abbyssoul"
+        CONAN_CHANNEL: "stable"
+        CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
+        CONAN_APPLE_CLANG_VERSIONS: "11.0"
+
+    steps:
+    - uses: actions/checkout@master
+    - uses: actions/setup-python@master
+      with:
+        python-version: '3.7'
+    - name: Generating conan profile and user directory
+      run: |
+        python -m pip install conan conan_package_tools -U
+        conan profile new default --detect
+        conan user
     - name: Deduce package version from tag
       run: |
         git fetch --depth=1 origin +$GITHUB_REF:$GITHUB_REF

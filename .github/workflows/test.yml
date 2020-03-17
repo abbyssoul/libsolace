@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         # TODO: -- windows-latest
         os: [ubuntu-latest, macOS-latest]
