@@ -10,8 +10,6 @@ jobs:
   build:
     strategy:
       matrix:
-        # TODO: -- windows-latest, macOS-latest
-        # os: [ubuntu-latest]
         # gcc_version: [8, 9]
         # build_arch: [x86_64, armv7, armv7hf]
 
@@ -26,13 +24,34 @@ jobs:
           - conanio/clang8
           - conanio/clang9
 
-        # include:
-        #   - os: ubuntu-latest
-        #     gcc_version: 8
-        #     docker_image: conanio/gcc8
-        #   - os: ubuntu-latest
-        #     gcc_version: 9
-        #     docker_image: conanio/gcc9
+        include:
+          - os: conanio/gcc8
+            gcc_version: 8
+            build_arch: x86_64
+          - os: conanio/gcc8-armv7
+            gcc_version: 8
+            build_arch: armv7
+          - os: conanio/gcc8-armv7hf
+            gcc_version: 8
+            build_arch: armv7hf
+          - os: conanio/gcc9
+            gcc_version: 9
+            build_arch: x86_64
+          - os: conanio/gcc9-armv7
+            gcc_version: 9
+            build_arch: armv7
+          - os: conanio/gcc9-armv7hf
+            gcc_version: 9
+            build_arch: armv7hf
+          - os: conanio/clang7
+            clang_version: 7
+            build_arch: x86_64
+          - os: conanio/clang8
+            clang_version: 8
+            build_arch: x86_64
+          - os: conanio/clang9
+            clang_version: 9
+            build_arch: x86_64
 
         #exclude:
          #- os: macOS-latest
@@ -43,11 +62,10 @@ jobs:
         CONAN_LOGIN_USERNAME: "abbyssoul"
         CONAN_CHANNEL: "stable"
         CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
-        # CONAN_GCC_VERSIONS: ${{ matrix.gcc_version }}
-        # CONAN_ARCHS: ${{matrix.build_arch}}
+        CONAN_GCC_VERSIONS: ${{ matrix.gcc_version }}
+        CONAN_ARCHS: ${{matrix.build_arch}}
+        CONAN_CLANG_VERSIONS: ${{matrix.clang_version}}
         CONAN_DOCKER_IMAGE: ${{ matrix.docker_image }}
-        #CONAN_APPLE_CLANG_VERSIONS: "11.0"
-        #CONAN_VISUAL_VERSIONS: ${{ matrix.vs-version }}
         # CONAN_STABLE_BRANCH_PATTERN: "release/*"
 
     steps:
