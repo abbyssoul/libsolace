@@ -44,7 +44,7 @@ jobs:
             gcc_version: 9
             build_arch: armv7hf
           - docker_image: conanio/clang7
-            clang_version: 7
+            clang_version: 7.0
             build_arch: x86_64
           - docker_image: conanio/clang8
             clang_version: 8
