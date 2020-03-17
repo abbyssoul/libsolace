@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         # TODO: -- windows-latest
         os: [ubuntu-latest, macOS-latest]
@@ -34,5 +35,7 @@ jobs:
       run: make codecheck
     - name: make
       run: make
-    - name: Unit-test
+    - name: Build tests
+      run: make tests
+    - name: Run unit tests
       run: make test
