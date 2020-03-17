@@ -25,31 +25,31 @@ jobs:
           - conanio/clang9
 
         include:
-          - os: conanio/gcc8
+          - docker_image: conanio/gcc8
             gcc_version: 8
             build_arch: x86_64
-          - os: conanio/gcc8-armv7
+          - docker_image: conanio/gcc8-armv7
             gcc_version: 8
             build_arch: armv7
-          - os: conanio/gcc8-armv7hf
+          - docker_image: conanio/gcc8-armv7hf
             gcc_version: 8
             build_arch: armv7hf
-          - os: conanio/gcc9
+          - docker_image: conanio/gcc9
             gcc_version: 9
             build_arch: x86_64
-          - os: conanio/gcc9-armv7
+          - docker_image: conanio/gcc9-armv7
             gcc_version: 9
             build_arch: armv7
-          - os: conanio/gcc9-armv7hf
+          - docker_image: conanio/gcc9-armv7hf
             gcc_version: 9
             build_arch: armv7hf
-          - os: conanio/clang7
+          - docker_image: conanio/clang7
             clang_version: 7
             build_arch: x86_64
-          - os: conanio/clang8
+          - docker_image: conanio/clang8
             clang_version: 8
             build_arch: x86_64
-          - os: conanio/clang9
+          - docker_image: conanio/clang9
             clang_version: 9
             build_arch: x86_64
 
