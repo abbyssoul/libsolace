@@ -62,6 +62,7 @@ jobs:
         CONAN_LOGIN_USERNAME: "abbyssoul"
         CONAN_CHANNEL: "stable"
         CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
+        CONAN_BUILD_POLICY: outdated
         CONAN_GCC_VERSIONS: ${{ matrix.gcc_version }}
         CONAN_ARCHS: ${{matrix.build_arch}}
         CONAN_CLANG_VERSIONS: ${{matrix.clang_version}}
@@ -95,6 +96,7 @@ jobs:
         CONAN_CHANNEL: "stable"
         CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
         CONAN_APPLE_CLANG_VERSIONS: "11.0"
+        CONAN_BUILD_POLICY: outdated
 
     steps:
     - uses: actions/checkout@master
