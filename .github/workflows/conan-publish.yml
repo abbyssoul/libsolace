@@ -3,26 +3,22 @@ name: Build conan package
 on:
   push:
     tags:
-    - 'x*'
-    branches: [ feature/release-workflow ]
+    - 'v*'
 
 jobs:
   build:
     strategy:
       matrix:
-        # gcc_version: [8, 9]
-        # build_arch: [x86_64, armv7, armv7hf]
-
         docker_image:
-          # - conanio/gcc8
-          # - conanio/gcc8-armv7
-          # - conanio/gcc8-armv7hf
-          # - conanio/gcc9
-          # - conanio/gcc9-armv7
+          - conanio/gcc8
+          - conanio/gcc8-armv7
+          - conanio/gcc8-armv7hf
+          - conanio/gcc9
+          - conanio/gcc9-armv7
           - conanio/gcc9-armv7hf
           - conanio/clang7
-          # - conanio/clang8
-          # - conanio/clang9
+          - conanio/clang8
+          - conanio/clang9
 
         include:
           - docker_image: conanio/gcc8
@@ -53,13 +49,11 @@ jobs:
             clang_version: 9
             build_arch: x86_64
 
-        #exclude:
-         #- os: macOS-latest
-
     runs-on: ubuntu-latest
     env:
         CONAN_USERNAME: "abbyssoul"
         CONAN_LOGIN_USERNAME: "abbyssoul"
+        CONAN_PASSWORD: ${{ secrets.conan_key }}
         CONAN_CHANNEL: "stable"
         CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
         CONAN_BUILD_POLICY: outdated
@@ -93,6 +87,7 @@ jobs:
     env:
         CONAN_USERNAME: "abbyssoul"
         CONAN_LOGIN_USERNAME: "abbyssoul"
+        CONAN_PASSWORD: ${{ secrets.conan_key }}
         CONAN_CHANNEL: "stable"
         CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
         CONAN_APPLE_CLANG_VERSIONS: "11.0"
