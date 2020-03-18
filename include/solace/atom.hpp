@@ -61,11 +61,12 @@ wrap(char const* const str, std::size_t len = sizeof(T)) noexcept {
 
 template <typename T>
 std::enable_if_t<std::is_integral<T>::value>
-unwrap(const T n, char *const buffer) noexcept {
+unwrap(T n, char *const buffer) noexcept {
     constexpr auto N = sizeof(T);
     constexpr auto lastbyte = static_cast<char>(~0);
     for (std::size_t i = 0UL; i < N; ++i) {
-        buffer[i] = ((n >> (N - i - 1) * CHAR_BIT) & lastbyte);
+		// Safe to cast as all operands are char-type
+		buffer[i] = narrow_cast<char>((n >> (N - i - 1) * CHAR_BIT) & lastbyte);
     }
 
     buffer[N] = '\0';

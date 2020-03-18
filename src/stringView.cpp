@@ -105,50 +105,21 @@ StringView::indexOf(StringView str, size_type fromIndex) const noexcept {
     auto const strSize = str.size();
 
 	Optional<size_type> result{};
-
-    if (thisSize < fromIndex) {
+	if ((thisSize < fromIndex) || (thisSize < strSize) || (thisSize < fromIndex + strSize)) {
 		return result;
     }
 
-    if (thisSize < strSize) {
-		return result;
-    }
-
-    if (thisSize < fromIndex + strSize) {
-		return result;
-    }
-
-	auto const rem = thisSize - strSize + 1;
+	size_type const rem = thisSize - strSize + 1;
 	for (; fromIndex < rem; ++fromIndex) {
         if (_data[fromIndex] == str._data[0] &&
             str.equals(substring(fromIndex, fromIndex + strSize))) {
 
 			result = fromIndex;
 			break;
-//            return Optional<size_type>(fromIndex);
         }
     }
 
 	return result;
-}
-
-
-
-Optional<StringView::size_type>
-StringView::lastIndexOf(value_type ch, size_type fromIndex) const noexcept {
-    auto const thisSize = size();
-    if (thisSize < fromIndex) {
-        return none;
-    }
-
-    Optional<size_type> result;
-    for (; fromIndex < thisSize; ++fromIndex) {
-        if (_data[fromIndex] == ch) {
-            result = Optional<size_type>(fromIndex);
-        }
-    }
-
-    return result;
 }
 
 Optional<StringView::size_type>
@@ -156,12 +127,12 @@ StringView::lastIndexOf(StringView str, size_type fromIndex) const noexcept {
     auto const thisSize = size();
     auto const strSize = str.size();
 
-    if ((thisSize < fromIndex) || (thisSize < strSize) || (thisSize < fromIndex + strSize)) {
-        return none;
+	Optional<size_type> result{};
+	if ((thisSize < fromIndex) || (thisSize < strSize) || (thisSize < fromIndex + strSize)) {
+		return result;
     }
-	auto const rem = thisSize - strSize + 1;
 
-    Optional<size_type> result;
+	size_type const rem = thisSize - strSize + 1;
 	for (; fromIndex < rem; ++fromIndex) {
         if (_data[fromIndex] == str._data[0] &&
             str.equals(substring(fromIndex, fromIndex + strSize))) {
@@ -172,6 +143,23 @@ StringView::lastIndexOf(StringView str, size_type fromIndex) const noexcept {
     return result;
 }
 
+Optional<StringView::size_type>
+StringView::lastIndexOf(value_type ch, size_type fromIndex) const noexcept {
+	auto const thisSize = size();
+
+	Optional<size_type> result{};
+	if (thisSize < fromIndex) {
+		return result;
+	}
+
+	for (; fromIndex < thisSize; ++fromIndex) {
+		if (_data[fromIndex] == ch) {
+			result = Optional<size_type>(fromIndex);
+		}
+	}
+
+	return result;
+}
 
 bool
 StringView::startsWith(StringView prefix) const noexcept {

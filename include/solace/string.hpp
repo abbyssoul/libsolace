@@ -55,7 +55,7 @@ public:
     //!< Move-construct a string.
 	/*gcc7.2 bug: constexpr*/ String(String&& rhs) noexcept
 		: _buffer{mv(rhs._buffer)}
-        , _size{exchange(rhs._size, 0)}
+		, _size{exchange(rhs._size, size_type{0})}
     {
     }
 

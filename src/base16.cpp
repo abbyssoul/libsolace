@@ -150,7 +150,7 @@ Base16Decoder::encode(MemoryView src) {
         if (!low)
 			return low.moveError();
 
-        byte const value = static_cast<byte>(high.unwrap() << 4) + static_cast<byte>(low.unwrap());
+		auto const value = narrow_cast<byte>((high.unwrap() << 4) + low.unwrap());
         auto res = dest.write(value);
         if (!res)
 			return res.moveError();
