@@ -1,4 +1,4 @@
-name: Run Unit tests
+name: "Unit tests (Linux/MacOS)"
 
 on:
   push:
@@ -31,10 +31,6 @@ jobs:
 
     - name: configure
       run: ./configure --enable-sanitizer
-    - name: code-check
-      run: make codecheck
-    - name: make
-      run: make
     - name: Build tests
       run: make tests
     - name: Run unit tests

@@ -1,0 +1,26 @@
+name: "Code linter"
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v1
+      with:
+        python-version: '3.7'
+    - run: |
+        python -m pip install cpplint -U
+    - name: configure
+      run: ./configure --enable-sanitizer
+
+    - name: Cpplint
+      run: make cpplint
+
+    - name: Cppcheck
+      run: make cppcheck

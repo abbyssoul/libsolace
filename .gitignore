@@ -7,6 +7,9 @@ tools/*/
 coverage.info
 Makefile
 
+test_package/__pycache__/*
+test_package/build/*
+
 ### C++/C ###
 # Compiled Object files
 *.slo

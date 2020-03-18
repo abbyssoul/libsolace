@@ -79,8 +79,8 @@ jobs:
         export CONAN_VERSION=$(git describe --tags)
         echo "::set-env name=CONAN_REFERENCE::libsolace/${CONAN_VERSION}"
 
-    - name: Building the package
-      run: python build.py
+    - name: Building and publish the package
+      run: python build-conan-package.py
 
   build-osx:
     runs-on: macOS-latest
@@ -109,5 +109,5 @@ jobs:
         export CONAN_VERSION=$(git describe --tags)
         echo "::set-env name=CONAN_REFERENCE::libsolace/${CONAN_VERSION}"
 
-    - name: Building the package
-      run: python build.py
+    - name: Building and publish the package
+      run: python build-conan-package.py
