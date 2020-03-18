@@ -1,6 +1,8 @@
 # libsolace [![C++ standard][c++-standard-shield]][c++-standard-link] [![License][license-shield]][license-link]
 ---
 [![TravisCI][travis-shield]][travis-link]
+![Unit tests (Linux/MacOS)][gh-action-unit-tests-badge]
+
 [![Codecov][codecov-shield]][codecov-link]
 [![Coverity][coverity-shield]][coverity-link]
 [![Coverage Status][coveralls-shield]][coveralls-link]
@@ -23,6 +25,7 @@
 [LGTM-link]: https://lgtm.com/projects/g/abbyssoul/libsolace/alerts/
 [conan-central-shield]: https://api.bintray.com/packages/conan/conan-center/libsolace%3A_/images/download.svg
 [conan-central-latest]: https://bintray.com/conan/conan-center/libsolace%3A_/_latestVersion
+[gh-action-unit-tests-badge]: https://github.com/abbyssoul/libsolace/workflows/Unit%20tests%20(Linux/MacOS)/badge.svg
 
 
 libSolace is a _library_ to help to build a mission-critical application.
