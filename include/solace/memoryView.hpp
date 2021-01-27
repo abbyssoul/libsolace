@@ -86,7 +86,7 @@ public:
      * Construct an empty memory view with:
      *  size == 0 and dataAddress == nullptr
      */
-    constexpr MemoryView(decltype(nullptr)) noexcept
+	constexpr MemoryView(decltype(nullptr)) noexcept
     {}
 
     /**
@@ -95,20 +95,12 @@ public:
      * @param size The size of the memory block.
      * @note: it is illigal to pass null data with a non 0 size.
     */
-    MemoryView(void const* data, size_type dataSize)
+	MemoryView(MemoryAddress data, size_type dataSize)
         : _size{dataSize}
         , _dataAddress{reinterpret_cast<value_type const*>(data)}
     {
         assertTrue(_dataAddress || _size == 0, "data");
     }
-
-    template<typename PodType, size_t N>
-    constexpr MemoryView(PodType const (&data)[N]) noexcept
-        : _size{N * sizeof(PodType)}
-        , _dataAddress{reinterpret_cast<value_type const*>(data)}
-    {
-    }
-
 
     MemoryView(MemoryView const&) noexcept = default;
     MemoryView& operator= (MemoryView const&) noexcept = default;
@@ -155,7 +147,7 @@ public:
      * @return iterator to beginning of the collection
      */
     constexpr const_iterator begin() const noexcept {
-		return static_cast<value_type const*>(_dataAddress);
+		return static_cast<const_iterator>(_dataAddress);
 	}
 
     /**
@@ -168,17 +160,39 @@ public:
 
 	value_type operator[] (size_type index) const;
 
+	/**
+	 * @brief Get row memory address of this view.
+	 * This is an interop method to interact with lagacy APIs that expect row memory addresses.
+	 * @return Row memory address of this memory view.
+	 */
 	constexpr MemoryAddress dataAddress() const noexcept { return _dataAddress; }
-	Optional<MemoryAddress> dataAddress(size_type offset) const noexcept;
 
+	/**
+	 * @brief Get row memory address offset from this memory view start point.
+	 * @param offset Offset from the start of the memory view in number of bytes.
+	 * Offset must be less or equal to the size of the memory view.
+	 *
+	 * @return Optional row memory address. None if offset beyond memory view size.
+	 */
+	Optional<MemoryAddress> offsetAddress(size_type offset) const noexcept {
+		if (offset > _size) {
+			return none;
+		}
+
+		return begin() + offset;
+	}
+
+
+	// FIXME: Should return Optional<T const&> which is none if no room in the buffer
     template <typename T>
 	T const& dataAs() const {
 		assertTrue(sizeof(T) <= size(), "Not enough room for value of type T");
 
-		return *reinterpret_cast<T const*>(_dataAddress);
+		return *reinterpret_cast<T const*>(begin());
 	}
 
-    template <typename T>
+	// FIXME: Should return Optional<T const&> which is none if no room in the buffer
+	template <typename T>
 	T const& dataAs(size_type offset) const {
 		assertTrue(offset + sizeof(T) <= size(), "Not enough room for value of type T");
 
@@ -260,7 +274,7 @@ inline MemoryView wrapMemory(char const* data, MemoryView::size_type size) { ret
 template<typename PodType, size_t N>
 [[nodiscard]]
 constexpr MemoryView wrapMemory(PodType const (&data)[N]) noexcept {
-    return {data};
+	return {static_cast<MemoryView::MemoryAddress>(data), N * sizeof(PodType)};
 }
 
 

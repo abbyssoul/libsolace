@@ -21,9 +21,9 @@
 #include "solace/mutableMemoryView.hpp"
 #include "solace/posixErrorDomain.hpp"
 
-
 #include <cstring>  // std::memmove
 #include <algorithm>    // std::min/max
+
 
 using namespace Solace;
 
@@ -36,30 +36,23 @@ MutableMemoryView::operator[] (size_type index) {
 }
 
 
-Optional<MutableMemoryView::MutableMemoryAddress>
-MutableMemoryView::dataAddress(size_type offset) noexcept {
-	return MemoryView::dataAddress(offset)
-			.map([](MemoryAddress addr) { return const_cast<MutableMemoryAddress>(addr); });
-}
-
-
 Result<void, Error>
-MutableMemoryView::write(MemoryView const& source, size_type offset) {
+MutableMemoryView::write(MemoryView source) noexcept {
 	auto const thisSize = size();
 	auto const srcSize = source.size();
 
-	auto maybeDestAddress = dataAddress(offset);
-	if (!maybeDestAddress) {  // Make sure that offset is within [0, size())
+	auto destAddress = dataAddress();
+	if (!destAddress) {  // Make sure that offset is within [0, size())
 		return makeError(GenericError::DOM, "offset: offset outsize of data range");
 	}
 
 	// assert that `offset <= thisSize` - otherwise maybeDestAddress is none
-    if (srcSize > thisSize - offset) {  // Make sure that source is writing no more then there is room.
+	if (srcSize > thisSize) {  // Make sure that source is writing no more then there is room.
 		return makeError(GenericError::DOM, "source: overflow");
 	}
 
     if (srcSize > 0) {
-		std::memmove(*maybeDestAddress, source.dataAddress(), srcSize);
+		std::memmove(destAddress, source.dataAddress(), srcSize);
     }
 
 	return Ok();
@@ -67,7 +60,7 @@ MutableMemoryView::write(MemoryView const& source, size_type offset) {
 
 
 Result<void, Error>
-MutableMemoryView::read(MutableMemoryView& dest) {
+MutableMemoryView::read(MutableMemoryView& dest) const noexcept {
 	auto const thisSize = size();
 	auto const destSize = dest.size();
 
@@ -80,37 +73,37 @@ MutableMemoryView::read(MutableMemoryView& dest) {
 }
 
 
-Result<void, Error>
-MutableMemoryView::read(MutableMemoryView& dest, size_type bytesToRead, size_type offset) {
-	auto const thisSize = size();
+//Result<void, Error>
+//MutableMemoryView::read(MutableMemoryView& dest, size_type bytesToRead, size_type offset) {
+//	auto const thisSize = size();
 
-    // Check if there is enough room in the dest to hold `bytesToRead` bytes.
-	if (dest.size() < bytesToRead) {  // Precondition: `bytesToRead <= dest.size()` don't ask to read more then can hold
-		return makeError(GenericError::DOM, "bytesToRead: dest is too small");
-	}
+//    // Check if there is enough room in the dest to hold `bytesToRead` bytes.
+//	if (dest.size() < bytesToRead) {  // Precondition: `bytesToRead <= dest.size()` don't ask to read more then can hold
+//		return makeError(GenericError::DOM, "bytesToRead: dest is too small");
+//	}
 
-	auto maybeDestAddr = dataAddress(offset);
-    // Make sure that offset is within [0, size())
-	if (!maybeDestAddr) {  // Precondition: `offset <= this.size()` - don't go out of bounds
-		return makeError(GenericError::DOM, "offset: outside of bounds");
-	}
+//	auto maybeDestAddr = dataAddress(offset);
+//    // Make sure that offset is within [0, size())
+//	if (!maybeDestAddr) {  // Precondition: `offset <= this.size()` - don't go out of bounds
+//		return makeError(GenericError::DOM, "offset: outside of bounds");
+//	}
 
-	// Make sure there is enough data in this buffer to read
-	if (thisSize < offset + bytesToRead) {  // Precondition, `offset + bytesToRead <= thisSize` don't read more then is
-		return makeError(GenericError::DOM, "offset+bytesToRead: outside of bounds");
-	}
+//	// Make sure there is enough data in this buffer to read
+//	if (thisSize < offset + bytesToRead) {  // Precondition, `offset + bytesToRead <= thisSize` don't read more then is
+//		return makeError(GenericError::DOM, "offset+bytesToRead: outside of bounds");
+//	}
 
-	if (bytesToRead > 0) {
-		std::memmove(dest.dataAddress(), *maybeDestAddr, bytesToRead);
-	}
+//	if (bytesToRead > 0) {
+//		std::memmove(dest.dataAddress(), *maybeDestAddr, bytesToRead);
+//	}
 
-	return Ok();
-}
+//	return Ok();
+//}
 
 
 MutableMemoryView&
 MutableMemoryView::fill(byte value) noexcept {
-    memset(dataAddress(), value, size());
+	std::memset(dataAddress(), value, size());
 
     return (*this);
 }

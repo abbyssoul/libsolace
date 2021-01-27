@@ -69,17 +69,13 @@ ByteWriter::write(MemoryView::MemoryAddress srcAddr, size_type count) noexcept {
         return Ok();
     }
 
-    if (remaining() < count) {
-		return makeError(SystemErrors::Overflow, "ByteWriter::write()");
-    }
-
 	auto const pos = position();
-	auto maybeDestAddr = _storage.view().dataAddress(pos);
-	if (!maybeDestAddr) {
+	auto destView = _storage.view().slice(pos, pos + count);
+	if (destView.size() < count) {  // Check we have enough space in the resulting slice
 		return makeError(SystemErrors::Overflow, "ByteWriter::write()");
 	}
 
-	memmove(*maybeDestAddr, srcAddr, count);
+	std::memmove(destView.dataAddress(), srcAddr, count);
 
     return advance(count);
 }
@@ -113,11 +109,6 @@ ByteWriter::writeLE(uint32 value) noexcept {
         p[1] = v[valueSize - 2];
         p[2] = v[valueSize - 3];
         p[3] = v[valueSize - 4];
-
-//        p[0] = static_cast<byte>((value)       & 0xFF);
-//        p[1] = static_cast<byte>((value >>  8) & 0xFF);
-//        p[2] = static_cast<byte>((value >> 16) & 0xFF);
-//        p[3] = static_cast<byte>((value >> 24) & 0xFF);
     }
 
     return write(&result, valueSize);

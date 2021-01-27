@@ -47,16 +47,6 @@ MemoryView::operator[] (size_type index) const {
 }
 
 
-Optional<MemoryView::MemoryAddress>
-MemoryView::dataAddress(size_type offset) const noexcept {
-	if (offset != 0 && offset > _size) {
-		return none;
-    }
-
-	return begin() + offset;
-}
-
-
 MemoryView
 MemoryView::slice(size_type from, size_type to) const noexcept {
 	auto const thisSize = size();

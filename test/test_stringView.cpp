@@ -166,8 +166,10 @@ TEST(TestStringView, testStartsWith) {
     */
 TEST(TestStringView, testEndsWith) {
     EXPECT_TRUE(StringView{}.endsWith('\0'));
-    EXPECT_TRUE(!StringView("Hello world!").endsWith('\0'));
     EXPECT_TRUE(StringView("Hello world!").endsWith('!'));
+
+	EXPECT_FALSE(StringView{""}.endsWith('c'));
+	EXPECT_FALSE(StringView("Hello world!").endsWith('\0'));
 
     EXPECT_TRUE(StringView{}.endsWith(StringView{}));
     EXPECT_TRUE(StringView{"Hello"}.endsWith(""));

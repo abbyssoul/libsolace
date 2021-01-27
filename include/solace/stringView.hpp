@@ -32,17 +32,15 @@ namespace Solace {
  * String View.
  *
  */
-class LIFETIME_HINT_POINTER(char) StringView {
-public:
+struct LIFETIME_HINT_POINTER(char) StringView {
 
-    /// String size_type is intentionally small to discourage long strings.
+	/// String size_type is intentionally small to discourage long strings.
     using size_type = uint16;
-
+	/// Basic unit type this string operates on is a char
     using value_type = char;
-
+	/// Alias for built-in `const char*` for convenience
     using const_iterator = value_type const*;
 
-public:
 
     /** Construct an empty string view. Nothing to see here.
      *  By convention for empty view: data() is equal to nullptr and size() is equal to 0.
@@ -57,14 +55,14 @@ public:
      *  s can contain null characters. The behavior is undefined if [s, s+count) is not a valid range.
      *  After construction, data() is equal to s, and size() is equal to count.
      *
-     * @param s A pointer to a character array or a C string to initialize the view with.
+	 * @param cstr A pointer to a character array or a C string to initialize the view with.
      * @param count Number of characters to include in the view.
      */
-    StringView(char const* s, size_type count) /*noexcept*/
+	StringView(const_iterator cstr, size_type count) /*noexcept*/
         : _size{count}
-        , _data{(s == nullptr)
-                 ? (assertTrue(count == 0), s)
-                 : assertNotNull(s)
+		, _data{(cstr == nullptr)
+				 ? (assertTrue(count == 0), cstr)
+				 : assertNotNull(cstr)
                 }
     {}
 
@@ -116,12 +114,12 @@ public:
     }
 
     //!< True if values are equal
-    bool equals(StringView x) const noexcept;
+	bool equals(StringView other) const noexcept;
 
-    int compareTo(StringView x) const noexcept;
+	int compareTo(StringView other) const noexcept;
 
-    int compareTo(const char* x) const noexcept {
-        return compareTo(StringView{x});
+	int compareTo(const_iterator other) const noexcept {
+		return compareTo(StringView{other});
     }
 
     /**
@@ -151,7 +149,7 @@ public:
      * @return True if this string indeed ends with the given suffix, false otherwise.
      */
     constexpr bool endsWith(char suffix) const noexcept {
-        return (_data == nullptr)
+		return (_data == nullptr || size() == 0)
                 ? (suffix == 0)
                 : (_data[size() - 1] == suffix);
     }
@@ -167,6 +165,9 @@ public:
      *
      * Returns the index within this string of the first occurrence of the
      * give substring.
+	 *
+	 * @param str A string to look for in this string view.
+	 * @param fromIndex An offset into this string view to start looking for a substring.
      *
      * @return Optional index of the first occurrence of the given substring.
      */
@@ -179,24 +180,27 @@ public:
      * If a character given occurs in the String, then the index
      * (in Unicode code units) of the first occurrence is returned, such:
      * this.charAt(k) == ch
-     *
+	 *
+	 * @param ch A value to look for in this string view.
+	 * @param fromIndex An offset into this string view to start looking for a value.
+	 *
      * @return Optional index of the first occurrence of the given character.
      */
     Optional<size_type> indexOf(value_type ch, size_type fromIndex = 0) const noexcept;
 
     /** Index of the last occurrence of the given sub sequance.
-     *
      * Returns the last index within this string of the of the give substring.
-     *
-     * @return Optional index of the last occurrence of the given substring.
+	 * @param str A string to look for in this string view.
+	 * @param fromIndex An offset into this string view to start looking for a substring.
+	 * @return Optional index of the last occurrence of the given substring.
      */
     Optional<size_type> lastIndexOf(StringView str, size_type fromIndex = 0) const noexcept;
 
     /** Index of the last occurrence of the given character.
-     *
      * Returns the index within this string of the last occurrence of the give character.
-     *
-     * @return Optional index of the last occurrence of the given character.
+	 * @param str A value to look for in this string view.
+	 * @param fromIndex An offset into this string view to start looking for a substring.
+	 * @return Optional index of the last occurrence of the given character.
      */
     Optional<size_type> lastIndexOf(value_type ch, size_type fromIndex = 0) const noexcept;
 
@@ -286,29 +290,34 @@ public:
         return substring(from, to);
     }
 
+	/// Trueth value for a string. By convention, string value is True if not empty.
 	constexpr explicit operator bool() const noexcept {
 	  return !empty();
 	}
 
     /** Splits the string around matches of expr
-     * @param delim A delimeter to split the string by.
-     * @return A total number of splits.
+	 * @param delim [in] A delimeter to split the string by.
+	 * @param cb [in] A callback to call with each string segment.
+	 * @return A total number of splits.
      */
     template<typename Callable>
     std::enable_if_t<isCallable<Callable, StringView>::value, size_type>
-    split(StringView delim, Callable&& f) const {
+	split(StringView delim, Callable&& cb) const {
         auto const delimLength = delim.size();
         auto const thisSize = size();
 
+		/// A case of delimenter being longer then the string it self.
+		/// We can't possibly split the string as there can be no occurances of such delimeter.
         if (thisSize < delimLength) {
-            f(*this);
+			cb(*this);
 
             return 1;
         }
 
+		/// Other edge-case: zero-length delimeter. Just split the string char by char.
         if (delimLength == 0) {
             for (size_type to = 0; to < thisSize; ++to) {
-                f(substring(to, to + 1));
+				cb(substring(to, to + 1));
             }
 
             return thisSize;
@@ -320,14 +329,14 @@ public:
         for (size_type to = 0; to + delimLength <= thisSize; ++to) {
             if (delim.equals(substring(to, to + toInc + 1))) {
                 count += 1;
-                f(substring(from, to));
+				cb(substring(from, to));
 
                 to += toInc;
                 from = to + 1;
             }
         }
 
-        f(substring(from));
+		cb(substring(from));
 
         return count;
     }
@@ -362,24 +371,26 @@ public:
         return delimCount + 1;
     }
 
-    /** Splits the string around matches of expr
-     * @param delim A delimeter to split the string by.
-     * @return A list of substrings.
+	/** Splits the string around matches of singe character.
+	 * @param delim [in] A delimeter to split the string by.
+	 * @param cb [in] A callback to call with each string segment.
+	 * @return A count of substrings.
      */
     template<typename Callable>
-    size_type split(value_type delim, Callable&& f) const {
+	size_type split(value_type delim, Callable&& cb) const {
         auto const thisSize = size();
         size_type from = 0, count = 1;
 
         for (size_type to = 0; to < thisSize; ++to) {
             if (_data[to] == delim) {
-                f(substring(from, to));
-                count += 1;
+				cb(substring(from, to));
+
+				count += 1;
                 from = to + 1;
             }
         }
 
-        f(substring(from));
+		cb(substring(from));
 
         return count;
     }

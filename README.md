@@ -72,6 +72,7 @@ The project build is managed via CMake with a Makefile provided to automate some
 In order to build this project, following tools must be present in the system:
 * git (to check out this project)
 * cmake (version 3.12 and above)
+* conan - [Conan](https://conan.io/) package and dependency management.
 * doxygen (for documentation generation)
 * cppcheck (static code analysis, the latest version from git is used as part of the 'codecheck' build step)
 * cpplint (for static code analysis in addition to cppcheck)

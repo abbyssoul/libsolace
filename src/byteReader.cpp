@@ -81,28 +81,28 @@ ByteReader::get(size_type pos) const noexcept {
 }
 
 
+//Result<void, Error>
+//ByteReader::read(MutableMemoryView dest) noexcept {
+//    if (dest.size() < bytesToRead) {
+//		return makeError(SystemErrors::Overflow, "ByteReader::read()");
+//    }
+
+//	return read(dest.dataAddress(), dest.size());
+//}
+
+
 Result<void, Error>
-ByteReader::read(MutableMemoryView dest, size_type bytesToRead) noexcept {
-    if (dest.size() < bytesToRead) {
-		return makeError(SystemErrors::Overflow, "ByteReader::read()");
-    }
-
-    return read(dest.dataAddress(), bytesToRead);
-}
-
-
-Result<void, Error>
-ByteReader::read(void* dest, size_type bytesToRead) noexcept {
-    if (remaining() < bytesToRead) {
-		return makeError(SystemErrors::Overflow, "ByteReader::read()");
-    }
-
-	auto maybeSrcAddress = _storage.view().dataAddress(_position);
-	if (!maybeSrcAddress) {
+ByteReader::read(MemoryView::MutableMemoryAddress dest, size_type bytesToRead) noexcept {
+	if (remaining() < bytesToRead) {
 		return makeError(SystemErrors::Overflow, "ByteReader::read()");
 	}
 
-	memmove(dest, *maybeSrcAddress, bytesToRead);
+	auto srcView = _storage.view().slice(_position, _position + bytesToRead);
+	if (srcView.size() < bytesToRead) {
+		return makeError(SystemErrors::Overflow, "ByteReader::read()");
+	}
+
+	std::memmove(dest, srcView.dataAddress(), bytesToRead);
     _position += bytesToRead;
 
     return Ok();
@@ -110,21 +110,23 @@ ByteReader::read(void* dest, size_type bytesToRead) noexcept {
 
 
 Result<void, Error>
-ByteReader::read(size_type offset, MutableMemoryView dest, size_type bytesToRead) const noexcept {
+ByteReader::read(size_type offset, MutableMemoryView dest) const noexcept {
+	auto const bytesToRead = dest.size();
     if (dest.size() < bytesToRead) {
 		return makeError(SystemErrors::Overflow, "ByteReader::read()");
     }
 
-    if (limit() < (offset + bytesToRead)) {
+	auto const readEnd = (offset + bytesToRead);
+	if (limit() < readEnd) {
 		return makeError(SystemErrors::Overflow, "ByteReader::read()");
     }
 
-	auto maybeSrcAddress = _storage.view().dataAddress(offset);
-	if (!maybeSrcAddress) {
+	auto srcAddress = _storage.view().slice(offset, readEnd);
+	if (srcAddress.size() < bytesToRead) {
 		return makeError(SystemErrors::Overflow, "ByteReader::read()");
 	}
 
-	memmove(dest.dataAddress(), *maybeSrcAddress, bytesToRead);
+	std::memmove(dest.dataAddress(), srcAddress.dataAddress(), bytesToRead);
 
     return Ok();
 }

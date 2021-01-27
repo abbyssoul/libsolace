@@ -32,15 +32,17 @@ namespace Solace {
 
 /**
  * A wrapper for c-style arrays.
- * This array does not own the underlaying memory.
- * Passed by value copies the pointer, not the data.
+ * The view does not own the underlaying memory. Thus it is caller responsibility to ensure
+ * that view lifetime is within the lifetime of the underlaying data source/memory.
+ *
+ * Passed by value copies the pointer to the array, not the data.
  */
 template <typename T>
 class LIFETIME_HINT_POINTER(T) ArrayView {
 public:
-    using ViewType = typename std::conditional<std::is_const<T>::value, MemoryView, MutableMemoryView>::type;
+	using MemoryViewType = typename std::conditional<std::is_const<T>::value, MemoryView, MutableMemoryView>::type;
 
-	using size_type = MemoryView::size_type;
+	using size_type = typename MemoryViewType::size_type;
     using value_type = T;
 
     using Iterator = T *;
@@ -69,9 +71,15 @@ public:
 		: _memory{mv(other._memory)}
     {}
 
-	constexpr ArrayView(ViewType memview) noexcept
+	constexpr ArrayView(MemoryViewType memview) noexcept
 		: _memory{mv(memview)}
-    {}
+	{}
+
+	template <size_t N>
+	constexpr ArrayView(T (&carray)[N]) noexcept
+		: _memory{wrapMemory(carray)}
+	{
+	}
 
 public:
 
@@ -140,6 +148,12 @@ public:
         return _memory.empty();
     }
 
+
+	constexpr explicit operator bool() const noexcept {
+		return (_memory);
+	}
+
+
     /**
      * Get the number of elements in this array
      * @return number of elements in this collection.
@@ -192,7 +206,7 @@ public:
 
 	constexpr MemoryView view() const noexcept { return _memory; }
 
-	constexpr ViewType view() noexcept { return _memory; }
+	constexpr MemoryViewType view() noexcept { return _memory; }
 
     template<typename F, class Q = T>
     std::enable_if_t<!std::is_const<Q>::value, void>
@@ -344,7 +358,7 @@ public:
 private:
 
     /// Memory where the array data is stored.
-    ViewType _memory;
+	MemoryViewType _memory;
 };
 
 
@@ -410,56 +424,49 @@ inline bool operator!= (ArrayView<T> const& value, decltype(nullptr)) noexcept {
 
 /** ArrayView factory */
 template <typename T>
-[[nodiscard]] constexpr ArrayView<T const> arrayView(MemoryView memView) noexcept {
-  return {memView};
+[[nodiscard]] constexpr
+ArrayView<T const> arrayView(MemoryView memView) noexcept {
+	return {memView};
 }
 
 template <typename T>
-[[nodiscard]]
-constexpr ArrayView<T const> arrayView(MemoryView memView, typename ArrayView<T const>::size_type len) noexcept {
-  return (memView.slice(0, len * sizeof(T)));
-}
-
-template <typename T>
-[[nodiscard]] constexpr ArrayView<T> arrayView(MutableMemoryView memView) noexcept {
-  return {memView};
-}
-
-template <typename T>
-[[nodiscard]]
-constexpr ArrayView<T> arrayView(MutableMemoryView memView, typename ArrayView<T>::size_type len) noexcept {
-  return {memView.slice(0, len * sizeof(T))};
+[[nodiscard]] constexpr
+ArrayView<T> arrayView(MutableMemoryView memView) noexcept {
+	return {memView};
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-[[nodiscard]] constexpr ArrayView<T> arrayView(T* ptr, typename ArrayView<T>::size_type size) {
-  return {wrapMemory(ptr, sizeof(T) * size)};
+[[nodiscard]]
+constexpr ArrayView<T> arrayView(T* ptr, MemoryView::size_type length) {
+	return {wrapMemory(ptr, sizeof(T) * length)};
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-[[nodiscard]] constexpr ArrayView<T const> arrayView(T const* ptr, typename ArrayView<T>::size_type size) {
-  return {wrapMemory(ptr, sizeof(T) * size)};
+[[nodiscard]]
+constexpr ArrayView<T const> arrayView(T const* ptr, MemoryView::size_type length) {
+	return {wrapMemory(ptr, sizeof(T) * length)};
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T, size_t N>
-[[nodiscard]] constexpr ArrayView<T> arrayView(T (&carray)[N]) noexcept {
-  return {wrapMemory(carray)};
-}
+[[nodiscard]]
+constexpr ArrayView<T> arrayView(T (&carray)[N]) noexcept { return {carray}; }
 
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-[[nodiscard]] constexpr ArrayView<T> arrayView(T* begin, T* end) {
-  return {wrapMemory(begin, sizeof(T) * (end - begin))};
+[[nodiscard]]
+constexpr ArrayView<T> arrayView(T* begin, T* end) {
+	return {wrapMemory(begin, sizeof(T) * (end - begin))};
 }
 
 /** Syntactic sugar to create ArrayView without spelling out the type name. */
 template <typename T>
-[[nodiscard]] constexpr ArrayView<T const> arrayView(T const* begin, T const* end) {
-  return {wrapMemory(begin, sizeof(T) * (end - begin))};
+[[nodiscard]]
+constexpr ArrayView<T const> arrayView(T const* begin, T const* end) {
+	return {wrapMemory(begin, sizeof(T) * (end - begin))};
 }
 
 

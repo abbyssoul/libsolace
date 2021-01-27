@@ -948,8 +948,7 @@ TEST_F(TestArrayView, sizeNarrowing) {
 	byte buffer[sizeof (MisalignedType) * 3 + sizeof (MisalignedType) / 2];
 
 	// FIXME: Maybe we should return Err() in this case as it is a narrowing
-	auto value = arrayView<MisalignedType>(wrapMemory(buffer), 4);
-
+	auto value = arrayView<MisalignedType>(wrapMemory(buffer));
 	ASSERT_EQ(3U, value.size());
 }
 

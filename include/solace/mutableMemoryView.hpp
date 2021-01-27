@@ -74,15 +74,9 @@ public:
      *
      * @throws IllegalArgumentException if the `data` is nullptr while size is non-zero.
      */
-    MutableMemoryView(void* data, size_type dataSize)
+	MutableMemoryView(MutableMemoryAddress data, size_type dataSize)
 		: MemoryView{data, dataSize}
     {}
-
-    template<typename PodType, size_t N>
-    constexpr MutableMemoryView(PodType const (&data)[N]) noexcept
-		: MemoryView{data}
-    {
-    }
 
 
     using MemoryView::equals;
@@ -112,9 +106,8 @@ public:
      * Return iterator to end of the collection
      * @return iterator to end of the collection
      */
-    constexpr iterator end() noexcept {
-		return (begin() + size());
-    }
+	constexpr iterator end() noexcept { return (begin() + size()); }
+
     using MemoryView::end;
 
 	reference operator[] (size_type index);
@@ -126,7 +119,10 @@ public:
 		return const_cast<MutableMemoryAddress>(MemoryView::dataAddress());
     }
 
-	Optional<MutableMemoryAddress> dataAddress(size_type offset) noexcept;
+	Optional<MutableMemoryAddress> offsetAddress(size_type offset) noexcept  {
+		return MemoryView::offsetAddress(offset)
+				.map([](MemoryAddress addr) { return const_cast<MutableMemoryAddress>(addr); });
+	}
 
 
 	using MemoryView::dataAs;
@@ -141,29 +137,22 @@ public:
 		return const_cast<T&>(MemoryView::dataAs<T>(offset));
 	}
 
-
     /**
      * Copy data from the given memory view into this one
-     * @param source Source of data to be written into this location.
-     * @param offset Offset location into this buffer to copy data to.
+	 * @param source [in] Source of data to be written into this location.
+	 *
+	 * @return Write result: void or an Error
      */
 	[[nodiscard]]
-	Result<void, Error> write(MemoryView const& source, size_type offset = 0);
+	Result<void, Error> write(MemoryView source) noexcept;
 
     /**
      * Copy data from this buffer into the given one.
-     * @param data Data destinatio to transer data into.
-     */
+	 * @param dest [out] Data destination to transer data into.
+	 * @return Result: void or an Error
+	 */
 	[[nodiscard]]
-	Result<void, Error> read(MutableMemoryView& dest);
-
-    /**
-     * Copy data from this buffer into the given one.
-     * @param data Data destinatio to transer data into.
-     * @param bytesToRead Number of bytes to copy from this bufer into the destanation.
-     * @param offset Offset location into this buffer to start reading from.
-     */
-	Result<void, Error> read(MutableMemoryView& dest, size_type bytesToRead, size_type offset = 0);
+	Result<void, Error> read(MutableMemoryView& dest) const noexcept;
 
     /** Fill memory block with the given value.
      *
@@ -237,7 +226,8 @@ inline MutableMemoryView wrapMemory(char* data, MutableMemoryView::size_type siz
 template<typename PodType, size_t N>
 [[nodiscard]]
 constexpr MutableMemoryView wrapMemory(PodType (&data)[N]) noexcept {
-    return {data};
+//    return {data};
+	return {static_cast<MemoryView::MutableMemoryAddress>(data), N * sizeof(PodType)};
 }
 
 inline MutableMemoryView

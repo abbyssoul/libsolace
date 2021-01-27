@@ -209,7 +209,7 @@ public:
      * to make sure that the view return is not used after the array life-time.
      */
     ArrayView<T const> view() const noexcept {
-        return arrayView<T const>(_buffer.view(), _size);
+		return arrayView<T const>(_buffer.view().slice(0, _size*sizeof(T)));
     }
 
     /**
@@ -220,7 +220,7 @@ public:
      * to make sure that the view return is not used after the array life-time.
      */
     ArrayView<T> view() noexcept {
-        return arrayView<T>(_buffer.view(), _size);
+		return arrayView<T>(_buffer.view().slice(0, _size*sizeof(T)));
     }
 
     bool contains(const_reference value) const noexcept {

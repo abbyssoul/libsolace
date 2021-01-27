@@ -39,6 +39,11 @@ namespace Solace {
 /** Fixed size vector.
  * A collection of up-to N elements. Very similar to std::vector with the
  * key difference that all the memory is allocated upfront and never re-allocated.
+ *
+ * Invariant:
+ *  - size() := _nextInsertPosition
+ *  - capacity() := sizeof(value_type) * _buffer.size()
+ *  - size() <= capacity()
  */
 template<typename T>
 class Vector {
@@ -70,9 +75,8 @@ public:
     /** Construct a new array by moving content of a given array */
     constexpr Vector(Vector<T>&& rhs) noexcept
 		: _buffer{mv(rhs._buffer)}
-        , _position{exchange(rhs._position, 0)}
-    {
-    }
+		, _nextInsertPosition{exchange(rhs._nextInsertPosition, 0)}
+	{}
 
     Vector<T>& operator= (Vector<T>&& rhs) noexcept {
 		swap(rhs);
@@ -84,32 +88,28 @@ public:
      * Construct empty vector with zero capacity.
      */
     constexpr explicit Vector(decltype(nullptr)) noexcept
-    {
-    }
+	{}
 
     /** */
     constexpr Vector(MemoryResource&& buffer, size_type count) noexcept
 		: _buffer{mv(buffer)}
-        , _position{count}
-    {
-    }
+		, _nextInsertPosition{count}
+	{}
 
 public:
 
     Vector<T>& swap(Vector<T>& rhs) noexcept {
         using std::swap;
         swap(_buffer, rhs._buffer);
-        swap(_position, rhs._position);
+		swap(_nextInsertPosition, rhs._nextInsertPosition);
 
         return (*this);
     }
 
-    inline Vector& operator= (decltype(nullptr)) {
-      dispose();
-
-      return *this;
-    }
-
+	inline Vector& operator= (decltype(nullptr)) {
+		dispose();
+		return *this;
+	}
 
     bool equals(Vector<T> const& other) const noexcept {
         return ((&other == this) ||
@@ -119,23 +119,30 @@ public:
 
     /**
      * Check if this collection is empty.
-     * @return True is this is an empty collection.
+	 * @return True, if this is an empty collection.
      */
-    constexpr bool empty() const noexcept {
-        return (_position == 0);
-    }
+	constexpr bool empty() const noexcept { return (_nextInsertPosition == 0); }
 
     /**
      * Get the number of elements in this array
      * @return The size of this finite collection
      */
-    constexpr size_type size() const noexcept {
-        return _position;
-    }
+	constexpr size_type size() const noexcept { return _nextInsertPosition; }
 
+	/**
+	 * Get capacity of the vector.
+	 * Once the vector.size() == capacity() no more elements can be pushed into the vector.
+	 * @return Max number of elements that can be pushed into this collection.
+	 */
     constexpr size_type capacity() const noexcept {
         return _buffer.size() / sizeof(T);
     }
+
+	/**
+	 * Check if this collection is full.
+	 * @return True, if this there is no more room to add elements into this collection.
+	 */
+	constexpr bool full() const noexcept { return (capacity() == size()); }
 
     /**
      * Return iterator to beginning of the collection
@@ -184,11 +191,13 @@ public:
 	}
 
     ArrayView<T const> view() const noexcept {
-        return arrayView<T const>(_buffer.view(), _position);
-    }
+		return arrayView<T const>(_buffer.view().slice(0, sizeof(value_type)*size()));
+//		return arrayView<T const>(_buffer.view(), size());
+	}
 
     ArrayView<T> view() noexcept {
-        return arrayView<T>(_buffer.view(), _position);
+		return arrayView<T>(_buffer.view().slice(0, sizeof(value_type)*size()));
+//		return arrayView<T>(_buffer.view(), size());
     }
 
     bool contains(const_reference value) const noexcept {
@@ -202,12 +211,12 @@ public:
 
     template<typename... Args>
 	Result<T&, Error> emplace_back(Args&&... args) {
-		if (capacity() <= _position) {
+		if (capacity() <= size()) {
 			return makeError(BasicError::Overflow, "Vector::emplace_back");
 		}
 
 		auto arena = _buffer.view()
-				.template sliceFor<value_type>(_position);
+				.template sliceFor<value_type>(size());
 
 		if (arena.empty()) {
 			return makeError(BasicError::Overflow, "Vector::emplace_back");
@@ -215,7 +224,7 @@ public:
 
 
 		auto value = arena.template construct<value_type>(fwd<Args>(args)...);
-		_position += 1;
+		_nextInsertPosition += 1;
 
 		return Result<T&, Error>{types::okTag, in_place, *value};
     }
@@ -235,13 +244,13 @@ public:
      * @note No exception is thrown if element doesn't throw on destruction.
      */
     void pop_back() noexcept(std::is_nothrow_destructible<T>::value) {
-        if (_position < 1) {
+		if (size() < 1) {
             return;
         }
 
-        _position -= 1;
+		_nextInsertPosition -= 1;
         _buffer.view()
-                .template sliceFor<value_type>(_position)
+				.template sliceFor<value_type>(_nextInsertPosition)
                 .template destruct<value_type>();
     }
 
@@ -251,7 +260,7 @@ public:
      * @note No exception is thrown if element doesn't throw on destruction.
      */
     void clear() noexcept(std::is_nothrow_destructible<T>::value) {
-        while (_position > 0) {
+		while (size() > 0) {
             pop_back();
         }
     }
@@ -262,7 +271,7 @@ public:
      * @return An array owning the content.
      */
     Array<T> toArray() & noexcept {
-		return {mv(_buffer), exchange(_position, 0)};
+		return {mv(_buffer), exchange(_nextInsertPosition, 0)};
     }
 
 protected:
@@ -272,16 +281,19 @@ protected:
         for (auto& i : v) {
             dtor(i);
         }
-    }
+
+		_nextInsertPosition = 0;
+	}
 
     template <typename U>
     friend class Array;
+
     template <typename U>
     friend class ArrayBuilder;
 
 private:
     MemoryResource      _buffer;
-    size_type           _position{0};
+	size_type           _nextInsertPosition{0};
 };
 
 

@@ -210,19 +210,12 @@ public:
      */
     Result<void, Error>
     read(MutableMemoryView dest) noexcept {
-        return read(dest, dest.size());
+		return read(dest.dataAddress(), dest.size());
     }
 
     Result<void, Error>
-    read(MutableMemoryView dest, size_type bytesToRead) noexcept;
+	read(size_type offset, MutableMemoryView dest) const noexcept;
 
-    Result<void, Error>
-    read(size_type offset, MutableMemoryView dest, size_type bytesToRead) const noexcept;
-
-    Result<void, Error>
-    read(size_type offset, MutableMemoryView dest) const noexcept {
-        return read(offset, dest, dest.size());
-    }
 
     MemoryView viewRemaining() const noexcept {
         return _storage.view().slice(position(), limit());
@@ -260,7 +253,7 @@ public:
     Result<void, Error>  readBE(uint64& value)noexcept;
 
 protected:
-    Result<void, Error>  read(void* dest, size_type count) noexcept;
+	Result<void, Error>  read(MemoryView::MutableMemoryAddress dest, size_type count) noexcept;
 
 protected:
 

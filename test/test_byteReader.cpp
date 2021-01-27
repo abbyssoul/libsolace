@@ -133,7 +133,7 @@ TEST(TestReadBuffer, testReadIntoBuffer) {
     ByteReader buffer(wrapMemory(srcBytes));
     MutableMemoryView destView = wrapMemory(destBuffer);
 
-    EXPECT_TRUE(buffer.read(destView, readBufferChunk).isOk());
+	EXPECT_TRUE(buffer.read(destView.slice(0, readBufferChunk)).isOk());
     for (size_type i = 0; i < readBufferChunk; ++i) {
         EXPECT_EQ(srcBytes[i], destBuffer[i]);
     }
@@ -142,7 +142,7 @@ TEST(TestReadBuffer, testReadIntoBuffer) {
     EXPECT_EQ(readBufferChunk, buffer.position());
 
     // Attempting to read more data then there is the buffer
-    EXPECT_TRUE(buffer.read(destView, testSize).isError());
+	EXPECT_TRUE(buffer.read(destView.slice(0, testSize)).isError());
 }
 
 TEST(TestReadBuffer, testReadFromOffset) {
@@ -151,12 +151,12 @@ TEST(TestReadBuffer, testReadFromOffset) {
 
     byte readBuffer[128];
 	constexpr size_type const readBufferChunk = 3;
-	MutableMemoryView destView = wrapMemory(readBuffer);
 
-    ByteReader buffer(wrapMemory(srcBytes));
+	MutableMemoryView destView{wrapMemory(readBuffer)};
+	ByteReader buffer{wrapMemory(srcBytes)};
 
     // Read data from an offset
-    EXPECT_TRUE(buffer.read(4, destView, readBufferChunk).isOk());
+	EXPECT_TRUE(buffer.read(4, destView.slice(0, readBufferChunk)).isOk());
     for (size_type i = 0; i < readBufferChunk; ++i) {
         EXPECT_EQ(srcBytes[4 + i], readBuffer[i]);
     }
@@ -165,10 +165,10 @@ TEST(TestReadBuffer, testReadFromOffset) {
 	EXPECT_EQ(0U, buffer.position());
 
     // We can't read more data than there is in the buffer
-    EXPECT_TRUE(buffer.read(testSize - 3, destView, 12).isError());
+	EXPECT_TRUE(buffer.read(testSize - 3, destView.slice(0, 12)).isError());
 
     // We can't read from the offset beyond the buffer size either
-    EXPECT_TRUE(buffer.read(testSize + 3, destView, 2).isError());
+	EXPECT_TRUE(buffer.read(testSize + 3, destView.slice(0, 2)).isError());
 }
 
 

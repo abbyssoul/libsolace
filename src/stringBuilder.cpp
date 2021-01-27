@@ -154,16 +154,16 @@ StringBuilder::substring(size_type from, size_type to) const {
 
 
 Optional<StringBuilder::size_type>
-StringBuilder::indexOf(const Char& ch, size_type fromIndex) const {
+StringBuilder::indexOf(Char const& ch, size_type fromIndex) const {
     // TODO(abbyssoul): Check for index out of range
 
     MutableMemoryView::value_type buffer[Char::max_bytes];
     auto b = wrapMemory(buffer);
 
-
     ByteReader reader(_buffer.viewWritten());
     for (size_type i = fromIndex; i + ch.getBytesCount() < reader.limit(); ++i) {
-        reader.read(i, b, ch.getBytesCount());
+		b.fill(0);
+		reader.read(i, b.slice(0, ch.getBytesCount()));
 
         if (ch.equals(b)) {
             return Optional<size_type>(i);
