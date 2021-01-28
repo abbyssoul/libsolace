@@ -3,7 +3,7 @@ name: Build conan package
 on:
   push:
     tags:
-    - 'v*'
+      - 'v*'
 
 jobs:
   build:
@@ -81,65 +81,62 @@ jobs:
 
     runs-on: ubuntu-latest
     env:
-        CONAN_USERNAME: "abbyssoul"
-        CONAN_LOGIN_USERNAME: "abbyssoul"
-        CONAN_PASSWORD: ${{ secrets.conan_key }}
-        CONAN_CHANNEL: "stable"
-        CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
-        CONAN_BUILD_POLICY: outdated
-        CONAN_GCC_VERSIONS: ${{ matrix.gcc_version }}
-        CONAN_ARCHS: ${{matrix.build_arch}}
-        CONAN_CLANG_VERSIONS: ${{matrix.clang_version}}
-        CONAN_DOCKER_IMAGE: ${{ matrix.docker_image }}
-        # CONAN_STABLE_BRANCH_PATTERN: "release/*"
+      CONAN_USERNAME: "abbyssoul"
+      CONAN_LOGIN_USERNAME: "abbyssoul"
+      CONAN_PASSWORD: ${{ secrets.conan_key }}
+      CONAN_CHANNEL: "stable"
+      CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
+      CONAN_BUILD_POLICY: outdated
+      CONAN_GCC_VERSIONS: ${{ matrix.gcc_version }}
+      CONAN_ARCHS: ${{matrix.build_arch}}
+      CONAN_CLANG_VERSIONS: ${{matrix.clang_version}}
+      CONAN_DOCKER_IMAGE: ${{ matrix.docker_image }}
 
     steps:
-    - uses: actions/checkout@master
-    - uses: actions/setup-python@master
-      with:
-        python-version: '3.7'
-    - name: Generating conan user directory
-      run: |
-        python -m pip install conan conan_package_tools -U
-        conan profile new default --detect
-        conan user
-    - name: Deduce package version from tag
-      run: |
-        git fetch --depth=1 origin +$GITHUB_REF:$GITHUB_REF
-        export CONAN_VERSION=$(git describe --tags)
-#        echo "::set-env name=CONAN_REFERENCE::libsolace/${CONAN_VERSION}"
-        echo "CONAN_REFERENCE=libsolace/${CONAN_VERSION}" >> $GITHUB_ENV
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@master
+        with:
+          python-version: '3.7'
+      - name: Generating conan user directory
+        run: |
+          python -m pip install conan conan_package_tools -U
+          conan profile new default --detect
+          conan user
+      - name: Deduce package version from tag
+        run: |
+          git fetch --depth=1 origin +$GITHUB_REF:$GITHUB_REF
+          export CONAN_VERSION=$(git describe --tags)
+          echo "CONAN_REFERENCE=libsolace/${CONAN_VERSION}" >> $GITHUB_ENV
 
-    - name: Building and publish the package
-      run: python build-conan-package.py
+      - name: Building and publish the package
+        run: python build-conan-package.py
 
   build-osx:
     runs-on: macOS-latest
     env:
-        CONAN_USERNAME: "abbyssoul"
-        CONAN_LOGIN_USERNAME: "abbyssoul"
-        CONAN_PASSWORD: ${{ secrets.conan_key }}
-        CONAN_CHANNEL: "stable"
-        CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
-        CONAN_APPLE_CLANG_VERSIONS: "11.0"
-        CONAN_BUILD_POLICY: outdated
+      CONAN_USERNAME: "abbyssoul"
+      CONAN_LOGIN_USERNAME: "abbyssoul"
+      CONAN_PASSWORD: ${{ secrets.conan_key }}
+      CONAN_CHANNEL: "stable"
+      CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
+      CONAN_APPLE_CLANG_VERSIONS: "11.0"
+      CONAN_BUILD_POLICY: outdated
 
     steps:
-    - uses: actions/checkout@master
-    - uses: actions/setup-python@master
-      with:
-        python-version: '3.7'
-    - name: Generating conan profile and user directory
-      run: |
-        python -m pip install conan conan_package_tools -U
-        conan profile new default --detect
-        conan user
-    - name: Deduce package version from tag
-      run: |
-        git fetch --depth=1 origin +$GITHUB_REF:$GITHUB_REF
-        export CONAN_VERSION=$(git describe --tags)
-        echo "CONAN_REFERENCE=libsolace/${CONAN_VERSION}" >> $GITHUB_ENV
-#        echo "::set-env name=CONAN_REFERENCE::libsolace/${CONAN_VERSION}"
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@master
+        with:
+          python-version: '3.7'
+      - name: Generating conan profile and user directory
+        run: |
+          python -m pip install conan conan_package_tools -U
+          conan profile new default --detect
+          conan user
+      - name: Deduce package version from tag
+        run: |
+          git fetch --depth=1 origin +$GITHUB_REF:$GITHUB_REF
+          export CONAN_VERSION=$(git describe --tags)
+          echo "CONAN_REFERENCE=libsolace/${CONAN_VERSION}" >> $GITHUB_ENV
 
-    - name: Building and publish the package
-      run: python build-conan-package.py
+      - name: Building and publish the package
+        run: python build-conan-package.py

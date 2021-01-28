@@ -2,25 +2,26 @@ name: "Code linter"
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
-    - uses: actions/setup-python@master
-      with:
-        python-version: '3.7'
-    - run: |
-        python -m pip install cpplint -U
-    - name: configure
-      run: ./configure --enable-sanitizer
+      - uses: actions/checkout@master
+      - uses: actions/setup-python@master
+        with:
+          python-version: '3.7'
+      - run: |
+          python -m pip install cpplint -U
 
-    - name: Cpplint
-      run: make cpplint
+      - name: configure
+        run: ./configure --enable-sanitizer
 
-    - name: Cppcheck
-      run: make cppcheck
+      - name: Cpplint
+        run: make cpplint
+
+      - name: Cppcheck
+        run: make cppcheck
