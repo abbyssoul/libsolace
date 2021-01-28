@@ -27,7 +27,7 @@ DOC_DIR = docs
 DOC_TARGET_HTML = $(DOC_DIR)/html
 
 COVERAGE_REPORT = coverage.info
-CPPCHECK_VERSION = '1.90'
+CPPCHECK_VERSION = '2.3'
 
 ifdef sanitize
 	SANITIZE = ON

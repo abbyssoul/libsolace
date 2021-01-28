@@ -100,17 +100,17 @@ public:
     /** Get size of a memory page in bytes.
      * @return Size of the system's memory page in bytes.
      */
-    size_type getPageSize() const;
+	size_type getPageSize() const;
 
     /** Get the number of pages of physical memory.
      * @return The number of pages of physical memory.
      */
-    size_type getNbPages() const;
+	size_type getNbPages() const;
 
     /** Get the number of currently available pages of physical memory.
      * @return The number of currently available pages of physical memory.
      */
-    size_type getNbAvailablePages() const;
+	size_type getNbAvailablePages() const;
 
     /**
      * Allocate a memory segment of the give size.

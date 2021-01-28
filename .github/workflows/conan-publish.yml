@@ -13,13 +13,19 @@ jobs:
           - conanio/gcc8
           - conanio/gcc8-armv7
           - conanio/gcc8-armv7hf
+          - conanio/gcc8-armv8
           - conanio/gcc9
           - conanio/gcc9-armv7
           - conanio/gcc9-armv7hf
+          - conanio/gcc9-armv8
+          - conanio/gcc10
+          - conanio/gcc10-armv7
+          - conanio/gcc10-armv7hf
           - conanio/clang7
           - conanio/clang8
           - conanio/clang9
-
+          - conanio/clang10
+          - conanio/clang11
         include:
           - docker_image: conanio/gcc8
             gcc_version: 8
@@ -30,6 +36,10 @@ jobs:
           - docker_image: conanio/gcc8-armv7hf
             gcc_version: 8
             build_arch: armv7hf
+          - docker_image: conanio/gcc8-armv8
+            gcc_version: 8
+            build_arch: armv8
+
           - docker_image: conanio/gcc9
             gcc_version: 9
             build_arch: x86_64
@@ -39,6 +49,20 @@ jobs:
           - docker_image: conanio/gcc9-armv7hf
             gcc_version: 9
             build_arch: armv7hf
+          - docker_image: conanio/gcc9-armv8
+            gcc_version: 9
+            build_arch: armv8
+
+          - docker_image: conanio/gcc10
+            gcc_version: 10
+            build_arch: x86_64
+          - docker_image: conanio/gcc10-armv7
+            gcc_version: 10
+            build_arch: armv7
+          - docker_image: conanio/gcc10-armv7hf
+            gcc_version: 10
+            build_arch: armv7hf
+
           - docker_image: conanio/clang7
             clang_version: "7.0"
             build_arch: x86_64
@@ -47,6 +71,12 @@ jobs:
             build_arch: x86_64
           - docker_image: conanio/clang9
             clang_version: 9
+            build_arch: x86_64
+          - docker_image: conanio/clang10
+            clang_version: 10
+            build_arch: x86_64
+          - docker_image: conanio/clang11
+            clang_version: 11
             build_arch: x86_64
 
     runs-on: ubuntu-latest
@@ -77,7 +107,8 @@ jobs:
       run: |
         git fetch --depth=1 origin +$GITHUB_REF:$GITHUB_REF
         export CONAN_VERSION=$(git describe --tags)
-        echo "::set-env name=CONAN_REFERENCE::libsolace/${CONAN_VERSION}"
+#        echo "::set-env name=CONAN_REFERENCE::libsolace/${CONAN_VERSION}"
+        echo "CONAN_REFERENCE=libsolace/${CONAN_VERSION}" >> $GITHUB_ENV
 
     - name: Building and publish the package
       run: python build-conan-package.py
@@ -107,7 +138,8 @@ jobs:
       run: |
         git fetch --depth=1 origin +$GITHUB_REF:$GITHUB_REF
         export CONAN_VERSION=$(git describe --tags)
-        echo "::set-env name=CONAN_REFERENCE::libsolace/${CONAN_VERSION}"
+        echo "CONAN_REFERENCE=libsolace/${CONAN_VERSION}" >> $GITHUB_ENV
+#        echo "::set-env name=CONAN_REFERENCE::libsolace/${CONAN_VERSION}"
 
     - name: Building and publish the package
       run: python build-conan-package.py

@@ -51,8 +51,11 @@ MemoryManager& MemoryManager::swap(MemoryManager& rhs) noexcept {
 
 
 MemoryManager::size_type MemoryManager::getPageSize() const {
-//    auto const res = sysconf(PAGESIZE);
-    return narrow_cast<size_type>(getpagesize());
+	auto const res = sysconf(_SC_PAGESIZE);
+	assertErrno(res >= 0, "sysconf(_SC_PAGESIZE)");
+
+//    auto const res = getpagesize();
+	return narrow_cast<size_type>(res);
 }
 
 

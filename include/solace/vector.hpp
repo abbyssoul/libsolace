@@ -192,12 +192,10 @@ public:
 
     ArrayView<T const> view() const noexcept {
 		return arrayView<T const>(_buffer.view().slice(0, sizeof(value_type)*size()));
-//		return arrayView<T const>(_buffer.view(), size());
 	}
 
     ArrayView<T> view() noexcept {
 		return arrayView<T>(_buffer.view().slice(0, sizeof(value_type)*size()));
-//		return arrayView<T>(_buffer.view(), size());
     }
 
     bool contains(const_reference value) const noexcept {

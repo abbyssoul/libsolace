@@ -73,34 +73,6 @@ MutableMemoryView::read(MutableMemoryView& dest) const noexcept {
 }
 
 
-//Result<void, Error>
-//MutableMemoryView::read(MutableMemoryView& dest, size_type bytesToRead, size_type offset) {
-//	auto const thisSize = size();
-
-//    // Check if there is enough room in the dest to hold `bytesToRead` bytes.
-//	if (dest.size() < bytesToRead) {  // Precondition: `bytesToRead <= dest.size()` don't ask to read more then can hold
-//		return makeError(GenericError::DOM, "bytesToRead: dest is too small");
-//	}
-
-//	auto maybeDestAddr = dataAddress(offset);
-//    // Make sure that offset is within [0, size())
-//	if (!maybeDestAddr) {  // Precondition: `offset <= this.size()` - don't go out of bounds
-//		return makeError(GenericError::DOM, "offset: outside of bounds");
-//	}
-
-//	// Make sure there is enough data in this buffer to read
-//	if (thisSize < offset + bytesToRead) {  // Precondition, `offset + bytesToRead <= thisSize` don't read more then is
-//		return makeError(GenericError::DOM, "offset+bytesToRead: outside of bounds");
-//	}
-
-//	if (bytesToRead > 0) {
-//		std::memmove(dest.dataAddress(), *maybeDestAddr, bytesToRead);
-//	}
-
-//	return Ok();
-//}
-
-
 MutableMemoryView&
 MutableMemoryView::fill(byte value) noexcept {
 	std::memset(dataAddress(), value, size());
