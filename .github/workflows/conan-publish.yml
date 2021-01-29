@@ -119,7 +119,7 @@ jobs:
       CONAN_PASSWORD: ${{ secrets.conan_key }}
       CONAN_CHANNEL: "stable"
       CONAN_UPLOAD: "https://api.bintray.com/conan/abbyssoul/public-conan"
-      CONAN_APPLE_CLANG_VERSIONS: "11.0"
+      CONAN_APPLE_CLANG_VERSIONS: "12.0"
       CONAN_BUILD_POLICY: outdated
 
     steps:
