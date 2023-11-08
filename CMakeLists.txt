@@ -10,8 +10,6 @@ option(PKG_CONFIG "Enable installation of pkgconfig file" OFF)
 # Include common compile flag
 include(cmake/compile_flags.cmake)
 include(GNUInstallDirs)
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
 
 # Configure the project:
 configure_file(lib${PROJECT_NAME}.pc.in lib${PROJECT_NAME}.pc @ONLY)
